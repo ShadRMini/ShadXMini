@@ -1,6 +1,4 @@
 import express, { type Express } from "express";
-import path from "path";
-import fs from "fs";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import pinoHttp from "pino-http";
@@ -64,6 +62,10 @@ app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(sessionMiddleware);
 
+app.get("/", (_req, res) => {
+  res.json({ status: "ok", message: "ShadXMini API is running" });
+});
+
 app.use("/api", (_req, res, next) => {
   res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
   res.setHeader("Pragma", "no-cache");
@@ -76,42 +78,6 @@ primeTelegramIntegrations();
 
 app.use("/api", router);
 app.use("/api", adminRouter);
-
-// Serve static frontend builds
-const publicStorePaths = [
-  path.resolve(process.cwd(), "artifacts/xpay-store/dist/public"),
-  path.resolve(process.cwd(), "artifacts/xpay-store/dist"),
-  path.resolve(process.cwd(), "dist/public"),
-  path.resolve(process.cwd(), "dist"),
-];
-
-const publicAdminPaths = [
-  path.resolve(process.cwd(), "artifacts/xpay-admin/dist/public"),
-  path.resolve(process.cwd(), "artifacts/xpay-admin/dist"),
-];
-
-const storeDist = publicStorePaths.find((p) => fs.existsSync(p));
-const adminDist = publicAdminPaths.find((p) => fs.existsSync(p));
-
-if (adminDist) {
-  app.use("/admin", express.static(adminDist));
-  app.use((req, res, next) => {
-    if (req.method === "GET" && req.path.startsWith("/admin")) {
-      return res.sendFile(path.join(adminDist, "index.html"));
-    }
-    next();
-  });
-}
-
-if (storeDist) {
-  app.use(express.static(storeDist));
-  app.use((req, res, next) => {
-    if (req.method === "GET" && !req.path.startsWith("/api")) {
-      return res.sendFile(path.join(storeDist, "index.html"));
-    }
-    next();
-  });
-}
 
 app.use((err: any, _req: any, res: any, _next: any) => {
   const status = Number(err?.statusCode || 500);
