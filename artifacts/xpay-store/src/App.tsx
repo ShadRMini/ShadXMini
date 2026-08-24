@@ -3,6 +3,8 @@ import { Switch, Route, Router as WouterRouter } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { AuthProvider } from "@/lib/auth-context";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
 import Categories from "@/pages/categories";
@@ -16,6 +18,10 @@ import ShamCashInvoiceVerify from "@/pages/shamcash-invoice-verify";
 import DepositsList from "@/pages/deposits";
 import Profile from "@/pages/profile";
 import Support from "@/pages/support";
+import Favorites from "@/pages/favorites";
+import About from "@/pages/about";
+import Login from "@/pages/login";
+import Register from "@/pages/register";
 import AppLayout from "@/components/layout/AppLayout";
 
 const queryClient = new QueryClient();
@@ -213,23 +219,34 @@ function StorePopup({ settings }: { settings: AppSettings }) {
 
 function Router() {
   return (
-    <AppLayout>
-      <Switch>
-        <Route path="/" component={Home} />
-        <Route path="/categories/:id" component={Categories} />
-        <Route path="/groups/:id" component={ProductGroupProducts} />
-        <Route path="/products/:id" component={ProductDetail} />
-        <Route path="/orders" component={Orders} />
-        <Route path="/orders/:id" component={OrderDetail} />
-        <Route path="/deposit" component={Deposit} />
-        <Route path="/deposit/:method/invoice" component={ShamCashInvoiceVerify} />
-        <Route path="/deposit/:method" component={DepositMethod} />
-        <Route path="/deposits" component={DepositsList} />
-        <Route path="/profile" component={Profile} />
-        <Route path="/support" component={Support} />
-        <Route component={NotFound} />
-      </Switch>
-    </AppLayout>
+    <Switch>
+      {/* Auth routes without AppLayout */}
+      <Route path="/login" component={Login} />
+      <Route path="/register" component={Register} />
+
+      {/* Main Store routes with AppLayout and Protection */}
+      <Route>
+        <AppLayout>
+          <Switch>
+            <Route path="/" component={() => <ProtectedRoute component={Home} />} />
+            <Route path="/categories/:id" component={() => <ProtectedRoute component={Categories} />} />
+            <Route path="/groups/:id" component={() => <ProtectedRoute component={ProductGroupProducts} />} />
+            <Route path="/products/:id" component={() => <ProtectedRoute component={ProductDetail} />} />
+            <Route path="/orders" component={() => <ProtectedRoute component={Orders} />} />
+            <Route path="/orders/:id" component={() => <ProtectedRoute component={OrderDetail} />} />
+            <Route path="/deposit" component={() => <ProtectedRoute component={Deposit} />} />
+            <Route path="/deposit/:method/invoice" component={() => <ProtectedRoute component={ShamCashInvoiceVerify} />} />
+            <Route path="/deposit/:method" component={() => <ProtectedRoute component={DepositMethod} />} />
+            <Route path="/deposits" component={() => <ProtectedRoute component={DepositsList} />} />
+            <Route path="/favorites" component={() => <ProtectedRoute component={Favorites} />} />
+            <Route path="/profile" component={() => <ProtectedRoute component={Profile} />} />
+            <Route path="/support" component={() => <ProtectedRoute component={Support} />} />
+            <Route path="/about" component={() => <ProtectedRoute component={About} />} />
+            <Route component={NotFound} />
+          </Switch>
+        </AppLayout>
+      </Route>
+    </Switch>
   );
 }
 
@@ -273,13 +290,15 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-          <Router />
-        </WouterRouter>
-        {settings && <StorePopup settings={settings} />}
-        <Toaster theme="dark" position="top-center" dir="rtl" />
-      </TooltipProvider>
+      <AuthProvider>
+        <TooltipProvider>
+          <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+            <Router />
+          </WouterRouter>
+          {settings && <StorePopup settings={settings} />}
+          <Toaster theme="dark" position="top-center" dir="rtl" />
+        </TooltipProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

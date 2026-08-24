@@ -1,4 +1,4 @@
-﻿import { Link, useRoute } from "wouter";
+import { Link, useRoute } from "wouter";
 import { ChevronRight, PackageOpen, Search } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
@@ -84,8 +84,8 @@ export default function ProductGroupProducts() {
 
       <div className="flex-1 p-4">
         {loading ? (
-          <div className="grid grid-cols-4 gap-3.5">
-            {Array.from({ length: 8 }).map((_, i) => (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3.5">
+            {Array.from({ length: 10 }).map((_, i) => (
               <div key={i} className="flex flex-col gap-2">
                 <Skeleton className="w-full aspect-[4/3] rounded-2xl" />
                 <Skeleton className="h-4 w-full" />
@@ -94,7 +94,7 @@ export default function ProductGroupProducts() {
             ))}
           </div>
         ) : sortedProducts.length > 0 ? (
-          <div className="grid grid-cols-4 gap-3.5">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3.5">
             {sortedProducts.map((product, i) => (
               <Link key={product.id} href={`/products/${product.id}`}>
                 <motion.div

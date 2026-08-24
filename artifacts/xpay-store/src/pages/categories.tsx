@@ -115,7 +115,7 @@ export default function Categories() {
         {!search && groups.length > 0 && (
           <div className="mb-6">
             <div className="mb-3 text-sm font-bold text-foreground">الخيارات المتاحة</div>
-            <div className="grid grid-cols-4 gap-3.5">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3.5">
               {groups.map((group, i) => (
                 <Link key={group.id} href={`/groups/${group.id}`}>
                   <motion.div
@@ -152,8 +152,8 @@ export default function Categories() {
         )}
 
         {isLoading && visibleProducts.length === 0 ? (
-          <div className="grid grid-cols-4 gap-3.5">
-            {Array.from({ length: 8 }).map((_, i) => (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3.5">
+            {Array.from({ length: 10 }).map((_, i) => (
               <div key={i} className="flex flex-col gap-2">
                 <Skeleton className="w-full aspect-[4/3] rounded-2xl" />
                 <Skeleton className="h-4 w-full" />
@@ -162,7 +162,7 @@ export default function Categories() {
             ))}
           </div>
         ) : visibleProducts.length > 0 ? (
-          <div className="grid grid-cols-4 gap-3.5">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3.5">
             {visibleProducts.map((product, i) => (
               <Link key={product.id} href={`/products/${product.id}`}>
                 <motion.div

@@ -1,11 +1,13 @@
-﻿import { useGetProfile } from "@workspace/api-client-react";
-import { Wallet, Settings, LogOut, ShieldAlert, User as UserIcon } from "lucide-react";
+import { useGetProfile } from "@workspace/api-client-react";
+import { Wallet, Settings, LogOut, ShieldAlert, User as UserIcon, Crown } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useAuth } from "@/lib/auth-context";
 
 export default function Profile() {
   const { data: profile, isLoading } = useGetProfile();
-  const shortId = profile?.telegramId
-    ? (((Number(String(profile.telegramId).replace(/\D/g, "").slice(-10) || "0") % 9000) + 1000)
+  const { user, logout } = useAuth();
+  const shortId = profile?.telegramId || user?.telegramId || user?.displayId
+    ? (((Number(String(profile?.telegramId || user?.telegramId || user?.displayId).replace(/\D/g, "").slice(-10) || "0") % 9000) + 1000)
         .toString()
         .padStart(4, "0"))
     : "---";
@@ -69,7 +71,10 @@ export default function Profile() {
             </div>
             <div className="flex-1 font-medium text-sm text-foreground">إعدادات الحساب</div>
           </div>
-          <div className="p-4 flex items-center gap-3 hover:bg-white/5 cursor-pointer transition-colors text-destructive">
+          <div
+            onClick={logout}
+            className="p-4 flex items-center gap-3 hover:bg-white/5 cursor-pointer transition-colors text-destructive"
+          >
             <div className="w-10 h-10 rounded-full bg-destructive/10 flex items-center justify-center">
               <LogOut className="w-5 h-5" />
             </div>

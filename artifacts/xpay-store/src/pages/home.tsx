@@ -1,4 +1,4 @@
-﻿import { useGetProfile, useListBanners, useListCategories, useListNews } from "@workspace/api-client-react";
+import { useGetProfile, useListBanners, useListCategories, useListNews } from "@workspace/api-client-react";
 import { useEffect, useState } from "react";
 import { Link } from "wouter";
 import { Wallet, Plus, BellRing } from "lucide-react";
@@ -222,7 +222,7 @@ export default function Home() {
           </div>
 
           {categoriesLoading && visibleCategories.length === 0 ? (
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3 sm:gap-4">
               {Array.from({ length: 8 }).map((_, i) => (
                 <div key={i} className="flex flex-col items-center gap-2">
                   <Skeleton className="w-full aspect-square rounded-2xl" />
@@ -231,7 +231,7 @@ export default function Home() {
               ))}
             </div>
           ) : visibleCategories.length > 0 ? (
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-x-3 gap-y-5">
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-x-3 gap-y-5 sm:gap-4">
               {visibleCategories.map((cat, i) => (
                 <Link key={cat.id} href={`/categories/${cat.id}`}>
                   <motion.div

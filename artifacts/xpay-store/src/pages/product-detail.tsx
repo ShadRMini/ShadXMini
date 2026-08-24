@@ -1,6 +1,6 @@
-﻿import { useGetProduct, getGetProductQueryKey, useCreateOrder } from "@workspace/api-client-react";
+import { useGetProduct, getGetProductQueryKey, useCreateOrder } from "@workspace/api-client-react";
 import { useRoute, useLocation, Link } from "wouter";
-import { ChevronRight, ShoppingCart, AlertCircle } from "lucide-react";
+import { ChevronRight, ShoppingCart, AlertCircle, Heart } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -49,6 +49,52 @@ export default function ProductDetail() {
   const [quantityInput, setQuantityInput] = useState("1");
   const [accountId, setAccountId] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [favLoading, setFavLoading] = useState(false);
+
+  useEffect(() => {
+    if (!id) return;
+    const token = localStorage.getItem("xpay_store_auth_token");
+    const baseUrl = (import.meta.env.VITE_API_URL || "").replace(/\/+$/, "");
+    const headers: Record<string, string> = { Accept: "application/json" };
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+
+    fetch(`${baseUrl}/api/favorites?_=${Date.now()}`, { headers, credentials: "include" })
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) => {
+        if (Array.isArray(data)) {
+          const match = data.some((item: any) => String(item.id) === String(id));
+          setIsFavorite(match);
+        }
+      })
+      .catch(() => {});
+  }, [id]);
+
+  const toggleFavorite = async () => {
+    if (!id || favLoading) return;
+    setFavLoading(true);
+    try {
+      const baseUrl = (import.meta.env.VITE_API_URL || "").replace(/\/+$/, "");
+      const token = localStorage.getItem("xpay_store_auth_token");
+      const headers: Record<string, string> = { Accept: "application/json" };
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+
+      const res = await fetch(`${baseUrl}/api/favorites/${id}`, {
+        method: isFavorite ? "DELETE" : "POST",
+        headers,
+        credentials: "include",
+      });
+
+      if (res.ok) {
+        setIsFavorite(!isFavorite);
+        toast.success(isFavorite ? "تمت إزالة المنتج من المفضلة" : "تمت إضافة المنتج للمفضلة");
+      }
+    } catch {
+      toast.error("فشل تحديث المفضلة");
+    } finally {
+      setFavLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (!product) return;
@@ -180,6 +226,20 @@ export default function ProductDetail() {
               <ChevronRight className="w-6 h-6" />
             </div>
           </Link>
+        </div>
+        <div className="absolute top-4 left-4 z-20">
+          <button
+            type="button"
+            onClick={toggleFavorite}
+            disabled={favLoading}
+            className="bg-black/40 backdrop-blur-md p-2.5 rounded-full cursor-pointer hover:bg-black/60 transition-all text-white border border-white/10 active:scale-95"
+            aria-label="إضافة للمفضلة"
+          >
+            <Heart
+              size={20}
+              className={`transition-colors ${isFavorite ? "fill-[#C8A45C] text-[#C8A45C]" : "text-white"}`}
+            />
+          </button>
         </div>
         {product.image ? (
           <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
