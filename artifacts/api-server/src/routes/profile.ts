@@ -29,7 +29,7 @@ router.get("/me", async (req, res) => {
       id: "0",
       displayId: "1001",
       telegramId: "",
-      username: "زائر المتجر",
+      username: "زائر متجر ShadXMini",
       email: "",
       balanceUsd: 0,
       balanceSyp: 0,

@@ -5,8 +5,8 @@ import { eq, sql } from "drizzle-orm";
 import jwt from "jsonwebtoken";
 
 const DEFAULT_TELEGRAM_ID = "8333183867";
-const DEFAULT_USERNAME = "XPayUser";
-const JWT_SECRET = process.env.JWT_SECRET || process.env.SESSION_SECRET || "xpay-jwt-secret-key-2026";
+const DEFAULT_USERNAME = "ShadXMiniUser";
+const JWT_SECRET = process.env.JWT_SECRET || process.env.SESSION_SECRET || "shadxmini-jwt-secret-key-2026";
 const TELEGRAM_AUTH_MAX_AGE_SECONDS = Number(process.env.TELEGRAM_AUTH_MAX_AGE_SECONDS || 60 * 60 * 24);
 
 export interface UserTokenPayload {

@@ -63,13 +63,13 @@ router.get("/app-settings", async (_req, res) => {
     return fallback;
   };
 
-  const defaultAboutTitle = "من نحن - متجر XPay Store";
+  const defaultAboutTitle = "من نحن - متجر ShadXMini";
   const defaultAboutContent =
-    "متجر XPay هو وجهتك الرقمية الموثوقة لشحن الألعاب، اشتراكات البرامج، البطاقات الرقمية، والخدمات المالية المباشرة. نحرص على تقديم أعلى سرعة تنفيذ وأعلى معايير الأمان وخدمة عملاء على مدار الساعة.";
+    "متجر ShadXMini هو وجهتك الرقمية الموثوقة لشحن الألعاب، اشتراكات البرامج، البطاقات الرقمية، والخدمات المالية المباشرة. نحرص على تقديم أعلى سرعة تنفيذ وأعلى معايير الأمان وخدمة عملاء على مدار الساعة.";
 
   const defaultContactPhone = "+963900000000";
-  const defaultContactEmail = "support@xpaystore.com";
-  const defaultContactTelegram = "@XPaySupport";
+  const defaultContactEmail = "support@shadxmini.com";
+  const defaultContactTelegram = "@ShadXMiniSupport";
 
   const defaultMaintenanceTitle = "الموقع قيد الصيانة المؤقتة";
   const defaultMaintenanceMessage =
