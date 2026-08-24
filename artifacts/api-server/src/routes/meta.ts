@@ -63,6 +63,14 @@ router.get("/app-settings", async (_req, res) => {
     return fallback;
   };
 
+  const defaultAboutTitle = "من نحن - متجر XPay Store";
+  const defaultAboutContent =
+    "متجر XPay هو وجهتك الرقمية الموثوقة لشحن الألعاب، اشتراكات البرامج، البطاقات الرقمية، والخدمات المالية المباشرة. نحرص على تقديم أعلى سرعة تنفيذ وأعلى معايير الأمان وخدمة عملاء على مدار الساعة.";
+
+  const defaultContactPhone = "+963900000000";
+  const defaultContactEmail = "support@xpaystore.com";
+  const defaultContactTelegram = "@XPaySupport";
+
   const defaultMaintenanceTitle = "الموقع قيد الصيانة المؤقتة";
   const defaultMaintenanceMessage =
     "نعمل حاليًّا على تنفيذ مجموعة من أعمال الصيانة والتحديث لتحسين أداء الموقع، وتعزيز مستوى الأمان، وتطوير تجربة المستخدم بشكل أفضل. نعتذر عن أي إزعاج قد يسببه ذلك، ونرجو منكم التفضل بالعودة لاحقًا.";
@@ -76,6 +84,13 @@ router.get("/app-settings", async (_req, res) => {
     popupLinkText: String(map.get("store_popup_link_text") || ""),
     popupLinkUrl: String(map.get("store_popup_link_url") || ""),
     adminLoginImage: String(map.get("admin_login_image") || ""),
+    
+    // Dynamic About & Contact Info
+    aboutTitle: String(map.get("about_us_title") || defaultAboutTitle),
+    aboutContent: String(map.get("about_us_content") || defaultAboutContent),
+    contactPhone: String(map.get("contact_support_phone") || defaultContactPhone),
+    contactEmail: String(map.get("contact_support_email") || defaultContactEmail),
+    contactTelegram: String(map.get("contact_support_telegram") || defaultContactTelegram),
   });
 });
 

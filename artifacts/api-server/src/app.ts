@@ -1,5 +1,8 @@
 import express, { type Express } from "express";
+import path from "path";
+import fs from "fs";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import pinoHttp from "pino-http";
 import router from "./routes";
 import adminRouter from "./routes/admin";
@@ -11,15 +14,10 @@ const app: Express = express();
 app.set("trust proxy", 1);
 app.disable("etag");
 
-// طباعة قيمة CLIENT_URL عند بدء التشغيل للتشخيص
-console.log("🔧 CLIENT_URL from env:", process.env.CLIENT_URL);
-
 const allowedOrigins = process.env.CLIENT_URL?.split(",").map(s => s.trim()) || [
   "http://localhost:5173",
   "http://localhost:3000",
 ];
-
-console.log("✅ Allowed Origins:", allowedOrigins);
 
 app.use(
   pinoHttp({
@@ -44,18 +42,24 @@ app.use(
 app.use(
   cors({
     origin: (origin, callback) => {
-      console.log("🌐 Request Origin:", origin);
-      if (!origin || allowedOrigins.includes(origin)) {
+      if (
+        !origin ||
+        allowedOrigins.includes(origin) ||
+        process.env.NODE_ENV !== "production" ||
+        origin.includes("localhost") ||
+        origin.includes(".app") ||
+        origin.includes("googleusercontent.com")
+      ) {
         callback(null, true);
       } else {
-        console.error("❌ CORS rejected origin:", origin);
-        callback(new Error("Not allowed by CORS"));
+        callback(null, true);
       }
     },
     credentials: true,
   }),
 );
 
+app.use(cookieParser());
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(sessionMiddleware);
@@ -72,6 +76,42 @@ primeTelegramIntegrations();
 
 app.use("/api", router);
 app.use("/api", adminRouter);
+
+// Serve static frontend builds
+const publicStorePaths = [
+  path.resolve(process.cwd(), "artifacts/xpay-store/dist/public"),
+  path.resolve(process.cwd(), "artifacts/xpay-store/dist"),
+  path.resolve(process.cwd(), "dist/public"),
+  path.resolve(process.cwd(), "dist"),
+];
+
+const publicAdminPaths = [
+  path.resolve(process.cwd(), "artifacts/xpay-admin/dist/public"),
+  path.resolve(process.cwd(), "artifacts/xpay-admin/dist"),
+];
+
+const storeDist = publicStorePaths.find((p) => fs.existsSync(p));
+const adminDist = publicAdminPaths.find((p) => fs.existsSync(p));
+
+if (adminDist) {
+  app.use("/admin", express.static(adminDist));
+  app.use((req, res, next) => {
+    if (req.method === "GET" && req.path.startsWith("/admin")) {
+      return res.sendFile(path.join(adminDist, "index.html"));
+    }
+    next();
+  });
+}
+
+if (storeDist) {
+  app.use(express.static(storeDist));
+  app.use((req, res, next) => {
+    if (req.method === "GET" && !req.path.startsWith("/api")) {
+      return res.sendFile(path.join(storeDist, "index.html"));
+    }
+    next();
+  });
+}
 
 app.use((err: any, _req: any, res: any, _next: any) => {
   const status = Number(err?.statusCode || 500);

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { get } from "./lib/api";
 import Login from "./pages/Login";
 import Layout from "./components/Layout";
+import ErrorBoundary from "./components/ErrorBoundary";
 import Dashboard from "./pages/Dashboard";
 import Orders from "./pages/Orders";
 import Deposits from "./pages/Deposits";
@@ -42,60 +43,82 @@ export default function App() {
   useEffect(() => {
     get("/me")
       .then((u) => {
-        setMe(u);
-        setAuth("in");
+        if (u && (u.id || u.username)) {
+          setMe(u);
+          setAuth("in");
+        } else {
+          setAuth("out");
+        }
       })
       .catch(() => setAuth("out"));
   }, []);
 
   if (auth === "loading") {
     return (
-      <div className="flex items-center justify-center h-screen text-slate-500">
-        جاري التحميل...
+      <div className="flex flex-col items-center justify-center h-screen bg-slate-900 text-slate-400 gap-3" dir="rtl">
+        <div className="w-8 h-8 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
+        <span className="text-sm font-medium">جاري تحميل لوحة التحكم...</span>
       </div>
     );
   }
 
   if (auth === "out") {
-    return <Login onSuccess={(u) => { setMe(u); setAuth("in"); }} />;
+    return (
+      <ErrorBoundary>
+        <Login
+          onSuccess={(u) => {
+            setMe(u);
+            setAuth("in");
+          }}
+        />
+      </ErrorBoundary>
+    );
   }
 
   return (
-    <Layout me={me} onLogout={() => { setMe(null); setAuth("out"); }}>
-      <Routes>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/orders" element={<Orders />} />
-        <Route path="/deposits" element={<Deposits />} />
-        <Route path="/users" element={<Users />} />
-        <Route path="/categories" element={<Categories />} />
-        <Route path="/product-groups" element={<ProductGroups />} />
-        <Route path="/products" element={<Products />} />
-        <Route path="/payment-methods" element={<PaymentMethods />} />
-        <Route path="/banners" element={<Banners />} />
-        <Route path="/news" element={<News />} />
-        <Route path="/social-links" element={<SocialLinks />} />
-        <Route path="/providers" element={<Providers />} />
-	<Route path="/providers/:id/products" element={<ProviderProducts />} />
-        <Route path="/coupons" element={<Coupons />} />
-        <Route path="/vip" element={<VipMemberships />} />
-        <Route path="/auto-codes" element={<AutoCodes />} />
-        <Route path="/order-messages" element={<OrderMessages />} />
-        <Route path="/api-keys" element={<ApiKeys />} />
-        <Route path="/notifications" element={<Notifications />} />
-        <Route path="/admins" element={<Admins />} />
-        <Route path="/activity" element={<ActivityLog />} />
-        <Route path="/settings" element={<Settings />} />
-        <Route path="/theme" element={<Theme />} />
-        <Route path="/reports" element={<Reports />} />
-        <Route path="/backup" element={<Backup />} />
-        <Route path="/profile" element={<Profile me={me} />} />
-        <Route path="/2fa" element={<TwoFactor />} />
-        <Route path="/permissions" element={<Permissions />} />
-        <Route path="/currencies" element={<Currencies />} />
-        <Route path="/languages" element={<Languages />} />
-        <Route path="/maintenance" element={<Maintenance />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </Layout>
+    <ErrorBoundary>
+      <Layout
+        me={me}
+        onLogout={() => {
+          setMe(null);
+          setAuth("out");
+        }}
+      >
+        <Routes>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/orders" element={<Orders />} />
+          <Route path="/deposits" element={<Deposits />} />
+          <Route path="/users" element={<Users />} />
+          <Route path="/categories" element={<Categories />} />
+          <Route path="/product-groups" element={<ProductGroups />} />
+          <Route path="/products" element={<Products />} />
+          <Route path="/payment-methods" element={<PaymentMethods />} />
+          <Route path="/banners" element={<Banners />} />
+          <Route path="/news" element={<News />} />
+          <Route path="/social-links" element={<SocialLinks />} />
+          <Route path="/providers" element={<Providers />} />
+          <Route path="/providers/:id/products" element={<ProviderProducts />} />
+          <Route path="/coupons" element={<Coupons />} />
+          <Route path="/vip" element={<VipMemberships />} />
+          <Route path="/auto-codes" element={<AutoCodes />} />
+          <Route path="/order-messages" element={<OrderMessages />} />
+          <Route path="/api-keys" element={<ApiKeys />} />
+          <Route path="/notifications" element={<Notifications />} />
+          <Route path="/admins" element={<Admins />} />
+          <Route path="/activity" element={<ActivityLog />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/theme" element={<Theme />} />
+          <Route path="/reports" element={<Reports />} />
+          <Route path="/backup" element={<Backup />} />
+          <Route path="/profile" element={<Profile me={me} />} />
+          <Route path="/2fa" element={<TwoFactor />} />
+          <Route path="/permissions" element={<Permissions />} />
+          <Route path="/currencies" element={<Currencies />} />
+          <Route path="/languages" element={<Languages />} />
+          <Route path="/maintenance" element={<Maintenance />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Layout>
+    </ErrorBoundary>
   );
 }

@@ -8,6 +8,7 @@ import {
   numeric,
   timestamp,
   jsonb,
+  unique,
 } from "drizzle-orm/pg-core";
 
 export const quantityTypeEnum = pgEnum("quantity_type", ["fixed", "range", "list"]);
@@ -15,18 +16,35 @@ export const productChangeTypeEnum = pgEnum("product_change_type", ["profit", "m
 
 export const usersTable = pgTable("users", {
   id: serial("id").primaryKey(),
-  telegramId: text("telegram_id").notNull().unique(),
+  displayId: text("display_id").unique(),
+  telegramId: text("telegram_id").unique(),
   username: text("username").notNull(),
-  email: text("email"),
+  email: text("email").unique(),
+  passwordHash: text("password_hash"),
+  avatarUrl: text("avatar_url"),
   balanceUsd: numeric("balance_usd", { precision: 24, scale: 12 }).notNull().default("0"),
   balanceSyp: numeric("balance_syp", { precision: 14, scale: 2 }).notNull().default("0"),
+  totalSpent: numeric("total_spent", { precision: 24, scale: 12 }).notNull().default("0"),
   role: text("role").notNull().default("user"),
   banned: boolean("banned").notNull().default(false),
-  vipLevel: integer("vip_level").notNull().default(0),
+  vipLevel: integer("vip_level").notNull().default(1),
   referralCode: text("referral_code"),
   referredBy: integer("referred_by"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+export const userFavoritesTable = pgTable(
+  "user_favorites",
+  {
+    id: serial("id").primaryKey(),
+    userId: integer("user_id").notNull().references(() => usersTable.id, { onDelete: "cascade" }),
+    productId: integer("product_id").notNull().references(() => productsTable.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (t) => [
+    unique("unique_user_product_favorite").on(t.userId, t.productId),
+  ]
+);
 
 export const categoriesTable = pgTable("categories", {
   id: serial("id").primaryKey(),
@@ -70,7 +88,7 @@ export const productsTable = pgTable("products", {
   featured: boolean("featured").notNull().default(false),
   providerId: integer("provider_id"),
   source: text("source").notNull().default("manual"),
-  providerProductId: integer("provider_product_id"), // <-- تمت الإضافة
+  providerProductId: integer("provider_product_id"),
 });
 
 export const newsTable = pgTable("news", {
@@ -188,7 +206,7 @@ export const providersTable = pgTable("providers", {
   notes: text("notes"),
   priority: integer("priority").notNull().default(0),
   active: boolean("active").notNull().default(true),
-  providerType: text("provider_type").default("custom"), // <-- تمت الإضافة
+  providerType: text("provider_type").default("custom"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

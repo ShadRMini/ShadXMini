@@ -1,7 +1,9 @@
 import { Router, type IRouter } from "express";
 import healthRouter from "./health.js";
+import authRouter from "./auth.js";
 import profileRouter from "./profile.js";
 import catalogRouter from "./catalog.js";
+import favoritesRouter from "./favorites.js";
 import metaRouter from "./meta.js";
 import ordersRouter from "./orders.js";
 import depositsRouter from "./deposits.js";
@@ -11,8 +13,10 @@ import telegramStoreRouter from "./telegram-store.js";
 const router: IRouter = Router();
 
 router.use(healthRouter);
+router.use(authRouter);
 router.use(profileRouter);
 router.use(catalogRouter);
+router.use(favoritesRouter);
 router.use(metaRouter);
 router.use(ordersRouter);
 router.use(depositsRouter);

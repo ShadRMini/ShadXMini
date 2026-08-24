@@ -4,29 +4,10 @@ import tailwindcss from "@tailwindcss/vite";
 import path from "path";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 
-// المتغيرات المطلوبة فقط في وضع التطوير
 const isDev = process.env.NODE_ENV === "development";
+const port = Number(process.env.PORT || 3000);
+const base = process.env.BASE_PATH || "/";
 
-// PORT: مطلوب في dev فقط، وإلا نعطيه قيمة افتراضية للبناء
-const rawPort = process.env.PORT;
-let port: number;
-if (isDev) {
-  if (!rawPort) throw new Error("PORT environment variable is required in development.");
-  port = Number(rawPort);
-  if (Number.isNaN(port) || port <= 0) throw new Error(`Invalid PORT value: "${rawPort}"`);
-} else {
-  port = 5173; // قيمة افتراضية للبناء، لن تُستخدم فعلياً
-}
-
-// BASE_PATH: مطلوب في dev فقط، وإلا نعطيه "/"
-const basePath = process.env.BASE_PATH;
-let base: string;
-if (isDev) {
-  if (!basePath) throw new Error("BASE_PATH environment variable is required in development.");
-  base = basePath;
-} else {
-  base = "/"; // في Vercel يكون المسار الجذر
-}
 
 export default defineConfig({
   base,
