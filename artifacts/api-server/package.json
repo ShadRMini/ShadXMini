@@ -11,8 +11,8 @@
     "test:pricing": "tsc src/lib/pricing.ts src/lib/pricing.test.ts --module NodeNext --moduleResolution NodeNext --target ES2022 --types node --skipLibCheck --outDir ../../.tmp/pricing-tests && node --test ../../.tmp/pricing-tests/pricing.test.js"
   },
   "dependencies": {
-    "@workspace/api-zod": "*",
-    "@workspace/db": "*",
+    "@workspace/api-zod": "workspace:*",
+    "@workspace/db": "workspace:*",
     "bcryptjs": "^3.0.3",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
