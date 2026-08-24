@@ -5,7 +5,7 @@ services:
     plan: starter
     region: frankfurt # or oregon / ohio
     nodeVersion: "20.18.0"
-    buildCommand: pnpm install --frozen-lockfile && pnpm run build
+    buildCommand: pnpm install --no-frozen-lockfile && pnpm run build
     startCommand: pnpm start
     healthCheckPath: /api/health
     envVars:
