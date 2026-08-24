@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { post } from "../lib/api";
 import {
@@ -80,18 +80,18 @@ export default function Layout({
   }, {});
 
   return (
-    <div className="flex min-h-screen bg-slate-100" dir="rtl">
+    <div className="flex min-h-screen bg-[#F5F2EB]" dir="rtl">
       <aside
-        className={`fixed lg:static z-40 inset-y-0 right-0 w-72 bg-white border-l border-slate-200 transform transition-transform overflow-y-auto ${
+        className={`fixed lg:static z-40 inset-y-0 right-0 w-72 bg-[#1A1A1A] border-l border-zinc-800 transform transition-transform overflow-y-auto ${
           open ? "translate-x-0" : "translate-x-full lg:translate-x-0"
         }`}
       >
-        <div className="p-5 border-b border-slate-100 flex items-center justify-between">
+        <div className="p-5 border-b border-zinc-800 flex items-center justify-between">
           <div>
-            <div className="text-lg font-bold text-brand-600">XPayStore</div>
-            <div className="text-xs text-slate-500 mt-0.5">لوحة الإدارة</div>
+            <div className="text-xl font-extrabold text-[#C8A45C] tracking-wide">XPayStore</div>
+            <div className="text-xs text-zinc-400 mt-0.5 font-medium">لوحة الإدارة الفاخرة</div>
           </div>
-          <button className="lg:hidden text-slate-400" onClick={() => setOpen(false)}>
+          <button className="lg:hidden text-zinc-400 hover:text-[#C8A45C]" onClick={() => setOpen(false)}>
             <X size={20} />
           </button>
         </div>
@@ -99,7 +99,7 @@ export default function Layout({
         <nav className="p-3 space-y-4">
           {Object.entries(groups).map(([group, items]) => (
             <div key={group}>
-              <div className="text-xs font-semibold text-slate-400 px-3 mb-1.5">{group}</div>
+              <div className="text-xs font-semibold text-[#C8A45C]/80 px-3 mb-1.5">{group}</div>
               <div className="space-y-0.5">
                 {items.map((it) => (
                   <NavLink
@@ -108,12 +108,14 @@ export default function Layout({
                     end={it.to === "/"}
                     onClick={() => setOpen(false)}
                     className={({ isActive }) =>
-                      `flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition ${
-                        isActive ? "bg-brand-600 text-white" : "text-slate-700 hover:bg-slate-100"
+                      `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                        isActive
+                          ? "bg-[#C8A45C] text-[#1A1A1A] font-bold shadow-md shadow-[#C8A45C]/30"
+                          : "text-[#F9FAFB] hover:bg-[#2A2A2A] hover:text-[#C8A45C]"
                       }`
                     }
                   >
-                    <it.icon size={18} />
+                    <it.icon size={18} className="text-[#C8A45C]" />
                     <span>{it.label}</span>
                   </NavLink>
                 ))}
@@ -123,28 +125,28 @@ export default function Layout({
         </nav>
       </aside>
 
-      {open && <div className="fixed inset-0 bg-black/40 z-30 lg:hidden" onClick={() => setOpen(false)} />}
+      {open && <div className="fixed inset-0 bg-black/60 z-30 lg:hidden" onClick={() => setOpen(false)} />}
 
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="bg-white border-b border-slate-200 px-4 lg:px-6 py-3 flex items-center justify-between">
+        <header className="bg-white border-b border-[#D1D5DB] px-4 lg:px-6 py-3.5 flex items-center justify-between shadow-xs">
           <button className="lg:hidden text-slate-700" onClick={() => setOpen(true)}>
             <Menu size={22} />
           </button>
-          <div className="hidden lg:block text-sm text-slate-500">مرحبًا بك في لوحة إدارة XPayStore</div>
+          <div className="hidden lg:block text-sm font-medium text-slate-600">مرحبًا بك في لوحة إدارة XPayStore</div>
           <div className="flex items-center gap-3">
             <button
               onClick={() => setDarkMode((value) => !value)}
-              className="text-slate-500 hover:text-brand-600 p-2 rounded-lg hover:bg-slate-100"
+              className="text-slate-500 hover:text-[#C8A45C] p-2 rounded-lg hover:bg-slate-100"
               title={darkMode ? "تفعيل الوضع الفاتح" : "تفعيل الوضع الداكن"}
               type="button"
             >
               {darkMode ? <Sun size={18} /> : <Moon size={18} />}
             </button>
             <div className="text-sm text-left hidden sm:block">
-              <div className="font-semibold text-slate-900">{me?.fullName || me?.username}</div>
-              <div className="text-xs text-slate-500">{me?.role}</div>
+              <div className="font-bold text-slate-900">{me?.fullName || me?.username}</div>
+              <div className="text-xs text-[#C8A45C] font-semibold">{me?.role}</div>
             </div>
-            <div className="w-9 h-9 rounded-full bg-brand-600 text-white flex items-center justify-center font-bold">
+            <div className="w-9 h-9 rounded-full bg-[#C8A45C] text-white flex items-center justify-center font-bold shadow-sm">
               {(me?.fullName || me?.username || "?").charAt(0).toUpperCase()}
             </div>
             <button
@@ -156,7 +158,7 @@ export default function Layout({
             </button>
           </div>
         </header>
-        <main className="flex-1 p-4 lg:p-6 overflow-x-auto">{children}</main>
+        <main className="flex-1 p-4 lg:p-6 overflow-x-auto bg-[#F5F2EB]">{children}</main>
       </div>
     </div>
   );

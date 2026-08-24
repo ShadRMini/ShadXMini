@@ -34,22 +34,22 @@ export default function Login({ onSuccess }: { onSuccess: (u: any) => void }) {
   return (
     <div
       className="min-h-screen flex items-center justify-center p-4"
-      style={{ background: "linear-gradient(135deg, #0052cc 0%, #08326d 50%, #f97316 130%)" }}
+      style={{ background: "radial-gradient(circle at top, #2A2A2A 0%, #1A1A1A 60%, #111111 100%)" }}
       dir="rtl"
     >
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 border border-[#D1D5DB]">
         <div className="text-center mb-7">
           {loginImage ? (
-            <div className="mx-auto w-24 h-24 rounded-2xl overflow-hidden shadow-lg border border-slate-200 bg-slate-50">
+            <div className="mx-auto w-24 h-24 rounded-2xl overflow-hidden shadow-lg border border-[#D1D5DB] bg-slate-50">
               <img src={loginImage} alt="XPayStore" className="w-full h-full object-cover" />
             </div>
           ) : (
-            <div className="inline-block w-16 h-16 rounded-2xl bg-brand-600 text-white text-2xl font-bold flex items-center justify-center shadow-lg">
+            <div className="inline-flex w-16 h-16 rounded-2xl bg-[#C8A45C] text-white text-2xl font-extrabold items-center justify-center shadow-lg shadow-[#C8A45C]/30">
               XP
             </div>
           )}
-          <h1 className="text-2xl font-bold text-slate-900 mt-4">XPayStore</h1>
-          <p className="text-sm text-slate-500 mt-1">لوحة الإدارة</p>
+          <h1 className="text-2xl font-black text-slate-900 mt-4 tracking-wide">XPayStore</h1>
+          <p className="text-sm font-medium text-[#C8A45C] mt-1">لوحة الإدارة الفاخرة</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -61,7 +61,7 @@ export default function Login({ onSuccess }: { onSuccess: (u: any) => void }) {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
-                className="w-full border border-slate-300 rounded-lg pr-10 pl-3 py-2.5 text-sm"
+                className="w-full border border-[#D1D5DB] rounded-lg pr-10 pl-3 py-2.5 text-sm focus:border-[#C8A45C] focus:ring-2 focus:ring-[#C8A45C]/20"
                 placeholder="أدخل اسم المستخدم"
               />
             </div>
@@ -76,7 +76,7 @@ export default function Login({ onSuccess }: { onSuccess: (u: any) => void }) {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full border border-slate-300 rounded-lg pr-10 pl-3 py-2.5 text-sm"
+                className="w-full border border-[#D1D5DB] rounded-lg pr-10 pl-3 py-2.5 text-sm focus:border-[#C8A45C] focus:ring-2 focus:ring-[#C8A45C]/20"
                 placeholder="••••••••"
               />
             </div>
@@ -87,7 +87,7 @@ export default function Login({ onSuccess }: { onSuccess: (u: any) => void }) {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-brand-600 text-white font-bold py-2.5 rounded-lg hover:bg-brand-700 disabled:opacity-50 transition"
+            className="w-full bg-[#C8A45C] hover:bg-[#B8954A] text-white font-bold py-2.5 rounded-lg shadow-md shadow-[#C8A45C]/30 disabled:opacity-50 transition"
           >
             {loading ? "جاري الدخول..." : "تسجيل الدخول"}
           </button>

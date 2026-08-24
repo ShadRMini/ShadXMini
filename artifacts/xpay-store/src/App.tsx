@@ -39,9 +39,9 @@ type AppSettings = {
 };
 
 const XPAY_BRAND_THEME: StoreTheme = {
-  primary: "#58E8FF",
-  accent: "#D94CFF",
-  background: "#07091B",
+  primary: "#C8A45C",
+  accent: "#FDE68A",
+  background: "#F5F2EB",
   font: "Cairo",
   radius: "16",
 };
@@ -95,52 +95,26 @@ function hexToHslString(hex: string, fallback: string): string {
   return `${h} ${s}% ${l}%`;
 }
 
-function clampLightness(hsl: string, delta: number): string {
-  const match = String(hsl).match(/^(\d+(?:\.\d+)?)\s+(\d+(?:\.\d+)?)%\s+(\d+(?:\.\d+)?)%$/);
-  if (!match) return hsl;
-
-  const h = Number(match[1]);
-  const s = Number(match[2]);
-  const l = Math.max(0, Math.min(100, Number(match[3]) + delta));
-  return `${Math.round(h)} ${Math.round(s)}% ${Math.round(l)}%`;
-}
-
-function clampMaxLightness(hsl: string, maxL: number): string {
-  const match = String(hsl).match(/^(\d+(?:\.\d+)?)\s+(\d+(?:\.\d+)?)%\s+(\d+(?:\.\d+)?)%$/);
-  if (!match) return hsl;
-
-  const h = Number(match[1]);
-  const s = Number(match[2]);
-  const l = Math.min(maxL, Math.max(0, Number(match[3])));
-  return `${Math.round(h)} ${Math.round(s)}% ${Math.round(l)}%`;
-}
-
 function applyTheme(theme: StoreTheme) {
   const root = document.documentElement;
-  const primary = hexToHslString(theme.primary, "188 100% 67%");
-  const accent = hexToHslString(theme.accent, "291 100% 65%");
-  const backgroundRaw = hexToHslString(theme.background, "236 57% 7%");
-  const background = clampMaxLightness(backgroundRaw, 18);
+  const primaryHex = theme.primary || "#C8A45C";
+  const accentHex = theme.accent || "#FDE68A";
+  const bgHex = theme.background || "#F5F2EB";
   const radiusValue = Number(theme.radius);
   const radius = Number.isFinite(radiusValue) && radiusValue > 0 ? `${radiusValue}px` : "16px";
   const font = String(theme.font || "Cairo").trim() || "Cairo";
 
-  root.style.setProperty("--primary", primary);
-  root.style.setProperty("--sidebar-primary", primary);
-  root.style.setProperty("--ring", primary);
-  root.style.setProperty("--accent", accent);
-  root.style.setProperty("--background", background);
-  root.style.setProperty("--sidebar", background);
-  root.style.setProperty("--card", clampLightness(background, 2));
-  root.style.setProperty("--popover", clampLightness(background, 2));
-  root.style.setProperty("--border", clampLightness(background, 10));
-  root.style.setProperty("--input", clampLightness(background, 10));
-  root.style.setProperty("--muted", clampLightness(background, 8));
-  root.style.setProperty("--secondary", clampLightness(background, 6));
-  root.style.setProperty("--app-bg-glow", clampLightness(primary, -8));
-  root.style.setProperty("--app-bg-deep", clampLightness(background, 8));
+  root.style.setProperty("--primary", primaryHex);
+  root.style.setProperty("--primary-dark", "#B8954A");
+  root.style.setProperty("--accent", accentHex);
+  root.style.setProperty("--background", bgHex);
+  root.style.setProperty("--dark", "#1A1A1A");
+  root.style.setProperty("--card", "#FFFFFF");
+  root.style.setProperty("--text-dark", "#111827");
+  root.style.setProperty("--text-light", "#F9FAFB");
+  root.style.setProperty("--border", "#D1D5DB");
   root.style.setProperty("--radius", radius);
-  root.style.setProperty("--app-font-sans", `'${font}', sans-serif`);
+  root.style.setProperty("--app-font-sans", `'${font}', 'Inter', sans-serif`);
 }
 
 function normalizeRemoteTheme(theme: Partial<StoreTheme> | null | undefined): StoreTheme {

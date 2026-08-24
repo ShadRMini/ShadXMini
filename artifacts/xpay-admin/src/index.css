@@ -1,23 +1,54 @@
 @import "tailwindcss";
 
+:root {
+  --primary: #C8A45C;
+  --primary-dark: #B8954A;
+  --dark: #1A1A1A;
+  --accent: #FDE68A;
+  --background: #F5F2EB;
+  --card: #FFFFFF;
+  --text-dark: #111827;
+  --text-light: #F9FAFB;
+  --border: #D1D5DB;
+
+  --color-gold: #C8A45C;
+  --color-gold-dark: #B8954A;
+  --color-gold-light: #FDE68A;
+  --color-deep-dark: #1A1A1A;
+  --color-warm-bg: #F5F2EB;
+
+  --font-family-arabic: "Cairo", sans-serif;
+  --font-family-english: "Inter", sans-serif;
+  --font-family-sans: "Cairo", "Inter", system-ui, -apple-system, sans-serif;
+}
+
 @theme {
-  --font-family-sans: "Cairo", system-ui, -apple-system, sans-serif;
-  --color-brand-50: #eff5ff;
-  --color-brand-100: #dbe7fe;
-  --color-brand-200: #bfd3fe;
-  --color-brand-300: #93b4fd;
-  --color-brand-400: #6190f9;
-  --color-brand-500: #3a6ff4;
-  --color-brand-600: #0052cc;
-  --color-brand-700: #0044aa;
-  --color-brand-800: #033a89;
-  --color-brand-900: #08326d;
-  --color-accent-500: #f97316;
-  --color-accent-600: #ea580c;
+  --font-family-sans: "Cairo", "Inter", system-ui, -apple-system, sans-serif;
+  --font-family-arabic: "Cairo", sans-serif;
+  --font-family-english: "Inter", sans-serif;
+
+  --color-primary: #C8A45C;
+  --color-primary-dark: #B8954A;
+  --color-gold: #C8A45C;
+  --color-dark: #1A1A1A;
+  --color-beige: #F5F2EB;
+
+  --color-brand-50: #FAF6ED;
+  --color-brand-100: #F4ECD6;
+  --color-brand-200: #EBD9AC;
+  --color-brand-300: #DEC37F;
+  --color-brand-400: #D3B266;
+  --color-brand-500: #C8A45C;
+  --color-brand-600: #C8A45C;
+  --color-brand-700: #B8954A;
+  --color-brand-800: #967537;
+  --color-brand-900: #755928;
+  --color-accent-500: #C8A45C;
+  --color-accent-600: #B8954A;
 }
 
 * {
-  font-family: "Cairo", system-ui, sans-serif;
+  font-family: "Cairo", "Inter", system-ui, sans-serif;
 }
 
 html,
@@ -28,9 +59,10 @@ body,
 
 body {
   margin: 0;
-  background: #f4f6fb;
-  color: #0f172a;
+  background-color: #F5F2EB;
+  color: #111827;
   direction: rtl;
+  font-family: "Cairo", "Inter", sans-serif;
 }
 
 ::-webkit-scrollbar {
@@ -38,99 +70,127 @@ body {
   height: 8px;
 }
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #D1D5DB;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #C8A45C;
 }
 
 input,
 select,
 textarea,
 button {
-  font-family: "Cairo", system-ui, sans-serif;
+  font-family: "Cairo", "Inter", system-ui, sans-serif;
+}
+
+input,
+select,
+textarea {
+  border-color: #D1D5DB;
+  background-color: #FFFFFF;
+  color: #111827;
+  transition: all 0.2s ease-in-out;
 }
 
 input:focus,
 select:focus,
 textarea:focus {
   outline: none;
-  border-color: #0052cc;
-  box-shadow: 0 0 0 3px rgba(0, 82, 204, 0.15);
+  border-color: #C8A45C !important;
+  box-shadow: 0 0 0 3px rgba(200, 164, 92, 0.25) !important;
+}
+
+.btn-primary, button.bg-brand-600 {
+  background-color: #C8A45C !important;
+  color: #FFFFFF !important;
+  font-weight: 600;
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-primary:hover, button.bg-brand-600:hover {
+  background-color: #B8954A !important;
+}
+
+.vip-badge, .badge-vip {
+  background: linear-gradient(135deg, #FDE68A 0%, #C8A45C 100%);
+  color: #1A1A1A;
+  font-weight: 700;
+  box-shadow: 0 0 12px rgba(200, 164, 92, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.4);
 }
 
 /* Admin panel dark mode. Scoped to xpay-admin only via html.admin-dark. */
 html.admin-dark body {
-  background: #08111f;
-  color: #e5edf8;
+  background-color: #121212;
+  color: #F9FAFB;
 }
 
 html.admin-dark .bg-slate-100,
 html.admin-dark .bg-slate-50 {
-  background-color: #0b1628 !important;
+  background-color: #181818 !important;
 }
 
 html.admin-dark .bg-white {
-  background-color: #101d31 !important;
+  background-color: #202020 !important;
 }
 
 html.admin-dark .bg-card,
 html.admin-dark .bg-slate-200 {
-  background-color: #14233a !important;
+  background-color: #262626 !important;
 }
 
 html.admin-dark .text-slate-900,
 html.admin-dark .text-slate-800,
 html.admin-dark .text-slate-700,
 html.admin-dark .text-slate-600 {
-  color: #e5edf8 !important;
+  color: #F9FAFB !important;
 }
 
 html.admin-dark .text-slate-500,
 html.admin-dark .text-slate-400 {
-  color: #94a3b8 !important;
+  color: #9CA3AF !important;
 }
 
 html.admin-dark .border-slate-200,
 html.admin-dark .border-slate-100,
 html.admin-dark .border-slate-300 {
-  border-color: #26364f !important;
+  border-color: #374151 !important;
 }
 
 html.admin-dark input,
 html.admin-dark select,
 html.admin-dark textarea {
-  background-color: #0b1628 !important;
-  color: #e5edf8 !important;
-  border-color: #2a3b57 !important;
+  background-color: #181818 !important;
+  color: #F9FAFB !important;
+  border-color: #374151 !important;
 }
 
 html.admin-dark input::placeholder,
 html.admin-dark textarea::placeholder {
-  color: #64748b !important;
+  color: #6B7280 !important;
 }
 
 html.admin-dark table thead,
 html.admin-dark .bg-slate-100 table thead,
 html.admin-dark .bg-slate-50 table thead {
-  background-color: #14233a !important;
+  background-color: #262626 !important;
 }
 
 html.admin-dark tr:hover,
 html.admin-dark .hover\:bg-slate-50:hover,
 html.admin-dark .hover\:bg-slate-100:hover {
-  background-color: #182945 !important;
+  background-color: #2A2A2A !important;
 }
 
 html.admin-dark .shadow-sm,
 html.admin-dark .shadow-xl,
 html.admin-dark .shadow-lg {
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35) !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4) !important;
 }
 
 html.admin-dark .bg-rose-50 {
-  background-color: rgba(127, 29, 29, 0.28) !important;
+  background-color: rgba(127, 29, 29, 0.3) !important;
 }
 
 html.admin-dark .bg-emerald-50 {
@@ -138,13 +198,13 @@ html.admin-dark .bg-emerald-50 {
 }
 
 html.admin-dark .bg-brand-600 {
-  background-color: #2563eb !important;
+  background-color: #C8A45C !important;
 }
 
 html.admin-dark ::-webkit-scrollbar-thumb {
-  background: #334155;
+  background: #374151;
 }
 
 html.admin-dark ::-webkit-scrollbar-thumb:hover {
-  background: #475569;
+  background: #C8A45C;
 }

@@ -55,9 +55,9 @@ export default function App() {
 
   if (auth === "loading") {
     return (
-      <div className="flex flex-col items-center justify-center h-screen bg-slate-900 text-slate-400 gap-3" dir="rtl">
-        <div className="w-8 h-8 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
-        <span className="text-sm font-medium">جاري تحميل لوحة التحكم...</span>
+      <div className="flex flex-col items-center justify-center h-screen bg-[#1A1A1A] text-[#C8A45C] gap-3" dir="rtl">
+        <div className="w-8 h-8 border-2 border-[#C8A45C] border-t-transparent rounded-full animate-spin" />
+        <span className="text-sm font-semibold tracking-wide">جاري تحميل لوحة التحكم...</span>
       </div>
     );
   }
