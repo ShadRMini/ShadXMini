@@ -1,5 +1,5 @@
 import { useGetProfile } from "@workspace/api-client-react";
-import { Wallet, Settings, LogOut, ShieldAlert, User as UserIcon, Crown } from "lucide-react";
+import { Wallet, LogOut, ShieldAlert, User as UserIcon, Crown } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/lib/auth-context";
 
@@ -65,12 +65,6 @@ export default function Profile() {
         </div>
 
         <div className="bg-card border border-white/5 rounded-3xl overflow-hidden shadow-lg">
-          <div className="p-4 border-b border-white/5 flex items-center gap-3 hover:bg-white/5 cursor-pointer transition-colors">
-            <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-foreground">
-              <Settings className="w-5 h-5" />
-            </div>
-            <div className="flex-1 font-medium text-sm text-foreground">إعدادات الحساب</div>
-          </div>
           <div
             onClick={logout}
             className="p-4 flex items-center gap-3 hover:bg-white/5 cursor-pointer transition-colors text-destructive"

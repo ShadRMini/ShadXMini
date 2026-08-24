@@ -88,7 +88,7 @@ export default function Layout({
       >
         <div className="p-5 border-b border-zinc-800 flex items-center justify-between">
           <div>
-            <div className="text-xl font-extrabold text-[#C8A45C] tracking-wide">XPayStore</div>
+            <div className="text-xl font-extrabold text-[#C8A45C] tracking-wide">ShadMini</div>
             <div className="text-xs text-zinc-400 mt-0.5 font-medium">لوحة الإدارة الفاخرة</div>
           </div>
           <button className="lg:hidden text-zinc-400 hover:text-[#C8A45C]" onClick={() => setOpen(false)}>

@@ -41,14 +41,14 @@ export default function Login({ onSuccess }: { onSuccess: (u: any) => void }) {
         <div className="text-center mb-7">
           {loginImage ? (
             <div className="mx-auto w-24 h-24 rounded-2xl overflow-hidden shadow-lg border border-[#D1D5DB] bg-slate-50">
-              <img src={loginImage} alt="XPayStore" className="w-full h-full object-cover" />
+              <img src={loginImage} alt="ShadMini" className="w-full h-full object-cover" />
             </div>
           ) : (
             <div className="inline-flex w-16 h-16 rounded-2xl bg-[#C8A45C] text-white text-2xl font-extrabold items-center justify-center shadow-lg shadow-[#C8A45C]/30">
-              XP
+              SM
             </div>
           )}
-          <h1 className="text-2xl font-black text-slate-900 mt-4 tracking-wide">XPayStore</h1>
+          <h1 className="text-2xl font-black text-slate-900 mt-4 tracking-wide">ShadMini</h1>
           <p className="text-sm font-medium text-[#C8A45C] mt-1">لوحة الإدارة الفاخرة</p>
         </div>
 

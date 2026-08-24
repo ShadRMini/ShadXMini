@@ -69,7 +69,7 @@ export default function Register() {
 
       if (data.token && data.user) {
         login(data.token, data.user);
-        toast.success("تم إنشاء الحساب بنجاح! مرحباً بك في XPayStore.");
+        toast.success("تم إنشاء الحساب بنجاح! مرحباً بك في ShadMini.");
         setLocation("/");
       } else {
         throw new Error("استجابة غير صالحة من الخادم.");
@@ -87,13 +87,13 @@ export default function Register() {
         {/* Header with Logo */}
         <div className="text-center mb-6">
           <div className="inline-flex w-16 h-16 rounded-2xl bg-[#1A1A1A] border-2 border-[#C8A45C] text-[#C8A45C] text-2xl font-black items-center justify-center shadow-lg shadow-[#C8A45C]/20 mb-3">
-            XP
+            SM
           </div>
           <h1 className="text-2xl sm:text-3xl font-black text-[#111827] tracking-wide">
             إنشاء حساب جديد
           </h1>
           <p className="text-sm font-medium text-slate-500 mt-1">
-            انضم إلى عائلة <span className="text-[#C8A45C] font-bold">XPayStore</span> الفاخرة
+            انضم إلى عائلة <span className="text-[#C8A45C] font-bold">ShadMini</span> الفاخرة
           </p>
         </div>
 

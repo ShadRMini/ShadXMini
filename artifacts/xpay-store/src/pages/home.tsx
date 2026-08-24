@@ -130,19 +130,11 @@ export default function Home() {
               </div>
             </div>
             <Link href="/profile">
-              <div className="bg-card border border-white/5 rounded-xl px-3 py-2 flex flex-col gap-1 cursor-pointer min-w-[120px] sm:min-w-[150px]">
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] text-muted-foreground">ID:</span>
-                  <span className="text-xs font-mono font-medium text-foreground">
-                    {profileLoading && !effectiveTelegramId ? <Skeleton className="h-4 w-16" /> : (effectiveTelegramId || "---")}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] text-muted-foreground">ACC:</span>
-                  <span className="text-xs font-mono font-bold text-primary">
-                    {profileLoading ? <Skeleton className="h-4 w-10" /> : shortId}
-                  </span>
-                </div>
+              <div className="bg-card border border-white/5 rounded-xl px-3 py-2 flex flex-col gap-0.5 cursor-pointer min-w-[110px] sm:min-w-[140px] hover:border-primary/30 transition">
+                <span className="text-[10px] text-muted-foreground font-medium">المعرف</span>
+                <span className="text-xs font-mono font-bold text-primary">
+                  {profileLoading ? <Skeleton className="h-4 w-16" /> : (effectiveTelegramId || shortId || "---")}
+                </span>
               </div>
             </Link>
           </div>

@@ -1,6 +1,6 @@
 {
-  "name": "XPayStore",
-  "description": "Telegram Mini App digital goods store and management backend.",
+  "name": "ShadMini",
+  "description": "ShadMini Telegram Mini App digital goods store and management backend.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

@@ -12,7 +12,7 @@ export default function About() {
           </div>
           <div>
             <h1 className="text-xl font-extrabold text-[#111827]">من نحن</h1>
-            <p className="text-xs text-slate-500 font-medium">تعرف على منصة XPayStore</p>
+            <p className="text-xs text-slate-500 font-medium">تعرف على منصة ShadMini</p>
           </div>
         </div>
         <Link href="/">
@@ -27,10 +27,10 @@ export default function About() {
         {/* Hero Card */}
         <div className="bg-[#1A1A1A] border border-[#C8A45C]/30 text-white rounded-3xl p-6 sm:p-8 text-center shadow-xl relative overflow-hidden">
           <div className="inline-flex w-14 h-14 rounded-2xl bg-[#C8A45C] text-[#1A1A1A] text-xl font-black items-center justify-center mb-4 shadow-lg shadow-[#C8A45C]/20">
-            XP
+            SM
           </div>
           <h2 className="text-xl sm:text-2xl font-black text-[#C8A45C] mb-2">
-            XPayStore
+            ShadMini
           </h2>
           <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-medium">
             المنصة الرائدة والأسرع لخدمات شحن الألعاب، البطاقات الرقمية، والاشتراكات في الوطن العربي وسوريا بأعلى معايير الأمان والسرعة.

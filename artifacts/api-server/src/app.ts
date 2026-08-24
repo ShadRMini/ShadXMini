@@ -7,6 +7,7 @@ import adminRouter from "./routes/admin";
 import { logger } from "./lib/logger";
 import { sessionMiddleware } from "./lib/adminAuth";
 import { primeTelegramIntegrations } from "./lib/telegram";
+import { seedSuperAdmin } from "./lib/seedAdmin";
 
 const app: Express = express();
 app.set("trust proxy", 1);
@@ -63,7 +64,7 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(sessionMiddleware);
 
 app.get("/", (_req, res) => {
-  res.json({ status: "ok", message: "ShadXMini API is running" });
+  res.json({ status: "ok", message: "ShadMini API is running" });
 });
 
 app.use("/api", (_req, res, next) => {
@@ -75,6 +76,7 @@ app.use("/api", (_req, res, next) => {
 });
 
 primeTelegramIntegrations();
+seedSuperAdmin();
 
 app.use("/api", router);
 app.use("/api", adminRouter);

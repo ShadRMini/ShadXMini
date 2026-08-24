@@ -66,7 +66,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const vipBadgeName =
     user?.vipBadge?.name || (vipLevel >= 4 ? "SVIP" : vipLevel === 3 ? "VIP3" : vipLevel === 2 ? "VIP2" : "VIP1");
 
-  const displayName = user?.username || "عضو XPay";
+  const displayName = user?.username || "عضو ShadMini";
   const displayId = user?.displayId || user?.telegramId || "---";
 
   const renderSidebarContent = () => (
@@ -75,10 +75,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <div className="p-5 border-b border-zinc-800 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-2xl bg-[#C8A45C] text-[#1A1A1A] font-black flex items-center justify-center text-lg shadow-md shadow-[#C8A45C]/25">
-            XP
+            SM
           </div>
           <div>
-            <div className="text-lg font-black text-[#C8A45C] tracking-wide">XPayStore</div>
+            <div className="text-lg font-black text-[#C8A45C] tracking-wide">ShadMini</div>
             <div className="text-[11px] text-zinc-400 font-medium">المنصة الفاخرة للخدمات الرقمية</div>
           </div>
         </div>
@@ -160,15 +160,17 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <nav className="flex-1 px-3 py-2 space-y-1 overflow-y-auto">
         {sidebarLinks.map((item) => {
           const isActive =
-            location === item.href || (item.href !== "/" && location.startsWith(item.href));
+            location === item.href ||
+            (item.href !== "/" && item.href !== "/deposit" && location.startsWith(item.href + "/")) ||
+            (item.href === "/deposit" && (location === "/deposit" || location.startsWith("/deposit/")));
 
           return (
             <Link key={item.href} href={item.href}>
               <div
-                className={`flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-semibold transition-all cursor-pointer ${
+                className={`flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-semibold transition-all cursor-pointer select-none ${
                   isActive
                     ? "bg-[#C8A45C] text-[#1A1A1A] font-bold shadow-md shadow-[#C8A45C]/30"
-                    : "text-zinc-200 hover:bg-zinc-800/90 hover:text-[#C8A45C]"
+                    : "text-zinc-200 hover:bg-[#C8A45C]/15 hover:text-[#C8A45C] active:scale-[0.98] active:bg-[#C8A45C]/20"
                 }`}
               >
                 <div className="flex items-center gap-3">
@@ -242,10 +244,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
             <Link href="/" className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-xl bg-[#1A1A1A] text-[#C8A45C] font-black flex items-center justify-center text-sm border border-[#C8A45C]/40">
-                XP
+                SM
               </div>
               <span className="font-extrabold text-base text-[#111827] tracking-wide">
-                XPay<span className="text-[#C8A45C]">Store</span>
+                Shad<span className="text-[#C8A45C]">Mini</span>
               </span>
             </Link>
           </div>
