@@ -1067,6 +1067,12 @@ async function sanitizeCrudDataForRuntimeSchema(path: string, data: any): Promis
     if ("categoryId" in normalized) normalizeNumberField(normalized, "categoryId", { required: path === "product-groups" });
     if ("order" in normalized) normalizeNumberField(normalized, "order", { required: true });
     if ("active" in normalized) normalized.active = !!normalized.active;
+    if ("columnsCount" in normalized) normalizeNumberField(normalized, "columnsCount", { required: true });
+    if ("columns_count" in normalized) {
+      normalized.columnsCount = normalized.columns_count;
+      delete normalized.columns_count;
+      normalizeNumberField(normalized, "columnsCount", { required: true });
+    }
   }
 
   if (path === "products") {
@@ -1275,7 +1281,7 @@ router.delete("/admin/categories/:id", requireAdmin, async (req, res) => {
 
 makeCrud("categories", categoriesTable, {
   orderBy: categoriesTable.order,
-  allowedFields: ["name", "image", "order", "active", "displayStyle", "display_style"],
+  allowedFields: ["name", "image", "order", "active", "columnsCount", "columns_count", "displayStyle", "display_style"],
 });
 
 makeCrud("product-groups", productGroupsTable, {

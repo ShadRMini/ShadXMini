@@ -16,6 +16,8 @@ export interface FieldDef {
   placeholder?: string;
   helperText?: string;
   readOnly?: boolean;
+  min?: number;
+  max?: number;
 }
 
 export interface CrudConfig {
@@ -398,6 +400,8 @@ function FieldInput({
       <input
         type="number"
         step={field.step || "any"}
+        min={field.min}
+        max={field.max}
         className={cls}
         value={value ?? ""}
         onChange={(e) => onChange(e.target.value === "" ? null : Number(e.target.value))}
