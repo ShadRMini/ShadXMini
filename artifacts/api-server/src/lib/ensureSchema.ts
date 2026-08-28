@@ -237,7 +237,8 @@ export async function ensureDatabaseSchema() {
       { key: "shamcash_shamcash_identifier", val: process.env.SAM_SHAMCASH_IDENTIFIER || "" },
       { key: "shamcash_invoice_expiry_minutes", val: 15 },
       { key: "shamcash_webhook_secret", val: process.env.SAM_WEBHOOK_SECRET || "" },
-      { key: "public_api_base_url", val: process.env.PUBLIC_API_BASE_URL || process.env.RENDER_EXTERNAL_URL || "" }
+      { key: "public_api_base_url", val: process.env.PUBLIC_API_BASE_URL || process.env.RENDER_EXTERNAL_URL || "" },
+      { key: "news_ticker_speed", val: 15 }
     ];
     for (const item of shamcashKeys) {
       const existing: any = await db.execute(sql`SELECT key FROM settings WHERE key = ${item.key}`);

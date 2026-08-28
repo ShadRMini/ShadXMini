@@ -116,6 +116,7 @@ const getPublicSettingsHandler = async (_req: any, res: any) => {
     siteName: siteName,
     admin_login_image: adminLoginImage,
     adminLoginImage: adminLoginImage,
+    news_ticker_speed: Number(map.get("news_ticker_speed") || 15),
   });
 };
 

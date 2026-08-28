@@ -2956,4 +2956,39 @@ router.put("/admin/popup-settings", requireAdmin, async (req, res) => {
   }
 });
 
+// News Ticker Speed Settings Admin
+router.get("/admin/settings/news-ticker", requireAdmin, async (_req, res) => {
+  try {
+    const rows = await db.select().from(settingsTable);
+    const map = new Map(rows.map((r) => [r.key, r.value]));
+    const speed = Number(map.get("news_ticker_speed") || 15);
+    res.json({ newsTickerSpeed: speed, news_ticker_speed: speed });
+  } catch (err: any) {
+    res.status(500).json({ error: err?.message || "فشل جلب إعدادات سرعة شريط الأخبار" });
+  }
+});
+
+router.put("/admin/settings/news-ticker", requireAdmin, async (req, res) => {
+  try {
+    const { newsTickerSpeed, news_ticker_speed } = req.body;
+    const speedVal = Number(newsTickerSpeed ?? news_ticker_speed ?? 15);
+
+    await db
+      .insert(settingsTable)
+      .values({ key: "news_ticker_speed", value: speedVal })
+      .onConflictDoUpdate({ target: settingsTable.key, set: { value: speedVal } });
+
+    await logActivity(
+      { id: req.session.adminId, name: req.session.adminUsername },
+      "news_ticker_speed_update",
+      "settings",
+      ["news_ticker_speed"]
+    );
+
+    res.json({ success: true, newsTickerSpeed: speedVal });
+  } catch (err: any) {
+    res.status(500).json({ error: err?.message || "فشل تحديث إعدادات سرعة شريط الأخبار" });
+  }
+});
+
 export default router;

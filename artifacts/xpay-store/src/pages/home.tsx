@@ -7,6 +7,7 @@ import { getPublicJson } from "@/lib/public-api";
 import { useAuth } from "@/lib/auth-context";
 import CategoryCard from "@/components/categories/CategoryCard";
 import BannerCarousel, { BannerItem } from "@/components/home/BannerCarousel";
+import AnnouncementBar from "@/components/layout/AnnouncementBar";
 
 type CategoryItem = {
   id: string;
@@ -176,6 +177,9 @@ export default function Home() {
 
         {/* Banner Carousel Component */}
         <BannerCarousel banners={mappedBanners} isLoading={bannersLoading} />
+
+        {/* Announcement / News Ticker Bar */}
+        <AnnouncementBar />
 
         {/* Categories Section */}
         <div className="px-2 sm:px-4">
