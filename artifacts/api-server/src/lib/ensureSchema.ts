@@ -280,6 +280,7 @@ export async function ensureDatabaseSchema() {
       { key: "maintenance_contact_url", val: "/support" },
       { key: "maintenance_estimated_time", val: "" },
       { key: "use_legacy_product_form", val: false },
+      { key: "use_legacy_dashboard", val: false },
     ];
     for (const item of maintenanceDefaultKeys) {
       const existing: any = await db.execute(sql`SELECT key FROM settings WHERE key = ${item.key}`);
