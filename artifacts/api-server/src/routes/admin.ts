@@ -2533,18 +2533,27 @@ router.get("/admin/providers/:id/products", requireAdmin, async (req, res) => {
       provider.apiUrl || undefined
     );
 
+    if (!Array.isArray(products)) {
+      throw new Error("تنسيق بيانات المنتجات المستلمة من المزود غير صالح (ليس مصفوفة)");
+    }
+
     // إعادة قائمة بالمعلومات الأساسية فقط (id, name, price)
-    const list = products.map((p) => ({
-      id: p.id,
-      name: p.name,
-      price: p.price,
-      category: p.categoryName,
-    }));
+    const list = products.map((p) => {
+      const typeVal = p.productType;
+      const normalizedType = typeof typeVal === "string" ? typeVal.toLowerCase() : (typeVal != null ? String(typeVal).toLowerCase() : "custom");
+      return {
+        id: p.id,
+        name: p.name,
+        price: p.price,
+        category: p.categoryName,
+        productType: normalizedType,
+      };
+    });
 
     res.json({ provider: provider.name, products: list });
   } catch (error: any) {
     console.error("Fetch provider products error:", error);
-    res.status(500).json({ error: error.message || "فشل جلب المنتجات" });
+    res.status(500).json({ error: error.message || "فشل تحليل بيانات المنتجات من المزود" });
   }
 });
 

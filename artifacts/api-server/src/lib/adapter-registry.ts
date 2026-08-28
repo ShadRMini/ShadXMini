@@ -24,7 +24,8 @@ export function registerAdapters() {
 export function getAdapter(type: string | undefined | null): ProviderAdapter {
   registerAdapters();
   
-  const key = (type || "custom").toLowerCase().trim() || "custom";
+  const rawType = typeof type === "string" ? type : (type != null ? String(type) : "custom");
+  const key = rawType.toLowerCase().trim() || "custom";
   const adapter = adapters.get(key);
   
   if (adapter) {
