@@ -2811,6 +2811,7 @@ router.get("/admin/provider-products/:providerId", requireAdmin, async (req, res
       id: rp.id,
       name: rp.name,
       price: rp.price,
+      category: rp.categoryName || rp.category || "عام",
       available: rp.available ?? true,
       externalServiceId: rp.id
     })));

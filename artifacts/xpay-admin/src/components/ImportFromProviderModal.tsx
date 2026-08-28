@@ -332,6 +332,7 @@ export default function ImportFromProviderModal({ isOpen, onClose, onSuccess, ca
                   </th>
                   <th className="p-3.5 font-semibold">المعرف الخارجي</th>
                   <th className="p-3.5 font-semibold">اسم المنتج</th>
+                  <th className="p-3.5 font-semibold">الفئة</th>
                   <th className="p-3.5 font-semibold">السعر (USD)</th>
                   <th className="p-3.5 font-semibold text-center">الحالة</th>
                   <th className="p-3.5 font-semibold text-center">الإجراء</th>
@@ -340,7 +341,7 @@ export default function ImportFromProviderModal({ isOpen, onClose, onSuccess, ca
               <tbody className="divide-y divide-zinc-800/80">
                 {loadingProducts ? (
                   <tr>
-                    <td colSpan={6} className="text-center py-20 text-zinc-400 font-bold">
+                    <td colSpan={7} className="text-center py-20 text-zinc-400 font-bold">
                       <div className="flex flex-col items-center justify-center gap-3">
                         <RefreshCw size={36} className="animate-spin text-[#C8A45C]" />
                         <span>جاري جلب المنتجات من المزود الخارجي...</span>
@@ -349,7 +350,7 @@ export default function ImportFromProviderModal({ isOpen, onClose, onSuccess, ca
                   </tr>
                 ) : filteredProducts.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="text-center py-20 text-zinc-500 font-bold">
+                    <td colSpan={7} className="text-center py-20 text-zinc-500 font-bold">
                       <AlertTriangle size={36} className="mx-auto mb-2 opacity-40 text-[#C8A45C]" />
                       لا توجد منتجات مطابقة أو لم يتم اختيار مزود نشط.
                     </td>
@@ -375,6 +376,11 @@ export default function ImportFromProviderModal({ isOpen, onClose, onSuccess, ca
                           #{p.externalServiceId || p.id}
                         </td>
                         <td className="p-3.5 font-bold text-white">{p.name}</td>
+                        <td className="p-3.5 text-zinc-300">
+                          <span className="px-2.5 py-1 rounded-lg bg-zinc-800 text-[11px] text-zinc-300 border border-zinc-700">
+                            {p.category || p.categoryName || "عام"}
+                          </span>
+                        </td>
                         <td className="p-3.5 font-mono font-black text-emerald-400">
                           ${Number(p.price || p.priceUsd || 0).toFixed(2)}
                         </td>
