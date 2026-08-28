@@ -2869,4 +2869,82 @@ router.post("/admin/clear-cache", requireAdmin, async (req, res) => {
   }
 });
 
+// Popup Settings Admin
+router.get("/admin/popup-settings", requireAdmin, async (_req, res) => {
+  try {
+    const rows = await db.select().from(settingsTable);
+    const map = new Map(rows.map((r) => [r.key, r.value]));
+    
+    const getBool = (key: string, fallback = false) => {
+      const v = map.get(key);
+      if (typeof v === "boolean") return v;
+      if (typeof v === "string") return v === "true";
+      return fallback;
+    };
+
+    res.json({
+      popupEnabled: getBool("popup_enabled", false),
+      popupTitle: String(map.get("popup_title") || "مجتمع الواتس أب"),
+      popupContent: String(map.get("popup_content") || "انضم إلى مجتمع الواتس أب للاطلاع على كل جديد والخصومات الحصرية."),
+      popupImage: String(map.get("popup_image") || ""),
+      popupLinkUrl: String(map.get("popup_link_url") || ""),
+      popupLinkText: String(map.get("popup_link_text") || "انضم الآن"),
+      popupButtonCloseText: String(map.get("popup_button_close_text") || "إغلاق الكل"),
+      popupButtonReadText: String(map.get("popup_button_read_text") || "قراءة الكل"),
+      popupButtonViewText: String(map.get("popup_button_view_text") || "عرض الكل"),
+      popupShowOnlyOnce: getBool("popup_show_only_once", true),
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err?.message || "فشل جلب إعدادات النافذة المنبثقة" });
+  }
+});
+
+router.put("/admin/popup-settings", requireAdmin, async (req, res) => {
+  try {
+    const {
+      popupEnabled,
+      popupTitle,
+      popupContent,
+      popupImage,
+      popupLinkUrl,
+      popupLinkText,
+      popupButtonCloseText,
+      popupButtonReadText,
+      popupButtonViewText,
+      popupShowOnlyOnce,
+    } = req.body;
+
+    const pairs = [
+      ["popup_enabled", Boolean(popupEnabled)],
+      ["popup_title", String(popupTitle || "")],
+      ["popup_content", String(popupContent || "")],
+      ["popup_image", String(popupImage || "")],
+      ["popup_link_url", String(popupLinkUrl || "")],
+      ["popup_link_text", String(popupLinkText || "")],
+      ["popup_button_close_text", String(popupButtonCloseText || "")],
+      ["popup_button_read_text", String(popupButtonReadText || "")],
+      ["popup_button_view_text", String(popupButtonViewText || "")],
+      ["popup_show_only_once", Boolean(popupShowOnlyOnce)],
+    ];
+
+    for (const [key, value] of pairs) {
+      await db
+        .insert(settingsTable)
+        .values({ key, value })
+        .onConflictDoUpdate({ target: settingsTable.key, set: { value } });
+    }
+
+    await logActivity(
+      { id: req.session.adminId, name: req.session.adminUsername },
+      "popup_settings_update",
+      "settings",
+      ["popup_enabled", "popup_title"]
+    );
+
+    res.json({ ok: true });
+  } catch (err: any) {
+    res.status(500).json({ error: err?.message || "فشل تحديث إعدادات النافذة المنبثقة" });
+  }
+});
+
 export default router;

@@ -25,6 +25,7 @@ import Login from "@/pages/login";
 import Register from "@/pages/register";
 import NotificationsPage from "@/pages/Notifications";
 import AppLayout from "@/components/layout/AppLayout";
+import { PopupNotification } from "@/components/PopupNotification";
 
 const queryClient = new QueryClient();
 
@@ -301,6 +302,7 @@ function App() {
             <Router />
           </WouterRouter>
           {settings && <StorePopup settings={settings} />}
+          <PopupNotification />
           <Toaster theme="dark" position="top-center" dir="rtl" />
         </TooltipProvider>
       </AuthProvider>

@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
-import { get, post, del } from "../lib/api";
+import { get, post, put, del } from "../lib/api";
 import { 
   Bell, 
   Send, 
@@ -13,7 +13,10 @@ import {
   CheckCircle2, 
   AlertCircle,
   Filter,
-  Sparkles
+  Sparkles,
+  Save,
+  Globe,
+  Image as ImageIcon
 } from "lucide-react";
 
 interface NotificationItem {
@@ -51,6 +54,23 @@ export default function Notifications() {
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
 
+  const [activeTab, setActiveTab] = useState<"notifications" | "popup">("notifications");
+  const [popupSettings, setPopupSettings] = useState({
+    popupEnabled: false,
+    popupTitle: "",
+    popupContent: "",
+    popupImage: "",
+    popupLinkUrl: "",
+    popupLinkText: "",
+    popupButtonCloseText: "إغلاق الكل",
+    popupButtonReadText: "قراءة الكل",
+    popupButtonViewText: "عرض الكل",
+    popupShowOnlyOnce: true,
+  });
+  const [popupSaving, setPopupSaving] = useState(false);
+  const [popupSuccess, setPopupSuccess] = useState<string | null>(null);
+  const [popupErr, setPopupErr] = useState<string | null>(null);
+
   const loadNotifications = async () => {
     setLoading(true);
     try {
@@ -82,10 +102,49 @@ export default function Notifications() {
     }
   };
 
+  const loadPopupSettings = async () => {
+    try {
+      const data = await get("/admin/popup-settings");
+      if (data) {
+        setPopupSettings({
+          popupEnabled: Boolean(data.popupEnabled),
+          popupTitle: data.popupTitle || "",
+          popupContent: data.popupContent || "",
+          popupImage: data.popupImage || "",
+          popupLinkUrl: data.popupLinkUrl || "",
+          popupLinkText: data.popupLinkText || "",
+          popupButtonCloseText: data.popupButtonCloseText || "إغلاق الكل",
+          popupButtonReadText: data.popupButtonReadText || "قراءة الكل",
+          popupButtonViewText: data.popupButtonViewText || "عرض الكل",
+          popupShowOnlyOnce: data.popupShowOnlyOnce !== false,
+        });
+      }
+    } catch (e) {
+      console.error("Load popup settings error:", e);
+    }
+  };
+
   useEffect(() => {
     loadNotifications();
     loadUsers();
+    loadPopupSettings();
   }, []);
+
+  const savePopupSettings = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPopupSaving(true);
+    setPopupErr(null);
+    setPopupSuccess(null);
+    try {
+      await put("/admin/popup-settings", popupSettings);
+      setPopupSuccess("تم حفظ إعدادات النافذة المنبثقة بنجاح!");
+      setTimeout(() => setPopupSuccess(null), 4000);
+    } catch (e: any) {
+      setPopupErr(e.message || "فشل حفظ إعدادات النافذة المنبثقة");
+    } finally {
+      setPopupSaving(false);
+    }
+  };
 
   const send = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -224,16 +283,222 @@ export default function Notifications() {
         </div>
 
         <button
-          onClick={loadNotifications}
+          onClick={() => {
+            loadNotifications();
+            loadPopupSettings();
+          }}
           disabled={loading}
           className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-300 rounded-xl font-semibold text-slate-700 hover:bg-slate-50 shadow-xs transition-all disabled:opacity-50"
         >
           <RefreshCw size={16} className={loading ? "animate-spin text-[#C8A45C]" : ""} />
-          <span>تحديث الإشعارات</span>
+          <span>تحديث البيانات</span>
         </button>
       </div>
 
-      {/* Stats Cards */}
+      {/* Tabs Switcher */}
+      <div className="flex border-b border-slate-200">
+        <button
+          onClick={() => setActiveTab("notifications")}
+          className={`py-3 px-6 font-bold text-sm border-b-2 transition-all flex items-center gap-2 ${
+            activeTab === "notifications"
+              ? "border-[#C8A45C] text-[#C8A45C]"
+              : "border-transparent text-slate-500 hover:text-slate-700"
+          }`}
+        >
+          <Bell size={16} />
+          <span>سجل وتاريخ الإشعارات</span>
+        </button>
+        <button
+          onClick={() => setActiveTab("popup")}
+          className={`py-3 px-6 font-bold text-sm border-b-2 transition-all flex items-center gap-2 ${
+            activeTab === "popup"
+              ? "border-[#C8A45C] text-[#C8A45C]"
+              : "border-transparent text-slate-500 hover:text-slate-700"
+          }`}
+        >
+          <Sparkles size={16} />
+          <span>إعدادات النافذة المنبثقة (Pop-up)</span>
+        </button>
+      </div>
+
+      {activeTab === "popup" ? (
+        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs max-w-3xl">
+          <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100">
+            <div className="w-12 h-12 rounded-2xl bg-[#C8A45C]/15 border border-[#C8A45C]/30 flex items-center justify-center text-[#C8A45C]">
+              <Sparkles size={24} />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-slate-900">إعدادات النافذة المنبثقة (Popup Notification)</h2>
+              <p className="text-sm text-slate-500">التحكم في النافذة الترحيبية والتنبيهية التي تظهر للمستخدمين عند تسجيل الدخول أو زيارة المتجر.</p>
+            </div>
+          </div>
+
+          {popupSuccess && (
+            <div className="mb-6 p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm font-semibold flex items-center gap-2">
+              <CheckCircle2 size={18} className="text-emerald-600 shrink-0" />
+              <span>{popupSuccess}</span>
+            </div>
+          )}
+
+          {popupErr && (
+            <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 text-red-800 text-sm font-semibold flex items-center gap-2">
+              <AlertCircle size={18} className="text-red-600 shrink-0" />
+              <span>{popupErr}</span>
+            </div>
+          )}
+
+          <form onSubmit={savePopupSettings} className="space-y-5">
+            {/* Enable switch */}
+            <div className="flex items-center justify-between p-4 bg-slate-50 border border-slate-200 rounded-xl">
+              <div>
+                <span className="font-bold text-slate-900 block">تفعيل النافذة المنبثقة</span>
+                <span className="text-xs text-slate-500">إظهار النافذة للمستخدمين المسجلين عند الدخول</span>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={popupSettings.popupEnabled}
+                  onChange={(e) => setPopupSettings({ ...popupSettings, popupEnabled: e.target.checked })}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:right-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#C8A45C]"></div>
+              </label>
+            </div>
+
+            {/* Title */}
+            <div>
+              <label className="block text-sm font-bold text-slate-700 mb-1.5">عنوان النافذة</label>
+              <input
+                type="text"
+                value={popupSettings.popupTitle}
+                onChange={(e) => setPopupSettings({ ...popupSettings, popupTitle: e.target.value })}
+                placeholder="مثال: مجتمع الواتس أب"
+                className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:border-[#C8A45C] text-slate-900 text-sm"
+              />
+            </div>
+
+            {/* Content */}
+            <div>
+              <label className="block text-sm font-bold text-slate-700 mb-1.5">محتوى الرسالة</label>
+              <textarea
+                rows={4}
+                value={popupSettings.popupContent}
+                onChange={(e) => setPopupSettings({ ...popupSettings, popupContent: e.target.value })}
+                placeholder="تفاصيل التنبيه أو الإعلان..."
+                className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:border-[#C8A45C] text-slate-900 text-sm"
+              />
+            </div>
+
+            {/* Image URL */}
+            <div>
+              <label className="block text-sm font-bold text-slate-700 mb-1.5">رابط الصورة (اختياري)</label>
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
+                    <ImageIcon size={18} />
+                  </div>
+                  <input
+                    type="url"
+                    value={popupSettings.popupImage}
+                    onChange={(e) => setPopupSettings({ ...popupSettings, popupImage: e.target.value })}
+                    placeholder="https://example.com/image.png"
+                    className="w-full pr-10 pl-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:border-[#C8A45C] text-slate-900 text-sm"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Link URL & Text */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-1.5">رابط الزر الخارجي (URL)</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
+                    <Globe size={18} />
+                  </div>
+                  <input
+                    type="url"
+                    value={popupSettings.popupLinkUrl}
+                    onChange={(e) => setPopupSettings({ ...popupSettings, popupLinkUrl: e.target.value })}
+                    placeholder="https://chat.whatsapp.com/..."
+                    className="w-full pr-10 pl-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:border-[#C8A45C] text-slate-900 text-sm"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-1.5">نص زر الرابط</label>
+                <input
+                  type="text"
+                  value={popupSettings.popupLinkText}
+                  onChange={(e) => setPopupSettings({ ...popupSettings, popupLinkText: e.target.value })}
+                  placeholder="مثال: انضم الآن"
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:border-[#C8A45C] text-slate-900 text-sm"
+                />
+              </div>
+            </div>
+
+            {/* Button Texts */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2 border-t border-slate-100">
+              <div>
+                <label className="block text-xs font-bold text-slate-600 mb-1">نص زر الإغلاق</label>
+                <input
+                  type="text"
+                  value={popupSettings.popupButtonCloseText}
+                  onChange={(e) => setPopupSettings({ ...popupSettings, popupButtonCloseText: e.target.value })}
+                  className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-600 mb-1">نص زر القراءة</label>
+                <input
+                  type="text"
+                  value={popupSettings.popupButtonReadText}
+                  onChange={(e) => setPopupSettings({ ...popupSettings, popupButtonReadText: e.target.value })}
+                  className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-600 mb-1">نص زر العرض</label>
+                <input
+                  type="text"
+                  value={popupSettings.popupButtonViewText}
+                  onChange={(e) => setPopupSettings({ ...popupSettings, popupButtonViewText: e.target.value })}
+                  className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm"
+                />
+              </div>
+            </div>
+
+            {/* Show only once toggle */}
+            <div className="flex items-center justify-between p-4 bg-slate-50 border border-slate-200 rounded-xl">
+              <div>
+                <span className="font-bold text-slate-900 block">إظهار مرة واحدة فقط لكل مستخدم</span>
+                <span className="text-xs text-slate-500">عدم إظهار النافذة مرة أخرى إذا قام المستخدم بإغلاقها</span>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={popupSettings.popupShowOnlyOnce}
+                  onChange={(e) => setPopupSettings({ ...popupSettings, popupShowOnlyOnce: e.target.checked })}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:right-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#C8A45C]"></div>
+              </label>
+            </div>
+
+            <div className="pt-4 flex justify-end">
+              <button
+                type="submit"
+                disabled={popupSaving}
+                className="flex items-center gap-2 px-6 py-3 bg-[#C8A45C] hover:bg-[#B8954A] text-white font-bold rounded-xl shadow-md transition-all disabled:opacity-50"
+              >
+                <Save size={18} />
+                <span>{popupSaving ? "جاري الحفظ..." : "حفظ إعدادات النافذة المنبثقة"}</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      ) : (
+        <>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5">
         <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-xs">
           <div className="flex items-center justify-between text-slate-500 text-xs font-semibold">
@@ -587,6 +852,8 @@ export default function Notifications() {
           )}
         </div>
       </div>
+      </>
+      )}
     </div>
   );
 }

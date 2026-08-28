@@ -122,4 +122,32 @@ const getPublicSettingsHandler = async (_req: any, res: any) => {
 router.get("/settings/public", getPublicSettingsHandler);
 router.get("/public-settings", getPublicSettingsHandler);
 
+const getPopupSettingsHandler = async (_req: any, res: any) => {
+  const rows = await db.select().from(settingsTable);
+  const map = new Map(rows.map((r) => [r.key, r.value]));
+  
+  const getBool = (key: string, fallback = false) => {
+    const v = map.get(key);
+    if (typeof v === "boolean") return v;
+    if (typeof v === "string") return v === "true";
+    return fallback;
+  };
+
+  res.json({
+    popupEnabled: getBool("popup_enabled", false),
+    popupTitle: String(map.get("popup_title") || "مجتمع الواتس أب"),
+    popupContent: String(map.get("popup_content") || "انضم إلى مجتمع الواتس أب للاطلاع على كل جديد والخصومات الحصرية."),
+    popupImage: String(map.get("popup_image") || ""),
+    popupLinkUrl: String(map.get("popup_link_url") || ""),
+    popupLinkText: String(map.get("popup_link_text") || "انضم الآن"),
+    popupButtonCloseText: String(map.get("popup_button_close_text") || "إغلاق الكل"),
+    popupButtonReadText: String(map.get("popup_button_read_text") || "قراءة الكل"),
+    popupButtonViewText: String(map.get("popup_button_view_text") || "عرض الكل"),
+    popupShowOnlyOnce: getBool("popup_show_only_once", true),
+  });
+};
+
+router.get("/public/popup-settings", getPopupSettingsHandler);
+router.get("/popup-settings", getPopupSettingsHandler);
+
 export default router;
