@@ -37,6 +37,7 @@ export const ListCategoriesResponseItem = zod.object({
   order: zod.number(),
   active: zod.boolean(),
   productCount: zod.number(),
+  displayStyle: zod.string().optional(),
 });
 export const ListCategoriesResponse = zod.array(ListCategoriesResponseItem);
 

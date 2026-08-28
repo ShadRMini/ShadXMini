@@ -69,6 +69,7 @@ router.get("/categories", async (_req, res) => {
         order: c.order,
         active: c.active,
         productCount: map.get(c.id) ?? 0,
+        displayStyle: c.displayStyle || "large",
       })),
     );
     res.json(data);

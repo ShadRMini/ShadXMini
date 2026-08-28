@@ -196,8 +196,8 @@ export default function Home() {
           </div>
 
           {categoriesLoading && visibleCategories.length === 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
-              {Array.from({ length: 6 }).map((_, i) => (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {Array.from({ length: 4 }).map((_, i) => (
                 <div key={i} className="flex flex-col items-center gap-2">
                   <Skeleton className="w-full aspect-square rounded-2xl bg-zinc-800" />
                   <Skeleton className="h-3 w-16 bg-zinc-800" />
@@ -205,18 +205,42 @@ export default function Home() {
               ))}
             </div>
           ) : visibleCategories.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
-              {visibleCategories.map((cat, i) => (
-                <CategoryCard
-                  key={cat.id}
-                  id={cat.id}
-                  name={cat.name}
-                  image={cat.image}
-                  imageVersion={cat.imageVersion}
-                  productCount={cat.productCount}
-                  index={i}
-                />
-              ))}
+            <div className="space-y-6">
+              {visibleCategories.filter(c => (c.displayStyle || "large") === "large").length > 0 && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {visibleCategories
+                    .filter(c => (c.displayStyle || "large") === "large")
+                    .map((cat, i) => (
+                      <CategoryCard
+                        key={cat.id}
+                        id={cat.id}
+                        name={cat.name}
+                        image={cat.image}
+                        imageVersion={cat.imageVersion}
+                        productCount={cat.productCount}
+                        index={i}
+                      />
+                    ))}
+                </div>
+              )}
+
+              {visibleCategories.filter(c => c.displayStyle === "small").length > 0 && (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {visibleCategories
+                    .filter(c => c.displayStyle === "small")
+                    .map((cat, i) => (
+                      <CategoryCard
+                        key={cat.id}
+                        id={cat.id}
+                        name={cat.name}
+                        image={cat.image}
+                        imageVersion={cat.imageVersion}
+                        productCount={cat.productCount}
+                        index={i}
+                      />
+                    ))}
+                </div>
+              )}
             </div>
           ) : (
             <div className="rounded-3xl border border-zinc-800 bg-[#2D2D2D] px-4 py-10 text-center text-sm text-zinc-400">

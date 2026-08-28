@@ -8,6 +8,18 @@ export async function ensureDatabaseSchema() {
   try {
     // 1. Providers table & columns
     await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS categories (
+        id SERIAL PRIMARY KEY,
+        name TEXT NOT NULL,
+        image TEXT NOT NULL,
+        "order" INTEGER NOT NULL DEFAULT 0,
+        active BOOLEAN NOT NULL DEFAULT true,
+        display_style TEXT NOT NULL DEFAULT 'large'
+      );
+      ALTER TABLE categories ADD COLUMN IF NOT EXISTS display_style TEXT DEFAULT 'large';
+    `);
+
+    await db.execute(sql`
       CREATE TABLE IF NOT EXISTS providers (
         id SERIAL PRIMARY KEY,
         name TEXT NOT NULL,
