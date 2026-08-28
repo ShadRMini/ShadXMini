@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { get, del, post, put } from "../lib/api";
-import { Plus, Edit2, Trash2, X, Save, Search } from "lucide-react";
+import { Plus, Edit2, Trash2, X, Save, Search, AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
 import { api } from "../lib/api";
 
 interface Provider {
@@ -18,6 +18,9 @@ interface Provider {
 export default function Providers() {
   const [providers, setProviders] = useState<Provider[]>([]);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<{ text: string; type: "success" | "error" } | null>(null);
   const [syncing, setSyncing] = useState<number | null>(null);
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
   const [editing, setEditing] = useState<any | null>(null);
@@ -27,10 +30,10 @@ export default function Providers() {
     setLoading(true);
     try {
       const data = await get<Provider[]>("/providers");
-      console.log("📦 Raw data from /providers:", data); // تشخيص
       setProviders(Array.isArray(data) ? data : []);
     } catch (err: any) {
-      console.error(err);
+      console.error("Fetch providers error:", err);
+      setFeedback({ text: err.message || "فشل تحميل قائمة المزودين", type: "error" });
     } finally {
       setLoading(false);
     }
@@ -47,7 +50,7 @@ export default function Providers() {
       const res = await api<any>(`/providers/${id}/sync`, { method: "POST" });
       setSyncMessage(`✅ ${res.message || "تمت المزامنة بنجاح"}`);
     } catch (err: any) {
-      setSyncMessage(`❌ ${err.message}`);
+      setSyncMessage(`❌ ${err.message || "فشلت المزامنة"}`);
     } finally {
       setSyncing(null);
       setTimeout(() => setSyncMessage(null), 5000);
@@ -55,56 +58,97 @@ export default function Providers() {
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm("هل أنت متأكد من الحذف؟")) return;
+    if (!confirm("هل أنت متأكد من حذف هذا المزود؟ سيتم حذف المنتجات المرتبطة به أيضاً.")) return;
     try {
       await del(`/providers/${id}`);
+      setFeedback({ text: "تم حذف المزود بنجاح", type: "success" });
       await fetchProviders();
     } catch (err: any) {
-      alert(err.message);
+      setFeedback({ text: err.message || "فشل حذف المزود", type: "error" });
     }
   };
 
-  const handleSave = async (data: any) => {
-    if (data.id) {
-      await put(`/providers/${data.id}`, data);
-    } else {
-      await post("/providers", data);
+  const handleSave = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!editing) return;
+
+    // Client-side validation
+    const name = String(editing.name || "").trim();
+    if (!name) {
+      setFormError("يرجى إدخال اسم المزود.");
+      return;
     }
-    setEditing(null);
-    await fetchProviders();
+
+    const payload = {
+      name,
+      apiUrl: editing.apiUrl ? String(editing.apiUrl).trim() : null,
+      apiKey: editing.apiKey ? String(editing.apiKey).trim() : null,
+      notes: editing.notes ? String(editing.notes).trim() : null,
+      priority: Number(editing.priority || 0),
+      active: Boolean(editing.active),
+      providerType: editing.providerType ? String(editing.providerType).trim() : "custom",
+    };
+
+    setSaving(true);
+    setFormError(null);
+
+    try {
+      if (editing.id) {
+        await put(`/providers/${editing.id}`, payload);
+        setFeedback({ text: "تم تحديث بيانات المزود بنجاح", type: "success" });
+      } else {
+        await post("/providers", payload);
+        setFeedback({ text: "تمت إضافة المزود بنجاح", type: "success" });
+      }
+      setEditing(null);
+      await fetchProviders();
+    } catch (err: any) {
+      console.error("Save provider error:", err);
+      setFormError(err.message || "حدث خطأ أثناء حفظ بيانات المزود. يرجى المحاولة مرة أخرى.");
+    } finally {
+      setSaving(false);
+    }
   };
 
-  // دالة استخراج المعرف بأي ثمن
+  // دالة استخراج المعرف للتنقل إلى المنتجات
   const navigateToProducts = (p: any, event: React.MouseEvent, searchMode = false) => {
-    // 1. طباعة كل ما يمكن معرفته عن الكائن
-    console.log("🔎 Full provider object:", JSON.parse(JSON.stringify(p)));
-    console.log("🔎 Object keys:", Object.keys(p));
-    console.log("🔎 p.id:", p.id, "p.ID:", (p as any).ID, "p.providerId:", (p as any).providerId);
-    
-    // 2. جرب كل الاحتمالات
     let pid: any = p.id ?? (p as any).ID ?? (p as any).providerId ?? (p as any).provider_id;
     
-    // 3. إذا لم نجد، استخرج من الصف DOM
     if (pid === undefined || pid === null || isNaN(Number(pid))) {
       const target = event.currentTarget as HTMLElement;
-      const row = target.closest('tr') as HTMLTableRowElement | null;
+      const row = target.closest("tr") as HTMLTableRowElement | null;
       if (row) {
         const firstCell = row.cells[0]?.textContent?.trim();
-        console.log("🔎 Extracted from first cell:", firstCell);
         if (firstCell && !isNaN(Number(firstCell))) {
           pid = Number(firstCell);
         }
       }
     }
     
-    // 4. فحص أخير
     if (pid === undefined || pid === null || isNaN(Number(pid))) {
-      alert(`تعذر استخراج معرف المزود (القيمة: ${pid}). افتح Console وأرسل لنا التفاصيل.`);
+      alert(`تعذر استخراج معرف المزود.`);
       return;
     }
     
-    console.log("✅ Navigating to products with id:", pid);
     navigate(`/providers/${pid}/products${searchMode ? "?search=1" : ""}`);
+  };
+
+  const openNewProviderModal = () => {
+    setFormError(null);
+    setEditing({
+      name: "",
+      apiUrl: "",
+      apiKey: "",
+      notes: "",
+      priority: 0,
+      active: true,
+      providerType: "custom",
+    });
+  };
+
+  const openEditProviderModal = (provider: Provider) => {
+    setFormError(null);
+    setEditing({ ...provider });
   };
 
   return (
@@ -112,20 +156,43 @@ export default function Providers() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-slate-900">المزودون</h1>
         <button
-          onClick={() => setEditing({ name: "", apiUrl: "", apiKey: "", notes: "", priority: 0, active: true, providerType: "custom" })}
-          className="flex items-center gap-2 bg-brand-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-brand-700"
+          onClick={openNewProviderModal}
+          className="flex items-center gap-2 bg-slate-900 text-[#C8A45C] hover:bg-slate-800 px-4 py-2 rounded-xl font-bold transition shadow-sm"
         >
           <Plus size={18} /> إضافة جديد
         </button>
       </div>
 
+      {feedback && (
+        <div
+          className={`p-4 rounded-xl flex items-center justify-between text-sm font-medium border ${
+            feedback.type === "success"
+              ? "bg-emerald-50 text-emerald-800 border-emerald-200"
+              : "bg-rose-50 text-rose-800 border-rose-200"
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            {feedback.type === "success" ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
+            <span>{feedback.text}</span>
+          </div>
+          <button
+            onClick={() => setFeedback(null)}
+            className="text-slate-400 hover:text-slate-600 p-1"
+          >
+            <X size={16} />
+          </button>
+        </div>
+      )}
+
       {syncMessage && (
-        <div className="p-3 bg-gray-100 rounded-lg text-sm">{syncMessage}</div>
+        <div className="p-3 bg-slate-100 border border-slate-200 rounded-xl text-sm font-medium">
+          {syncMessage}
+        </div>
       )}
 
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="bg-slate-50 text-slate-600">
+          <thead className="bg-slate-50 text-slate-600 border-b border-slate-200">
             <tr>
               <th className="text-right px-4 py-3 font-semibold">#</th>
               <th className="text-right px-4 py-3 font-semibold">الاسم</th>
@@ -141,52 +208,52 @@ export default function Providers() {
               <tr><td colSpan={5} className="text-center py-8 text-slate-400">لا يوجد مزودون</td></tr>
             ) : (
               providers.map((p) => {
-                // طباعة كل صف لفحصه
-                console.log("📋 Provider row:", JSON.parse(JSON.stringify(p)));
                 return (
-                  <tr key={p.id ?? Math.random()} className="border-t border-slate-100 hover:bg-slate-50">
-                    <td className="px-4 py-3 text-slate-500">{p.id}</td>
-                    <td className="px-4 py-3 font-medium">{p.name}</td>
+                  <tr key={p.id ?? Math.random()} className="border-t border-slate-100 hover:bg-slate-50 transition">
+                    <td className="px-4 py-3 text-slate-500 font-mono">{p.id}</td>
+                    <td className="px-4 py-3 font-bold text-slate-800">{p.name}</td>
                     <td className="px-4 py-3 text-xs">
-                      <span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded">{p.providerType}</span>
+                      <span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md font-mono">{p.providerType}</span>
                     </td>
                     <td className="px-4 py-3">
                       {p.active ? (
-                        <span className="text-emerald-600 text-xs font-semibold bg-emerald-50 px-2 py-0.5 rounded">نعم</span>
+                        <span className="text-emerald-700 text-xs font-bold bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">نعم</span>
                       ) : (
-                        <span className="text-slate-500 text-xs font-semibold bg-slate-100 px-2 py-0.5 rounded">لا</span>
+                        <span className="text-slate-500 text-xs font-bold bg-slate-100 px-2 py-0.5 rounded-md">لا</span>
                       )}
                     </td>
                     <td className="px-4 py-3">
-                      <div className="flex items-center gap-1 justify-center">
+                      <div className="flex items-center gap-1.5 justify-center">
                         <button
                           onClick={(e) => navigateToProducts(p, e)}
-                          className="px-3 py-1 bg-emerald-500 text-white rounded hover:bg-emerald-600 text-xs"
+                          className="px-2.5 py-1 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-xs font-medium transition"
                         >
                           منتجات
                         </button>
                         <button
                           onClick={(e) => navigateToProducts(p, e, true)}
-                          className="px-3 py-1 bg-violet-500 text-white rounded hover:bg-violet-600 text-xs flex items-center gap-1"
+                          className="px-2.5 py-1 bg-violet-600 text-white rounded-lg hover:bg-violet-700 text-xs font-medium flex items-center gap-1 transition"
                         >
-                          <Search size={12} /> بحث المنتجات
+                          <Search size={12} /> بحث
                         </button>
                         <button
                           onClick={() => handleSync(p.id)}
                           disabled={syncing === p.id}
-                          className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50 text-xs"
+                          className="px-2.5 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 text-xs font-medium transition"
                         >
-                          {syncing === p.id ? "⏳" : "مزامنة"}
+                          {syncing === p.id ? "⏳ جاري..." : "مزامنة"}
                         </button>
                         <button
-                          onClick={() => setEditing(p)}
-                          className="p-1.5 text-brand-600 hover:bg-brand-50 rounded"
+                          onClick={() => openEditProviderModal(p)}
+                          className="p-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition"
+                          title="تعديل"
                         >
                           <Edit2 size={15} />
                         </button>
                         <button
                           onClick={() => handleDelete(p.id)}
-                          className="p-1.5 text-rose-600 hover:bg-rose-50 rounded"
+                          className="p-1.5 text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition"
+                          title="حذف"
                         >
                           <Trash2 size={15} />
                         </button>
@@ -201,88 +268,118 @@ export default function Providers() {
       </div>
 
       {editing && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-slate-200 animate-in fade-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between p-5 border-b border-slate-100">
-              <h2 className="text-lg font-bold text-slate-900">{editing.id ? "تعديل مزود" : "إضافة مزود"}</h2>
-              <button onClick={() => setEditing(null)} className="text-slate-400 hover:text-slate-700"><X size={20} /></button>
+              <h2 className="text-lg font-bold text-slate-900">{editing.id ? "تعديل بيانات المزود" : "إضافة مزود جديد"}</h2>
+              <button
+                type="button"
+                onClick={() => !saving && setEditing(null)}
+                className="text-slate-400 hover:text-slate-700 p-1 rounded-lg"
+              >
+                <X size={20} />
+              </button>
             </div>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleSave(editing);
-              }}
-              className="p-5 space-y-4"
-            >
+
+            <form onSubmit={handleSave} className="p-5 space-y-4">
+              {formError && (
+                <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs font-medium flex items-center gap-2">
+                  <AlertCircle size={16} className="shrink-0" />
+                  <span>{formError}</span>
+                </div>
+              )}
+
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-1.5">الاسم *</label>
                 <input
                   type="text"
-                  className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"
+                  className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#C8A45C] focus:border-[#C8A45C]"
                   value={editing.name || ""}
                   onChange={(e) => setEditing({ ...editing, name: e.target.value })}
+                  placeholder="مثال: متجر المزود الرئيسي"
                   required
                 />
               </div>
+
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1.5">رابط API</label>
+                <label className="block text-sm font-semibold text-slate-700 mb-1.5">رابط API (API URL)</label>
                 <input
                   type="text"
-                  className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"
+                  className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#C8A45C] focus:border-[#C8A45C]"
                   value={editing.apiUrl || ""}
                   onChange={(e) => setEditing({ ...editing, apiUrl: e.target.value })}
+                  placeholder="https://api.example.com/v2"
                 />
               </div>
+
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1.5">مفتاح API</label>
+                <label className="block text-sm font-semibold text-slate-700 mb-1.5">مفتاح API (API Key)</label>
                 <input
                   type="text"
-                  className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"
+                  className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[#C8A45C] focus:border-[#C8A45C]"
                   value={editing.apiKey || ""}
                   onChange={(e) => setEditing({ ...editing, apiKey: e.target.value })}
+                  placeholder="أدخل مفتاح API الخاص بالمزود"
                 />
               </div>
+
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1.5">نوع المزود</label>
+                <label className="block text-sm font-semibold text-slate-700 mb-1.5">نوع المزود (Provider Type)</label>
                 <input
                   type="text"
-                  className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"
+                  className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#C8A45C] focus:border-[#C8A45C]"
                   value={editing.providerType || "custom"}
                   onChange={(e) => setEditing({ ...editing, providerType: e.target.value })}
+                  placeholder="custom"
                 />
               </div>
+
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-1.5">ملاحظات</label>
                 <textarea
-                  className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"
+                  className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#C8A45C] focus:border-[#C8A45C]"
                   rows={3}
                   value={editing.notes || ""}
                   onChange={(e) => setEditing({ ...editing, notes: e.target.value })}
+                  placeholder="أي معلومات أو تعليمات خاصة بهذا المزود..."
                 />
               </div>
+
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1.5">الأولوية</label>
+                <label className="block text-sm font-semibold text-slate-700 mb-1.5">الأولوية (Priority)</label>
                 <input
                   type="number"
-                  className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"
+                  className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#C8A45C] focus:border-[#C8A45C]"
                   value={editing.priority ?? 0}
                   onChange={(e) => setEditing({ ...editing, priority: Number(e.target.value) })}
                 />
               </div>
-              <label className="inline-flex items-center gap-2">
+
+              <label className="inline-flex items-center gap-2 cursor-pointer select-none">
                 <input
                   type="checkbox"
                   checked={!!editing.active}
                   onChange={(e) => setEditing({ ...editing, active: e.target.checked })}
-                  className="w-5 h-5 accent-brand-600"
+                  className="w-4 h-4 rounded text-slate-900 accent-slate-900"
                 />
-                <span className="text-sm text-slate-600">مفعل</span>
+                <span className="text-sm font-medium text-slate-700">مزود مفعّل</span>
               </label>
-              <div className="flex items-center gap-2 pt-2">
-                <button type="submit" className="flex items-center gap-2 bg-brand-600 text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-brand-700">
-                  <Save size={16} /> حفظ
+
+              <div className="flex items-center gap-3 pt-3 border-t border-slate-100">
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="flex items-center gap-2 bg-slate-900 text-[#C8A45C] hover:bg-slate-800 px-5 py-2.5 rounded-xl font-bold transition disabled:opacity-50 shadow-sm"
+                >
+                  {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+                  {saving ? "جاري الحفظ..." : "حفظ"}
                 </button>
-                <button type="button" onClick={() => setEditing(null)} className="px-5 py-2.5 rounded-lg font-semibold text-slate-600 hover:bg-slate-100">
+                <button
+                  type="button"
+                  disabled={saving}
+                  onClick={() => setEditing(null)}
+                  className="px-5 py-2.5 rounded-xl font-semibold text-slate-600 hover:bg-slate-100 transition disabled:opacity-50"
+                >
                   إلغاء
                 </button>
               </div>

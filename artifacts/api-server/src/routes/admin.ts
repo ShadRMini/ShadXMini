@@ -867,9 +867,17 @@ async function sanitizeCrudDataForRuntimeSchema(path: string, data: any): Promis
     if (!exists) delete normalized.providerProductId;
   }
 
-  if (path === "providers" && "providerType" in normalized) {
-    const exists = await hasColumn("providers", "provider_type");
-    if (!exists) delete normalized.providerType;
+  if (path === "providers") {
+    if ("name" in normalized && typeof normalized.name === "string") {
+      normalized.name = normalized.name.trim();
+    }
+    if (isBlank(normalized.name)) throw new ValidationError("اسم المزود مطلوب");
+    if ("priority" in normalized) normalizeNumberField(normalized, "priority", { nullable: true });
+    if ("active" in normalized) normalized.active = !!normalized.active;
+    if ("providerType" in normalized) {
+      const exists = await hasColumn("providers", "provider_type");
+      if (!exists) delete normalized.providerType;
+    }
   }
 
   return normalized;
