@@ -874,41 +874,47 @@ function makeCrud<T extends { id: any }>(
         .where(eq(table.id, id))
         .returning();
       if (path === "products" && before && row) {
-        const logs: Array<{
-          productId: number;
-          changeType: "profit" | "max_quantity";
-          oldValue: string | null;
-          newValue: string | null;
-          providerSnapshot: Record<string, unknown>;
-          adminId?: number;
-        }> = [];
-        if ("storeProfitPerUnit" in data || "priceUsd" in data) {
-          logs.push({
-            productId: row.id,
-            changeType: "profit",
-            oldValue: String(before.storeProfitPerUnit ?? before.priceUsd ?? ""),
-            newValue: String((row as any).storeProfitPerUnit ?? (row as any).priceUsd ?? ""),
-            providerSnapshot: {
-              providerUnitPrice: (row as any).providerUnitPrice ?? (row as any).basePriceUsd ?? null,
-              minQuantity: (row as any).minQuantity ?? (row as any).minQty ?? null,
-            },
-            adminId: req.session.adminId,
-          });
+        try {
+          const logs: Array<{
+            productId: number;
+            changeType: "profit" | "max_quantity";
+            oldValue: string | null;
+            newValue: string | null;
+            providerSnapshot: Record<string, unknown>;
+            adminId?: number;
+          }> = [];
+          if ("storeProfitPerUnit" in data || "priceUsd" in data) {
+            logs.push({
+              productId: row.id,
+              changeType: "profit",
+              oldValue: String(before.storeProfitPerUnit ?? before.priceUsd ?? ""),
+              newValue: String((row as any).storeProfitPerUnit ?? (row as any).priceUsd ?? ""),
+              providerSnapshot: {
+                providerUnitPrice: (row as any).providerUnitPrice ?? (row as any).basePriceUsd ?? null,
+                minQuantity: (row as any).minQuantity ?? (row as any).minQty ?? null,
+              },
+              adminId: req.session.adminId,
+            });
+          }
+          if ("maxQuantity" in data || "maxQty" in data) {
+            logs.push({
+              productId: row.id,
+              changeType: "max_quantity",
+              oldValue: String(before.maxQuantity ?? before.maxQty ?? ""),
+              newValue: String((row as any).maxQuantity ?? (row as any).maxQty ?? ""),
+              providerSnapshot: {
+                providerUnitPrice: (row as any).providerUnitPrice ?? (row as any).basePriceUsd ?? null,
+                minQuantity: (row as any).minQuantity ?? (row as any).minQty ?? null,
+              },
+              adminId: req.session.adminId,
+            });
+          }
+          if (logs.length) {
+            await db.insert(productChangesLogTable).values(logs);
+          }
+        } catch (logError) {
+          console.warn("[Admin Product Update] Failed to insert into product_changes_log:", logError);
         }
-        if ("maxQuantity" in data || "maxQty" in data) {
-          logs.push({
-            productId: row.id,
-            changeType: "max_quantity",
-            oldValue: String(before.maxQuantity ?? before.maxQty ?? ""),
-            newValue: String((row as any).maxQuantity ?? (row as any).maxQty ?? ""),
-            providerSnapshot: {
-              providerUnitPrice: (row as any).providerUnitPrice ?? (row as any).basePriceUsd ?? null,
-              minQuantity: (row as any).minQuantity ?? (row as any).minQty ?? null,
-            },
-            adminId: req.session.adminId,
-          });
-        }
-        if (logs.length) await db.insert(productChangesLogTable).values(logs);
       }
       await logActivity(
         { id: req.session.adminId, name: req.session.adminUsername },

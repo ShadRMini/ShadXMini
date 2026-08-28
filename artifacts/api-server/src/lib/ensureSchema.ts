@@ -56,6 +56,45 @@ export async function ensureDatabaseSchema() {
       ALTER TABLE products ADD COLUMN IF NOT EXISTS provider_id INTEGER;
       ALTER TABLE products ADD COLUMN IF NOT EXISTS source TEXT DEFAULT 'manual';
       ALTER TABLE products ADD COLUMN IF NOT EXISTS provider_product_id INTEGER;
+      ALTER TABLE products ADD COLUMN IF NOT EXISTS featured BOOLEAN DEFAULT false;
+    `);
+
+    // 3.1 Product changes log table & enum
+    try {
+      await db.execute(sql`
+        DO $$
+        BEGIN
+          IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'product_change_type') THEN
+            CREATE TYPE product_change_type AS ENUM ('profit', 'max_quantity');
+          END IF;
+        END
+        $$;
+      `);
+    } catch (e) {
+      console.warn("[DB Schema] Enum product_change_type check warning:", e);
+    }
+
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS product_changes_log (
+        id SERIAL PRIMARY KEY,
+        product_id INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+        change_type TEXT NOT NULL,
+        old_value TEXT,
+        new_value TEXT,
+        provider_snapshot JSONB,
+        admin_id INTEGER REFERENCES admins(id) ON DELETE SET NULL,
+        changed_at TIMESTAMP NOT NULL DEFAULT NOW()
+      );
+    `);
+
+    await db.execute(sql`
+      ALTER TABLE product_changes_log ADD COLUMN IF NOT EXISTS product_id INTEGER;
+      ALTER TABLE product_changes_log ADD COLUMN IF NOT EXISTS change_type TEXT;
+      ALTER TABLE product_changes_log ADD COLUMN IF NOT EXISTS old_value TEXT;
+      ALTER TABLE product_changes_log ADD COLUMN IF NOT EXISTS new_value TEXT;
+      ALTER TABLE product_changes_log ADD COLUMN IF NOT EXISTS provider_snapshot JSONB;
+      ALTER TABLE product_changes_log ADD COLUMN IF NOT EXISTS admin_id INTEGER;
+      ALTER TABLE product_changes_log ADD COLUMN IF NOT EXISTS changed_at TIMESTAMP DEFAULT NOW();
     `);
 
     // 4. Users table columns
