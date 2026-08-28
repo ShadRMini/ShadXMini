@@ -156,9 +156,9 @@ export default function Layout({
   }, {});
 
   return (
-    <div className="flex min-h-screen bg-[#1A1A1A] text-white" dir="rtl">
+    <div className="flex h-screen overflow-hidden bg-[#1A1A1A] text-white" dir="rtl">
       <aside
-        className={`fixed lg:static z-40 inset-y-0 right-0 w-72 bg-[#1A1A1A] border-l border-[#C8A45C]/20 transform transition-transform overflow-y-auto ${
+        className={`fixed lg:static z-40 inset-y-0 right-0 w-72 flex-shrink-0 h-full bg-[#1A1A1A] border-l border-[#C8A45C]/20 transform transition-transform overflow-y-auto ${
           open ? "translate-x-0" : "translate-x-full lg:translate-x-0"
         }`}
       >
@@ -214,8 +214,8 @@ export default function Layout({
 
       {open && <div className="fixed inset-0 bg-black/70 z-30 lg:hidden" onClick={() => setOpen(false)} />}
 
-      <div className="flex-1 flex flex-col min-w-0">
-        <header className="bg-[#1A1A1A] border-b border-[#C8A45C]/20 px-4 lg:px-6 py-3.5 flex items-center justify-between shadow-md sticky top-0 z-30">
+      <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
+        <header className="bg-[#1A1A1A] border-b border-[#C8A45C]/20 px-4 lg:px-6 py-3.5 flex items-center justify-between shadow-md sticky top-0 z-30 flex-shrink-0">
           <button className="lg:hidden text-[#C8A45C] cursor-pointer" onClick={() => setOpen(true)}>
             <Menu size={22} />
           </button>
@@ -342,7 +342,7 @@ export default function Layout({
             </button>
           </div>
         </header>
-        <main className="flex-1 p-4 lg:p-6 overflow-x-auto bg-[#1A1A1A] text-white">{children}</main>
+        <main className="flex-1 p-4 lg:p-6 overflow-y-auto overflow-x-auto min-h-0 bg-[#1A1A1A] text-white">{children}</main>
       </div>
     </div>
   );
