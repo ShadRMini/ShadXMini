@@ -17,10 +17,12 @@ import {
   Shield,
   Crown,
   ChevronLeft,
+  Bell,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { getPublicJson } from "@/lib/public-api";
 import AnnouncementBar from "./AnnouncementBar";
+import NotificationBellDropdown from "./NotificationBellDropdown";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
@@ -92,6 +94,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   const sidebarLinks = [
     { href: "/", label: "الرئيسية", icon: Home },
+    { href: "/notifications", label: "التنبيهات والإشعارات", icon: Bell },
     { href: "/favorites", label: "مفضلتي", icon: Heart },
     { href: "/deposit", label: "إضافة رصيد (شحن)", icon: Plus },
     { href: "/deposits", label: "سجل الدفعات والمحفظة", icon: Wallet },
@@ -323,18 +326,22 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             </Link>
           </div>
 
-          {/* Quick Profile / Balance pill */}
+          {/* Quick Profile / Balance pill / Notification Bell */}
           <div className="flex items-center gap-2">
             {user ? (
-              <Link href="/deposit">
-                <div className="flex items-center gap-1.5 bg-[#F5F2EB] border border-[#C8A45C]/40 px-3 py-1.5 rounded-full cursor-pointer hover:border-[#C8A45C] transition">
-                  <span className="text-[11px] font-bold text-slate-600">الرصيد:</span>
-                  <span className="text-xs font-black text-[#C8A45C]">
-                    ${Number(user.balanceUsd || 0).toFixed(2)}
-                  </span>
-                  <Plus size={13} className="text-[#C8A45C]" />
-                </div>
-              </Link>
+              <>
+                <NotificationBellDropdown />
+
+                <Link href="/deposit">
+                  <div className="flex items-center gap-1.5 bg-[#F5F2EB] border border-[#C8A45C]/40 px-3 py-1.5 rounded-full cursor-pointer hover:border-[#C8A45C] transition">
+                    <span className="text-[11px] font-bold text-slate-600">الرصيد:</span>
+                    <span className="text-xs font-black text-[#C8A45C]">
+                      ${Number(user.balanceUsd || 0).toFixed(2)}
+                    </span>
+                    <Plus size={13} className="text-[#C8A45C]" />
+                  </div>
+                </Link>
+              </>
             ) : (
               <Link href="/login">
                 <button className="bg-[#C8A45C] text-[#1A1A1A] font-bold text-xs px-3.5 py-1.5 rounded-full shadow-xs">

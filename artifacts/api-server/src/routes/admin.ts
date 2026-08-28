@@ -1383,6 +1383,10 @@ makeCrud("api-keys", apiKeysTable, {
   allowedFields: ["name", "keyValue", "active"],
 });
 
+makeCrud("notifications", notificationsTable, {
+  allowedFields: ["targetType", "targetUserId", "title", "content", "status", "isRead"],
+});
+
 // ========== USERS ==========
 router.get("/admin/users", requireAdmin, async (req, res) => {
   const q = (req.query["q"] as string | undefined)?.trim();
@@ -2095,6 +2099,7 @@ const PUT_RESOURCES: Array<{ path: string; table: any; allowed: string[] }> = [
   { path: "auto-codes", table: autoCodesTable, allowed: ["productId", "code", "note", "used"] },
   { path: "order-messages", table: orderMessagesTable, allowed: ["event", "title", "body"] },
   { path: "api-keys", table: apiKeysTable, allowed: ["name", "keyValue", "active"] },
+  { path: "notifications", table: notificationsTable, allowed: ["targetType", "targetUserId", "title", "content", "status", "isRead"] },
 ];
 
 for (const r of PUT_RESOURCES) {

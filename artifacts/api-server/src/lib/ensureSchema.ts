@@ -122,6 +122,8 @@ export async function ensureDatabaseSchema() {
       ALTER TABLE notifications ADD COLUMN IF NOT EXISTS title TEXT;
       ALTER TABLE notifications ADD COLUMN IF NOT EXISTS content TEXT;
       ALTER TABLE notifications ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'sent';
+      ALTER TABLE notifications ADD COLUMN IF NOT EXISTS is_read BOOLEAN DEFAULT false;
+      ALTER TABLE notifications ADD COLUMN IF NOT EXISTS read_at TIMESTAMP;
       ALTER TABLE notifications ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT NOW();
     `);
 

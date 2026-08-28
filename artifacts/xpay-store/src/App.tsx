@@ -23,6 +23,7 @@ import Favorites from "@/pages/favorites";
 import About from "@/pages/about";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
+import NotificationsPage from "@/pages/Notifications";
 import AppLayout from "@/components/layout/AppLayout";
 
 const queryClient = new QueryClient();
@@ -240,6 +241,7 @@ function Router() {
             <Route path="/deposit/:method" component={() => <ProtectedRoute component={DepositMethod} />} />
             <Route path="/deposits" component={() => <ProtectedRoute component={DepositsList} />} />
             <Route path="/favorites" component={() => <ProtectedRoute component={Favorites} />} />
+            <Route path="/notifications" component={() => <ProtectedRoute component={NotificationsPage} />} />
             <Route path="/profile" component={() => <ProtectedRoute component={Profile} />} />
             <Route path="/settings" component={() => <ProtectedRoute component={SettingsPage} />} />
             <Route path="/profile/edit" component={() => <ProtectedRoute component={SettingsPage} />} />
