@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { X, Search, Download, Server, Package, CheckCircle2, AlertTriangle, RefreshCw, Layers, DollarSign, Check } from "lucide-react";
+import { X, Search, Download, Server, Package, CheckCircle2, AlertTriangle, RefreshCw, Layers, DollarSign, Check, Sparkles } from "lucide-react";
 import { get, post } from "../lib/api";
 
 interface ImportFromProviderModalProps {
