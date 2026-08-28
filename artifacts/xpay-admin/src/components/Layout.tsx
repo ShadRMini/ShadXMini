@@ -19,43 +19,50 @@ interface QuickNotification {
 }
 
 const NAV: { to: string; label: string; icon: any; group: string }[] = [
-  { to: "/", label: "لوحة التحكم", icon: LayoutDashboard, group: "عام" },
-  { to: "/orders", label: "الطلبات", icon: ShoppingCart, group: "العمليات" },
-  { to: "/deposits", label: "الإيداعات", icon: Wallet, group: "العمليات" },
-  { to: "/users", label: "المستخدمون", icon: Users, group: "العمليات" },
-  { to: "/tickets", label: "تذاكر الدعم", icon: Ticket, group: "العمليات" },
+  // Group 1
+  { to: "/", label: "عام", icon: LayoutDashboard, group: "لوحة الإدارة" },
+  { to: "/maintenance", label: "وضع الصيانة", icon: PowerOff, group: "لوحة الإدارة" },
+  { to: "/news", label: "الأخبار", icon: Megaphone, group: "لوحة الإدارة" },
+  { to: "/users", label: "إدارة المستخدمين (إضافة/حذف)", icon: Users, group: "لوحة الإدارة" },
 
-  { to: "/categories", label: "الأقسام", icon: FolderTree, group: "المتجر" },
-  { to: "/product-groups", label: "مجموعات المنتجات", icon: FolderTree, group: "المتجر" },
-  { to: "/products", label: "المنتجات", icon: Package, group: "المتجر" },
-  { to: "/payment-methods", label: "طرق الدفع", icon: CreditCard, group: "المتجر" },
-  { to: "/banners", label: "البانرات", icon: ImageIcon, group: "المتجر" },
-  { to: "/news", label: "الأخبار", icon: Megaphone, group: "المتجر" },
-  { to: "/social-links", label: "الروابط الاجتماعية", icon: Share2, group: "المتجر" },
+  // Group 2
+  { to: "/providers", label: "مزود API", icon: Server, group: "إدارة المزودين" },
+  { to: "/api-keys", label: "مفتاح API", icon: Code2, group: "إدارة المزودين" },
+  { to: "/provider-reports", label: "تقارير المزودين", icon: BarChart3, group: "إدارة المزودين" },
 
-  { to: "/providers", label: "المزودون", icon: Server, group: "التكامل" },
-  { to: "/auto-codes", label: "الأكواد التلقائية", icon: KeyRound, group: "التكامل" },
-  { to: "/order-messages", label: "رسائل الطلبات", icon: MessageSquare, group: "التكامل" },
-  { to: "/api-keys", label: "مفاتيح API", icon: Code2, group: "التكامل" },
+  // Group 3
+  { to: "/categories", label: "الأقسام (إضافة/حذف)", icon: FolderTree, group: "الأقسام & المنتجات" },
+  { to: "/product-groups", label: "إدارة المجموعات", icon: FolderTree, group: "الأقسام & المنتجات" },
+  { to: "/products", label: "المنتجات (إضافة/حذف)", icon: Package, group: "الأقسام & المنتجات" },
+  { to: "/api-products", label: "منتجات عبر API", icon: Server, group: "الأقسام & المنتجات" },
+  { to: "/auto-codes", label: "كود", icon: KeyRound, group: "الأقسام & المنتجات" },
 
-  { to: "/notifications", label: "الإشعارات والتنبيهات", icon: Bell, group: "التسويق" },
-  { to: "/coupons", label: "كوبونات الخصم", icon: Ticket, group: "التسويق" },
-  { to: "/vip", label: "عضويات VIP", icon: Crown, group: "التسويق" },
+  // Group 4
+  { to: "/orders", label: "الطلبات", icon: ShoppingCart, group: "الإدارة المالية والتسويق" },
+  { to: "/order-messages", label: "قوالب رسائل الطلبات", icon: MessageSquare, group: "الإدارة المالية والتسويق" },
+  { to: "/payment-methods", label: "طرق الدفع (إضافة)", icon: CreditCard, group: "الإدارة المالية والتسويق" },
+  { to: "/coupons", label: "كوبونات الخصم (إضافة/حذف)", icon: Ticket, group: "الإدارة المالية والتسويق" },
+  { to: "/promotions", label: "العروض الترويجية", icon: Megaphone, group: "الإدارة المالية والتسويق" },
+  { to: "/vip", label: "عضويات VIP", icon: Crown, group: "الإدارة المالية والتسويق" },
+  { to: "/currency", label: "عملة المتجر", icon: Globe, group: "الإدارة المالية والتسويق" },
 
-  { to: "/admins", label: "المشرفون", icon: ShieldCheck, group: "النظام" },
-  { to: "/permissions", label: "الصلاحيات", icon: Lock, group: "النظام" },
-  { to: "/activity", label: "سجل النشاط", icon: Activity, group: "النظام" },
-  { to: "/reports", label: "التقارير", icon: BarChart3, group: "النظام" },
-  { to: "/backup", label: "النسخ الاحتياطي", icon: Database, group: "النظام" },
+  // Group 5
+  { to: "/settings", label: "الإعدادات العامة", icon: SettingsIcon, group: "إعدادات النظام" },
+  { to: "/theme", label: "تخصيص التصميم", icon: Palette, group: "إعدادات النظام" },
+  { to: "/social-links", label: "الروابط الاجتماعية", icon: Share2, group: "إعدادات النظام" },
+  { to: "/notifications", label: "الإشعارات", icon: Bell, group: "إعدادات النظام" },
+  { to: "/cache", label: "الذاكرة المؤقتة (مسح الكاش)", icon: Database, group: "إعدادات النظام" },
 
-  { to: "/settings", label: "الإعدادات العامة", icon: SettingsIcon, group: "الإعدادات" },
-  { to: "/theme", label: "تخصيص التصميم", icon: Palette, group: "الإعدادات" },
-  { to: "/currencies", label: "العملات", icon: Globe, group: "الإعدادات" },
-  { to: "/languages", label: "اللغات", icon: LangIcon, group: "الإعدادات" },
-  { to: "/maintenance", label: "وضع الصيانة", icon: PowerOff, group: "الإعدادات" },
-
-  { to: "/profile", label: "الملف الشخصي", icon: UserIcon, group: "حسابي" },
-  { to: "/2fa", label: "التحقق الثنائي", icon: ShieldCheck, group: "حسابي" },
+  // Group 6
+  { to: "/activity", label: "سجل النشاط", icon: Activity, group: "الإدارة والصلاحيات" },
+  { to: "/reports", label: "التقارير", icon: BarChart3, group: "الإدارة والصلاحيات" },
+  { to: "/backup", label: "النسخ الاحتياطي", icon: Database, group: "الإدارة والصلاحيات" },
+  { to: "/cron-jobs", label: "المهام المجدولة (Cron)", icon: Activity, group: "الإدارة والصلاحيات" },
+  { to: "/permissions", label: "الصلاحيات", icon: Lock, group: "الإدارة والصلاحيات" },
+  { to: "/admins", label: "المشرفون (إضافة/حذف)", icon: ShieldCheck, group: "الإدارة والصلاحيات" },
+  { to: "/profile", label: "الملف الشخصي", icon: UserIcon, group: "الإدارة والصلاحيات" },
+  { to: "/languages", label: "اللغات", icon: LangIcon, group: "الإدارة والصلاحيات" },
+  { to: "/2fa", label: "التحقق الثنائي", icon: ShieldCheck, group: "الإدارة والصلاحيات" },
 ];
 
 export default function Layout({

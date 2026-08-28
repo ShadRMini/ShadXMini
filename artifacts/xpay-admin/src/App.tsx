@@ -37,6 +37,12 @@ import Permissions from "./pages/Permissions";
 import Currencies from "./pages/Currencies";
 import Languages from "./pages/Languages";
 import Maintenance from "./pages/Maintenance";
+import ProviderReports from "./pages/ProviderReports";
+import ApiProducts from "./pages/ApiProducts";
+import Promotions from "./pages/Promotions";
+import CurrencySettings from "./pages/CurrencySettings";
+import CacheManagement from "./pages/CacheManagement";
+import CronJobs from "./pages/CronJobs";
 
 export default function App() {
   const [auth, setAuth] = useState<"loading" | "in" | "out">("loading");
