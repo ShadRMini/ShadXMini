@@ -1,7 +1,7 @@
 import { useGetProfile, useListBanners, useListCategories } from "@workspace/api-client-react";
 import { useEffect, useState } from "react";
 import { Link } from "wouter";
-import { Wallet, Plus, Sparkles, Layers, ListOrdered, Bell } from "lucide-react";
+import { Wallet, Plus, Layers, Hash } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getPublicJson } from "@/lib/public-api";
 import { useAuth } from "@/lib/auth-context";
@@ -117,35 +117,23 @@ export default function Home() {
                 </div>
               </Link>
               <div>
-                <p className="text-[11px] text-zinc-500 font-bold">أهلاً بك يا</p>
-                <div className="flex items-center gap-2">
-                  <p className="text-sm sm:text-base font-black text-zinc-800">
-                    {profileLoading && !displayName ? <Skeleton className="h-4 w-20" /> : displayName}
-                  </p>
-                  {effectiveDisplayId && (
-                    <span className="text-[11px] font-mono font-black text-[#8C6D23] bg-[#F5F2EB] px-2 py-0.5 rounded-lg border border-[#C8A45C]/40 shadow-xs">
-                      #{effectiveDisplayId}
-                    </span>
-                  )}
-                </div>
+                <p className="text-[11px] text-zinc-400 font-bold">أهلاً بك يا</p>
+                <p className="text-sm sm:text-base font-black text-white">
+                  {profileLoading && !displayName ? <Skeleton className="h-4 w-20" /> : displayName}
+                </p>
               </div>
             </div>
 
-            {/* Quick Links */}
-            <div className="flex items-center gap-1.5">
-              <Link href="/orders">
-                <button className="flex items-center gap-1 bg-[#F5F2EB] hover:bg-[#EAE5D9] text-zinc-700 text-xs font-bold px-3 py-1.5 rounded-xl border border-[#C8A45C]/30 transition cursor-pointer">
-                  <ListOrdered size={14} className="text-[#8C6D23]" />
-                  <span className="hidden sm:inline">طلباتي</span>
-                </button>
-              </Link>
-              <Link href="/notifications">
-                <button className="flex items-center gap-1 bg-[#F5F2EB] hover:bg-[#EAE5D9] text-zinc-700 text-xs font-bold px-3 py-1.5 rounded-xl border border-[#C8A45C]/30 transition cursor-pointer">
-                  <Bell size={14} className="text-[#8C6D23]" />
-                  <span className="hidden sm:inline">التنبيهات</span>
-                </button>
-              </Link>
-            </div>
+            {/* Display ID Badge */}
+            {effectiveDisplayId && (
+              <div className="flex items-center gap-1.5 bg-[#2D2D2D] border border-[#C8A45C]/40 px-3.5 py-1.5 rounded-2xl shadow-md">
+                <Hash size={15} className="text-[#C8A45C]" />
+                <span className="text-xs text-zinc-400 font-bold hidden sm:inline">المعرف:</span>
+                <span className="text-xs sm:text-sm font-mono font-black text-[#FDE68A]">
+                  #{effectiveDisplayId}
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Balance Card */}

@@ -94,13 +94,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   const sidebarLinks = [
     { href: "/", label: "الرئيسية", icon: Home },
-    { href: "/notifications", label: "التنبيهات والإشعارات", icon: Bell },
     { href: "/favorites", label: "مفضلتي", icon: Heart },
-    { href: "/deposit", label: "إضافة رصيد (شحن)", icon: Plus },
-    { href: "/deposits", label: "سجل الدفعات والمحفظة", icon: Wallet },
-    { href: "/orders", label: "سجل طلباتي", icon: ListOrdered },
-    { href: "/profile", label: "الملف الشخصي", icon: User },
+    { href: "/orders", label: "طلباتي", icon: ListOrdered },
+    { href: "/deposits", label: "المحفظة وسجل الدفعات", icon: Wallet },
+    { href: "/deposit", label: "شحن الرصيد", icon: Plus },
     { href: "/settings", label: "إعدادات الحساب", icon: Settings },
+    { href: "/notifications", label: "الإشعارات والتنبيهات", icon: Bell },
     { href: "/support", label: "تواصل معنا (الدعم)", icon: HeadphonesIcon },
     { href: "/about", label: "من نحن", icon: Info },
   ];
@@ -111,7 +110,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const vipBadgeName =
     user?.vipBadge?.name || (vipLevel >= 4 ? "SVIP" : vipLevel === 3 ? "VIP3" : vipLevel === 2 ? "VIP2" : "VIP1");
 
-  const displayName = user?.username || "عضو ShadMini";
+  const displayName = user?.username || "عضو XPay";
   const displayId = user?.displayId || user?.telegramId || "---";
 
   const renderSidebarContent = () => (
@@ -122,17 +121,17 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           {brandLogo ? (
             <img
               src={brandLogo}
-              alt="ShadMini"
+              alt="XPay"
               onError={() => setBrandLogo("")}
               className="h-10 max-w-[140px] object-contain rounded-xl"
             />
           ) : (
             <>
               <div className="w-10 h-10 rounded-2xl bg-[#C8A45C] text-[#1A1A1A] font-black flex items-center justify-center text-lg shadow-md shadow-[#C8A45C]/25">
-                SM
+                XP
               </div>
               <div>
-                <div className="text-lg font-black text-[#C8A45C] tracking-wide">ShadMini</div>
+                <div className="text-lg font-black text-[#FDE68A] tracking-wide">XPay Store</div>
               </div>
             </>
           )}
