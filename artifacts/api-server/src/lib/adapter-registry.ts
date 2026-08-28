@@ -1,5 +1,6 @@
-import { ProviderAdapter } from "./provider-adapters";
-import { MersalAdapter } from "./mersal-adapter";
+import { type ProviderAdapter } from "./provider-adapters.js";
+import { MersalAdapter } from "./mersal-adapter.js";
+import { CustomAdapter } from "./custom-adapter.js";
 
 const adapters: Map<string, ProviderAdapter> = new Map();
 
@@ -9,26 +10,30 @@ export function registerAdapters() {
   
   // تسجيل المحولات
   const mersal = new MersalAdapter();
+  const custom = new CustomAdapter();
+
   adapters.set("mersal", mersal);
+  adapters.set("alkasr", mersal);
+  adapters.set("gold", mersal);
+  adapters.set("custom", custom);
+  adapters.set("manual", custom);
   
   console.log("✅ [AdapterRegistry] Registered adapters:", Array.from(adapters.keys()));
 }
 
-export function getAdapter(type: string | undefined | null): ProviderAdapter | undefined {
+export function getAdapter(type: string | undefined | null): ProviderAdapter {
   registerAdapters();
   
-  // إذا كان النوع غير موجود، استخدم "custom" كافتراضي (لكنه لن يعمل للمزامنة)
-  const key = (type || "").toLowerCase().trim();
-  console.log(`🔍 [AdapterRegistry] Looking for adapter: type="${type}" -> key="${key}"`);
-  
+  const key = (type || "custom").toLowerCase().trim() || "custom";
   const adapter = adapters.get(key);
-  if (!adapter) {
-    console.error(`❌ [AdapterRegistry] No adapter found for key: "${key}". Available: ${Array.from(adapters.keys()).join(", ")}`);
-  } else {
-    console.log(`✅ [AdapterRegistry] Found adapter for key: "${key}"`);
+  
+  if (adapter) {
+    return adapter;
   }
   
-  return adapter;
+  // في حال كان نوع المزود غير معروف، يتم إرجاع المحول المخصص (CustomAdapter) كافتراضي لعدم إيقاف النظام
+  console.log(`ℹ️ [AdapterRegistry] Unknown providerType "${type}", returning CustomAdapter.`);
+  return adapters.get("custom") || new CustomAdapter();
 }
 
 export function listAdapterTypes(): string[] {

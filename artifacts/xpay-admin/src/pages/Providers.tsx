@@ -340,13 +340,44 @@ export default function Providers() {
 
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-1.5">نوع المزود (Provider Type)</label>
-                <input
-                  type="text"
-                  className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#C8A45C] focus:border-[#C8A45C]"
-                  value={editing.providerType || "custom"}
-                  onChange={(e) => setEditing({ ...editing, providerType: e.target.value })}
-                  placeholder="custom"
-                />
+                <div className="space-y-2">
+                  <input
+                    type="text"
+                    list="provider-types-list"
+                    className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#C8A45C] focus:border-[#C8A45C]"
+                    value={editing.providerType || "custom"}
+                    onChange={(e) => setEditing({ ...editing, providerType: e.target.value })}
+                    placeholder="custom"
+                  />
+                  <datalist id="provider-types-list">
+                    <option value="custom">custom (مزود يدوي / مخصص)</option>
+                    <option value="mersal">mersal (Mersal Card API)</option>
+                    <option value="alkasr">alkasr (Alkasr Card API)</option>
+                    <option value="gold">gold (Gold Card API)</option>
+                    <option value="manual">manual (مزود يدوي بدون API)</option>
+                  </datalist>
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    {[
+                      { id: "custom", label: "مخصص (Custom)" },
+                      { id: "mersal", label: "Mersal API" },
+                      { id: "alkasr", label: "Alkasr API" },
+                      { id: "gold", label: "Gold API" },
+                    ].map((t) => (
+                      <button
+                        key={t.id}
+                        type="button"
+                        onClick={() => setEditing({ ...editing, providerType: t.id })}
+                        className={`text-xs px-2.5 py-1 rounded-lg border transition-all ${
+                          (editing.providerType || "custom").toLowerCase() === t.id
+                            ? "bg-[#C8A45C]/15 border-[#C8A45C] text-[#8C6D23] font-bold"
+                            : "bg-slate-100 border-slate-200 text-slate-600 hover:bg-slate-200"
+                        }`}
+                      >
+                        {t.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
 
               <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">

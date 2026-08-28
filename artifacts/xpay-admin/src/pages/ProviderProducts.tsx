@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { get } from "../lib/api";
-import { Copy, Check, ArrowLeft, Search } from "lucide-react";
+import { Copy, Check, ArrowRight, Search, Server, Info } from "lucide-react";
 
 interface ProviderProduct {
   id: number;
@@ -15,6 +15,8 @@ export default function ProviderProducts() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
+  const [providerName, setProviderName] = useState<string>("");
+  const [isCustom, setIsCustom] = useState<boolean>(false);
   const [products, setProducts] = useState<ProviderProduct[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
@@ -31,10 +33,12 @@ export default function ProviderProducts() {
     const fetchProducts = async () => {
       try {
         setLoading(true);
-        const data = await get<{ provider: string; products: ProviderProduct[] }>(`/providers/${id}/products`);
+        const data = await get<{ provider: string; products: ProviderProduct[]; isCustom?: boolean }>(`/providers/${id}/products`);
+        setProviderName(data.provider || "");
+        setIsCustom(!!data.isCustom);
         setProducts(data.products || []);
       } catch (err: any) {
-        setError(err.message);
+        setError(err.message || "فشل جلب المنتجات");
       } finally {
         setLoading(false);
       }
@@ -68,60 +72,80 @@ export default function ProviderProducts() {
   });
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-4 mb-4">
-        <button onClick={() => navigate("/providers")} className="flex items-center gap-1 text-brand-600 hover:underline">
-          <ArrowLeft size={16} /> العودة للمزودين
-        </button>
-        <h1 className="text-2xl font-bold text-slate-900">منتجات المزود</h1>
+    <div className="space-y-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => navigate("/providers")}
+            className="flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-[#C8A45C] bg-white border border-slate-200 px-3 py-1.5 rounded-xl shadow-sm transition-colors"
+          >
+            <ArrowRight size={16} /> العودة للمزودين
+          </button>
+          <div>
+            <h1 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+              <Server size={20} className="text-[#C8A45C]" />
+              منتجات المزود: {providerName || `#${id}`}
+            </h1>
+            <p className="text-xs text-slate-500 mt-0.5">
+              استعراض معرفات وأسعار المنتجات لدى المزود لربطها بمتجرك
+            </p>
+          </div>
+        </div>
       </div>
 
+      {isCustom && (
+        <div className="bg-[#C8A45C]/10 border border-[#C8A45C]/30 rounded-xl p-3.5 flex items-center gap-3 text-sm text-[#8C6D23]">
+          <Info size={18} className="text-[#C8A45C] flex-shrink-0" />
+          <span>هذا مزود مخصص / يدوي (Custom Provider). القائمة أدناه تعرض المنتجات المعينة لهذا المزود محلياً.</span>
+        </div>
+      )}
+
       <div className="relative max-w-md">
-        <Search size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" />
+        <Search size={16} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
         <input
           id="provider-products-search"
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="بحث عن منتج (ID / الاسم / الفئة)"
-          className="w-full border border-slate-300 rounded-lg pr-9 pl-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+          placeholder="بحث بالمعرف (ID) أو الاسم أو الفئة..."
+          className="w-full border border-slate-300 rounded-xl pr-10 pl-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#C8A45C] focus:border-[#C8A45C]"
         />
       </div>
 
-      {loading && <div className="text-center py-8 text-slate-400">جاري التحميل...</div>}
-      {error && <div className="p-3 bg-rose-50 text-rose-700 rounded-lg text-sm">{error}</div>}
+      {loading && <div className="text-center py-12 text-slate-400">جاري تحميل المنتجات...</div>}
+      {error && <div className="p-4 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-sm">{error}</div>}
 
       {!loading && !error && (
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-slate-50 text-slate-600">
+              <thead className="bg-slate-50/80 text-slate-600 border-b border-slate-200">
                 <tr>
-                  <th className="text-right px-4 py-3 font-semibold">المعرف (ID)</th>
-                  <th className="text-right px-4 py-3 font-semibold">الاسم</th>
-                  <th className="text-right px-4 py-3 font-semibold">الفئة</th>
-                  <th className="text-right px-4 py-3 font-semibold">السعر (USD)</th>
-                  <th className="text-center px-4 py-3 font-semibold">نسخ</th>
+                  <th className="text-right px-4 py-3.5 font-semibold">المعرف (ID)</th>
+                  <th className="text-right px-4 py-3.5 font-semibold">الاسم</th>
+                  <th className="text-right px-4 py-3.5 font-semibold">الفئة</th>
+                  <th className="text-right px-4 py-3.5 font-semibold">السعر (USD)</th>
+                  <th className="text-center px-4 py-3.5 font-semibold">نسخ المعرف</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-slate-100">
                 {filteredProducts.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="text-center py-8 text-slate-400">
-                      لا توجد منتجات
+                    <td colSpan={5} className="text-center py-10 text-slate-400">
+                      لا توجد منتجات مطابقة
                     </td>
                   </tr>
                 ) : (
                   filteredProducts.map((p) => (
-                    <tr key={p.id} className="border-t border-slate-100 hover:bg-slate-50">
-                      <td className="px-4 py-3 font-mono text-brand-700">{p.id}</td>
-                      <td className="px-4 py-3">{p.name}</td>
+                    <tr key={p.id} className="hover:bg-slate-50/70 transition-colors">
+                      <td className="px-4 py-3 font-mono font-bold text-[#8C6D23] bg-amber-50/40">{p.id}</td>
+                      <td className="px-4 py-3 font-medium text-slate-800">{p.name}</td>
                       <td className="px-4 py-3 text-slate-500">{p.category}</td>
-                      <td className="px-4 py-3 font-medium">{Number(p.price || 0).toFixed(4)} USD</td>
+                      <td className="px-4 py-3 font-mono font-semibold text-slate-700">${Number(p.price || 0).toFixed(4)}</td>
                       <td className="px-4 py-3 text-center">
                         <button
                           onClick={() => copyToClipboard(p.id)}
-                          className="p-1.5 text-slate-400 hover:text-brand-600 rounded"
+                          className="p-1.5 text-slate-400 hover:text-[#C8A45C] hover:bg-[#C8A45C]/10 rounded-lg transition-colors"
                           title="نسخ المعرف"
                         >
                           {copiedId === p.id ? <Check size={16} className="text-emerald-500" /> : <Copy size={16} />}
@@ -138,3 +162,4 @@ export default function ProviderProducts() {
     </div>
   );
 }
+

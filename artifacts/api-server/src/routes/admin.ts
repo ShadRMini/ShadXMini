@@ -1005,7 +1005,7 @@ async function hasColumn(tableName: string, columnName: string): Promise<boolean
   return exists;
 }
 
-async function fetchProviderLiveCostUsd(providerId: number, providerProductId: number): Promise<string> {
+async function fetchProviderLiveCostUsd(providerId: number, providerProductId: number): Promise<string | null> {
   const [provider] = await db
     .select()
     .from(providersTable)
@@ -1016,23 +1016,33 @@ async function fetchProviderLiveCostUsd(providerId: number, providerProductId: n
     throw new ValidationError(`providerId ${providerId} does not exist`);
   }
 
-  const adapter = getAdapter(provider.providerType || "custom");
+  const pType = (provider.providerType || "custom").toLowerCase().trim();
+  if (pType === "custom" || pType === "manual" || !provider.apiKey) {
+    return null;
+  }
+
+  const adapter = getAdapter(pType);
   if (!adapter) {
-    throw new ValidationError(`unsupported providerType: ${provider.providerType}`);
+    return null;
   }
 
-  const remoteProducts = await adapter.fetchProducts(provider.apiKey!, provider.apiUrl || undefined);
-  const remote = remoteProducts.find((p) => Number(p.id) === Number(providerProductId));
-  if (!remote) {
-    throw new ValidationError(`providerProductId ${providerProductId} was not found at provider ${providerId}`);
-  }
+  try {
+    const remoteProducts = await adapter.fetchProducts(provider.apiKey, provider.apiUrl || undefined);
+    const remote = remoteProducts.find((p) => Number(p.id) === Number(providerProductId));
+    if (!remote) {
+      return null;
+    }
 
-  const remotePrice = String(remote.price ?? "").trim();
-  if (!/^-?\d+(\.\d+)?$/.test(remotePrice)) {
-    throw new ValidationError(`provider product price is invalid for providerProductId ${providerProductId}`);
-  }
+    const remotePrice = String(remote.price ?? "").trim();
+    if (!/^-?\d+(\.\d+)?$/.test(remotePrice)) {
+      return null;
+    }
 
-  return remotePrice;
+    return remotePrice;
+  } catch (error: any) {
+    console.warn(`[ProviderLiveCost] Could not fetch remote price for provider ${providerId}:`, error?.message || error);
+    return null;
+  }
 }
 
 async function sanitizeCrudDataForRuntimeSchema(path: string, data: any): Promise<any> {
@@ -1168,8 +1178,10 @@ async function sanitizeCrudDataForRuntimeSchema(path: string, data: any): Promis
         Number(normalized.providerId),
         Number(normalized.providerProductId),
       );
-      normalized.basePriceUsd = providerCostUsd;
-      normalized.providerUnitPrice = providerCostUsd;
+      if (providerCostUsd != null) {
+        normalized.basePriceUsd = providerCostUsd;
+        normalized.providerUnitPrice = providerCostUsd;
+      }
       normalized.source = "provider";
     }
 
@@ -2376,7 +2388,17 @@ router.post("/admin/providers/:id/sync", requireAdmin, async (req, res) => {
     return;
   }
 
-  const adapter = new MersalAdapter();
+  const pType = (provider.providerType || "custom").toLowerCase().trim();
+  if (pType === "custom" || pType === "manual" || !provider.apiKey) {
+    res.json({
+      ok: true,
+      message: "هذا المزود من النوع اليدوي (Custom Provider) ولا يتطلب مزامنة خارجية.",
+      updated: 0,
+    });
+    return;
+  }
+
+  const adapter = getAdapter(pType);
 
   try {
     const products = await adapter.fetchProducts(
@@ -2414,7 +2436,6 @@ router.post("/admin/providers/:id/sync", requireAdmin, async (req, res) => {
         `);
         updated++;
       }
-      // تمت إزالة كتلة else الخاصة بالإدراج
     }
 
     await logActivity(
@@ -2450,7 +2471,34 @@ router.get("/admin/providers/:id/products", requireAdmin, async (req, res) => {
     return;
   }
 
-  const adapter = new MersalAdapter();
+  const pType = (provider.providerType || "custom").toLowerCase().trim();
+  if (pType === "custom" || pType === "manual" || !provider.apiKey) {
+    // For custom/manual provider, fetch products from the local database
+    const localProducts = await db
+      .select({
+        id: productsTable.id,
+        name: productsTable.name,
+        price: productsTable.priceUsd,
+        category: categoriesTable.name,
+      })
+      .from(productsTable)
+      .leftJoin(categoriesTable, eq(categoriesTable.id, productsTable.categoryId))
+      .where(eq(productsTable.providerId, providerId));
+
+    res.json({
+      provider: provider.name,
+      products: localProducts.map((p) => ({
+        id: p.id,
+        name: p.name,
+        price: Number(p.price || 0),
+        category: p.category || "عام",
+      })),
+      isCustom: true,
+    });
+    return;
+  }
+
+  const adapter = getAdapter(pType);
   try {
     const products = await adapter.fetchProducts(
       provider.apiKey!,
@@ -2521,6 +2569,29 @@ router.get("/admin/products/:id/provider-status", requireAdmin, async (req, res)
     isMersalHost = false;
   }
 
+  const pType = (provider.providerType || "custom").toLowerCase().trim();
+  if (pType === "custom" || pType === "manual" || !provider.apiKey) {
+    res.json({
+      ok: true,
+      type: "custom",
+      existsAtProvider: true,
+      provider: {
+        id: provider.id,
+        name: provider.name,
+        providerType: provider.providerType,
+        apiUrl,
+        isMersalHost: false,
+      },
+      product: {
+        id: product.id,
+        name: product.name,
+        source: product.source,
+      },
+      message: "مزود مخصص / يدوي (Custom Provider).",
+    });
+    return;
+  }
+
   if (!product.providerProductId) {
     res.json({
       ok: true,
@@ -2543,11 +2614,7 @@ router.get("/admin/products/:id/provider-status", requireAdmin, async (req, res)
     return;
   }
 
-  const adapter = getAdapter(provider.providerType || "custom");
-  if (!adapter) {
-    res.status(400).json({ error: `نوع المزوّد غير مدعوم: ${provider.providerType}` });
-    return;
-  }
+  const adapter = getAdapter(pType);
 
   try {
     const remoteProducts = await adapter.fetchProducts(provider.apiKey!, provider.apiUrl || undefined);

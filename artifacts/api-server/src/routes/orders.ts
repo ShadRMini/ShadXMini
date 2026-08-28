@@ -407,32 +407,29 @@ router.post("/orders", async (req, res) => {
         return;
       }
 
-      const adapter = getAdapter((provider as any).providerType || "custom");
-      if (!adapter) {
-        res.status(400).json({ error: "نوع المزود غير مدعوم" });
-        return;
-      }
+      const pType = String((provider as any).providerType || "custom").toLowerCase().trim();
+      const adapter = getAdapter(pType);
 
       providerForOrder = provider;
       adapterForOrder = adapter;
 
-      try {
-        const providerProducts = await adapter.fetchProducts(provider.apiKey!, provider.apiUrl || undefined);
-        const providerProduct = providerProducts.find((p) => String(p.id) === String((product as any).providerProductId || ""));
+      if (pType !== "custom" && pType !== "manual" && provider.apiKey && (product as any).providerProductId) {
+        try {
+          const providerProducts = await adapter.fetchProducts(provider.apiKey, provider.apiUrl || undefined);
+          const providerProduct = providerProducts.find((p) => String(p.id) === String((product as any).providerProductId || ""));
 
-        if (providerProduct) {
-          liveProviderUnitPrice = String(providerProduct.price || "0");
-          providerAvailable = !!providerProduct.available;
-
-          // Quantity validation is based on the synchronized DB snapshot to avoid mid-order rule drift.
+          if (providerProduct) {
+            liveProviderUnitPrice = String(providerProduct.price || "0");
+            providerAvailable = !!providerProduct.available;
+          }
+        } catch (error) {
+          console.error("Provider live price lookup failed:", error);
         }
-      } catch (error) {
-        console.error("Provider live price lookup failed:", error);
-      }
 
-      if (providerAvailable === false) {
-        res.status(400).json({ error: "المنتج غير متوفر حالياً لدى المزود" });
-        return;
+        if (providerAvailable === false) {
+          res.status(400).json({ error: "المنتج غير متوفر حالياً لدى المزود" });
+          return;
+        }
       }
     }
 
