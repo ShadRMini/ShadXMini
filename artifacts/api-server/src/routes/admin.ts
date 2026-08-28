@@ -2480,6 +2480,11 @@ router.post("/admin/providers/:id/sync", requireAdmin, async (req, res) => {
     });
   } catch (error: any) {
     console.error("🔥 Sync error:", error);
+    if (error.code === 'ECONNABORTED' || error.message?.includes('timeout') || error.name === 'AbortError') {
+      return res.status(408).json({
+        error: 'انتهت مهلة الاتصال بمزود الخدمة (Timeout - 408). يرجى المحاولة لاحقاً، أو التأكد من استجابة خادم المزود.'
+      });
+    }
     res.status(500).json({ error: error.message || "فشلت المزامنة" });
   }
 });
@@ -2553,6 +2558,11 @@ router.get("/admin/providers/:id/products", requireAdmin, async (req, res) => {
     res.json({ provider: provider.name, products: list });
   } catch (error: any) {
     console.error("Fetch provider products error:", error);
+    if (error.code === 'ECONNABORTED' || error.message?.includes('timeout') || error.name === 'AbortError') {
+      return res.status(408).json({
+        error: 'انتهت مهلة الاتصال بمزود الخدمة (Timeout - 408). يرجى المحاولة لاحقاً.'
+      });
+    }
     res.status(500).json({ error: error.message || "فشل تحليل بيانات المنتجات من المزود" });
   }
 });

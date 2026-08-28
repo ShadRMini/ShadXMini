@@ -3,6 +3,27 @@ import { parseProviderQuantityValues } from "./pricing.js";
 
 const DEFAULT_API_URL = "https://api.mersal-card.com";
 
+async function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutMs = 60000): Promise<Response> {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    });
+    clearTimeout(id);
+    return response;
+  } catch (error: any) {
+    clearTimeout(id);
+    if (error.name === 'AbortError' || error.code === 'ETIMEDOUT') {
+      const err = new Error('انتهت مهلة الاتصال بمزود الخدمة (Timeout - 408). يرجى المحاولة لاحقاً.');
+      (err as any).code = 'ECONNABORTED';
+      throw err;
+    }
+    throw error;
+  }
+}
+
 export class MersalAdapter implements ProviderAdapter {
   name = "mersal";
 
@@ -11,17 +32,17 @@ export class MersalAdapter implements ProviderAdapter {
   }
 
   async getProfile(apiKey: string, apiUrl?: string): Promise<any> {
-    const res = await fetch(`${this.getUrl(apiUrl)}/client/api/profile`, {
+    const res = await fetchWithTimeout(`${this.getUrl(apiUrl)}/client/api/profile`, {
       headers: { "api-token": apiKey },
-    });
+    }, 60000);
     if (!res.ok) throw new Error(`Mersal profile error: ${res.status}`);
     return res.json();
   }
 
   async fetchProducts(apiKey: string, apiUrl?: string): Promise<ProviderProduct[]> {
-    const res = await fetch(`${this.getUrl(apiUrl)}/client/api/products`, {
+    const res = await fetchWithTimeout(`${this.getUrl(apiUrl)}/client/api/products`, {
       headers: { "api-token": apiKey },
-    });
+    }, 60000);
     if (!res.ok) throw new Error(`Mersal products error: ${res.status}`);
     
     const data = await res.json() as any[];
@@ -64,9 +85,9 @@ export class MersalAdapter implements ProviderAdapter {
       Object.entries(extraParams).forEach(([k, v]) => url.searchParams.set(k, v));
     }
 
-    const res = await fetch(url.toString(), {
+    const res = await fetchWithTimeout(url.toString(), {
       headers: { "api-token": apiKey },
-    });
+    }, 60000);
     
     if (!res.ok) {
       const text = await res.text();
@@ -95,9 +116,9 @@ export class MersalAdapter implements ProviderAdapter {
     url.searchParams.set("orders", `[${idsParam}]`);
     if (byUuid) url.searchParams.set("uuid", "1");
 
-    const res = await fetch(url.toString(), {
+    const res = await fetchWithTimeout(url.toString(), {
       headers: { "api-token": apiKey },
-    });
+    }, 60000);
     if (!res.ok) throw new Error(`Mersal check error: ${res.status}`);
     
     const data = (await res.json()) as any;
