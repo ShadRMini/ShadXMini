@@ -8,6 +8,7 @@ import { logger } from "./lib/logger";
 import { sessionMiddleware } from "./lib/adminAuth";
 import { primeTelegramIntegrations } from "./lib/telegram";
 import { seedSuperAdmin } from "./lib/seedAdmin";
+import { ensureDatabaseSchema } from "./lib/ensureSchema";
 
 const app: Express = express();
 app.set("trust proxy", 1);
@@ -75,6 +76,7 @@ app.use("/api", (_req, res, next) => {
   next();
 });
 
+ensureDatabaseSchema();
 primeTelegramIntegrations();
 seedSuperAdmin();
 

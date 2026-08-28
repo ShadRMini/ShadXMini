@@ -1,0 +1,79 @@
+import { db } from "@workspace/db";
+import { sql } from "drizzle-orm";
+
+let schemaEnsured = false;
+
+export async function ensureDatabaseSchema() {
+  if (schemaEnsured) return;
+  try {
+    // 1. Providers table & columns
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS providers (
+        id SERIAL PRIMARY KEY,
+        name TEXT NOT NULL,
+        api_url TEXT,
+        api_key TEXT,
+        notes TEXT,
+        priority INTEGER NOT NULL DEFAULT 0,
+        active BOOLEAN NOT NULL DEFAULT true,
+        provider_type TEXT DEFAULT 'custom',
+        created_at TIMESTAMP NOT NULL DEFAULT NOW()
+      )
+    `);
+
+    await db.execute(sql`
+      ALTER TABLE providers ADD COLUMN IF NOT EXISTS name TEXT;
+      ALTER TABLE providers ADD COLUMN IF NOT EXISTS api_url TEXT;
+      ALTER TABLE providers ADD COLUMN IF NOT EXISTS api_key TEXT;
+      ALTER TABLE providers ADD COLUMN IF NOT EXISTS notes TEXT;
+      ALTER TABLE providers ADD COLUMN IF NOT EXISTS priority INTEGER DEFAULT 0;
+      ALTER TABLE providers ADD COLUMN IF NOT EXISTS active BOOLEAN DEFAULT true;
+      ALTER TABLE providers ADD COLUMN IF NOT EXISTS provider_type TEXT DEFAULT 'custom';
+      ALTER TABLE providers ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT NOW();
+    `);
+
+    // 2. Deposits table columns
+    await db.execute(sql`
+      ALTER TABLE deposits ADD COLUMN IF NOT EXISTS telegram_message_id INTEGER;
+      ALTER TABLE deposits ADD COLUMN IF NOT EXISTS proof_image TEXT;
+      ALTER TABLE deposits ADD COLUMN IF NOT EXISTS amount_syp NUMERIC(14, 2);
+    `);
+
+    // 3. Products table columns
+    await db.execute(sql`
+      ALTER TABLE products ADD COLUMN IF NOT EXISTS provider_unit_price NUMERIC(16, 8);
+      ALTER TABLE products ADD COLUMN IF NOT EXISTS store_profit_per_unit NUMERIC(16, 8) DEFAULT 0;
+      ALTER TABLE products ADD COLUMN IF NOT EXISTS final_unit_price NUMERIC(16, 8);
+      ALTER TABLE products ADD COLUMN IF NOT EXISTS min_quantity INTEGER;
+      ALTER TABLE products ADD COLUMN IF NOT EXISTS max_quantity INTEGER;
+      ALTER TABLE products ADD COLUMN IF NOT EXISTS quantity_type TEXT DEFAULT 'fixed';
+      ALTER TABLE products ADD COLUMN IF NOT EXISTS quantity_values JSONB;
+      ALTER TABLE products ADD COLUMN IF NOT EXISTS provider_id INTEGER;
+      ALTER TABLE products ADD COLUMN IF NOT EXISTS source TEXT DEFAULT 'manual';
+      ALTER TABLE products ADD COLUMN IF NOT EXISTS provider_product_id INTEGER;
+    `);
+
+    // 4. Users table columns
+    await db.execute(sql`
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS display_id TEXT;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url TEXT;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS telegram_id TEXT;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS referral_code TEXT;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS referred_by INTEGER;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS vip_level INTEGER DEFAULT 1;
+    `);
+
+    // 5. Settings table
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS settings (
+        key TEXT PRIMARY KEY,
+        value JSONB NOT NULL
+      )
+    `);
+
+    schemaEnsured = true;
+    console.log("[DB Schema] Runtime schema verified and synchronized successfully.");
+  } catch (error) {
+    console.warn("[DB Schema] Error ensuring runtime schema columns:", error);
+  }
+}

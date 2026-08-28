@@ -31,6 +31,7 @@ import { MersalAdapter } from "../lib/mersal-adapter";
 import { getTelegramConfigStatus, notifyUserDepositApproved, notifyUserDepositRejected, notifyUserOrderStatusChanged } from "../lib/telegram.js";
 import { rateLimit } from "../lib/rateLimit.js";
 import { addUnitPrices, decimalToScaled, parseProviderQuantityValues, subtractUnitPrices } from "../lib/pricing.js";
+import { ensureDatabaseSchema } from "../lib/ensureSchema";
 const router: IRouter = Router();
 const EXTERNAL_CATEGORY_NAME = "External Provider";
 const EXTERNAL_CATEGORY_IMAGE = "https://placehold.co/600x400?text=External+Provider";
@@ -199,9 +200,15 @@ function toHttpError(error: any): { status: number; message: string } {
     if (pg.code === "22P02") {
       return { status: 400, message: `Invalid value format: ${pg?.message || "bad input"}` };
     }
+    if (pg.code === "42703") {
+      return { status: 400, message: `خطأ في هيكل البيانات (حقل غير موجود): ${pg?.message || "Undefined column"}` };
+    }
+    if (pg.message) {
+      return { status: 400, message: `خطأ في قاعدة البيانات: ${pg.message}` };
+    }
   }
 
-  return { status: 500, message: error?.message || "Internal server error" };
+  return { status: 400, message: error?.message || "فشلت العملية" };
 }
 
 async function getOrCreateExternalCategoryId(): Promise<number> {
@@ -497,6 +504,9 @@ function makeCrud<T extends { id: any }>(
   });
   router.post(`/admin/${path}`, requireAdmin, async (req, res) => {
     try {
+      if (path === "providers") {
+        await ensureDatabaseSchema();
+      }
       const data = await sanitizeCrudDataForRuntimeSchema(
         path,
         filterFields(req.body, opts.allowedFields),
@@ -1522,6 +1532,9 @@ const PUT_RESOURCES: Array<{ path: string; table: any; allowed: string[] }> = [
 for (const r of PUT_RESOURCES) {
   router.put(`/admin/${r.path}/:id`, requireAdmin, async (req, res) => {
     try {
+      if (r.path === "providers") {
+        await ensureDatabaseSchema();
+      }
       const data = await sanitizeCrudDataForRuntimeSchema(
         r.path,
         filterFields(req.body, r.allowed),
