@@ -31,6 +31,13 @@ import { requireAdmin } from "../lib/adminAuth.js";
 import { getAdapter } from "../lib/adapter-registry"; 
 import { MersalAdapter } from "../lib/mersal-adapter";
 import { getTelegramConfigStatus, notifyUserDepositApproved, notifyUserDepositRejected, notifyUserOrderStatusChanged } from "../lib/telegram.js";
+import { 
+  createInternalNotification, 
+  notifyUserDepositConfirmed as notifyInternalDepositConfirmed, 
+  notifyUserDepositRejected as notifyInternalDepositRejected,
+  notifyUserOrderAccepted as notifyInternalOrderAccepted,
+  notifyUserOrderRejected as notifyInternalOrderRejected
+} from "../lib/notifications.js";
 import { rateLimit } from "../lib/rateLimit.js";
 import { addUnitPrices, decimalToScaled, parseProviderQuantityValues, subtractUnitPrices } from "../lib/pricing.js";
 import { ensureDatabaseSchema } from "../lib/ensureSchema";
@@ -275,10 +282,23 @@ async function applyDepositStatusChange(id: number, status: string) {
           operationNumber: String(dep.id),
           messageId: dep.telegramMessageId,
         });
+        await notifyInternalDepositConfirmed({
+          userId: user.id,
+          id: dep.id,
+          amountUsd: dep.amountUsd,
+          amountSyp: dep.amountSyp,
+          currency: dep.currency,
+        });
       } else if (status === "rejected") {
         await notifyUserDepositRejected({
           telegramId: user.telegramId,
           operationNumber: String(dep.id),
+        });
+        await notifyInternalDepositRejected({
+          userId: user.id,
+          id: dep.id,
+          amountUsd: dep.amountUsd,
+          currency: dep.currency,
         });
       }
     } catch (error) {
@@ -323,6 +343,23 @@ async function applyOrderStatusChange(id: number, status: string, note?: string)
         status,
         note,
       });
+
+      if (["accept", "completed", "approved"].includes(status)) {
+        await notifyInternalOrderAccepted({
+          userId: user.id,
+          orderNumber: order.orderNumber,
+          productName: product.name,
+          totalUsd: order.totalUsd,
+        });
+      } else if (["reject", "cancelled", "rejected"].includes(status)) {
+        await notifyInternalOrderRejected({
+          userId: user.id,
+          orderNumber: order.orderNumber,
+          productName: product.name,
+          totalUsd: order.totalUsd,
+          note,
+        });
+      }
     } catch (error) {
       console.error("Notify order status user failed:", error);
     }
@@ -1379,21 +1416,39 @@ router.patch("/admin/users/:id", requireAdmin, async (req, res) => {
 });
 
 router.post("/admin/users/:id/notify", requireAdmin, async (req, res) => {
-  const { title, content } = req.body;
-  const userId = Number(req.params.id);
-  if (!content) {
-    return res.status(400).json({ error: "محتوى الإشعار مطلوب" });
-  }
-  const [row] = await db
-    .insert(notificationsTable)
-    .values({
+  try {
+    const { title, content } = req.body;
+    const userId = Number(req.params.id);
+    if (isNaN(userId) || userId <= 0) {
+      return res.status(400).json({ error: "معرف المستخدم غير صالح" });
+    }
+    if (!content || typeof content !== "string" || !content.trim()) {
+      return res.status(400).json({ error: "محتوى الإشعار مطلوب" });
+    }
+
+    const row = await createInternalNotification({
       targetType: "user",
       targetUserId: userId,
-      title: title || "إشعار من الإدارة",
+      title: (title || "").trim() || "إشعار من الإدارة",
       content: content.trim(),
-    })
-    .returning();
-  res.json(row);
+    });
+
+    if (!row) {
+      return res.status(500).json({ error: "فشل إنشاء الإشعار في قاعدة البيانات" });
+    }
+
+    await logActivity(
+      { id: req.session.adminId, name: req.session.adminUsername },
+      "notify_user",
+      String(userId),
+      { title, content },
+    );
+
+    res.json(row);
+  } catch (error: any) {
+    console.error("Notify user error:", error);
+    res.status(500).json({ error: error.message || "حدث خطأ أثناء إرسال الإشعار" });
+  }
 });
 
 router.post("/admin/users/:id/adjust-balance", requireAdmin, async (req, res) => {
@@ -1585,27 +1640,84 @@ router.delete("/admin/admins/:id", requireAdmin, async (req, res) => {
 
 // ========== NOTIFICATIONS ==========
 router.get("/admin/notifications", requireAdmin, async (_req, res) => {
-  const rows = await db
-    .select()
-    .from(notificationsTable)
-    .orderBy(desc(notificationsTable.createdAt))
-    .limit(200);
-  res.json(rows);
+  try {
+    const rows = await db
+      .select({
+        id: notificationsTable.id,
+        targetType: notificationsTable.targetType,
+        targetUserId: notificationsTable.targetUserId,
+        title: notificationsTable.title,
+        content: notificationsTable.content,
+        status: notificationsTable.status,
+        createdAt: notificationsTable.createdAt,
+        targetUserName: usersTable.username,
+        targetUserEmail: usersTable.email,
+        targetDisplayId: usersTable.displayId,
+      })
+      .from(notificationsTable)
+      .leftJoin(usersTable, eq(usersTable.id, notificationsTable.targetUserId))
+      .orderBy(desc(notificationsTable.createdAt))
+      .limit(300);
+    res.json(rows);
+  } catch (error: any) {
+    console.error("Fetch admin notifications error:", error);
+    res.json([]);
+  }
 });
 
 router.post("/admin/notifications", requireAdmin, async (req, res) => {
-  const { targetType, targetUserId, title, content } = req.body as any;
-  const [row] = await db
-    .insert(notificationsTable)
-    .values({ targetType, targetUserId, title, content })
-    .returning();
-  await logActivity(
-    { id: req.session.adminId, name: req.session.adminUsername },
-    "send_notification",
-    "notifications",
-    { targetType, targetUserId },
-  );
-  res.json(row);
+  try {
+    const { targetType, targetUserId, title, content } = req.body as any;
+    if (!content || typeof content !== "string" || !content.trim()) {
+      return res.status(400).json({ error: "محتوى الإشعار مطلوب" });
+    }
+
+    let parsedUserId: number | null = null;
+    if (targetUserId != null && targetUserId !== "") {
+      const p = Number(targetUserId);
+      if (!isNaN(p) && p > 0) parsedUserId = p;
+    }
+
+    const row = await createInternalNotification({
+      targetType: targetType || (parsedUserId ? "user" : "all"),
+      targetUserId: parsedUserId,
+      title: (title || "").trim() || "إشعار من الإدارة",
+      content: content.trim(),
+    });
+
+    if (!row) {
+      return res.status(500).json({ error: "فشل إنشاء الإشعار في قاعدة البيانات" });
+    }
+
+    await logActivity(
+      { id: req.session.adminId, name: req.session.adminUsername },
+      "send_notification",
+      "notifications",
+      { targetType, targetUserId: parsedUserId, title },
+    );
+
+    res.json(row);
+  } catch (error: any) {
+    console.error("Admin send notification error:", error);
+    res.status(500).json({ error: error.message || "حدث خطأ أثناء إرسال الإشعار" });
+  }
+});
+
+router.delete("/admin/notifications/:id", requireAdmin, async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    await db.delete(notificationsTable).where(eq(notificationsTable.id, id));
+    await logActivity(
+      { id: req.session.adminId, name: req.session.adminUsername },
+      "delete_notification",
+      "notifications",
+      { id },
+    );
+    res.json({ ok: true });
+  } catch (error: any) {
+    console.error("Delete notification error:", error);
+    res.status(500).json({ error: error.message || "فشل حذف الإشعار" });
+  }
 });
 
 // ========== REPORTS ==========

@@ -14,6 +14,10 @@ import {
   notifyUserDepositPending,
   notifyUserDepositRejected,
 } from "../lib/telegram.js";
+import {
+  notifyUserDepositConfirmed as notifyInternalDepositConfirmed,
+  notifyUserDepositRejected as notifyInternalDepositRejected,
+} from "../lib/notifications.js";
 import { rateLimit } from "../lib/rateLimit.js";
 
 const router: IRouter = Router();
@@ -216,10 +220,23 @@ async function applyDepositStatusChangeAuto(id: number, status: "approved" | "re
           operationNumber: String(dep.id),
           messageId: dep.telegramMessageId,
         });
+        await notifyInternalDepositConfirmed({
+          userId: user.id,
+          id: dep.id,
+          amountUsd: dep.amountUsd,
+          amountSyp: dep.amountSyp,
+          currency: dep.currency,
+        });
       } else {
         await notifyUserDepositRejected({
           telegramId: user.telegramId,
           operationNumber: String(dep.id),
+        });
+        await notifyInternalDepositRejected({
+          userId: user.id,
+          id: dep.id,
+          amountUsd: dep.amountUsd,
+          currency: dep.currency,
         });
       }
     } catch (error) {

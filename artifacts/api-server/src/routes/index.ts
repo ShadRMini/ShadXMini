@@ -7,6 +7,7 @@ import favoritesRouter from "./favorites.js";
 import metaRouter from "./meta.js";
 import ordersRouter from "./orders.js";
 import depositsRouter from "./deposits.js";
+import notificationsRouter from "./notifications.js";
 import telegramAdminRouter from "./telegram-admin.js";
 import telegramStoreRouter from "./telegram-store.js";
 
@@ -20,6 +21,7 @@ router.use(favoritesRouter);
 router.use(metaRouter);
 router.use(ordersRouter);
 router.use(depositsRouter);
+router.use(notificationsRouter);
 router.use(telegramAdminRouter);
 router.use(telegramStoreRouter);
 

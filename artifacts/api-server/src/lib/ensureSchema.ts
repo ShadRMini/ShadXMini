@@ -103,6 +103,28 @@ export async function ensureDatabaseSchema() {
       )
     `);
 
+    // 8. Notifications table
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS notifications (
+        id SERIAL PRIMARY KEY,
+        target_type TEXT NOT NULL DEFAULT 'all',
+        target_user_id INTEGER,
+        title TEXT,
+        content TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'sent',
+        created_at TIMESTAMP NOT NULL DEFAULT NOW()
+      )
+    `);
+
+    await db.execute(sql`
+      ALTER TABLE notifications ADD COLUMN IF NOT EXISTS target_type TEXT DEFAULT 'all';
+      ALTER TABLE notifications ADD COLUMN IF NOT EXISTS target_user_id INTEGER;
+      ALTER TABLE notifications ADD COLUMN IF NOT EXISTS title TEXT;
+      ALTER TABLE notifications ADD COLUMN IF NOT EXISTS content TEXT;
+      ALTER TABLE notifications ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'sent';
+      ALTER TABLE notifications ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT NOW();
+    `);
+
     // Seed default ticket if table is empty
     const checkTickets: any = await db.execute(sql`SELECT count(*)::int as c FROM tickets`);
     if (Number(checkTickets?.rows?.[0]?.c || 0) === 0) {

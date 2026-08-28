@@ -18,6 +18,10 @@ import {
   type QuantityType,
 } from "../lib/pricing.js";
 import { notifyUserOrderCreated, notifyUserOrderStatusChanged } from "../lib/telegram.js";
+import {
+  notifyUserOrderAccepted as notifyInternalOrderAccepted,
+  notifyUserOrderRejected as notifyInternalOrderRejected,
+} from "../lib/notifications.js";
 
 const router: IRouter = Router();
 
@@ -245,6 +249,23 @@ async function syncPendingProviderOrdersForUser(userId: number): Promise<void> {
           status: nextStatus,
           note: orderStatusMessage(nextStatus),
         });
+
+        if (nextStatus === "accept") {
+          await notifyInternalOrderAccepted({
+            userId: user.id,
+            orderNumber: order.orderNumber,
+            productName: product.name,
+            totalUsd: order.totalUsd,
+          });
+        } else if (nextStatus === "reject") {
+          await notifyInternalOrderRejected({
+            userId: user.id,
+            orderNumber: order.orderNumber,
+            productName: product.name,
+            totalUsd: order.totalUsd,
+            note: orderStatusMessage(nextStatus),
+          });
+        }
       } catch (error) {
         console.error("Notify provider order status user failed:", error);
       }
@@ -559,6 +580,23 @@ router.post("/orders", async (req, res) => {
         status: finalOrderStatus,
         details: orderStatusMessage(finalOrderStatus),
       });
+
+      if (finalOrderStatus === "accept") {
+        await notifyInternalOrderAccepted({
+          userId: user.id,
+          orderNumber,
+          productName: product.name,
+          totalUsd,
+        });
+      } else if (finalOrderStatus === "reject") {
+        await notifyInternalOrderRejected({
+          userId: user.id,
+          orderNumber,
+          productName: product.name,
+          totalUsd,
+          note: orderStatusMessage("reject"),
+        });
+      }
     } catch (error) {
       console.error("Notify order user failed:", error);
     }

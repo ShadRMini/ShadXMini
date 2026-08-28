@@ -165,8 +165,17 @@ export default function Layout({
           <div className="hidden lg:block text-sm font-medium text-slate-600">مرحبًا بك في لوحة إدارة XPayStore</div>
           <div className="flex items-center gap-3">
             <button
+              onClick={() => navigate("/notifications")}
+              className="text-slate-500 hover:text-[#C8A45C] p-2 rounded-lg hover:bg-slate-100 relative transition-colors"
+              title="مركز الإشعارات"
+              type="button"
+            >
+              <Bell size={18} />
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#C8A45C] rounded-full ring-2 ring-white"></span>
+            </button>
+            <button
               onClick={() => setDarkMode((value) => !value)}
-              className="text-slate-500 hover:text-[#C8A45C] p-2 rounded-lg hover:bg-slate-100"
+              className="text-slate-500 hover:text-[#C8A45C] p-2 rounded-lg hover:bg-slate-100 transition-colors"
               title={darkMode ? "تفعيل الوضع الفاتح" : "تفعيل الوضع الداكن"}
               type="button"
             >
