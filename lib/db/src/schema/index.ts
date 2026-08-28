@@ -52,7 +52,7 @@ export const categoriesTable = pgTable("categories", {
   image: text("image").notNull(),
   order: integer("order").notNull().default(0),
   active: boolean("active").notNull().default(true),
-  displayStyle: text("display_style").notNull().default("large"),
+  columnsCount: integer("columns_count").notNull().default(2),
 });
 
 export const productGroupsTable = pgTable("product_groups", {

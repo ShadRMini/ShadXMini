@@ -2084,7 +2084,7 @@ router.patch("/admin/deposits/:id/status", requireAdmin, async (req, res) => {
 
 // ========== GENERIC PUT FOR ALL CRUDS (ALIAS OF PATCH) ==========
 const PUT_RESOURCES: Array<{ path: string; table: any; allowed: string[] }> = [
-  { path: "categories", table: categoriesTable, allowed: ["name", "image", "order", "active", "displayStyle", "display_style"] },
+  { path: "categories", table: categoriesTable, allowed: ["name", "image", "order", "active", "columnsCount", "columns_count"] },
   { path: "product-groups", table: productGroupsTable, allowed: ["categoryId", "name", "image", "order", "active"] },
   {
     path: "products",

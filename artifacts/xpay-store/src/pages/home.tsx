@@ -17,7 +17,7 @@ type CategoryItem = {
   order: number;
   active: boolean;
   productCount: number;
-  displayStyle?: string;
+  columnsCount?: number;
 };
 
 function readLocalTelegramUser() {
@@ -68,7 +68,7 @@ export default function Home() {
     order: Number(cat.order || 0),
     active: Boolean(cat.active),
     productCount: Number(cat.productCount || 0),
-    displayStyle: String(cat.displayStyle || "large"),
+    columnsCount: Number(cat.columnsCount ?? cat.columns_count ?? 2),
   }));
 
   const displayName =
@@ -207,11 +207,12 @@ export default function Home() {
               ))}
             </div>
           ) : visibleCategories.length > 0 ? (
-            <div className={`grid gap-3.5 sm:gap-4 ${
-              (visibleCategories[0]?.displayStyle || "large") === "small"
-                ? "grid-cols-2 sm:grid-cols-3"
-                : "grid-cols-1 sm:grid-cols-2"
-            }`}>
+            <div
+              className="grid gap-3.5 sm:gap-4"
+              style={{
+                gridTemplateColumns: `repeat(${visibleCategories[0]?.columnsCount || 2}, minmax(0, 1fr))`,
+              }}
+            >
               {visibleCategories.map((cat, i) => (
                 <CategoryCard
                   key={cat.id}

@@ -69,7 +69,7 @@ router.get("/categories", async (_req, res) => {
         order: c.order,
         active: c.active,
         productCount: map.get(c.id) ?? 0,
-        displayStyle: c.displayStyle || "large",
+        columnsCount: Number(c.columnsCount ?? 2),
       })),
     );
     res.json(data);

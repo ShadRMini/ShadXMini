@@ -49,6 +49,11 @@ export async function ensureDatabaseSchema() {
       ALTER TABLE providers ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT NOW();
     `);
 
+    // 1.1 Categories table columns
+    await db.execute(sql`
+      ALTER TABLE categories ADD COLUMN IF NOT EXISTS columns_count INTEGER DEFAULT 2;
+    `);
+
     // 2. Deposits table columns
     await db.execute(sql`
       ALTER TABLE deposits ADD COLUMN IF NOT EXISTS telegram_message_id INTEGER;
