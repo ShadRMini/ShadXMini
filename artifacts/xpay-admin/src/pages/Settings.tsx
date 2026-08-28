@@ -1,232 +1,76 @@
-import { useEffect, useState, useRef } from "react";
+import { useState, useEffect } from "react";
+import SettingsLegacy from "./SettingsLegacy";
+import SettingsNew from "./SettingsNew";
 import { get, put } from "../lib/api";
-import { Save, RefreshCcw, Upload, Image as ImageIcon, Trash2 } from "lucide-react";
 
-const FIELDS: { key: string; label: string; type?: string; placeholder?: string }[] = [
-  { key: "site_name", label: "اسم المتجر" },
-  { key: "brand_logo_url", label: "رابط شعار المتجر (Brand Logo)", placeholder: "https://... أو ارفعه من جهازك أدناه" },
-  { key: "site_logo", label: "رابط الأيقونة المصغرة (Site Logo)" },
-  { key: "site_description", label: "وصف المتجر" },
-  { key: "admin_login_image", label: "صورة شاشة تسجيل دخول لوحة التحكم", placeholder: "https://example.com/admin-login.png" },
-  { key: "admin_login_title", label: "عنوان شاشة تسجيل الدخول (Login Title)" },
-  { key: "admin_login_subtitle", label: "النص الفرعي لشاشة تسجيل الدخول (Login Subtitle)" },
-  { key: "admin_dashboard_welcome", label: "النص الترحيبي في لوحة القيادة (Dashboard Welcome Text)" },
-  { key: "support_email", label: "بريد الدعم" },
-  { key: "support_phone", label: "هاتف الدعم" },
-  { key: "telegram_channel", label: "قناة تيليجرام" },
-  { key: "exchange_rate", label: "سعر صرف الدولار (ل.س)", type: "number" },
-  { key: "min_deposit_usd", label: "أقل مبلغ إيداع بالدولار", type: "number" },
-  { key: "min_deposit_syp", label: "أقل مبلغ إيداع بالليرة", type: "number" },
-  { key: "registration_open", label: "السماح بالتسجيل (true/false)" },
-  { key: "footer_text", label: "نص التذييل" },
-  { key: "admin_telegram_ids", label: "معرفات مشرفي تيليجرام (مفصولة بفاصلة)", type: "text" },
-  { key: "store_popup_enabled", label: "تفعيل الرسالة المنبثقة (true/false)" },
-  { key: "store_popup_message", label: "نص الرسالة المنبثقة" },
-  { key: "store_popup_link_text", label: "نص رابط الرسالة المنبثقة" },
-  { key: "store_popup_link_url", label: "رابط الرسالة المنبثقة" },
-  { key: "use_legacy_product_form", label: "تفعيل واجهة المنتجات القديمة (Legacy) (true/false)" },
-  { key: "use_legacy_dashboard", label: "تفعيل لوحة القيادة القديمة (Legacy) (true/false)" },
-  { key: "use_legacy_api_products", label: "تفعيل واجهة منتجات المزود القديمة (Legacy) (true/false)" },
-  { key: "use_legacy_users_page", label: "تفعيل واجهة إدارة المستخدمين القديمة (Legacy) (true/false)" },
-];
+export default function SettingsWrapper() {
+  const [useLegacy, setUseLegacy] = useState<boolean>(false); // Default to false (New UI)
+  const [loading, setLoading] = useState(true);
 
-export default function Settings() {
-  const [values, setValues] = useState<Record<string, any>>({});
-  const [tgStatus, setTgStatus] = useState<any>(null);
-  const [saving, setSaving] = useState(false);
-  const [done, setDone] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const loadAll = async () => {
-    const [arr, status] = await Promise.all([
-      get<any[]>("/settings/list"),
-      get<any>("/telegram/config-status"),
-    ]);
-
-    const obj: Record<string, any> = {};
-    arr.forEach((s) => {
-      if (s.key === "admin_telegram_ids") {
-        const raw = s.value;
-        if (Array.isArray(raw)) obj[s.key] = raw.join(",");
-        else obj[s.key] = typeof raw === "string" ? raw : "";
-      } else if (typeof s.value === "boolean") {
-        obj[s.key] = String(s.value);
+  const fetchSetting = async () => {
+    try {
+      const res = await get<any>("/admin/settings/use-legacy-settings-page");
+      console.log("[Settings Wrapper] API response:", res);
+      if (res && res.value !== undefined) {
+        const isLegacy = res.value === "true" || res.value === true;
+        setUseLegacy(isLegacy);
+        console.log("[Settings Wrapper] Parsed useLegacy value:", isLegacy);
       } else {
-        obj[s.key] = typeof s.value === "object" ? JSON.stringify(s.value) : s.value;
+        setUseLegacy(false);
       }
-    });
-
-    // Sync brand_logo_url with site_logo fallback if empty
-    if (!obj.brand_logo_url && obj.site_logo) {
-      obj.brand_logo_url = obj.site_logo;
+    } catch (err) {
+      console.warn("[Settings Wrapper] Failed to fetch legacy settings setting, defaulting to new UI (false):", err);
+      setUseLegacy(false); // Default false (New UI)
+    } finally {
+      setLoading(false);
     }
-
-    setValues(obj);
-    setTgStatus(status);
   };
 
   useEffect(() => {
-    loadAll().catch((e) => setErr(e.message));
+    fetchSetting();
   }, []);
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  console.log("[Settings Wrapper] Render useLegacy state:", useLegacy);
 
-    if (file.size > 2 * 1024 * 1024) {
-      setErr("حجم الصورة كبير جداً. يرجى اختيار صورة أقل من 2 ميغابايت.");
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      const base64 = reader.result as string;
-      setValues((prev) => ({
-        ...prev,
-        brand_logo_url: base64,
-        site_logo: base64,
-      }));
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const normalizeValue = (key: string, value: any) => {
-    if (key === "admin_telegram_ids") {
-      return String(value || "")
-        .split(",")
-        .map((x) => x.trim())
-        .filter(Boolean);
-    }
-    if (["store_popup_enabled", "registration_open", "use_legacy_product_form", "use_legacy_dashboard", "use_legacy_api_products", "use_legacy_users_page"].includes(key)) {
-      const text = String(value ?? "").trim().toLowerCase();
-      if (text === "true") return true;
-      if (text === "false") return false;
-    }
-    return value ?? "";
-  };
-
-  const save = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSaving(true);
-    setDone(false);
-    setErr(null);
+  const toggleLegacyMode = async () => {
+    const newValue = !useLegacy;
+    setUseLegacy(newValue);
     try {
-      const items = FIELDS.map((f) => ({ key: f.key, value: normalizeValue(f.key, values[f.key]) }));
-      await put("/settings/items", { items });
-      await loadAll();
-      setDone(true);
-      setTimeout(() => setDone(false), 2000);
-    } catch (e: any) {
-      setErr(e.message);
-    } finally {
-      setSaving(false);
+      await put("/admin/settings/use-legacy-settings-page", { value: String(newValue) });
+      console.log("[Settings Wrapper] Updated useLegacy to:", newValue);
+    } catch (err) {
+      console.error("[Settings Wrapper] Failed to update legacy settings page setting:", err);
     }
   };
 
-  const currentLogo = values.brand_logo_url || values.site_logo;
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] text-zinc-400 space-y-3" dir="rtl">
+        <div className="w-10 h-10 border-2 border-[#C8A45C] border-t-transparent rounded-full animate-spin" />
+        <p className="text-xs font-semibold">جاري تحميل صفحة الإعدادات...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-bold text-slate-900">الإعدادات العامة</h1>
-      <form onSubmit={save} className="bg-white rounded-xl shadow-sm border border-slate-200 p-5 space-y-5 max-w-3xl">
-        
-        {/* Brand Logo Card */}
-        <div className="border border-slate-200 rounded-xl p-4 bg-gradient-to-br from-slate-50 to-white">
-          <div className="flex items-center gap-2 mb-3">
-            <ImageIcon className="w-5 h-5 text-[#C8A45C]" />
-            <h2 className="text-sm font-bold text-slate-800">شعار المتجر (Brand Logo)</h2>
-          </div>
-          <div className="flex flex-col sm:flex-row items-center gap-4">
-            <div className="w-24 h-24 rounded-xl border border-slate-300 bg-[#1A1A1A] p-2 flex items-center justify-center overflow-hidden shrink-0 shadow-inner">
-              {currentLogo ? (
-                <img
-                  src={currentLogo}
-                  alt="شعار المتجر"
-                  className="max-w-full max-h-full object-contain"
-                />
-              ) : (
-                <span className="text-[#C8A45C] text-xs font-bold text-center">لا يوجد شعار</span>
-              )}
-            </div>
-
-            <div className="flex-1 w-full space-y-2">
-              <div className="flex flex-wrap gap-2">
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={handleFileUpload}
-                  accept="image/*"
-                  className="hidden"
-                />
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="px-3 py-1.5 rounded-lg bg-slate-900 text-[#C8A45C] hover:bg-slate-800 text-xs font-bold flex items-center gap-1.5 transition"
-                >
-                  <Upload size={14} /> رفع صورة من الجهاز
-                </button>
-                {currentLogo && (
-                  <button
-                    type="button"
-                    onClick={() => setValues((prev) => ({ ...prev, brand_logo_url: "", site_logo: "" }))}
-                    className="px-3 py-1.5 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 text-xs font-bold flex items-center gap-1.5 transition border border-rose-200"
-                  >
-                    <Trash2 size={14} /> إزالة الشعار
-                  </button>
-                )}
-              </div>
-              <p className="text-xs text-slate-500">
-                يمكنك رفع صورة (PNG, JPG, SVG, WebP) أو إدخال رابط مباشر بالأسفل. سيظهر الشعار فوراً في الهيدر والقائمة الجانبية.
-              </p>
-            </div>
-          </div>
+      {/* Quick Switch Toggle Bar */}
+      <div className="flex items-center justify-between px-4 py-2.5 bg-[#1A1A1A] border border-[#C8A45C]/20 rounded-2xl text-xs text-zinc-400 shadow-md" dir="rtl">
+        <div className="flex items-center gap-2">
+          <span className="w-2.5 h-2.5 rounded-full bg-[#C8A45C] animate-pulse" />
+          <span>
+            الواجهة الحالية للإعدادات: <strong className="text-[#FDE68A]">{useLegacy ? "القديمة (Legacy Mode)" : "الحديثة المنظمة (Modern Tabs)"}</strong>
+          </span>
         </div>
-
-        <div className="border rounded-lg p-4 bg-slate-50">
-          <div className="flex items-center justify-between mb-2">
-            <h2 className="text-sm font-bold text-slate-800">تكامل تيليجرام</h2>
-            <button
-              type="button"
-              onClick={() => loadAll().catch((e) => setErr(e.message))}
-              className="text-xs px-2 py-1 rounded bg-white border hover:bg-slate-100 flex items-center gap-1"
-            >
-              <RefreshCcw size={12} /> تحديث
-            </button>
-          </div>
-          <div className="text-xs text-slate-600 space-y-1">
-            <div>Admin Bot Token: {tgStatus?.adminBotTokenConfigured ? "نعم" : "لا"}</div>
-            <div>Store Bot Token: {tgStatus?.storeBotTokenConfigured ? "نعم" : "لا"}</div>
-            <div>Admin Group ID: {tgStatus?.adminChatIdConfigured ? "نعم" : "لا"}</div>
-            <div>Webhook Secret: {tgStatus?.webhookSecretConfigured ? "نعم" : "لا"}</div>
-            <div className="break-all">Webhook URL: {tgStatus?.webhookUrl || "غير مضبوط. اضبط PUBLIC_API_BASE_URL"}</div>
-          </div>
-        </div>
-
-        {FIELDS.map((f) => (
-          <div key={f.key}>
-            <label className="block text-sm font-semibold text-slate-700 mb-1">{f.label}</label>
-            <input
-              type={f.type || "text"}
-              value={values[f.key] ?? ""}
-              onChange={(e) => setValues({ ...values, [f.key]: e.target.value })}
-              placeholder={f.placeholder}
-              className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"
-            />
-            <div className="text-xs text-slate-400 mt-0.5">{f.key}</div>
-          </div>
-        ))}
-
-        {err && <div className="p-3 bg-rose-50 text-rose-700 rounded-lg text-sm">{err}</div>}
-        {done && <div className="p-3 bg-emerald-50 text-emerald-700 rounded-lg text-sm">تم الحفظ بنجاح</div>}
-
         <button
-          disabled={saving}
-          className="bg-brand-600 text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-brand-700 disabled:opacity-50 flex items-center gap-2"
+          onClick={toggleLegacyMode}
+          className="px-3.5 py-1.5 bg-[#242424] hover:bg-zinc-800 text-[#FDE68A] border border-[#C8A45C]/30 rounded-xl font-bold text-[11px] transition cursor-pointer shadow-xs"
         >
-          <Save size={16} /> {saving ? "جاري الحفظ..." : "حفظ الإعدادات"}
+          {useLegacy ? "التبديل إلى الواجهة الجديدة ✨" : "الرجوع إلى الواجهة القديمة 🔄"}
         </button>
-      </form>
+      </div>
+
+      {useLegacy ? <SettingsLegacy /> : <SettingsNew />}
     </div>
   );
 }
