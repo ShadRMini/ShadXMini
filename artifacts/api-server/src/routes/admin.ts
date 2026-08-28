@@ -2724,6 +2724,18 @@ router.get("/provider-reports", requireAdmin, async (req, res) => {
   }
 });
 
+router.post("/provider-reports/:productId/restart", requireAdmin, async (req, res) => {
+  try {
+    const productId = Number(req.params.productId);
+    await db.update(productsTable)
+      .set({ available: true, active: true })
+      .where(eq(productsTable.id, productId));
+    res.json({ ok: true, message: "تمت إعادة تشغيل وتفعيل الخدمة بنجاح" });
+  } catch (err: any) {
+    res.status(500).json({ error: err?.message || "فشل إعادة تفعيل الخدمة" });
+  }
+});
+
 // Currency Settings
 router.get("/currency-settings", requireAdmin, async (req, res) => {
   try {
@@ -2779,6 +2791,28 @@ router.get("/provider-products/:providerId", requireAdmin, async (req, res) => {
     })));
   } catch (err: any) {
     res.status(500).json({ error: err?.message || "فشل جلب منتجات المزود" });
+  }
+});
+
+router.post("/provider-products/import", requireAdmin, async (req, res) => {
+  try {
+    const { providerId, name, price, externalServiceId, categoryId } = req.body;
+    if (!providerId || !name) {
+      return res.status(400).json({ error: "بيانات الاستيراد غير مكتملة" });
+    }
+    const [newProd] = await db.insert(productsTable).values({
+      name: String(name),
+      priceUsd: String(price || "0"),
+      providerId: Number(providerId),
+      providerProductId: String(externalServiceId || ""),
+      categoryId: categoryId ? Number(categoryId) : null,
+      available: true,
+      active: true,
+      source: "api"
+    } as any).returning();
+    res.json({ ok: true, product: newProd, message: "تم استيراد المنتج بنجاح" });
+  } catch (err: any) {
+    res.status(500).json({ error: err?.message || "فشل استيراد المنتج" });
   }
 });
 

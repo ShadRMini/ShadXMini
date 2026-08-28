@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { Package, Server, Search, ExternalLink, Filter } from "lucide-react";
-import { get } from "../lib/api";
+import { Package, Server, Search, Filter, Download, RefreshCw } from "lucide-react";
+import { get, post } from "../lib/api";
 
 export default function ApiProducts() {
   const [loading, setLoading] = useState(true);
@@ -8,6 +8,8 @@ export default function ApiProducts() {
   const [providers, setProviders] = useState<any[]>([]);
   const [selectedProvider, setSelectedProvider] = useState<string>("all");
   const [search, setSearch] = useState("");
+  const [remoteProducts, setRemoteProducts] = useState<any[]>([]);
+  const [fetchingRemote, setFetchingRemote] = useState(false);
 
   const loadData = async () => {
     setLoading(true);
@@ -29,10 +31,51 @@ export default function ApiProducts() {
     loadData();
   }, []);
 
-  const filtered = products.filter((p) => {
+  const fetchRemoteProducts = async (provId: string) => {
+    if (provId === "all") return;
+    setFetchingRemote(true);
+    try {
+      const res = await get(`/admin/provider-products/${provId}`);
+      if (Array.isArray(res)) {
+        setRemoteProducts(res);
+      } else {
+        setRemoteProducts([]);
+      }
+    } catch (err: any) {
+      alert(err?.message || "فشل جلب المنتجات من المزود الخارجي");
+      setRemoteProducts([]);
+    } finally {
+      setFetchingRemote(false);
+    }
+  };
+
+  useEffect(() => {
+    if (selectedProvider !== "all") {
+      fetchRemoteProducts(selectedProvider);
+    } else {
+      setRemoteProducts([]);
+    }
+  }, [selectedProvider]);
+
+  const handleImport = async (item: any) => {
+    try {
+      await post("/admin/provider-products/import", {
+        providerId: Number(selectedProvider),
+        name: item.name,
+        price: item.price || 0,
+        externalServiceId: item.externalServiceId || item.id,
+      });
+      alert("تم استيراد المنتج بنجاح إلى قاعدة البيانات المحلية");
+      loadData();
+    } catch (err: any) {
+      alert(err?.message || "فشل استيراد المنتج");
+    }
+  };
+
+  const displayList = selectedProvider === "all" ? products : remoteProducts;
+  const filtered = displayList.filter((p) => {
     const matchSearch = (p.name || "").toLowerCase().includes(search.toLowerCase()) || String(p.id).includes(search);
-    const matchProv = selectedProvider === "all" || String(p.providerId) === selectedProvider || String(p.provider_id) === selectedProvider;
-    return matchSearch && matchProv;
+    return matchSearch;
   });
 
   return (
@@ -45,7 +88,7 @@ export default function ApiProducts() {
           </div>
           <div>
             <h1 className="text-xl sm:text-2xl font-black text-[#FDE68A]">منتجات عبر API</h1>
-            <p className="text-xs sm:text-sm text-zinc-400 mt-0.5">عرض وتصفية المنتجات حسب اختيار المزود وتفاصيل الأسعار والروابط</p>
+            <p className="text-xs sm:text-sm text-zinc-400 mt-0.5">جلب واستيراد المنتجات من المزودين الخارجيين وعرض الأسعار</p>
           </div>
         </div>
 
@@ -57,7 +100,7 @@ export default function ApiProducts() {
               onChange={(e) => setSelectedProvider(e.target.value)}
               className="bg-[#1A1A1A] border border-[#C8A45C]/40 rounded-xl pr-9 pl-4 py-2.5 text-sm text-white font-bold focus:outline-none focus:border-[#C8A45C]"
             >
-              <option value="all">جميع المزودين</option>
+              <option value="all">جميع المزودين (المحلي)</option>
               {providers.map((prov) => (
                 <option key={prov.id} value={String(prov.id)}>
                   {prov.name}
@@ -65,6 +108,15 @@ export default function ApiProducts() {
               ))}
             </select>
           </div>
+          {selectedProvider !== "all" && (
+            <button
+              onClick={() => fetchRemoteProducts(selectedProvider)}
+              className="flex items-center gap-2 bg-[#C8A45C] hover:bg-[#b8934d] text-[#1A1A1A] font-bold px-4 py-2.5 rounded-xl transition shadow cursor-pointer"
+            >
+              <RefreshCw size={16} className={fetchingRemote ? "animate-spin" : ""} />
+              <span>جلب المنتجات</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -83,7 +135,9 @@ export default function ApiProducts() {
       {/* Table */}
       <div className="bg-[#2D2D2D] border border-[#C8A45C]/30 rounded-3xl shadow-xl overflow-hidden">
         <div className="p-5 border-b border-[#C8A45C]/20 flex items-center justify-between">
-          <h2 className="text-lg font-black text-[#FDE68A]">قائمة المنتجات المرتبطة بالمزودين</h2>
+          <h2 className="text-lg font-black text-[#FDE68A]">
+            {selectedProvider === "all" ? "قائمة المنتجات المحلية" : "قائمة منتجات المزود الخارجي (API)"}
+          </h2>
           <span className="text-xs bg-[#1A1A1A] text-zinc-300 px-3 py-1 rounded-full border border-zinc-700 font-bold">
             {filtered.length} منتج
           </span>
@@ -98,35 +152,46 @@ export default function ApiProducts() {
                 <th className="px-5 py-3.5">المزود</th>
                 <th className="px-5 py-3.5">السعر</th>
                 <th className="px-5 py-3.5">معلومات إضافية</th>
+                {selectedProvider !== "all" && <th className="px-5 py-3.5 text-center">استيراد</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-800">
-              {loading ? (
+              {loading || fetchingRemote ? (
                 <tr>
-                  <td colSpan={5} className="text-center py-10 text-zinc-400 font-bold">
-                    جاري تحميل المنتجات...
+                  <td colSpan={selectedProvider !== "all" ? 6 : 5} className="text-center py-10 text-zinc-400 font-bold">
+                    جاري جلب المنتجات...
                   </td>
                 </tr>
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="text-center py-16 text-zinc-400 font-bold">
-                    لا توجد منتجات مطابقة للبحث أو المزود المحدد
+                  <td colSpan={selectedProvider !== "all" ? 6 : 5} className="text-center py-16 text-zinc-400 font-bold">
+                    لا توجد منتجات مطابقة أو لم يتم جلب المنتجات بعد. اختر مزوداً واضغط "جلب المنتجات".
                   </td>
                 </tr>
               ) : (
-                filtered.map((p) => (
-                  <tr key={p.id} className="hover:bg-[#353535] transition-colors">
+                filtered.map((p, idx) => (
+                  <tr key={p.id || idx} className="hover:bg-[#353535] transition-colors">
                     <td className="px-5 py-4 font-mono text-[#FDE68A] font-bold">#{p.id}</td>
                     <td className="px-5 py-4 font-bold text-white">{p.name}</td>
                     <td className="px-5 py-4 text-zinc-300">
                       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#1A1A1A] border border-zinc-700 text-xs text-[#C8A45C]">
-                        <Server size={12} /> {p.providerName || p.provider_name || "مزود خارجي"}
+                        <Server size={12} /> {selectedProvider === "all" ? (p.providerName || "المحلي") : "مزود API"}
                       </span>
                     </td>
-                    <td className="px-5 py-4 font-mono text-emerald-400 font-bold">${Number(p.price || 0).toFixed(2)}</td>
+                    <td className="px-5 py-4 font-mono text-emerald-400 font-bold">${Number(p.price || p.priceUsd || 0).toFixed(2)}</td>
                     <td className="px-5 py-4 text-xs text-zinc-400">
                       {p.externalServiceId ? `External ID: ${p.externalServiceId}` : "نشط ومستقر"}
                     </td>
+                    {selectedProvider !== "all" && (
+                      <td className="px-5 py-4 text-center">
+                        <button
+                          onClick={() => handleImport(p)}
+                          className="inline-flex items-center gap-1.5 bg-[#C8A45C] hover:bg-[#b8934d] text-[#1A1A1A] px-3 py-1.5 rounded-xl text-xs font-bold transition shadow cursor-pointer"
+                        >
+                          <Download size={12} /> استيراد للمتجر
+                        </button>
+                      </td>
+                    )}
                   </tr>
                 ))
               )}

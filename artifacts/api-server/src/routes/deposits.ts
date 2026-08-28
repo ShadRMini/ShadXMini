@@ -19,6 +19,7 @@ import {
   notifyUserDepositRejected as notifyInternalDepositRejected,
 } from "../lib/notifications.js";
 import { rateLimit } from "../lib/rateLimit.js";
+import { createShamCashInvoice, getShamCashSettings } from "../services/shamcash.service.js";
 
 const router: IRouter = Router();
 const SAM_API_BASE_URL = process.env.SAM_API_BASE_URL || "https://sam-api.pro/api";
@@ -439,18 +440,9 @@ router.post("/deposits", async (req, res) => {
   res.json(CreateDepositResponse.parse(rowToDeposit(dep)));
 });
 
-router.post("/deposits/shamcash/invoice", shamCashInvoiceRateLimit, async (req, res) => {
+async function handleShamCashInvoiceCreate(req: any, res: any) {
   try {
     await ensureDepositsTelegramMessageColumn();
-    if (!SAM_API_KEY || !SAM_SHAMCASH_IDENTIFIER || !PUBLIC_API_BASE_URL) {
-      res.status(500).json({
-        error: "SAM config missing",
-        message: "Missing required server configuration for ShamCash auto invoice.",
-        required: ["SAM_API_KEY", "SAM_SHAMCASH_IDENTIFIER", "PUBLIC_API_BASE_URL"],
-      });
-      return;
-    }
-
     const bodyIdentity = {
       telegramId: String(req.body?.telegramId || "").trim(),
       telegramUsername: String(req.body?.telegramUsername || "").trim(),
@@ -475,6 +467,8 @@ router.post("/deposits/shamcash/invoice", shamCashInvoiceRateLimit, async (req, 
     const user = await getOrCreateCurrentUserStrict(reqWithFallbackHeaders);
     const currency = String(req.body?.currency || "SYP").toUpperCase();
     const amount = Number(req.body?.amount);
+    const walletAddress = String(req.body?.walletAddress || req.body?.identifier || "").trim();
+
     if (!["USD", "SYP", "EUR"].includes(currency) || !Number.isFinite(amount) || amount <= 0) {
       res.status(400).json({ error: "VALIDATION_ERROR", message: "Invalid amount or currency." });
       return;
@@ -503,44 +497,32 @@ router.post("/deposits/shamcash/invoice", shamCashInvoiceRateLimit, async (req, 
       })
       .returning();
 
-    const webhookSecretPath = SAM_WEBHOOK_SECRET ? `/${encodeURIComponent(SAM_WEBHOOK_SECRET)}` : "";
-    const webhookUrl = `${PUBLIC_API_BASE_URL.replace(/\/+$/, "")}/api/webhooks/shamcash${webhookSecretPath}`;
-
-    const invoiceResp = await fetch(`${SAM_API_BASE_URL.replace(/\/+$/, "")}/v1/invoices`, {
-      method: "POST",
-      headers: authHeaders(),
-      body: JSON.stringify({
-        method: "shamcash",
-        identifier: SAM_SHAMCASH_IDENTIFIER,
-        amount: String(amount),
+    let invoiceResult;
+    try {
+      invoiceResult = await createShamCashInvoice({
+        amount,
         currency,
-        webhookUrl,
-      }),
-    });
-
-    const invoiceJson: any = await invoiceResp.json().catch(() => ({}));
-    if (!invoiceResp.ok || !invoiceJson?.invoiceId || !invoiceJson?.paymentUrl) {
+        walletAddress: walletAddress || undefined,
+        orderId: String(dep.id),
+        telegramId: user.telegramId || undefined,
+      });
+    } catch (invoiceErr: any) {
       await db
         .update(depositsTable)
         .set({ status: "rejected" })
         .where(eq(depositsTable.id, dep.id));
-      res.status(502).json({
-        error: "SAM_INVOICE_CREATE_FAILED",
-        message: invoiceJson?.message || "Sam API rejected invoice creation.",
-        details: invoiceJson,
-      });
-      return;
+      throw invoiceErr;
     }
 
     await db
       .update(depositsTable)
-      .set({ transactionId: String(invoiceJson.invoiceId) })
+      .set({ transactionId: String(invoiceResult.invoiceId) })
       .where(eq(depositsTable.id, dep.id));
 
     try {
       const pendingMessageId = await notifyUserDepositPending({
         telegramId: user.telegramId,
-        operationNumber: String(invoiceJson.invoiceId),
+        operationNumber: String(invoiceResult.invoiceId),
         amount,
         currency: currency as "USD" | "SYP",
       });
@@ -557,27 +539,21 @@ router.post("/deposits/shamcash/invoice", shamCashInvoiceRateLimit, async (req, 
     res.json({
       ok: true,
       depositId: dep.id,
-      invoiceId: invoiceJson.invoiceId,
-      paymentUrl: invoiceJson.paymentUrl,
-      expiresAt: invoiceJson.expiresAt || null,
+      invoiceId: invoiceResult.invoiceId,
+      paymentUrl: invoiceResult.paymentUrl,
+      expiresAt: invoiceResult.expiresAt || null,
     });
   } catch (error: any) {
     console.error("ShamCash invoice create failed:", error);
-    if (error?.message === "telegram_identity_missing") {
-      console.error("ShamCash identity debug:", {
-        hasHeaderId: !!req.headers["x-telegram-id"],
-        hasHeaderInitData: !!req.headers["x-telegram-init-data"],
-        hasBodyId: !!req.body?.telegramId,
-        hasBodyInitData: !!req.body?.telegramInitData,
-        queryTgId: req.query?.tg_id || null,
-      });
-    }
     res.status(error?.statusCode || 500).json({
       error: "SHAMCASH_INVOICE_EXCEPTION",
       message: error?.publicMessage || error?.message || "failed_to_create_invoice",
     });
   }
-});
+}
+
+router.post("/deposits/shamcash/invoice", shamCashInvoiceRateLimit, handleShamCashInvoiceCreate);
+router.post("/deposit/shamcash/create-invoice", shamCashInvoiceRateLimit, handleShamCashInvoiceCreate);
 
 router.post("/deposits/shamcash/verify", async (req, res) => {
   try {

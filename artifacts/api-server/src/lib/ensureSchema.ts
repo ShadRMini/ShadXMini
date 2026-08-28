@@ -230,6 +230,27 @@ export async function ensureDatabaseSchema() {
       `);
     }
 
+    // Seed default ShamCash settings if missing
+    const shamcashKeys = [
+      { key: "shamcash_api_base_url", val: "https://sam-api.pro/api" },
+      { key: "shamcash_api_key", val: process.env.SAM_API_KEY || "" },
+      { key: "shamcash_shamcash_identifier", val: process.env.SAM_SHAMCASH_IDENTIFIER || "" },
+      { key: "shamcash_invoice_expiry_minutes", val: 15 },
+      { key: "shamcash_webhook_secret", val: process.env.SAM_WEBHOOK_SECRET || "" },
+      { key: "public_api_base_url", val: process.env.PUBLIC_API_BASE_URL || process.env.RENDER_EXTERNAL_URL || "" }
+    ];
+    for (const item of shamcashKeys) {
+      const existing: any = await db.execute(sql`SELECT key FROM settings WHERE key = ${item.key}`);
+      const rows = existing?.rows || existing;
+      if (!rows || rows.length === 0) {
+        await db.execute(sql`
+          INSERT INTO settings (key, value)
+          VALUES (${item.key}, ${JSON.stringify(item.val)}::jsonb)
+          ON CONFLICT (key) DO NOTHING
+        `);
+      }
+    }
+
     schemaEnsured = true;
     console.log("[DB Schema] Runtime schema verified and synchronized successfully.");
   } catch (error) {

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { Server, AlertTriangle, CheckCircle, RefreshCw, Layers } from "lucide-react";
-import { get } from "../lib/api";
+import { Server, AlertTriangle, CheckCircle, RefreshCw, Layers, Play } from "lucide-react";
+import { get, post } from "../lib/api";
 
 export default function ProviderReports() {
   const [loading, setLoading] = useState(true);
@@ -25,6 +25,17 @@ export default function ProviderReports() {
   useEffect(() => {
     loadData();
   }, []);
+
+  const handleRestart = async (id: number) => {
+    if (!confirm("هل أنت متأكد من إعادة تشغيل وتفعيل هذه الخدمة؟")) return;
+    try {
+      await post(`/admin/provider-reports/${id}/restart`, {});
+      alert("تمت إعادة تفعيل الخدمة بنجاح");
+      await loadData();
+    } catch (err: any) {
+      alert(err?.message || "فشل إعادة تفعيل الخدمة");
+    }
+  };
 
   return (
     <div className="p-4 sm:p-6 space-y-6 max-w-7xl mx-auto" dir="rtl">
@@ -97,18 +108,19 @@ export default function ProviderReports() {
                 <th className="px-5 py-3.5">المزود</th>
                 <th className="px-5 py-3.5">التكلفة (API)</th>
                 <th className="px-5 py-3.5">الحالة</th>
+                <th className="px-5 py-3.5 text-center">إجراءات</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-800">
               {loading ? (
                 <tr>
-                  <td colSpan={5} className="text-center py-10 text-zinc-400 font-bold">
+                  <td colSpan={6} className="text-center py-10 text-zinc-400 font-bold">
                     جاري تحميل التقرير...
                   </td>
                 </tr>
               ) : reportData.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="text-center py-16">
+                  <td colSpan={6} className="text-center py-16">
                     <div className="flex flex-col items-center justify-center gap-2">
                       <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 mb-1">
                         <CheckCircle size={24} />
@@ -129,6 +141,14 @@ export default function ProviderReports() {
                       <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">
                         <AlertTriangle size={12} /> متوقف / محذوف
                       </span>
+                    </td>
+                    <td className="px-5 py-4 text-center">
+                      <button
+                        onClick={() => handleRestart(item.id)}
+                        className="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-xl text-xs font-bold transition shadow"
+                      >
+                        <Play size={12} /> تفعيل وتشغيل
+                      </button>
                     </td>
                   </tr>
                 ))
