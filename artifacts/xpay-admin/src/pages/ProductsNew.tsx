@@ -3,8 +3,9 @@ import { get, post, put, del } from "../lib/api";
 import { 
   Package, Plus, Search, Filter, Edit3, Trash2, CheckCircle2, XCircle, 
   Sparkles, RefreshCw, Layers, DollarSign, ShieldAlert, Upload, Image as ImageIcon, 
-  ChevronLeft, ChevronRight, Eye, AlertCircle, Check
+  ChevronLeft, ChevronRight, Eye, AlertCircle, Check, Download
 } from "lucide-react";
+import ImportFromProviderModal from "../components/ImportFromProviderModal";
 
 const preciseDecimalPattern = /^\d+(\.\d{1,12})?$/;
 
@@ -48,6 +49,7 @@ export default function ProductsNew() {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedProvider, setSelectedProvider] = useState("");
   const [activeTab, setActiveTab] = useState<"list" | "form">("list");
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
   // Form state
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -332,13 +334,22 @@ export default function ProductsNew() {
         </div>
         <div className="flex items-center gap-3">
           {activeTab === "list" ? (
-            <button
-              onClick={handleOpenCreate}
-              className="bg-[#C8A45C] hover:bg-[#B8954A] text-[#1A1A1A] font-black px-5 py-3 rounded-2xl shadow-lg shadow-[#C8A45C]/25 flex items-center gap-2 transition cursor-pointer"
-            >
-              <Plus size={18} />
-              إضافة منتج جديد
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setIsImportModalOpen(true)}
+                className="bg-[#2D2D2D] hover:bg-[#383838] text-[#FDE68A] border border-[#C8A45C]/40 font-bold px-4 py-3 rounded-2xl shadow-lg flex items-center gap-2 transition cursor-pointer"
+              >
+                <Download size={18} />
+                استيراد من مزود API
+              </button>
+              <button
+                onClick={handleOpenCreate}
+                className="bg-[#C8A45C] hover:bg-[#B8954A] text-[#1A1A1A] font-black px-5 py-3 rounded-2xl shadow-lg shadow-[#C8A45C]/25 flex items-center gap-2 transition cursor-pointer"
+              >
+                <Plus size={18} />
+                إضافة منتج جديد
+              </button>
+            </div>
           ) : (
             <button
               onClick={() => setActiveTab("list")}
@@ -875,6 +886,12 @@ export default function ProductsNew() {
           </div>
         </form>
       )}
+      <ImportFromProviderModal
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        onSuccess={() => loadData()}
+        categories={categories}
+      />
     </div>
   );
 }
