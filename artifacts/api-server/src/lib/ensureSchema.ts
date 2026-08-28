@@ -185,6 +185,51 @@ export async function ensureDatabaseSchema() {
       `);
     }
 
+    // 9. API Keys table
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS api_keys (
+        id SERIAL PRIMARY KEY,
+        name TEXT NOT NULL,
+        key_value TEXT NOT NULL UNIQUE,
+        active BOOLEAN NOT NULL DEFAULT true,
+        created_at TIMESTAMP NOT NULL DEFAULT NOW()
+      )
+    `);
+
+    // 10. Order Messages table
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS order_messages (
+        id SERIAL PRIMARY KEY,
+        event TEXT NOT NULL UNIQUE,
+        title TEXT NOT NULL,
+        body TEXT NOT NULL
+      )
+    `);
+
+    // 11. Banners table
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS banners (
+        id SERIAL PRIMARY KEY,
+        image TEXT NOT NULL,
+        title TEXT NOT NULL,
+        link TEXT,
+        "order" INTEGER NOT NULL DEFAULT 0
+      )
+    `);
+
+    // Seed default order messages if empty
+    const checkOrderMsg: any = await db.execute(sql`SELECT count(*)::int as c FROM order_messages`);
+    if (Number(checkOrderMsg?.rows?.[0]?.c || 0) === 0) {
+      await db.execute(sql`
+        INSERT INTO order_messages (event, title, body)
+        VALUES 
+          ('accepted', 'تم قبول طلبك بنجاح', 'تم معالجة طلبك رقم #{order_number} بنجاح من قبل النظام.'),
+          ('rejected', 'عذراً، تم رفض الطلب', 'نأسف لإبلاغك بأنه تم رفض الطلب رقم #{order_number}. برجاء التواصل مع الدعم الفني.'),
+          ('wait', 'جاري معالجة الطلب', 'طلبك رقم #{order_number} قيد المراجعة والمعالجة حالياً.')
+        ON CONFLICT (event) DO NOTHING
+      `);
+    }
+
     schemaEnsured = true;
     console.log("[DB Schema] Runtime schema verified and synchronized successfully.");
   } catch (error) {

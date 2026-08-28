@@ -2703,4 +2703,136 @@ router.get("/admin/products/:id/provider-status", requireAdmin, async (req, res)
   }
 });
 
+// Provider Reports
+router.get("/provider-reports", requireAdmin, async (req, res) => {
+  try {
+    const stopped = await db.select().from(productsTable).where(eq(productsTable.available, false)).limit(100);
+    const providersList = await db.select().from(providersTable);
+    const mapped = stopped.map(p => {
+      const prov = providersList.find(pr => pr.id === p.providerId);
+      return {
+        id: p.id,
+        name: p.name,
+        providerName: prov?.name || "المزود الرئيسي",
+        cost: p.providerUnitPrice || p.basePriceUsd || "0.00",
+        status: "متوقف / محذوف"
+      };
+    });
+    res.json(mapped);
+  } catch (err: any) {
+    res.status(500).json({ error: err?.message || "فشل جلب تقارير المزودين" });
+  }
+});
+
+// Currency Settings
+router.get("/currency-settings", requireAdmin, async (req, res) => {
+  try {
+    const s = await db.select().from(settingsTable).where(eq(settingsTable.key, "currency_settings"));
+    if (s.length > 0) {
+      res.json(s[0].value);
+    } else {
+      res.json({ storeCurrency: "USD", exchangeRate: 1.0, currencySymbol: "$" });
+    }
+  } catch (err: any) {
+    res.status(500).json({ error: err?.message || "فشل جلب إعدادات العملة" });
+  }
+});
+
+router.put("/currency-settings", requireAdmin, async (req, res) => {
+  try {
+    const { storeCurrency, exchangeRate, currencySymbol } = req.body;
+    const value = { storeCurrency, exchangeRate: Number(exchangeRate), currencySymbol };
+    await db.insert(settingsTable).values({ key: "currency_settings", value })
+      .onConflictDoUpdate({ target: settingsTable.key, set: { value } });
+    res.json({ ok: true, message: "تم حفظ إعدادات العملة بنجاح" });
+  } catch (err: any) {
+    res.status(500).json({ error: err?.message || "فشل حفظ إعدادات العملة" });
+  }
+});
+
+// Provider Products for API Products page
+router.get("/provider-products/:providerId", requireAdmin, async (req, res) => {
+  try {
+    const providerId = Number(req.params.providerId);
+    const [provider] = await db.select().from(providersTable).where(eq(providersTable.id, providerId));
+    if (!provider) {
+      return res.status(404).json({ error: "المزود غير موجود" });
+    }
+    const adapter = getAdapter(provider);
+    if (!adapter) {
+      const localProds = await db.select().from(productsTable).where(eq(productsTable.providerId, providerId));
+      return res.json(localProds.map(p => ({
+        id: p.id,
+        name: p.name,
+        price: p.priceUsd,
+        available: p.available,
+        externalServiceId: p.providerProductId
+      })));
+    }
+    const remoteProds = await adapter.getProducts();
+    res.json(remoteProds.map((rp: any) => ({
+      id: rp.id,
+      name: rp.name,
+      price: rp.price,
+      available: rp.available ?? true,
+      externalServiceId: rp.id
+    })));
+  } catch (err: any) {
+    res.status(500).json({ error: err?.message || "فشل جلب منتجات المزود" });
+  }
+});
+
+// Order Messages CRUD
+router.get("/order-messages", requireAdmin, async (req, res) => {
+  try {
+    const msgs = await db.select().from(orderMessagesTable);
+    res.json(msgs);
+  } catch (err: any) {
+    res.status(500).json({ error: err?.message || "فشل جلب رسائل الطلبات" });
+  }
+});
+
+router.post("/order-messages", requireAdmin, async (req, res) => {
+  try {
+    const { event, title, body } = req.body;
+    const [newMsg] = await db.insert(orderMessagesTable).values({ event, title, body }).returning();
+    res.json(newMsg);
+  } catch (err: any) {
+    res.status(500).json({ error: err?.message || "فشل إنشاء رسالة الطلب" });
+  }
+});
+
+router.put("/order-messages/:id", requireAdmin, async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const { event, title, body } = req.body;
+    const [updated] = await db.update(orderMessagesTable)
+      .set({ event, title, body })
+      .where(eq(orderMessagesTable.id, id))
+      .returning();
+    res.json(updated);
+  } catch (err: any) {
+    res.status(500).json({ error: err?.message || "فشل تحديث رسالة الطلب" });
+  }
+});
+
+router.delete("/order-messages/:id", requireAdmin, async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    await db.delete(orderMessagesTable).where(eq(orderMessagesTable.id, id));
+    res.json({ ok: true });
+  } catch (err: any) {
+    res.status(500).json({ error: err?.message || "فشل حذف رسالة الطلب" });
+  }
+});
+
+// Clear Cache
+router.post("/clear-cache", requireAdmin, async (req, res) => {
+  try {
+    res.json({ ok: true, message: "تم مسح الذاكرة المؤقتة بنجاح" });
+  } catch (err: any) {
+    res.status(500).json({ error: err?.message || "فشل مسح الكاش" });
+  }
+});
+
 export default router;

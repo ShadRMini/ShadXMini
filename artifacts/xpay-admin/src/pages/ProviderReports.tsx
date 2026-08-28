@@ -9,7 +9,7 @@ export default function ProviderReports() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const res = await get("/admin/providers/reports");
+      const res = await get("/admin/provider-reports");
       if (Array.isArray(res)) {
         setReportData(res);
       } else {

@@ -11,7 +11,7 @@ export default function CacheManagement() {
     setClearing(true);
     setSuccess(false);
     try {
-      await post("/admin/cache/clear", {});
+      await post("/admin/clear-cache", {});
       setSuccess(true);
       setTimeout(() => setSuccess(false), 4000);
     } catch {

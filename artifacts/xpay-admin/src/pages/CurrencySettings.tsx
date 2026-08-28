@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Globe, Save, DollarSign } from "lucide-react";
-import { get, patch } from "../lib/api";
+import { get, put } from "../lib/api";
 
 export default function CurrencySettings() {
   const [currency, setCurrency] = useState("USD");
@@ -9,7 +9,7 @@ export default function CurrencySettings() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    get("/admin/settings")
+    get("/admin/currency-settings")
       .then((res: any) => {
         if (res && typeof res === "object") {
           setCurrency(res.storeCurrency || "USD");
@@ -24,7 +24,7 @@ export default function CurrencySettings() {
     e.preventDefault();
     setSaving(true);
     try {
-      await patch("/admin/settings", {
+      await put("/admin/currency-settings", {
         storeCurrency: currency,
         exchangeRate: Number(rate),
         currencySymbol: symbol,
