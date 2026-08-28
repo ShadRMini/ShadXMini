@@ -179,14 +179,14 @@ export default function Home() {
 
         {/* Categories Section */}
         <div className="px-2 sm:px-4">
-          <div className="flex items-center justify-between mb-4 pb-2 border-b border-zinc-300/60">
+          <div className="flex items-center justify-between mb-4 pb-2 border-b border-zinc-800">
             <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-[#C8A45C]/20 border border-[#C8A45C]/40 flex items-center justify-center text-[#8C6D23]">
+              <div className="w-7 h-7 rounded-lg bg-[#C8A45C]/20 border border-[#C8A45C]/40 flex items-center justify-center text-[#FDE68A]">
                 <Layers size={16} />
               </div>
-              <h2 className="text-base sm:text-lg font-black text-zinc-900">الأقسام والخدمات</h2>
+              <h2 className="text-base sm:text-lg font-black text-[#FDE68A]">الأقسام والخدمات</h2>
             </div>
-            <span className="text-xs text-zinc-500 font-bold">
+            <span className="text-xs text-zinc-400 font-bold">
               {visibleCategories.length} {visibleCategories.length === 1 ? "قسم" : "أقسام"}
             </span>
           </div>
@@ -195,8 +195,8 @@ export default function Home() {
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
               {Array.from({ length: 6 }).map((_, i) => (
                 <div key={i} className="flex flex-col items-center gap-2">
-                  <Skeleton className="w-full aspect-square rounded-2xl bg-zinc-200" />
-                  <Skeleton className="h-3 w-16 bg-zinc-200" />
+                  <Skeleton className="w-full aspect-square rounded-2xl bg-zinc-800" />
+                  <Skeleton className="h-3 w-16 bg-zinc-800" />
                 </div>
               ))}
             </div>
@@ -215,9 +215,9 @@ export default function Home() {
               ))}
             </div>
           ) : (
-            <div className="rounded-3xl border border-zinc-300 bg-white/70 px-4 py-10 text-center text-sm text-zinc-500">
-              <Layers className="w-10 h-10 mx-auto mb-2 text-zinc-400" />
-              <p className="font-bold">لا توجد أقسام متاحة حالياً</p>
+            <div className="rounded-3xl border border-zinc-800 bg-[#2D2D2D] px-4 py-10 text-center text-sm text-zinc-400">
+              <Layers className="w-10 h-10 mx-auto mb-2 text-[#C8A45C]" />
+              <p className="font-bold text-white">لا توجد أقسام متاحة حالياً</p>
               <p className="text-xs text-zinc-400 mt-1">سيتم إضافة وتفعيل الأقسام قريباً.</p>
             </div>
           )}

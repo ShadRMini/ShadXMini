@@ -90,7 +90,7 @@ export default function CategoryCard({
         </div>
 
         {/* Category Label */}
-        <span className="text-xs font-bold text-center text-slate-800 group-hover:text-[#8C6D23] transition-colors leading-tight line-clamp-1 px-1">
+        <span className="text-xs font-bold text-center text-zinc-200 group-hover:text-[#FDE68A] transition-colors leading-tight line-clamp-1 px-1">
           {name}
         </span>
       </motion.div>
