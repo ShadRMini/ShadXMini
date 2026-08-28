@@ -51,6 +51,7 @@ export default function Users() {
     username: "",
     email: "",
     role: "user",
+    vipLevel: 1,
     password: "",
   });
   const [savingEdit, setSavingEdit] = useState(false);
@@ -70,10 +71,11 @@ export default function Users() {
   });
   const [sendingNotify, setSendingNotify] = useState(false);
 
-  const loadUsers = async () => {
+  const loadUsers = async (searchQuery = "") => {
     setLoading(true);
     try {
-      const res = await get<UserItem[]>("/admin/users");
+      const url = searchQuery ? `/admin/users?q=${encodeURIComponent(searchQuery)}` : "/admin/users";
+      const res = await get<UserItem[]>(url);
       if (Array.isArray(res)) {
         setUsers(res);
       } else {
@@ -91,16 +93,12 @@ export default function Users() {
     loadUsers();
   }, []);
 
-  const filteredUsers = users.filter((u) => {
-    if (!activeSearch) return true;
-    const q = activeSearch.toLowerCase();
-    return (
-      String(u.id).includes(q) ||
-      (u.username || "").toLowerCase().includes(q) ||
-      (u.email || "").toLowerCase().includes(q) ||
-      (u.telegramId || "").toLowerCase().includes(q)
-    );
-  });
+  const handleSearch = () => {
+    setActiveSearch(searchTerm.trim());
+    loadUsers(searchTerm.trim());
+  };
+
+  const filteredUsers = users;
 
   const handleToggleBan = async (user: UserItem) => {
     try {
@@ -120,6 +118,7 @@ export default function Users() {
       username: user.username,
       email: user.email || "",
       role: user.role || "user",
+      vipLevel: user.vipLevel || 1,
       password: "",
     });
   };
@@ -132,12 +131,13 @@ export default function Users() {
         username: editForm.username,
         email: editForm.email || null,
         role: editForm.role,
+        vipLevel: Number(editForm.vipLevel),
       };
       if (editForm.password.trim()) {
         payload.password = editForm.password.trim();
       }
       await patch(`/admin/users/${editModalUser.id}`, payload);
-      await loadUsers();
+      await loadUsers(activeSearch);
       setEditModalUser(null);
     } catch (e: any) {
       alert(e?.message || "فشل تحديث بيانات المستخدم");
@@ -338,6 +338,7 @@ export default function Users() {
                 <tr>
                   <th className="px-4 py-3.5 font-semibold">ID</th>
                   <th className="px-4 py-3.5 font-semibold">المستخدم</th>
+                  <th className="px-4 py-3.5 font-semibold">مستوى VIP</th>
                   <th className="px-4 py-3.5 font-semibold">الرصيد المتاح</th>
                   <th className="px-4 py-3.5 font-semibold">الصلاحية</th>
                   <th className="px-4 py-3.5 font-semibold">تاريخ التسجيل</th>
@@ -377,6 +378,11 @@ export default function Users() {
                             </div>
                           </div>
                         </div>
+                      </td>
+
+                      {/* VIP Level */}
+                      <td className="px-4 py-3.5 font-bold text-[#C8A45C]">
+                        VIP {u.vipLevel || 1}
                       </td>
 
                       {/* Balance */}
@@ -568,6 +574,31 @@ export default function Users() {
                       <option value="user">مستخدم عادي</option>
                       <option value="agent">وكيل معتمد (Agent)</option>
                       <option value="admin">مشرف النظام (Admin)</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* VIP Level */}
+                <div>
+                  <label className="block text-slate-300 font-semibold mb-1">
+                    مستوى الـ VIP
+                  </label>
+                  <div className="relative">
+                    <Shield
+                      size={14}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500"
+                    />
+                    <select
+                      value={editForm.vipLevel}
+                      onChange={(e) =>
+                        setEditForm({ ...editForm, vipLevel: Number(e.target.value) })
+                      }
+                      className="w-full bg-[#14171f] border border-slate-700 rounded-xl pr-9 pl-3 py-2 text-white focus:border-purple-500 focus:outline-none appearance-none"
+                    >
+                      <option value={1}>VIP1</option>
+                      <option value={2}>VIP2</option>
+                      <option value={3}>VIP3</option>
+                      <option value={4}>SVIP</option>
                     </select>
                   </div>
                 </div>

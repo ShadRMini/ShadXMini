@@ -1398,12 +1398,26 @@ router.get("/admin/users", requireAdmin, async (req, res) => {
   const q = (req.query["q"] as string | undefined)?.trim();
   let rows;
   if (q) {
-    rows = await db
-      .select()
-      .from(usersTable)
-      .where(sql`${usersTable.username} ILIKE ${"%" + q + "%"} OR ${usersTable.telegramId} ILIKE ${"%" + q + "%"}`)
-      .orderBy(desc(usersTable.createdAt))
-      .limit(200);
+    const numId = Number(q);
+    if (!isNaN(numId)) {
+      rows = await db
+        .select()
+        .from(usersTable)
+        .where(
+          sql`${usersTable.id} = ${numId} OR ${usersTable.displayId} ILIKE ${"%" + q + "%"} OR ${usersTable.username} ILIKE ${"%" + q + "%"} OR ${usersTable.email} ILIKE ${"%" + q + "%"} OR ${usersTable.telegramId} ILIKE ${"%" + q + "%"}`
+        )
+        .orderBy(desc(usersTable.createdAt))
+        .limit(200);
+    } else {
+      rows = await db
+        .select()
+        .from(usersTable)
+        .where(
+          sql`${usersTable.displayId} ILIKE ${"%" + q + "%"} OR ${usersTable.username} ILIKE ${"%" + q + "%"} OR ${usersTable.email} ILIKE ${"%" + q + "%"} OR ${usersTable.telegramId} ILIKE ${"%" + q + "%"}`
+        )
+        .orderBy(desc(usersTable.createdAt))
+        .limit(200);
+    }
   } else {
     rows = await db.select().from(usersTable).orderBy(desc(usersTable.createdAt)).limit(200);
   }
@@ -1420,6 +1434,9 @@ router.patch("/admin/users/:id", requireAdmin, async (req, res) => {
     "banned",
     "vipLevel",
   ]);
+  if ("vipLevel" in allowed && allowed.vipLevel != null) {
+    allowed.vipLevel = Number(allowed.vipLevel);
+  }
   if (req.body.password && typeof req.body.password === "string" && req.body.password.trim().length > 0) {
     allowed.passwordHash = await bcrypt.hash(req.body.password.trim(), 10);
   }
