@@ -2704,7 +2704,7 @@ router.get("/admin/products/:id/provider-status", requireAdmin, async (req, res)
 });
 
 // Provider Reports
-router.get("/provider-reports", requireAdmin, async (req, res) => {
+router.get("/admin/provider-reports", requireAdmin, async (req, res) => {
   try {
     const stopped = await db.select().from(productsTable).where(eq(productsTable.available, false)).limit(100);
     const providersList = await db.select().from(providersTable);
@@ -2724,7 +2724,7 @@ router.get("/provider-reports", requireAdmin, async (req, res) => {
   }
 });
 
-router.post("/provider-reports/:productId/restart", requireAdmin, async (req, res) => {
+router.post("/admin/provider-reports/:productId/restart", requireAdmin, async (req, res) => {
   try {
     const productId = Number(req.params.productId);
     await db.update(productsTable)
@@ -2737,7 +2737,7 @@ router.post("/provider-reports/:productId/restart", requireAdmin, async (req, re
 });
 
 // Currency Settings
-router.get("/currency-settings", requireAdmin, async (req, res) => {
+router.get("/admin/currency-settings", requireAdmin, async (req, res) => {
   try {
     const s = await db.select().from(settingsTable).where(eq(settingsTable.key, "currency_settings"));
     if (s.length > 0) {
@@ -2750,7 +2750,7 @@ router.get("/currency-settings", requireAdmin, async (req, res) => {
   }
 });
 
-router.put("/currency-settings", requireAdmin, async (req, res) => {
+router.put("/admin/currency-settings", requireAdmin, async (req, res) => {
   try {
     const { storeCurrency, exchangeRate, currencySymbol } = req.body;
     const value = { storeCurrency, exchangeRate: Number(exchangeRate), currencySymbol };
@@ -2763,7 +2763,7 @@ router.put("/currency-settings", requireAdmin, async (req, res) => {
 });
 
 // Provider Products for API Products page
-router.get("/provider-products/:providerId", requireAdmin, async (req, res) => {
+router.get("/admin/provider-products/:providerId", requireAdmin, async (req, res) => {
   try {
     const providerId = Number(req.params.providerId);
     const [provider] = await db.select().from(providersTable).where(eq(providersTable.id, providerId));
@@ -2794,7 +2794,7 @@ router.get("/provider-products/:providerId", requireAdmin, async (req, res) => {
   }
 });
 
-router.post("/provider-products/import", requireAdmin, async (req, res) => {
+router.post("/admin/provider-products/import", requireAdmin, async (req, res) => {
   try {
     const { providerId, name, price, externalServiceId, categoryId } = req.body;
     if (!providerId || !name) {
@@ -2817,7 +2817,7 @@ router.post("/provider-products/import", requireAdmin, async (req, res) => {
 });
 
 // Order Messages CRUD
-router.get("/order-messages", requireAdmin, async (req, res) => {
+router.get("/admin/order-messages", requireAdmin, async (req, res) => {
   try {
     const msgs = await db.select().from(orderMessagesTable);
     res.json(msgs);
@@ -2826,7 +2826,7 @@ router.get("/order-messages", requireAdmin, async (req, res) => {
   }
 });
 
-router.post("/order-messages", requireAdmin, async (req, res) => {
+router.post("/admin/order-messages", requireAdmin, async (req, res) => {
   try {
     const { event, title, body } = req.body;
     const [newMsg] = await db.insert(orderMessagesTable).values({ event, title, body }).returning();
@@ -2836,7 +2836,7 @@ router.post("/order-messages", requireAdmin, async (req, res) => {
   }
 });
 
-router.put("/order-messages/:id", requireAdmin, async (req, res) => {
+router.put("/admin/order-messages/:id", requireAdmin, async (req, res) => {
   try {
     const id = Number(req.params.id);
     const { event, title, body } = req.body;
@@ -2850,7 +2850,7 @@ router.put("/order-messages/:id", requireAdmin, async (req, res) => {
   }
 });
 
-router.delete("/order-messages/:id", requireAdmin, async (req, res) => {
+router.delete("/admin/order-messages/:id", requireAdmin, async (req, res) => {
   try {
     const id = Number(req.params.id);
     await db.delete(orderMessagesTable).where(eq(orderMessagesTable.id, id));
@@ -2861,7 +2861,7 @@ router.delete("/order-messages/:id", requireAdmin, async (req, res) => {
 });
 
 // Clear Cache
-router.post("/clear-cache", requireAdmin, async (req, res) => {
+router.post("/admin/clear-cache", requireAdmin, async (req, res) => {
   try {
     res.json({ ok: true, message: "تم مسح الذاكرة المؤقتة بنجاح" });
   } catch (err: any) {
