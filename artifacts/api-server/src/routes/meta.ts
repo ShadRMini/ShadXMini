@@ -79,6 +79,11 @@ router.get("/app-settings", async (_req, res) => {
     maintenanceMode: getBool("maintenance_mode"),
     maintenanceTitle: String(map.get("maintenance_title") || defaultMaintenanceTitle),
     maintenanceMessage: String(map.get("maintenance_message") || defaultMaintenanceMessage),
+    maintenanceIcon: String(map.get("maintenance_icon") || "Wrench"),
+    maintenanceContactEnabled: getBool("maintenance_contact_enabled", true),
+    maintenanceContactText: String(map.get("maintenance_contact_text") || "تواصل معنا"),
+    maintenanceContactUrl: String(map.get("maintenance_contact_url") || "/support"),
+    maintenanceEstimatedTime: String(map.get("maintenance_estimated_time") || ""),
     popupEnabled: getBool("store_popup_enabled"),
     popupMessage: String(map.get("store_popup_message") || ""),
     popupLinkText: String(map.get("store_popup_link_text") || ""),
@@ -150,5 +155,29 @@ const getPopupSettingsHandler = async (_req: any, res: any) => {
 
 router.get("/public/popup-settings", getPopupSettingsHandler);
 router.get("/popup-settings", getPopupSettingsHandler);
+
+const getPublicMaintenanceHandler = async (_req: any, res: any) => {
+  const rows = await db.select().from(settingsTable);
+  const map = new Map(rows.map((r) => [r.key, r.value]));
+  const getBool = (key: string, fallback = false) => {
+    const v = map.get(key);
+    if (typeof v === "boolean") return v;
+    if (typeof v === "string") return v === "true";
+    return fallback;
+  };
+  res.json({
+    maintenanceMode: getBool("maintenance_mode", false),
+    maintenanceTitle: String(map.get("maintenance_title") || "الموقع قيد الصيانة المؤقتة"),
+    maintenanceMessage: String(map.get("maintenance_message") || "نعمل حاليًّا على تنفيذ مجموعة من أعمال الصيانة والتحديث لتحسين أداء الموقع."),
+    maintenanceIcon: String(map.get("maintenance_icon") || "Wrench"),
+    maintenanceContactEnabled: getBool("maintenance_contact_enabled", true),
+    maintenanceContactText: String(map.get("maintenance_contact_text") || "تواصل معنا"),
+    maintenanceContactUrl: String(map.get("maintenance_contact_url") || "/support"),
+    maintenanceEstimatedTime: String(map.get("maintenance_estimated_time") || ""),
+  });
+};
+
+router.get("/public/maintenance-settings", getPublicMaintenanceHandler);
+router.get("/maintenance-settings", getPublicMaintenanceHandler);
 
 export default router;

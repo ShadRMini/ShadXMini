@@ -264,6 +264,29 @@ export async function ensureDatabaseSchema() {
       }
     }
 
+    // Seed default maintenance settings if missing
+    const maintenanceDefaultKeys = [
+      { key: "maintenance_mode", val: false },
+      { key: "maintenance_title", val: "الموقع قيد الصيانة المؤقتة" },
+      { key: "maintenance_message", val: "نعمل حاليًّا على تنفيذ مجموعة من أعمال الصيانة والتحديث لتحسين أداء الموقع، وتعزيز مستوى الأمان، وتطوير تجربة المستخدم بشكل أفضل. نعتذر عن أي إزعاج قد يسببه ذلك، ونرجو منكم التفضل بالعودة لاحقًا." },
+      { key: "maintenance_icon", val: "Wrench" },
+      { key: "maintenance_contact_enabled", val: true },
+      { key: "maintenance_contact_text", val: "تواصل معنا" },
+      { key: "maintenance_contact_url", val: "/support" },
+      { key: "maintenance_estimated_time", val: "" },
+    ];
+    for (const item of maintenanceDefaultKeys) {
+      const existing: any = await db.execute(sql`SELECT key FROM settings WHERE key = ${item.key}`);
+      const rows = existing?.rows || existing;
+      if (!rows || rows.length === 0) {
+        await db.execute(sql`
+          INSERT INTO settings (key, value)
+          VALUES (${item.key}, ${JSON.stringify(item.val)}::jsonb)
+          ON CONFLICT (key) DO NOTHING
+        `);
+      }
+    }
+
     schemaEnsured = true;
     console.log("[DB Schema] Runtime schema verified and synchronized successfully.");
   } catch (error) {

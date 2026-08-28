@@ -27,6 +27,7 @@ import NotificationsPage from "@/pages/Notifications";
 import LoyaltyLevels from "@/pages/LoyaltyLevels";
 import AppLayout from "@/components/layout/AppLayout";
 import { PopupNotification } from "@/components/PopupNotification";
+import { Wrench, Construction, Clock, ShieldAlert, Server, MessageCircle } from "lucide-react";
 
 const queryClient = new QueryClient();
 
@@ -42,6 +43,11 @@ type AppSettings = {
   maintenanceMode: boolean;
   maintenanceTitle: string;
   maintenanceMessage: string;
+  maintenanceIcon?: string;
+  maintenanceContactEnabled?: boolean;
+  maintenanceContactText?: string;
+  maintenanceContactUrl?: string;
+  maintenanceEstimatedTime?: string;
   popupEnabled: boolean;
   popupMessage: string;
   popupLinkText: string;
@@ -150,12 +156,60 @@ function normalizeRemoteTheme(theme: Partial<StoreTheme> | null | undefined): St
 }
 
 function StoreMaintenance({ settings }: { settings: AppSettings }) {
+  const getIconComponent = (iconName: string) => {
+    switch (iconName) {
+      case "Construction":
+        return <Construction className="w-10 h-10 text-[#C8A45C] animate-bounce" />;
+      case "Clock":
+        return <Clock className="w-10 h-10 text-[#C8A45C] animate-spin" style={{ animationDuration: "6s" }} />;
+      case "ShieldAlert":
+        return <ShieldAlert className="w-10 h-10 text-[#C8A45C] animate-pulse" />;
+      case "Server":
+        return <Server className="w-10 h-10 text-[#C8A45C] animate-pulse" />;
+      case "Wrench":
+      default:
+        return <Wrench className="w-10 h-10 text-[#C8A45C] animate-spin" style={{ animationDuration: "8s" }} />;
+    }
+  };
+
   return (
-    <div className="min-h-[100dvh] xpay-shell flex items-center justify-center p-6" dir="rtl">
-      <div className="w-full max-w-md rounded-[2rem] border border-primary/25 bg-card/85 p-8 text-center shadow-2xl backdrop-blur-xl">
-        <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/15 text-3xl">🛠️</div>
-        <h1 className="text-2xl font-extrabold text-foreground">{settings.maintenanceTitle}</h1>
-        <p className="mt-4 text-sm leading-8 text-muted-foreground">{settings.maintenanceMessage}</p>
+    <div className="min-h-[100dvh] bg-[#1A1A1A] text-white flex items-center justify-center p-6 selection:bg-[#C8A45C] selection:text-black" dir="rtl">
+      <div className="w-full max-w-lg rounded-3xl border border-[#C8A45C]/30 bg-[#242424]/95 p-8 sm:p-10 text-center shadow-2xl backdrop-blur-xl relative overflow-hidden">
+        <div className="absolute -top-24 -right-24 w-48 h-48 bg-[#C8A45C]/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-[#C8A45C]/10 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-[#C8A45C]/15 border border-[#C8A45C]/30 shadow-inner">
+          {getIconComponent(settings.maintenanceIcon || "Wrench")}
+        </div>
+
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-[#C8A45C] tracking-wide">
+          {settings.maintenanceTitle || "الموقع قيد الصيانة المؤقتة"}
+        </h1>
+
+        <p className="mt-4 text-sm sm:text-base leading-8 text-zinc-300">
+          {settings.maintenanceMessage}
+        </p>
+
+        {settings.maintenanceEstimatedTime && (
+          <div className="mt-6 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#1A1A1A] border border-[#C8A45C]/30 text-xs sm:text-sm text-[#FDE68A] font-medium shadow-sm">
+            <Clock className="w-4 h-4 text-[#C8A45C]" />
+            <span>{settings.maintenanceEstimatedTime}</span>
+          </div>
+        )}
+
+        {settings.maintenanceContactEnabled !== false && settings.maintenanceContactUrl && (
+          <div className="mt-8 pt-6 border-t border-zinc-800">
+            <a
+              href={settings.maintenanceContactUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-3.5 rounded-full bg-[#C8A45C] text-[#1A1A1A] font-extrabold text-sm sm:text-base shadow-lg shadow-[#C8A45C]/20 hover:bg-[#B8954A] transition duration-200"
+            >
+              <MessageCircle className="w-5 h-5" />
+              <span>{settings.maintenanceContactText || "تواصل معنا"}</span>
+            </a>
+          </div>
+        )}
       </div>
     </div>
   );

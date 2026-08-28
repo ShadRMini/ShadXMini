@@ -3001,4 +3001,91 @@ router.put("/admin/settings/news-ticker", requireAdmin, async (req, res) => {
   }
 });
 
+// Maintenance Settings Admin
+router.get("/admin/maintenance-settings", requireAdmin, async (_req, res) => {
+  try {
+    const rows = await db.select().from(settingsTable);
+    const map = new Map(rows.map((r) => [r.key, r.value]));
+    const getBool = (key: string, fallback = false) => {
+      const v = map.get(key);
+      if (typeof v === "boolean") return v;
+      if (typeof v === "string") return v === "true";
+      return fallback;
+    };
+    res.json({
+      maintenanceMode: getBool("maintenance_mode", false),
+      maintenanceTitle: String(map.get("maintenance_title") || "الموقع قيد الصيانة المؤقتة"),
+      maintenanceMessage: String(map.get("maintenance_message") || "نعمل حاليًّا على تنفيذ مجموعة من أعمال الصيانة والتحديث لتحسين أداء الموقع."),
+      maintenanceIcon: String(map.get("maintenance_icon") || "Wrench"),
+      maintenanceContactEnabled: getBool("maintenance_contact_enabled", true),
+      maintenanceContactText: String(map.get("maintenance_contact_text") || "تواصل معنا"),
+      maintenanceContactUrl: String(map.get("maintenance_contact_url") || "/support"),
+      maintenanceEstimatedTime: String(map.get("maintenance_estimated_time") || ""),
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err?.message || "فشل جلب إعدادات وضع الصيانة" });
+  }
+});
+
+router.put("/admin/maintenance-settings", requireAdmin, async (req, res) => {
+  try {
+    const {
+      maintenanceMode,
+      maintenance_mode,
+      maintenanceTitle,
+      maintenance_title,
+      maintenanceMessage,
+      maintenance_message,
+      maintenanceIcon,
+      maintenance_icon,
+      maintenanceContactEnabled,
+      maintenance_contact_enabled,
+      maintenanceContactText,
+      maintenance_contact_text,
+      maintenanceContactUrl,
+      maintenance_contact_url,
+      maintenanceEstimatedTime,
+      maintenance_estimated_time,
+    } = req.body;
+
+    const modeVal = Boolean(maintenanceMode ?? maintenance_mode ?? false);
+    const titleVal = String(maintenanceTitle ?? maintenance_title ?? "الموقع قيد الصيانة المؤقتة");
+    const msgVal = String(maintenanceMessage ?? maintenance_message ?? "نعمل حاليًّا على تنفيذ مجموعة من أعمال الصيانة والتحديث لتحسين أداء الموقع.");
+    const iconVal = String(maintenanceIcon ?? maintenance_icon ?? "Wrench");
+    const contactEnabledVal = Boolean(maintenanceContactEnabled ?? maintenance_contact_enabled ?? true);
+    const contactTextVal = String(maintenanceContactText ?? maintenance_contact_text ?? "تواصل معنا");
+    const contactUrlVal = String(maintenanceContactUrl ?? maintenance_contact_url ?? "/support");
+    const estimatedTimeVal = String(maintenanceEstimatedTime ?? maintenance_estimated_time ?? "");
+
+    const settingsPairs = [
+      { key: "maintenance_mode", value: modeVal },
+      { key: "maintenance_title", value: titleVal },
+      { key: "maintenance_message", value: msgVal },
+      { key: "maintenance_icon", value: iconVal },
+      { key: "maintenance_contact_enabled", value: contactEnabledVal },
+      { key: "maintenance_contact_text", value: contactTextVal },
+      { key: "maintenance_contact_url", value: contactUrlVal },
+      { key: "maintenance_estimated_time", value: estimatedTimeVal },
+    ];
+
+    for (const pair of settingsPairs) {
+      await db
+        .insert(settingsTable)
+        .values(pair)
+        .onConflictDoUpdate({ target: settingsTable.key, set: { value: pair.value } });
+    }
+
+    await logActivity(
+      { id: req.session.adminId, name: req.session.adminUsername },
+      "maintenance_settings_update",
+      "settings",
+      ["maintenance_mode", "maintenance_title", "maintenance_message", "maintenance_icon", "maintenance_contact_enabled", "maintenance_contact_text", "maintenance_contact_url", "maintenance_estimated_time"]
+    );
+
+    res.json({ success: true, message: "تم تحديث إعدادات وضع الصيانة بنجاح" });
+  } catch (err: any) {
+    res.status(500).json({ error: err?.message || "فشل تحديث إعدادات وضع الصيانة" });
+  }
+});
+
 export default router;
