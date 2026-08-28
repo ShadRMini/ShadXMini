@@ -3164,4 +3164,39 @@ router.put("/admin/settings/use-legacy-dashboard", requireAdmin, async (req, res
   }
 });
 
+// Legacy Api Products Toggle Settings
+router.get("/admin/settings/use-legacy-api-products", requireAdmin, async (_req, res) => {
+  try {
+    const rows = await db.select().from(settingsTable).where(eq(settingsTable.key, "use_legacy_api_products"));
+    const val = rows[0]?.value;
+    const isLegacy = val === true || val === "true" || JSON.stringify(val) === "true";
+    res.json({ value: isLegacy ? "true" : "false", useLegacy: isLegacy });
+  } catch (err: any) {
+    res.status(500).json({ error: err?.message || "فشل جلب إعداد منتجات المزود" });
+  }
+});
+
+router.put("/admin/settings/use-legacy-api-products", requireAdmin, async (req, res) => {
+  try {
+    const { value, useLegacy } = req.body;
+    const isLegacy = value === true || value === "true" || useLegacy === true || useLegacy === "true";
+
+    await db
+      .insert(settingsTable)
+      .values({ key: "use_legacy_api_products", value: isLegacy })
+      .onConflictDoUpdate({ target: settingsTable.key, set: { value: isLegacy } });
+
+    await logActivity(
+      { id: req.session.adminId, name: req.session.adminUsername },
+      "use_legacy_api_products_update",
+      "settings",
+      ["use_legacy_api_products"]
+    );
+
+    res.json({ success: true, value: isLegacy ? "true" : "false", useLegacy: isLegacy });
+  } catch (err: any) {
+    res.status(500).json({ error: err?.message || "فشل تحديث إعداد منتجات المزود" });
+  }
+});
+
 export default router;

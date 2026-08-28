@@ -23,6 +23,7 @@ const FIELDS: { key: string; label: string; type?: string; placeholder?: string 
   { key: "store_popup_link_url", label: "رابط الرسالة المنبثقة" },
   { key: "use_legacy_product_form", label: "تفعيل واجهة المنتجات القديمة (Legacy) (true/false)" },
   { key: "use_legacy_dashboard", label: "تفعيل لوحة القيادة القديمة (Legacy) (true/false)" },
+  { key: "use_legacy_api_products", label: "تفعيل واجهة منتجات المزود القديمة (Legacy) (true/false)" },
 ];
 
 export default function Settings() {
@@ -93,7 +94,7 @@ export default function Settings() {
         .map((x) => x.trim())
         .filter(Boolean);
     }
-    if (["store_popup_enabled", "registration_open", "use_legacy_product_form", "use_legacy_dashboard"].includes(key)) {
+    if (["store_popup_enabled", "registration_open", "use_legacy_product_form", "use_legacy_dashboard", "use_legacy_api_products"].includes(key)) {
       const text = String(value ?? "").trim().toLowerCase();
       if (text === "true") return true;
       if (text === "false") return false;
