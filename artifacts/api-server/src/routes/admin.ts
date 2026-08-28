@@ -24,6 +24,7 @@ import {
   apiKeysTable,
   notificationsTable,
   ticketsTable,
+  ticketMessagesTable,
 } from "@workspace/db";
 import { and, desc, eq, gte, sql } from "drizzle-orm";
 import { requireAdmin } from "../lib/adminAuth.js";
@@ -415,127 +416,223 @@ router.get("/admin/me", requireAdmin, async (req, res) => {
 
 // ========== DASHBOARD ==========
 router.get("/admin/dashboard", requireAdmin, async (_req, res) => {
-  await ensureDatabaseSchema();
-
-  const [u] = await db.select({ c: sql<number>`count(*)::int` }).from(usersTable);
-  const [p] = await db
-    .select({ c: sql<number>`count(*)::int` })
-    .from(productsTable)
-    .where(eq(productsTable.available, true));
-  const [oTotal] = await db.select({ c: sql<number>`count(*)::int` }).from(ordersTable);
-  const [oPending] = await db
-    .select({ c: sql<number>`count(*)::int` })
-    .from(ordersTable)
-    .where(sql`status IN ('wait', 'pending', 'processing')`);
-  const [oCompleted] = await db
-    .select({ c: sql<number>`count(*)::int` })
-    .from(ordersTable)
-    .where(sql`status IN ('accept', 'completed', 'approved')`);
-  const [oCancelled] = await db
-    .select({ c: sql<number>`count(*)::int` })
-    .from(ordersTable)
-    .where(sql`status IN ('reject', 'cancelled', 'rejected')`);
-  const [dPending] = await db
-    .select({ c: sql<number>`count(*)::int` })
-    .from(depositsTable)
-    .where(eq(depositsTable.status, "pending"));
-  const [sales] = await db
-    .select({ s: sql<string>`coalesce(sum(total_usd),0)::text` })
-    .from(ordersTable)
-    .where(sql`status IN ('accept', 'completed')`);
-  const [cost] = await db
-    .select({ s: sql<string>`coalesce(sum(cost_usd),0)::text` })
-    .from(ordersTable)
-    .where(sql`status IN ('accept', 'completed')`);
-  const [bal] = await db.select({ s: sql<string>`coalesce(sum(balance_usd),0)::text` }).from(usersTable);
-
-  // Tickets count and list
-  let pendingTicketsCount = 0;
-  let totalTicketsCount = 0;
-  let recentTickets: any[] = [];
   try {
-    const [tPending] = await db
-      .select({ c: sql<number>`count(*)::int` })
-      .from(ticketsTable)
-      .where(sql`status IN ('pending', 'wait', 'open')`);
-    const [tTotal] = await db.select({ c: sql<number>`count(*)::int` }).from(ticketsTable);
-    pendingTicketsCount = tPending?.c || 0;
-    totalTicketsCount = tTotal?.c || 0;
+    await ensureDatabaseSchema();
 
-    recentTickets = await db
-      .select()
-      .from(ticketsTable)
-      .orderBy(desc(ticketsTable.createdAt))
-      .limit(6);
-  } catch (err) {
-    console.warn("[Dashboard] Tickets table query error:", err);
+    let u = { c: 0 };
+    let p = { c: 0 };
+    let oTotal = { c: 0 };
+    let oPending = { c: 0 };
+    let oCompleted = { c: 0 };
+    let oCancelled = { c: 0 };
+    let dPending = { c: 0 };
+    let sales = { s: "0" };
+    let cost = { s: "0" };
+    let bal = { s: "0" };
+    let todayOrders = { c: 0 };
+    let pendingTicketsCount = 0;
+    let totalTicketsCount = 0;
+    let recentTickets: any[] = [];
+    let recentOrdersRaw: any[] = [];
+    let recentDeposits: any[] = [];
+    let chartRows: any[] = [];
+
+    try {
+      const [resU] = await db.select({ c: sql<number>`count(*)::int` }).from(usersTable);
+      if (resU) u = resU;
+    } catch (e) {
+      console.warn("Count users failed:", e);
+    }
+
+    try {
+      const [resP] = await db
+        .select({ c: sql<number>`count(*)::int` })
+        .from(productsTable)
+        .where(eq(productsTable.available, true));
+      if (resP) p = resP;
+    } catch (e) {
+      console.warn("Count products failed:", e);
+    }
+
+    try {
+      const [resOTotal] = await db.select({ c: sql<number>`count(*)::int` }).from(ordersTable);
+      if (resOTotal) oTotal = resOTotal;
+
+      const [resOPending] = await db
+        .select({ c: sql<number>`count(*)::int` })
+        .from(ordersTable)
+        .where(sql`status IN ('wait', 'pending', 'processing')`);
+      if (resOPending) oPending = resOPending;
+
+      const [resOCompleted] = await db
+        .select({ c: sql<number>`count(*)::int` })
+        .from(ordersTable)
+        .where(sql`status IN ('accept', 'completed', 'approved')`);
+      if (resOCompleted) oCompleted = resOCompleted;
+
+      const [resOCancelled] = await db
+        .select({ c: sql<number>`count(*)::int` })
+        .from(ordersTable)
+        .where(sql`status IN ('reject', 'cancelled', 'rejected')`);
+      if (resOCancelled) oCancelled = resOCancelled;
+
+      const [resSales] = await db
+        .select({ s: sql<string>`coalesce(sum(total_usd),0)::text` })
+        .from(ordersTable)
+        .where(sql`status IN ('accept', 'completed')`);
+      if (resSales) sales = resSales;
+
+      const [resCost] = await db
+        .select({ s: sql<string>`coalesce(sum(cost_usd),0)::text` })
+        .from(ordersTable)
+        .where(sql`status IN ('accept', 'completed')`);
+      if (resCost) cost = resCost;
+    } catch (e) {
+      console.warn("Orders stats failed:", e);
+    }
+
+    try {
+      const [resDPending] = await db
+        .select({ c: sql<number>`count(*)::int` })
+        .from(depositsTable)
+        .where(eq(depositsTable.status, "pending"));
+      if (resDPending) dPending = resDPending;
+    } catch (e) {
+      console.warn("Deposits stats failed:", e);
+    }
+
+    try {
+      const [resBal] = await db.select({ s: sql<string>`coalesce(sum(balance_usd),0)::text` }).from(usersTable);
+      if (resBal) bal = resBal;
+    } catch (e) {
+      console.warn("Balance sum failed:", e);
+    }
+
+    try {
+      const [tPending] = await db
+        .select({ c: sql<number>`count(*)::int` })
+        .from(ticketsTable)
+        .where(sql`status IN ('pending', 'wait', 'open')`);
+      const [tTotal] = await db.select({ c: sql<number>`count(*)::int` }).from(ticketsTable);
+      pendingTicketsCount = tPending?.c || 0;
+      totalTicketsCount = tTotal?.c || 0;
+
+      recentTickets = await db
+        .select()
+        .from(ticketsTable)
+        .orderBy(desc(ticketsTable.createdAt))
+        .limit(6);
+    } catch (err) {
+      console.warn("[Dashboard] Tickets table query error:", err);
+    }
+
+    try {
+      recentOrdersRaw = await db
+        .select({
+          id: ordersTable.id,
+          orderNumber: ordersTable.orderNumber,
+          userId: ordersTable.userId,
+          customParam: ordersTable.customParam,
+          quantity: ordersTable.quantity,
+          totalUsd: ordersTable.totalUsd,
+          status: ordersTable.status,
+          createdAt: ordersTable.createdAt,
+          userName: usersTable.username,
+          userEmail: usersTable.email,
+        })
+        .from(ordersTable)
+        .leftJoin(usersTable, eq(ordersTable.userId, usersTable.id))
+        .orderBy(desc(ordersTable.createdAt))
+        .limit(8);
+    } catch (e) {
+      console.warn("Recent orders query failed:", e);
+    }
+
+    try {
+      recentDeposits = await db
+        .select()
+        .from(depositsTable)
+        .orderBy(desc(depositsTable.createdAt))
+        .limit(5);
+    } catch (e) {
+      console.warn("Recent deposits query failed:", e);
+    }
+
+    try {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const [resToday] = await db
+        .select({ c: sql<number>`count(*)::int` })
+        .from(ordersTable)
+        .where(gte(ordersTable.createdAt, today));
+      if (resToday) todayOrders = resToday;
+    } catch (e) {
+      console.warn("Today orders query failed:", e);
+    }
+
+    try {
+      const chartRes = await db.execute(sql`
+        SELECT to_char(d, 'YYYY-MM-DD') as date,
+          coalesce(sum(o.total_usd) filter (where o.status IN ('accept', 'completed')), 0)::float as sales,
+          count(o.id)::int as orders_count
+        FROM generate_series((current_date - interval '6 day')::date, current_date::date, '1 day') d
+        LEFT JOIN orders o ON o.created_at::date = d
+        GROUP BY d ORDER BY d
+      `);
+      chartRows = (chartRes.rows as any[]) || [];
+    } catch (e) {
+      console.warn("Chart query failed:", e);
+    }
+
+    res.json({
+      stats: {
+        users: Number(u?.c || 0),
+        activeProducts: Number(p?.c || 0),
+        totalOrders: Number(oTotal?.c || 0),
+        pendingOrders: Number(oPending?.c || 0),
+        completedOrders: Number(oCompleted?.c || 0),
+        cancelledOrders: Number(oCancelled?.c || 0),
+        pendingDeposits: Number(dPending?.c || 0),
+        pendingTickets: Number(pendingTicketsCount || 0),
+        totalTickets: Number(totalTicketsCount || 0),
+        totalSalesUsd: Number(sales?.s || 0),
+        totalCostUsd: Number(cost?.s || 0),
+        netProfitUsd: Number(sales?.s || 0) - Number(cost?.s || 0),
+        totalUserBalanceUsd: Number(bal?.s || 0),
+        todayOrders: Number(todayOrders?.c || 0),
+        apiBalanceUsd: 0.0,
+      },
+      recentOrders: recentOrdersRaw || [],
+      recentDeposits: recentDeposits || [],
+      recentTickets: recentTickets || [],
+      chart: chartRows || [],
+    });
+  } catch (err: any) {
+    console.error("Dashboard error:", err);
+    res.json({
+      stats: {
+        users: 0,
+        activeProducts: 0,
+        totalOrders: 0,
+        pendingOrders: 0,
+        completedOrders: 0,
+        cancelledOrders: 0,
+        pendingDeposits: 0,
+        pendingTickets: 0,
+        totalTickets: 0,
+        totalSalesUsd: 0,
+        totalCostUsd: 0,
+        netProfitUsd: 0,
+        totalUserBalanceUsd: 0,
+        todayOrders: 0,
+        apiBalanceUsd: 0.0,
+      },
+      recentOrders: [],
+      recentDeposits: [],
+      recentTickets: [],
+      chart: [],
+    });
   }
-
-  // Enhanced recent orders with username if available
-  const recentOrdersRaw = await db
-    .select({
-      id: ordersTable.id,
-      orderNumber: ordersTable.orderNumber,
-      userId: ordersTable.userId,
-      customParam: ordersTable.customParam,
-      quantity: ordersTable.quantity,
-      totalUsd: ordersTable.totalUsd,
-      status: ordersTable.status,
-      createdAt: ordersTable.createdAt,
-      userName: usersTable.username,
-      userEmail: usersTable.email,
-    })
-    .from(ordersTable)
-    .leftJoin(usersTable, eq(ordersTable.userId, usersTable.id))
-    .orderBy(desc(ordersTable.createdAt))
-    .limit(8);
-
-  const recentDeposits = await db
-    .select()
-    .from(depositsTable)
-    .orderBy(desc(depositsTable.createdAt))
-    .limit(5);
-
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const [todayOrders] = await db
-    .select({ c: sql<number>`count(*)::int` })
-    .from(ordersTable)
-    .where(gte(ordersTable.createdAt, today));
-
-  // 7-day chart
-  const chart = await db.execute(sql`
-    SELECT to_char(d, 'YYYY-MM-DD') as date,
-      coalesce(sum(o.total_usd) filter (where o.status IN ('accept', 'completed')), 0)::float as sales,
-      count(o.id) as orders_count
-    FROM generate_series((current_date - interval '6 day')::date, current_date::date, '1 day') d
-    LEFT JOIN orders o ON o.created_at::date = d
-    GROUP BY d ORDER BY d
-  `);
-
-  res.json({
-    stats: {
-      users: u?.c || 0,
-      activeProducts: p?.c || 0,
-      totalOrders: oTotal?.c || 0,
-      pendingOrders: oPending?.c || 0,
-      completedOrders: oCompleted?.c || 0,
-      cancelledOrders: oCancelled?.c || 0,
-      pendingDeposits: dPending?.c || 0,
-      pendingTickets: pendingTicketsCount,
-      totalTickets: totalTicketsCount,
-      totalSalesUsd: Number(sales?.s || 0),
-      totalCostUsd: Number(cost?.s || 0),
-      netProfitUsd: Number(sales?.s || 0) - Number(cost?.s || 0),
-      totalUserBalanceUsd: Number(bal?.s || 0),
-      todayOrders: todayOrders?.c || 0,
-      apiBalanceUsd: 0.0,
-    },
-    recentOrders: recentOrdersRaw,
-    recentDeposits,
-    recentTickets,
-    chart: chart.rows as any[],
-  });
 });
 
 // ========== TICKETS ENDPOINTS ==========
@@ -1513,8 +1610,8 @@ router.post("/admin/notifications", requireAdmin, async (req, res) => {
 
 // ========== REPORTS ==========
 router.get("/admin/reports", requireAdmin, async (req, res) => {
-  const startDate = (req.query["startDate"] as string) || "2020-01-01";
-  const endDate = (req.query["endDate"] as string) || "2099-12-31";
+  const startDate = (req.query["startDate"] as string) || (req.query["from"] as string) || "2020-01-01";
+  const endDate = (req.query["endDate"] as string) || (req.query["to"] as string) || "2099-12-31";
 
   try {
     const [summaryRow]: any = (await db.execute(sql`
@@ -1547,12 +1644,22 @@ router.get("/admin/reports", requireAdmin, async (req, res) => {
       SELECT 
         to_char(created_at::date, 'YYYY-MM-DD') as date,
         count(*)::int as orders_count,
-        coalesce(sum(total_usd), 0)::float as revenue
+        count(*) filter (where status IN ('accept', 'completed'))::int as "ordersCount",
+        coalesce(sum(total_usd), 0)::float as revenue,
+        coalesce(sum(total_usd) filter (where status IN ('accept', 'completed')), 0)::float as "salesUsd",
+        coalesce(sum(case when cost_usd is not null then (total_usd - cost_usd) else (total_usd * 0.2) end) filter (where status IN ('accept', 'completed')), 0)::float as "profitUsd"
       FROM orders
       WHERE created_at::date >= ${startDate}::date AND created_at::date <= ${endDate}::date
       GROUP BY created_at::date
       ORDER BY created_at::date ASC
     `)).rows;
+
+    const depResult = await db.execute(sql`
+      SELECT coalesce(sum(amount_usd) filter (where status='approved'), 0)::float as "totalDepositsUsd"
+      FROM deposits
+      WHERE created_at::date >= ${startDate}::date AND created_at::date <= ${endDate}::date
+    `);
+    const [dep] = (depResult.rows as any[]) || [];
 
     // Get admin notification email from settings
     const [emailSetting] = await db
@@ -1570,12 +1677,33 @@ router.get("/admin/reports", requireAdmin, async (req, res) => {
       },
       topServices: topServices || [],
       chart: chartData || [],
+      daily: chartData || [],
+      totalSalesUsd: summaryRow?.total_revenue || 0,
+      totalProfitUsd: summaryRow?.net_profit || 0,
+      orderCount: summaryRow?.total_orders || 0,
+      totalDepositsUsd: dep?.totalDepositsUsd || 0,
       adminEmail: (emailSetting?.value as any)?.email || "admin@x-z.store",
       systemLogsClean: true,
     });
   } catch (err: any) {
     console.error("Reports error:", err);
-    res.status(500).json({ error: err.message || "خطأ في تحميل التقارير" });
+    res.json({
+      summary: {
+        totalOrders: 0,
+        completedOrders: 0,
+        totalRevenue: 0,
+        netProfit: 0,
+      },
+      topServices: [],
+      chart: [],
+      daily: [],
+      totalSalesUsd: 0,
+      totalProfitUsd: 0,
+      orderCount: 0,
+      totalDepositsUsd: 0,
+      adminEmail: "admin@x-z.store",
+      systemLogsClean: true,
+    });
   }
 });
 
@@ -2003,50 +2131,6 @@ router.post("/admin/bulk-delete", requireAdmin, async (req, res) => {
 router.delete("/admin/notifications/:id", requireAdmin, async (req, res) => {
   await db.delete(notificationsTable).where(eq(notificationsTable.id, Number(req.params.id)));
   res.json({ ok: true });
-});
-
-// ========== REPORTS (combined) ==========
-router.get("/admin/reports", requireAdmin, async (req, res) => {
-  const from = (req.query.from as string) || null;
-  const to = (req.query.to as string) || null;
-  const dailyRows = await db.execute(sql`
-    SELECT to_char(date_trunc('day', created_at), 'YYYY-MM-DD') as date,
-      coalesce(sum(total_usd) filter (where status='accept'), 0)::float as "salesUsd",
-      coalesce(sum(total_usd - cost_usd) filter (where status='accept'), 0)::float as "profitUsd",
-      count(*) filter (where status='accept')::int as "ordersCount"
-    FROM orders
-    WHERE (${from}::date IS NULL OR created_at::date >= ${from}::date)
-      AND (${to}::date IS NULL OR created_at::date <= ${to}::date)
-    GROUP BY date_trunc('day', created_at)
-    ORDER BY date_trunc('day', created_at) DESC
-    LIMIT 90
-  `);
-  const totResult = await db.execute(sql`
-    SELECT
-      coalesce(sum(total_usd) filter (where status='accept'), 0)::float as "totalSalesUsd",
-      coalesce(sum(total_usd - cost_usd) filter (where status='accept'), 0)::float as "totalProfitUsd",
-      count(*) filter (where status='accept')::int as "orderCount"
-    FROM orders
-    WHERE (${from}::date IS NULL OR created_at::date >= ${from}::date)
-      AND (${to}::date IS NULL OR created_at::date <= ${to}::date)
-  `);
-  const totRows = totResult.rows as any[];
-  const [tot] = totRows;
-  const depResult = await db.execute(sql`
-    SELECT coalesce(sum(amount_usd) filter (where status='approved'), 0)::float as "totalDepositsUsd"
-    FROM deposits
-    WHERE (${from}::date IS NULL OR created_at::date >= ${from}::date)
-      AND (${to}::date IS NULL OR created_at::date <= ${to}::date)
-  `);
-  const depRows = depResult.rows as any[];
-  const [dep] = depRows;
-  res.json({
-    daily: (dailyRows.rows as any[]) || [],
-    totalSalesUsd: tot?.totalSalesUsd || 0,
-    totalProfitUsd: tot?.totalProfitUsd || 0,
-    orderCount: tot?.orderCount || 0,
-    totalDepositsUsd: dep?.totalDepositsUsd || 0,
-  });
 });
 
 // ========== BACKUP / IMPORT (full JSON) ==========

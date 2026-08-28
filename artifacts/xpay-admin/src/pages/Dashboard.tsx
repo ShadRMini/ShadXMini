@@ -23,13 +23,15 @@ export default function Dashboard() {
     setErr(null);
     try {
       const [dashRes, meRes] = await Promise.all([
-        get("/admin/dashboard").catch(() => get("/dashboard")),
+        get("/dashboard").catch(() => ({ stats: {}, recentOrders: [], recentTickets: [], chart: [] })),
         get("/me").catch(() => null),
       ]);
-      setData(dashRes);
-      if (meRes) setMe(meRes);
+      const safeData = dashRes && typeof dashRes === "object" ? dashRes : {};
+      setData(safeData);
+      if (meRes && typeof meRes === "object") setMe(meRes);
     } catch (e: any) {
       setErr(e?.message || "تعذر جلب بيانات لوحة التحكم");
+      setData({ stats: {}, recentOrders: [], recentTickets: [], chart: [] });
     } finally {
       setLoading(false);
     }
@@ -39,10 +41,10 @@ export default function Dashboard() {
     loadData();
   }, []);
 
-  const s = data?.stats || {};
-  const recentOrders = data?.recentOrders || [];
-  const recentTickets = data?.recentTickets || [];
-  const chartData = data?.chart || [];
+  const s = (data && typeof data === "object" && data.stats && typeof data.stats === "object") ? data.stats : {};
+  const recentOrders = Array.isArray(data?.recentOrders) ? data.recentOrders : [];
+  const recentTickets = Array.isArray(data?.recentTickets) ? data.recentTickets : [];
+  const chartData = Array.isArray(data?.chart) ? data.chart : [];
 
   // Order status counts
   const totalOrders = s.totalOrders ?? 0;

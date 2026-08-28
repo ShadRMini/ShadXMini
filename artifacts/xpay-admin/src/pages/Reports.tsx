@@ -64,10 +64,23 @@ export default function Reports() {
   const loadReports = async () => {
     setLoading(true);
     try {
-      const res = await get(`/admin/reports?startDate=${startDate}&endDate=${endDate}`);
-      if (res && res.summary) {
-        setData(res);
-        setAdminEmailInput(res.adminEmail || "admin@x-z.store");
+      const res = await get(`/reports?startDate=${startDate}&endDate=${endDate}`);
+      if (res && typeof res === "object") {
+        setData({
+          summary: {
+            totalOrders: Number(res?.summary?.totalOrders ?? res?.totalOrders ?? res?.orderCount ?? 0),
+            completedOrders: Number(res?.summary?.completedOrders ?? res?.completedOrders ?? 0),
+            totalRevenue: Number(res?.summary?.totalRevenue ?? res?.totalRevenue ?? res?.totalSalesUsd ?? 0),
+            netProfit: Number(res?.summary?.netProfit ?? res?.netProfit ?? res?.totalProfitUsd ?? 0),
+          },
+          topServices: Array.isArray(res?.topServices) ? res.topServices : [],
+          chart: Array.isArray(res?.chart) ? res.chart : Array.isArray(res?.daily) ? res.daily : [],
+          adminEmail: res?.adminEmail || "admin@x-z.store",
+          systemLogsClean: res?.systemLogsClean ?? true,
+        });
+        if (res.adminEmail) {
+          setAdminEmailInput(res.adminEmail);
+        }
       }
     } catch (err) {
       console.error("Failed to load reports:", err);
@@ -84,7 +97,7 @@ export default function Reports() {
     if (!adminEmailInput.trim()) return;
     setEmailSaving(true);
     try {
-      await post("/admin/reports/email", { email: adminEmailInput.trim() });
+      await post("/reports/email", { email: adminEmailInput.trim() });
       setEmailSuccess(true);
       setTimeout(() => setEmailSuccess(false), 3000);
     } catch {

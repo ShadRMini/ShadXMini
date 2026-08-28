@@ -93,7 +93,7 @@ export default function Layout({
     navigate("/");
   };
 
-  const groups = NAV.reduce<Record<string, typeof NAV>>((acc, item) => {
+  const groups = (NAV || []).reduce<Record<string, typeof NAV>>((acc, item) => {
     (acc[item.group] = acc[item.group] || []).push(item);
     return acc;
   }, {});
@@ -127,7 +127,7 @@ export default function Layout({
         </div>
 
         <nav className="p-3 space-y-4">
-          {Object.entries(groups).map(([group, items]) => (
+          {Object.entries(groups || {}).map(([group, items]) => (
             <div key={group}>
               <div className="text-xs font-semibold text-[#C8A45C]/80 px-3 mb-1.5">{group}</div>
               <div className="space-y-0.5">

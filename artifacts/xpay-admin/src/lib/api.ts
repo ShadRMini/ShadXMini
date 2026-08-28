@@ -5,7 +5,16 @@ export async function api<T = any>(
   path: string,
   opts: RequestInit = {},
 ): Promise<T> {
-  const url = `${BASE}${path}`;
+  let cleanPath = path;
+  if (cleanPath.startsWith("/api/admin")) {
+    cleanPath = cleanPath.replace(/^\/api\/admin/, "");
+  } else if (cleanPath.startsWith("/admin")) {
+    cleanPath = cleanPath.replace(/^\/admin/, "");
+  }
+  
+  const normalizedPath = cleanPath.startsWith("/") ? cleanPath : `/${cleanPath}`;
+  const url = `${BASE}${normalizedPath}`;
+
   console.log(`API Request: ${opts.method || "GET"} ${url}`, opts.body || "");
 
   const res = await fetch(url, {
@@ -34,7 +43,7 @@ export async function api<T = any>(
   }
 
   console.log("API Success:", data);
-  return data as T;
+  return (data ?? {}) as T;
 }
 
 export const get = <T = any>(p: string) => api<T>(p);
@@ -45,3 +54,4 @@ export const put = <T = any>(p: string, body?: any) =>
 export const patch = <T = any>(p: string, body?: any) =>
   api<T>(p, { method: "PATCH", body: JSON.stringify(body || {}) });
 export const del = <T = any>(p: string) => api<T>(p, { method: "DELETE" });
+
