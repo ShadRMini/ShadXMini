@@ -85,8 +85,11 @@ router.get("/app-settings", async (_req, res) => {
     popupLinkUrl: String(map.get("store_popup_link_url") || ""),
     adminLoginImage: String(map.get("admin_login_image") || ""),
     brandLogoUrl: String(map.get("brand_logo_url") || map.get("site_logo") || ""),
+    brand_logo_url: String(map.get("brand_logo_url") || map.get("site_logo") || ""),
     siteLogo: String(map.get("brand_logo_url") || map.get("site_logo") || ""),
+    site_logo: String(map.get("brand_logo_url") || map.get("site_logo") || ""),
     siteName: String(map.get("site_name") || "ShadMini"),
+    site_name: String(map.get("site_name") || "ShadMini"),
     
     // Dynamic About & Contact Info
     aboutTitle: String(map.get("about_us_title") || defaultAboutTitle),
@@ -97,15 +100,26 @@ router.get("/app-settings", async (_req, res) => {
   });
 });
 
-router.get("/settings/public", async (_req, res) => {
+const getPublicSettingsHandler = async (_req: any, res: any) => {
   const rows = await db.select().from(settingsTable);
   const map = new Map(rows.map((row) => [row.key, row.value]));
+  const logo = String(map.get("brand_logo_url") || map.get("site_logo") || "");
+  const siteName = String(map.get("site_name") || "ShadMini");
+  const adminLoginImage = String(map.get("admin_login_image") || "");
+
   res.json({
-    brandLogoUrl: String(map.get("brand_logo_url") || map.get("site_logo") || ""),
-    siteLogo: String(map.get("brand_logo_url") || map.get("site_logo") || ""),
-    siteName: String(map.get("site_name") || "ShadMini"),
-    adminLoginImage: String(map.get("admin_login_image") || ""),
+    brand_logo_url: logo,
+    brandLogoUrl: logo,
+    site_logo: logo,
+    siteLogo: logo,
+    site_name: siteName,
+    siteName: siteName,
+    admin_login_image: adminLoginImage,
+    adminLoginImage: adminLoginImage,
   });
-});
+};
+
+router.get("/settings/public", getPublicSettingsHandler);
+router.get("/public-settings", getPublicSettingsHandler);
 
 export default router;

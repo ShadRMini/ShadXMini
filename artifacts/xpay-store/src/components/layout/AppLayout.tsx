@@ -19,6 +19,7 @@ import {
   ChevronLeft,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
+import { getPublicJson } from "@/lib/public-api";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
@@ -28,14 +29,36 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let active = true;
-    fetch("/api/settings/public")
-      .then((res) => (res.ok ? res.json() : null))
+
+    getPublicJson<{
+      brandLogoUrl?: string;
+      brand_logo_url?: string;
+      siteLogo?: string;
+      site_logo?: string;
+    }>("/settings/public")
       .then((data) => {
-        if (active && (data?.brandLogoUrl || data?.siteLogo)) {
-          setBrandLogo(data.brandLogoUrl || data.siteLogo);
+        if (active) {
+          const logo = (data?.brandLogoUrl || data?.brand_logo_url || data?.siteLogo || data?.site_logo || "").trim();
+          if (logo) setBrandLogo(logo);
         }
       })
-      .catch(() => {});
+      .catch(() => {
+        // Fallback to app-settings
+        getPublicJson<{
+          brandLogoUrl?: string;
+          brand_logo_url?: string;
+          siteLogo?: string;
+          site_logo?: string;
+        }>("/app-settings")
+          .then((data) => {
+            if (active) {
+              const logo = (data?.brandLogoUrl || data?.brand_logo_url || data?.siteLogo || data?.site_logo || "").trim();
+              if (logo) setBrandLogo(logo);
+            }
+          })
+          .catch(() => {});
+      });
+
     return () => {
       active = false;
     };
@@ -96,6 +119,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <img
               src={brandLogo}
               alt="ShadMini"
+              onError={() => setBrandLogo("")}
               className="h-10 max-w-[140px] object-contain rounded-xl"
             />
           ) : (
@@ -282,6 +306,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 <img
                   src={brandLogo}
                   alt="ShadMini"
+                  onError={() => setBrandLogo("")}
                   className="h-8 max-w-[120px] object-contain rounded-lg"
                 />
               ) : (

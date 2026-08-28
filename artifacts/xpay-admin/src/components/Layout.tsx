@@ -64,11 +64,13 @@ export default function Layout({
 
   useEffect(() => {
     let active = true;
-    fetch("/api/settings/public")
+    const baseUrl = (import.meta.env.VITE_API_URL || "").replace(/\/+$/, "");
+    fetch(`${baseUrl}/api/settings/public`)
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
-        if (active && (data?.brandLogoUrl || data?.siteLogo)) {
-          setBrandLogo(data.brandLogoUrl || data.siteLogo);
+        if (active) {
+          const logo = (data?.brandLogoUrl || data?.brand_logo_url || data?.siteLogo || data?.site_logo || "").trim();
+          if (logo) setBrandLogo(logo);
         }
       })
       .catch(() => {});
@@ -108,6 +110,7 @@ export default function Layout({
               <img
                 src={brandLogo}
                 alt="ShadMini"
+                onError={() => setBrandLogo("")}
                 className="h-10 max-w-[140px] object-contain rounded-xl"
               />
             ) : (
