@@ -14,6 +14,7 @@ const NAV: { to: string; label: string; icon: any; group: string }[] = [
   { to: "/orders", label: "الطلبات", icon: ShoppingCart, group: "العمليات" },
   { to: "/deposits", label: "الإيداعات", icon: Wallet, group: "العمليات" },
   { to: "/users", label: "المستخدمون", icon: Users, group: "العمليات" },
+  { to: "/tickets", label: "تذاكر الدعم", icon: Ticket, group: "العمليات" },
 
   { to: "/categories", label: "الأقسام", icon: FolderTree, group: "المتجر" },
   { to: "/product-groups", label: "مجموعات المنتجات", icon: FolderTree, group: "المتجر" },

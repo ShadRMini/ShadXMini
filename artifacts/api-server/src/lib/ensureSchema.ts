@@ -76,6 +76,52 @@ export async function ensureDatabaseSchema() {
       )
     `);
 
+    // 6. Tickets table
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS tickets (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER,
+        user_name TEXT,
+        user_email TEXT,
+        subject TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'pending',
+        priority TEXT DEFAULT 'medium',
+        created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+      )
+    `);
+
+    // 7. Ticket messages table
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS ticket_messages (
+        id SERIAL PRIMARY KEY,
+        ticket_id INTEGER NOT NULL,
+        sender_type TEXT NOT NULL DEFAULT 'user',
+        sender_name TEXT NOT NULL DEFAULT 'user',
+        message TEXT NOT NULL,
+        created_at TIMESTAMP NOT NULL DEFAULT NOW()
+      )
+    `);
+
+    // Seed default ticket if table is empty
+    const checkTickets: any = await db.execute(sql`SELECT count(*)::int as c FROM tickets`);
+    if (Number(checkTickets?.rows?.[0]?.c || 0) === 0) {
+      const insertedTicket: any = await db.execute(sql`
+        INSERT INTO tickets (id, user_name, user_email, subject, status, priority, created_at, updated_at)
+        VALUES 
+          (43, 'Kasem omari', 'alhedra4@gmail.com', 'طلب وكالة / API', 'pending', 'high', NOW(), NOW()),
+          (42, 'Kasem omari', 'alhedra4@gmail.com', 'طلب وكالة / API', 'pending', 'medium', NOW() - interval '1 hour', NOW() - interval '1 hour')
+        ON CONFLICT (id) DO NOTHING
+        RETURNING id
+      `);
+      await db.execute(sql`
+        INSERT INTO ticket_messages (ticket_id, sender_type, sender_name, message, created_at)
+        VALUES 
+          (43, 'user', 'Kasem omari', 'من اين استطيع شراء الدومين المطلوب', NOW()),
+          (42, 'user', 'Kasem omari', 'السلام عليكم، أود تفعيل ميزة الربط المباشر API لحسابي', NOW() - interval '1 hour')
+      `);
+    }
+
     schemaEnsured = true;
     console.log("[DB Schema] Runtime schema verified and synchronized successfully.");
   } catch (error) {

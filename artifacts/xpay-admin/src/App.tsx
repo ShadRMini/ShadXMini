@@ -29,6 +29,8 @@ import Settings from "./pages/Settings";
 import Theme from "./pages/Theme";
 import Reports from "./pages/Reports";
 import Backup from "./pages/Backup";
+import Tickets from "./pages/Tickets";
+import TicketDetail from "./pages/TicketDetail";
 import Profile from "./pages/Profile";
 import TwoFactor from "./pages/TwoFactor";
 import Permissions from "./pages/Permissions";
@@ -109,6 +111,9 @@ export default function App() {
           <Route path="/settings" element={<Settings />} />
           <Route path="/theme" element={<Theme />} />
           <Route path="/reports" element={<Reports />} />
+          <Route path="/tickets" element={<Tickets />} />
+          <Route path="/tickets/:id" element={<TicketDetail />} />
+          <Route path="/support" element={<Tickets />} />
           <Route path="/backup" element={<Backup />} />
           <Route path="/profile" element={<Profile me={me} />} />
           <Route path="/2fa" element={<TwoFactor />} />

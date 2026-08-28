@@ -23,6 +23,7 @@ import {
   activityLogTable,
   apiKeysTable,
   notificationsTable,
+  ticketsTable,
 } from "@workspace/db";
 import { and, desc, eq, gte, sql } from "drizzle-orm";
 import { requireAdmin } from "../lib/adminAuth.js";
@@ -414,6 +415,8 @@ router.get("/admin/me", requireAdmin, async (req, res) => {
 
 // ========== DASHBOARD ==========
 router.get("/admin/dashboard", requireAdmin, async (_req, res) => {
+  await ensureDatabaseSchema();
+
   const [u] = await db.select({ c: sql<number>`count(*)::int` }).from(usersTable);
   const [p] = await db
     .select({ c: sql<number>`count(*)::int` })
@@ -423,7 +426,15 @@ router.get("/admin/dashboard", requireAdmin, async (_req, res) => {
   const [oPending] = await db
     .select({ c: sql<number>`count(*)::int` })
     .from(ordersTable)
-    .where(eq(ordersTable.status, "wait"));
+    .where(sql`status IN ('wait', 'pending', 'processing')`);
+  const [oCompleted] = await db
+    .select({ c: sql<number>`count(*)::int` })
+    .from(ordersTable)
+    .where(sql`status IN ('accept', 'completed', 'approved')`);
+  const [oCancelled] = await db
+    .select({ c: sql<number>`count(*)::int` })
+    .from(ordersTable)
+    .where(sql`status IN ('reject', 'cancelled', 'rejected')`);
   const [dPending] = await db
     .select({ c: sql<number>`count(*)::int` })
     .from(depositsTable)
@@ -431,18 +442,54 @@ router.get("/admin/dashboard", requireAdmin, async (_req, res) => {
   const [sales] = await db
     .select({ s: sql<string>`coalesce(sum(total_usd),0)::text` })
     .from(ordersTable)
-    .where(eq(ordersTable.status, "accept"));
+    .where(sql`status IN ('accept', 'completed')`);
   const [cost] = await db
     .select({ s: sql<string>`coalesce(sum(cost_usd),0)::text` })
     .from(ordersTable)
-    .where(eq(ordersTable.status, "accept"));
+    .where(sql`status IN ('accept', 'completed')`);
   const [bal] = await db.select({ s: sql<string>`coalesce(sum(balance_usd),0)::text` }).from(usersTable);
 
-  const recentOrders = await db
-    .select()
+  // Tickets count and list
+  let pendingTicketsCount = 0;
+  let totalTicketsCount = 0;
+  let recentTickets: any[] = [];
+  try {
+    const [tPending] = await db
+      .select({ c: sql<number>`count(*)::int` })
+      .from(ticketsTable)
+      .where(sql`status IN ('pending', 'wait', 'open')`);
+    const [tTotal] = await db.select({ c: sql<number>`count(*)::int` }).from(ticketsTable);
+    pendingTicketsCount = tPending?.c || 0;
+    totalTicketsCount = tTotal?.c || 0;
+
+    recentTickets = await db
+      .select()
+      .from(ticketsTable)
+      .orderBy(desc(ticketsTable.createdAt))
+      .limit(6);
+  } catch (err) {
+    console.warn("[Dashboard] Tickets table query error:", err);
+  }
+
+  // Enhanced recent orders with username if available
+  const recentOrdersRaw = await db
+    .select({
+      id: ordersTable.id,
+      orderNumber: ordersTable.orderNumber,
+      userId: ordersTable.userId,
+      customParam: ordersTable.customParam,
+      quantity: ordersTable.quantity,
+      totalUsd: ordersTable.totalUsd,
+      status: ordersTable.status,
+      createdAt: ordersTable.createdAt,
+      userName: usersTable.username,
+      userEmail: usersTable.email,
+    })
     .from(ordersTable)
+    .leftJoin(usersTable, eq(ordersTable.userId, usersTable.id))
     .orderBy(desc(ordersTable.createdAt))
-    .limit(5);
+    .limit(8);
+
   const recentDeposits = await db
     .select()
     .from(depositsTable)
@@ -459,7 +506,8 @@ router.get("/admin/dashboard", requireAdmin, async (_req, res) => {
   // 7-day chart
   const chart = await db.execute(sql`
     SELECT to_char(d, 'YYYY-MM-DD') as date,
-      coalesce(sum(o.total_usd) filter (where o.status='accept'), 0)::float as sales
+      coalesce(sum(o.total_usd) filter (where o.status IN ('accept', 'completed')), 0)::float as sales,
+      count(o.id) as orders_count
     FROM generate_series((current_date - interval '6 day')::date, current_date::date, '1 day') d
     LEFT JOIN orders o ON o.created_at::date = d
     GROUP BY d ORDER BY d
@@ -471,17 +519,155 @@ router.get("/admin/dashboard", requireAdmin, async (_req, res) => {
       activeProducts: p?.c || 0,
       totalOrders: oTotal?.c || 0,
       pendingOrders: oPending?.c || 0,
+      completedOrders: oCompleted?.c || 0,
+      cancelledOrders: oCancelled?.c || 0,
       pendingDeposits: dPending?.c || 0,
+      pendingTickets: pendingTicketsCount,
+      totalTickets: totalTicketsCount,
       totalSalesUsd: Number(sales?.s || 0),
       totalCostUsd: Number(cost?.s || 0),
       netProfitUsd: Number(sales?.s || 0) - Number(cost?.s || 0),
       totalUserBalanceUsd: Number(bal?.s || 0),
       todayOrders: todayOrders?.c || 0,
+      apiBalanceUsd: 0.0,
     },
-    recentOrders,
+    recentOrders: recentOrdersRaw,
     recentDeposits,
-    chart: chart.rows as any[], // Fix: cast to any[]
+    recentTickets,
+    chart: chart.rows as any[],
   });
+});
+
+// ========== TICKETS ENDPOINTS ==========
+router.get("/admin/tickets", requireAdmin, async (_req, res) => {
+  await ensureDatabaseSchema();
+  try {
+    const list = await db
+      .select({
+        id: ticketsTable.id,
+        userId: ticketsTable.userId,
+        userName: ticketsTable.userName,
+        userEmail: ticketsTable.userEmail,
+        subject: ticketsTable.subject,
+        status: ticketsTable.status,
+        priority: ticketsTable.priority,
+        createdAt: ticketsTable.createdAt,
+        updatedAt: ticketsTable.updatedAt,
+      })
+      .from(ticketsTable)
+      .orderBy(desc(ticketsTable.createdAt));
+    res.json(list);
+  } catch (err: any) {
+    res.json([]);
+  }
+});
+
+router.get("/admin/tickets/:id", requireAdmin, async (req, res) => {
+  await ensureDatabaseSchema();
+  const id = Number(req.params.id);
+  try {
+    const [ticket] = await db.select().from(ticketsTable).where(eq(ticketsTable.id, id)).limit(1);
+    if (!ticket) {
+      return res.status(404).json({ error: "التذكرة غير موجودة" });
+    }
+    const messages = await db
+      .select()
+      .from(ticketMessagesTable)
+      .where(eq(ticketMessagesTable.ticketId, id))
+      .orderBy(ticketMessagesTable.createdAt);
+
+    res.json({
+      ...ticket,
+      messages: messages || [],
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || "خطأ في جلب التذكرة" });
+  }
+});
+
+router.put("/admin/tickets/:id", requireAdmin, async (req, res) => {
+  await ensureDatabaseSchema();
+  const id = Number(req.params.id);
+  const { status, priority } = req.body;
+  try {
+    const updateData: any = { updatedAt: new Date() };
+    if (status) updateData.status = status;
+    if (priority) updateData.priority = priority;
+
+    await db.update(ticketsTable).set(updateData).where(eq(ticketsTable.id, id));
+    res.json({ ok: true });
+  } catch (err: any) {
+    res.status(400).json({ error: err.message || "فشل تحديث التذكرة" });
+  }
+});
+
+router.post("/admin/tickets/:id/reply", requireAdmin, async (req, res) => {
+  await ensureDatabaseSchema();
+  const id = Number(req.params.id);
+  const { message } = req.body;
+  if (!message || !message.trim()) {
+    return res.status(400).json({ error: "الرد لا يمكن أن يكون فارغاً" });
+  }
+  try {
+    await db.insert(ticketMessagesTable).values({
+      ticketId: id,
+      senderType: "admin",
+      senderName: req.session.adminUsername || "الدعم الفني",
+      message: message.trim(),
+      createdAt: new Date(),
+    });
+
+    await db
+      .update(ticketsTable)
+      .set({ status: "answered", updatedAt: new Date() })
+      .where(eq(ticketsTable.id, id));
+
+    res.json({ ok: true });
+  } catch (err: any) {
+    res.status(400).json({ error: err.message || "فشل إرسال الرد" });
+  }
+});
+
+router.post("/admin/tickets/:id/close", requireAdmin, async (req, res) => {
+  await ensureDatabaseSchema();
+  const id = Number(req.params.id);
+  try {
+    await db
+      .update(ticketsTable)
+      .set({ status: "closed", updatedAt: new Date() })
+      .where(eq(ticketsTable.id, id));
+    res.json({ ok: true });
+  } catch (err: any) {
+    res.status(400).json({ error: err.message || "فشل إغلاق التذكرة" });
+  }
+});
+
+// Helper count endpoints
+router.get("/admin/orders/count", requireAdmin, async (_req, res) => {
+  const [row] = await db.select({ c: sql<number>`count(*)::int` }).from(ordersTable);
+  res.json({ count: row?.c || 0 });
+});
+
+router.get("/admin/users/count", requireAdmin, async (_req, res) => {
+  const [row] = await db.select({ c: sql<number>`count(*)::int` }).from(usersTable);
+  res.json({ count: row?.c || 0 });
+});
+
+router.get("/admin/tickets/count", requireAdmin, async (_req, res) => {
+  try {
+    const [row] = await db.select({ c: sql<number>`count(*)::int` }).from(ticketsTable);
+    res.json({ count: row?.c || 0 });
+  } catch {
+    res.json({ count: 0 });
+  }
+});
+
+router.get("/admin/orders/total-sales", requireAdmin, async (_req, res) => {
+  const [sales] = await db
+    .select({ s: sql<string>`coalesce(sum(total_usd),0)::text` })
+    .from(ordersTable)
+    .where(sql`status IN ('accept', 'completed')`);
+  res.json({ totalSales: Number(sales?.s || 0) });
 });
 
 // ========== GENERIC CRUD HELPER ==========
@@ -1078,6 +1264,9 @@ router.patch("/admin/users/:id", requireAdmin, async (req, res) => {
     "banned",
     "vipLevel",
   ]);
+  if (req.body.password && typeof req.body.password === "string" && req.body.password.trim().length > 0) {
+    allowed.passwordHash = await bcrypt.hash(req.body.password.trim(), 10);
+  }
   const [row] = await db
     .update(usersTable)
     .set(allowed)
@@ -1089,6 +1278,24 @@ router.patch("/admin/users/:id", requireAdmin, async (req, res) => {
     String(req.params.id),
     allowed,
   );
+  res.json(row);
+});
+
+router.post("/admin/users/:id/notify", requireAdmin, async (req, res) => {
+  const { title, content } = req.body;
+  const userId = Number(req.params.id);
+  if (!content) {
+    return res.status(400).json({ error: "محتوى الإشعار مطلوب" });
+  }
+  const [row] = await db
+    .insert(notificationsTable)
+    .values({
+      targetType: "user",
+      targetUserId: userId,
+      title: title || "إشعار من الإدارة",
+      content: content.trim(),
+    })
+    .returning();
   res.json(row);
 });
 
@@ -1305,6 +1512,85 @@ router.post("/admin/notifications", requireAdmin, async (req, res) => {
 });
 
 // ========== REPORTS ==========
+router.get("/admin/reports", requireAdmin, async (req, res) => {
+  const startDate = (req.query["startDate"] as string) || "2020-01-01";
+  const endDate = (req.query["endDate"] as string) || "2099-12-31";
+
+  try {
+    const [summaryRow]: any = (await db.execute(sql`
+      SELECT 
+        count(*)::int as total_orders,
+        count(*) filter (where status IN ('accept', 'completed'))::int as completed_orders,
+        coalesce(sum(total_usd), 0)::float as total_revenue,
+        coalesce(sum(total_usd) filter (where status IN ('accept', 'completed')), 0)::float as completed_revenue,
+        coalesce(sum(case when cost_usd is not null then (total_usd - cost_usd) else (total_usd * 0.2) end) filter (where status IN ('accept', 'completed')), 0)::float as net_profit
+      FROM orders
+      WHERE created_at::date >= ${startDate}::date AND created_at::date <= ${endDate}::date
+    `)).rows;
+
+    const topServices: any = (await db.execute(sql`
+      SELECT 
+        p.id,
+        p.name,
+        p.image,
+        count(o.id)::int as sales_count,
+        coalesce(sum(o.total_usd), 0)::float as total_amount
+      FROM orders o
+      JOIN products p ON p.id = o.product_id
+      WHERE o.created_at::date >= ${startDate}::date AND o.created_at::date <= ${endDate}::date
+      GROUP BY p.id, p.name, p.image
+      ORDER BY sales_count DESC
+      LIMIT 10
+    `)).rows;
+
+    const chartData: any = (await db.execute(sql`
+      SELECT 
+        to_char(created_at::date, 'YYYY-MM-DD') as date,
+        count(*)::int as orders_count,
+        coalesce(sum(total_usd), 0)::float as revenue
+      FROM orders
+      WHERE created_at::date >= ${startDate}::date AND created_at::date <= ${endDate}::date
+      GROUP BY created_at::date
+      ORDER BY created_at::date ASC
+    `)).rows;
+
+    // Get admin notification email from settings
+    const [emailSetting] = await db
+      .select()
+      .from(settingsTable)
+      .where(eq(settingsTable.key, "admin_report_email"))
+      .limit(1);
+
+    res.json({
+      summary: {
+        totalOrders: summaryRow?.total_orders || 0,
+        completedOrders: summaryRow?.completed_orders || 0,
+        totalRevenue: summaryRow?.total_revenue || 0,
+        netProfit: summaryRow?.net_profit || 0,
+      },
+      topServices: topServices || [],
+      chart: chartData || [],
+      adminEmail: (emailSetting?.value as any)?.email || "admin@x-z.store",
+      systemLogsClean: true,
+    });
+  } catch (err: any) {
+    console.error("Reports error:", err);
+    res.status(500).json({ error: err.message || "خطأ في تحميل التقارير" });
+  }
+});
+
+router.post("/admin/reports/email", requireAdmin, async (req, res) => {
+  const { email } = req.body;
+  if (!email) {
+    return res.status(400).json({ error: "البريد الإلكتروني مطلوب" });
+  }
+  await db
+    .insert(settingsTable)
+    .values({ key: "admin_report_email", value: { email } })
+    .onConflictDoUpdate({ target: settingsTable.key, set: { value: { email } } });
+  res.json({ ok: true, email });
+});
+
 router.get("/admin/reports/sales", requireAdmin, async (_req, res) => {
   const rows = await db.execute(sql`
     SELECT to_char(date_trunc('day', created_at), 'YYYY-MM-DD') as date,

@@ -278,3 +278,26 @@ export const notificationsTable = pgTable("notifications", {
   status: text("status").notNull().default("sent"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+export const ticketsTable = pgTable("tickets", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => usersTable.id),
+  userName: text("user_name"),
+  userEmail: text("user_email"),
+  subject: text("subject").notNull(),
+  status: text("status").notNull().default("pending"), // pending, answered, closed
+  priority: text("priority").default("medium"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const ticketMessagesTable = pgTable("ticket_messages", {
+  id: serial("id").primaryKey(),
+  ticketId: integer("ticket_id").notNull(),
+  senderType: text("sender_type").notNull().default("user"), // user | admin
+  senderName: text("sender_name").notNull().default("user"),
+  message: text("message").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+
