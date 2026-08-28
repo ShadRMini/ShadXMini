@@ -1767,6 +1767,77 @@ router.put("/admin/settings/use-legacy-users-page", requireAdmin, async (req, re
   }
 });
 
+router.get("/admin/settings/use-legacy-theme-page", async (_req, res) => {
+  try {
+    const [row] = await db.select().from(settingsTable).where(eq(settingsTable.key, "use_legacy_theme_page")).limit(1);
+    const value = row?.value;
+    const isLegacy = value === "true" || value === true;
+    res.json({ key: "use_legacy_theme_page", value: String(isLegacy) });
+  } catch (err: any) {
+    res.json({ key: "use_legacy_theme_page", value: "false" });
+  }
+});
+
+router.put("/admin/settings/use-legacy-theme-page", requireAdmin, async (req, res) => {
+  try {
+    const value = String(req.body?.value === true || req.body?.value === "true");
+    await db
+      .insert(settingsTable)
+      .values({ key: "use_legacy_theme_page", value })
+      .onConflictDoUpdate({ target: settingsTable.key, set: { value } });
+    res.json({ ok: true, value });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.get("/admin/theme-settings", requireAdmin, async (_req, res) => {
+  try {
+    const rows = await db.select().from(settingsTable);
+    const out: Record<string, any> = {
+      theme_primary: "#C8A45C",
+      theme_secondary: "#B8954A",
+      theme_accent: "#FDE68A",
+      theme_background: "#1A1A1A",
+      theme_text_primary: "#FFFFFF",
+      theme_font_arabic: "Cairo",
+      theme_font_english: "Inter",
+      theme_border_radius: "16",
+      theme_shadow: "medium",
+      theme_default_mode: "dark",
+    };
+    for (const r of rows) {
+      if (r.key.startsWith("theme_")) {
+        out[r.key] = r.value;
+      }
+    }
+    res.json(out);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.put("/admin/theme-settings", requireAdmin, async (req, res) => {
+  try {
+    const updates = req.body as Record<string, any>;
+    for (const [key, value] of Object.entries(updates)) {
+      await db
+        .insert(settingsTable)
+        .values({ key, value })
+        .onConflictDoUpdate({ target: settingsTable.key, set: { value } });
+    }
+    await logActivity(
+      { id: req.session.adminId, name: req.session.adminUsername },
+      "theme_update",
+      "theme",
+      Object.keys(updates),
+    );
+    res.json({ ok: true });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.get("/admin/settings", requireAdmin, async (_req, res) => {
   const rows = await db.select().from(settingsTable);
   const out: Record<string, any> = {};

@@ -1,59 +1,76 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
+import ThemeLegacy from "./ThemeLegacy";
+import ThemeNew from "./ThemeNew";
 import { get, put } from "../lib/api";
-import { Save, Palette } from "lucide-react";
 
-const FIELDS = [
-  { key: "theme_primary", label: "اللون الرئيسي", type: "color", default: "#58E8FF" },
-  { key: "theme_accent", label: "اللون الثانوي", type: "color", default: "#D94CFF" },
-  { key: "theme_bg", label: "خلفية المتجر", type: "color", default: "#07091B" },
-  { key: "theme_font", label: "الخط", type: "text", default: "Cairo" },
-  { key: "theme_radius", label: "نصف القطر (px)", type: "number", default: "12" },
-];
+export default function ThemeWrapper() {
+  const [useLegacy, setUseLegacy] = useState<boolean>(false); // Default to false (New UI)
+  const [loading, setLoading] = useState(true);
 
-export default function Theme() {
-  const [values, setValues] = useState<Record<string, any>>({});
-  const [saving, setSaving] = useState(false);
-  const [done, setDone] = useState(false);
+  const fetchSetting = async () => {
+    try {
+      const res = await get<any>("/admin/settings/use-legacy-theme-page");
+      console.log("[Theme Wrapper] API response:", res);
+      if (res && res.value !== undefined) {
+        const isLegacy = res.value === "true" || res.value === true;
+        setUseLegacy(isLegacy);
+        console.log("[Theme Wrapper] Parsed useLegacy value:", isLegacy);
+      } else {
+        setUseLegacy(false);
+      }
+    } catch (err) {
+      console.warn("[Theme Wrapper] Failed to fetch legacy theme setting, defaulting to new UI (false):", err);
+      setUseLegacy(false); // Default false (New UI)
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    get("/settings/list").then((arr: any[]) => {
-      const obj: Record<string, any> = {};
-      FIELDS.forEach(f => obj[f.key] = f.default);
-      arr.forEach((s) => { if (s.key in obj) obj[s.key] = s.value; });
-      setValues(obj);
-    });
+    fetchSetting();
   }, []);
 
-  const save = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSaving(true);
-    const items = FIELDS.map((f) => ({ key: f.key, value: values[f.key] }));
-    await put("/settings/items", { items });
-    setSaving(false); setDone(true);
-    setTimeout(() => setDone(false), 2000);
+  console.log("[Theme Wrapper] Render useLegacy state:", useLegacy);
+
+  const toggleLegacyMode = async () => {
+    const newValue = !useLegacy;
+    setUseLegacy(newValue);
+    try {
+      await put("/admin/settings/use-legacy-theme-page", { value: String(newValue) });
+      console.log("[Theme Wrapper] Updated useLegacy to:", newValue);
+    } catch (err) {
+      console.error("[Theme Wrapper] Failed to update legacy theme page setting:", err);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] text-zinc-400 space-y-3" dir="rtl">
+        <div className="w-10 h-10 border-2 border-[#C8A45C] border-t-transparent rounded-full animate-spin" />
+        <p className="text-xs font-semibold">جاري تحميل صفحة تخصيص التصميم...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
-        <Palette/> تخصيص التصميم
-      </h1>
-      <form onSubmit={save} className="bg-white rounded-xl shadow-sm border border-slate-200 p-5 space-y-4 max-w-2xl">
-        {FIELDS.map((f) => (
-          <div key={f.key} className="grid grid-cols-3 items-center gap-3">
-            <label className="text-sm font-semibold text-slate-700">{f.label}</label>
-            <input type={f.type} value={values[f.key] ?? f.default}
-              onChange={(e)=>setValues({...values, [f.key]: e.target.value})}
-              className="col-span-2 border border-slate-300 rounded-lg px-3 py-2 text-sm h-10"
-            />
-          </div>
-        ))}
-        {done && <div className="p-3 bg-emerald-50 text-emerald-700 rounded-lg text-sm">تم الحفظ</div>}
-        <button disabled={saving} className="bg-brand-600 text-white px-5 py-2 rounded-lg font-semibold hover:bg-brand-700 disabled:opacity-50 flex items-center gap-2">
-          <Save size={16}/> حفظ التصميم
+      {/* Quick Switch Toggle Bar */}
+      <div className="flex items-center justify-between px-4 py-2.5 bg-[#1A1A1A] border border-[#C8A45C]/20 rounded-2xl text-xs text-zinc-400 shadow-md" dir="rtl">
+        <div className="flex items-center gap-2">
+          <span className="w-2.5 h-2.5 rounded-full bg-[#C8A45C] animate-pulse" />
+          <span>
+            الواجهة الحالية لتخصيص التصميم: <strong className="text-[#FDE68A]">{useLegacy ? "القديمة (Legacy Mode)" : "الحديثة التفاعلية (Modern Live Preview)"}</strong>
+          </span>
+        </div>
+        <button
+          onClick={toggleLegacyMode}
+          className="px-3.5 py-1.5 bg-[#242424] hover:bg-zinc-800 text-[#FDE68A] border border-[#C8A45C]/30 rounded-xl font-bold text-[11px] transition cursor-pointer shadow-xs"
+        >
+          {useLegacy ? "التبديل إلى الواجهة الجديدة ✨" : "الرجوع إلى الواجهة القديمة 🔄"}
         </button>
-        <p className="text-xs text-slate-500">سيتم تطبيق التصميم على المتجر بعد إعادة تحميل الصفحة.</p>
-      </form>
+      </div>
+
+      {useLegacy ? <ThemeLegacy /> : <ThemeNew />}
     </div>
   );
 }
