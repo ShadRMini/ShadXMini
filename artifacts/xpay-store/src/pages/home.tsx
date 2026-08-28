@@ -1,14 +1,14 @@
-import { useGetProfile, useListBanners, useListCategories, useListNews } from "@workspace/api-client-react";
+import { useGetProfile, useListBanners, useListCategories } from "@workspace/api-client-react";
 import { useEffect, useState } from "react";
 import { Link } from "wouter";
-import { Wallet, Plus, BellRing, Crown } from "lucide-react";
+import { Wallet, Plus } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
-import { motion } from "framer-motion";
 import { getPublicJson } from "@/lib/public-api";
 import { useAuth } from "@/lib/auth-context";
+import CategoryCard from "@/components/categories/CategoryCard";
 
 type CategoryItem = {
   id: string;
@@ -19,30 +19,6 @@ type CategoryItem = {
   active: boolean;
   productCount: number;
 };
-
-function withImageVersion(url: string, version: string): string {
-  const cleanUrl = String(url || "").trim();
-  if (!cleanUrl || cleanUrl.startsWith("data:") || cleanUrl.startsWith("blob:")) return cleanUrl;
-  const separator = cleanUrl.includes("?") ? "&" : "?";
-  return `${cleanUrl}${separator}v=${encodeURIComponent(version)}`;
-}
-
-function getBrandedCategoryImage(categoryName: string, fallback?: string | null): string {
-  const customImage = String(fallback || "").trim();
-  if (customImage) return customImage;
-
-  const name = String(categoryName || "").trim().toLowerCase();
-
-  if (name.includes("تطبيق") || name.includes("app")) return "/xpay-cat-apps.svg";
-  if (name.includes("لعب") || name.includes("game")) return "/xpay-cat-games.svg";
-  if (name.includes("رصيد") || name.includes("balance")) return "/xpay-cat-balance.svg";
-  if (name.includes("ميديا") || name.includes("سوشل") || name.includes("social")) return "/xpay-cat-media.svg";
-  if (name.includes("شات") || name.includes("chat")) return "/xpay-cat-chat.svg";
-  if (name.includes("رقم") || name.includes("number")) return "/xpay-cat-numbers.svg";
-  if (name.includes("بطاق") || name.includes("card")) return "/xpay-cat-cards.svg";
-
-  return "/xpay-cat-apps.svg";
-}
 
 function readLocalTelegramUser() {
   try {
@@ -63,7 +39,6 @@ function readLocalTelegramUser() {
 export default function Home() {
   const { user } = useAuth();
   const { data: profile, isLoading: profileLoading, isError: profileError } = useGetProfile();
-  const { data: news, isLoading: newsLoading } = useListNews();
   const { data: banners, isLoading: bannersLoading } = useListBanners();
   const { data: categories, isLoading: categoriesLoading } = useListCategories();
   const [fallbackCategories, setFallbackCategories] = useState<CategoryItem[] | null>(null);
@@ -141,27 +116,13 @@ export default function Home() {
                     {profileLoading && !displayName ? <Skeleton className="h-4 w-20" /> : displayName}
                   </p>
                   {effectiveDisplayId && (
-                    <span className="text-[11px] font-mono font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-md border border-primary/20">
+                    <span className="text-[11px] font-mono font-bold text-primary bg-primary/10 px-2.5 py-0.5 rounded-lg border border-primary/25 shadow-xs">
                       #{effectiveDisplayId}
                     </span>
                   )}
                 </div>
               </div>
             </div>
-            <Link href="/profile">
-              <div className="bg-card border border-white/5 rounded-xl px-3 py-2 flex flex-col gap-0.5 cursor-pointer min-w-[110px] sm:min-w-[130px] hover:border-primary/30 transition">
-                <span className="text-[10px] text-muted-foreground font-medium">المعرف الرقمي</span>
-                <span className="text-xs font-mono font-bold text-primary">
-                  {profileLoading && !effectiveDisplayId ? (
-                    <Skeleton className="h-4 w-16" />
-                  ) : effectiveDisplayId ? (
-                    `المعرف: ${effectiveDisplayId}`
-                  ) : (
-                    "زائر"
-                  )}
-                </span>
-              </div>
-            </Link>
           </div>
 
           <Card className="xpay-brand-card shadow-xl overflow-hidden relative">
@@ -194,25 +155,6 @@ export default function Home() {
             </div>
           )}
         </div>
-
-        {!newsLoading && news && news.length > 0 && (
-          <div className="px-4 mb-6">
-            <div className="bg-card border border-white/5 rounded-xl p-3 flex items-center gap-3">
-              <div className="bg-accent/20 p-2 rounded-full text-accent shrink-0 animate-pulse">
-                <BellRing className="w-4 h-4" />
-              </div>
-              <div className="overflow-hidden flex-1 relative h-5">
-                <div className="news-marquee whitespace-nowrap absolute right-0 flex items-center h-full">
-                  {news.map((item) => (
-                    <span key={item.id} className="text-xs text-muted-foreground mr-8">
-                      {item.content}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
 
         <div className="px-4 mb-8">
           {bannersLoading ? (
@@ -250,29 +192,15 @@ export default function Home() {
           ) : visibleCategories.length > 0 ? (
             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-x-3 gap-y-5 sm:gap-4">
               {visibleCategories.map((cat, i) => (
-                <Link key={cat.id} href={`/categories/${cat.id}`}>
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.05 }}
-                    className="flex flex-col items-center gap-2 cursor-pointer group"
-                  >
-                    <div className="w-full aspect-square rounded-2xl bg-card border border-white/5 overflow-hidden relative shadow-lg group-hover:border-primary/30 transition-colors">
-                      <img
-                        src={withImageVersion(
-                          getBrandedCategoryImage(cat.name, cat.image),
-                          cat.imageVersion || `${cat.id}-${cat.image || ""}`,
-                        )}
-                        alt={cat.name}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
-                    </div>
-                    <span className="text-[11px] font-semibold text-center text-muted-foreground group-hover:text-primary transition-colors leading-tight">
-                      {cat.name}
-                    </span>
-                  </motion.div>
-                </Link>
+                <CategoryCard
+                  key={cat.id}
+                  id={cat.id}
+                  name={cat.name}
+                  image={cat.image}
+                  imageVersion={cat.imageVersion}
+                  productCount={cat.productCount}
+                  index={i}
+                />
               ))}
             </div>
           ) : (
