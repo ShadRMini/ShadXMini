@@ -428,11 +428,11 @@ export default function DepositMethod() {
           </div>
         </div>
         <span className="text-[11px] px-2.5 py-1 rounded-full bg-[#C8A45C]/20 border border-[#C8A45C]/35 text-[#FDE68A] font-bold">
-          XPay Pay
+          بوابة الدفع
         </span>
       </div>
 
-      <div className="max-w-xl mx-auto p-3 sm:p-5 space-y-5 mt-2">
+      <div className="max-w-3xl mx-auto p-4 sm:p-6 space-y-6 mt-2">
         {/* Method Info Card */}
         <div className="p-5 sm:p-6 rounded-3xl bg-[#2D2D2D] border border-[#C8A45C]/35 shadow-xl relative overflow-hidden">
           <div className="flex items-center justify-between mb-4">
@@ -465,12 +465,14 @@ export default function DepositMethod() {
           )}
 
           {method.qrImage && (
-            <div className="mt-4 flex justify-center">
-              <img
-                src={method.qrImage}
-                alt="QR Code"
-                className="w-36 h-36 rounded-2xl border border-[#C8A45C]/40 p-1.5 bg-white shadow-md"
-              />
+            <div className="mt-4 flex justify-center items-center">
+              <div className="w-full max-w-[180px] sm:max-w-[220px] aspect-square rounded-2xl border border-[#C8A45C]/40 p-2 bg-white shadow-md flex items-center justify-center">
+                <img
+                  src={method.qrImage}
+                  alt="QR Code"
+                  className="w-full h-full object-contain"
+                />
+              </div>
             </div>
           )}
         </div>

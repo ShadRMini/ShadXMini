@@ -105,13 +105,13 @@ export default function Deposit() {
       </div>
 
       {isLoading && visibleMethods.length === 0 ? (
-        <div className="grid grid-cols-2 gap-4 max-w-xl mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-3xl mx-auto">
           {Array.from({ length: 4 }).map((_, i) => (
             <Skeleton key={i} className="h-36 rounded-3xl bg-zinc-800" />
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-4 max-w-xl mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-3xl mx-auto">
           {visibleMethods
             ?.filter((m) => m.active)
             .map((method, i) => (
