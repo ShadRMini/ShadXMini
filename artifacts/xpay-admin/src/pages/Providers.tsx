@@ -13,6 +13,11 @@ interface Provider {
   priority: number;
   active: boolean;
   providerType: string;
+  productsEndpoint?: string | null;
+  profileEndpoint?: string | null;
+  orderEndpoint?: string | null;
+  checkEndpoint?: string | null;
+  tokenHeader?: string | null;
 }
 
 export default function Providers() {
@@ -87,6 +92,11 @@ export default function Providers() {
       priority: Number(editing.priority || 0),
       active: Boolean(editing.active),
       providerType: editing.providerType ? String(editing.providerType).trim() : "custom",
+      productsEndpoint: editing.productsEndpoint ? String(editing.productsEndpoint).trim() : null,
+      profileEndpoint: editing.profileEndpoint ? String(editing.profileEndpoint).trim() : null,
+      orderEndpoint: editing.orderEndpoint ? String(editing.orderEndpoint).trim() : null,
+      checkEndpoint: editing.checkEndpoint ? String(editing.checkEndpoint).trim() : null,
+      tokenHeader: editing.tokenHeader ? String(editing.tokenHeader).trim() : null,
     };
 
     setSaving(true);
@@ -143,6 +153,11 @@ export default function Providers() {
       priority: 0,
       active: true,
       providerType: "custom",
+      productsEndpoint: "",
+      profileEndpoint: "",
+      orderEndpoint: "",
+      checkEndpoint: "",
+      tokenHeader: "",
     });
   };
 
@@ -332,6 +347,65 @@ export default function Providers() {
                   onChange={(e) => setEditing({ ...editing, providerType: e.target.value })}
                   placeholder="custom"
                 />
+              </div>
+
+              <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
+                <div className="text-xs font-bold text-slate-600 uppercase tracking-wider">إعدادات مسارات API المخصصة (Endpoints)</div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">مسار جلب المنتجات (Products Endpoint)</label>
+                  <input
+                    type="text"
+                    className="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-[#C8A45C] focus:border-[#C8A45C]"
+                    value={editing.productsEndpoint || ""}
+                    onChange={(e) => setEditing({ ...editing, productsEndpoint: e.target.value })}
+                    placeholder="/api/v2/products أو فارغ لاستخدام الافتراضي"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">مسار الملف الشخصي/الرصيد (Profile Endpoint)</label>
+                  <input
+                    type="text"
+                    className="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-[#C8A45C] focus:border-[#C8A45C]"
+                    value={editing.profileEndpoint || ""}
+                    onChange={(e) => setEditing({ ...editing, profileEndpoint: e.target.value })}
+                    placeholder="/api/v2/profile"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">مسار إنشاء الطلب (Order Endpoint)</label>
+                  <input
+                    type="text"
+                    className="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-[#C8A45C] focus:border-[#C8A45C]"
+                    value={editing.orderEndpoint || ""}
+                    onChange={(e) => setEditing({ ...editing, orderEndpoint: e.target.value })}
+                    placeholder="/api/v2/orders"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">مسار التحقق من حالة الطلب (Check Status Endpoint)</label>
+                  <input
+                    type="text"
+                    className="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-[#C8A45C] focus:border-[#C8A45C]"
+                    value={editing.checkEndpoint || ""}
+                    onChange={(e) => setEditing({ ...editing, checkEndpoint: e.target.value })}
+                    placeholder="/api/v2/orders/check"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">اسم ترويسة المفتاح (Token Header Name)</label>
+                  <input
+                    type="text"
+                    className="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-[#C8A45C] focus:border-[#C8A45C]"
+                    value={editing.tokenHeader || ""}
+                    onChange={(e) => setEditing({ ...editing, tokenHeader: e.target.value })}
+                    placeholder="Authorization أو api-key أو X-API-KEY"
+                  />
+                </div>
               </div>
 
               <div>

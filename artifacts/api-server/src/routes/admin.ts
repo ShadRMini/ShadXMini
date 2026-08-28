@@ -888,6 +888,26 @@ async function sanitizeCrudDataForRuntimeSchema(path: string, data: any): Promis
       const exists = await hasColumn("providers", "provider_type");
       if (!exists) delete normalized.providerType;
     }
+    if ("productsEndpoint" in normalized) {
+      const exists = await hasColumn("providers", "products_endpoint");
+      if (!exists) delete normalized.productsEndpoint;
+    }
+    if ("profileEndpoint" in normalized) {
+      const exists = await hasColumn("providers", "profile_endpoint");
+      if (!exists) delete normalized.profileEndpoint;
+    }
+    if ("orderEndpoint" in normalized) {
+      const exists = await hasColumn("providers", "order_endpoint");
+      if (!exists) delete normalized.orderEndpoint;
+    }
+    if ("checkEndpoint" in normalized) {
+      const exists = await hasColumn("providers", "check_endpoint");
+      if (!exists) delete normalized.checkEndpoint;
+    }
+    if ("tokenHeader" in normalized) {
+      const exists = await hasColumn("providers", "token_header");
+      if (!exists) delete normalized.tokenHeader;
+    }
   }
 
   return normalized;
@@ -1005,7 +1025,10 @@ router.delete("/admin/providers/:id", requireAdmin, async (req, res) => {
 
 makeCrud("providers", providersTable, {
   orderBy: providersTable.priority,
-  allowedFields: ["name", "apiUrl", "apiKey", "notes", "priority", "active", "providerType"],
+  allowedFields: [
+    "name", "apiUrl", "apiKey", "notes", "priority", "active", "providerType",
+    "productsEndpoint", "profileEndpoint", "orderEndpoint", "checkEndpoint", "tokenHeader"
+  ],
 });
 
 makeCrud("coupons", couponsTable, {
@@ -1521,7 +1544,14 @@ const PUT_RESOURCES: Array<{ path: string; table: any; allowed: string[] }> = [
     ],
   },
   { path: "social-links", table: socialLinksTable, allowed: ["platform", "url", "label", "order"] },
-  { path: "providers", table: providersTable, allowed: ["name", "apiUrl", "apiKey", "notes", "priority", "active", "providerType"] },
+  {
+    path: "providers",
+    table: providersTable,
+    allowed: [
+      "name", "apiUrl", "apiKey", "notes", "priority", "active", "providerType",
+      "productsEndpoint", "profileEndpoint", "orderEndpoint", "checkEndpoint", "tokenHeader"
+    ]
+  },
   { path: "coupons", table: couponsTable, allowed: ["code", "discountPct", "maxUses", "usedCount", "active"] },
   { path: "vip-memberships", table: vipMembershipsTable, allowed: ["name", "requiredAmount", "profitPct", "badge", "hidden"] },
   { path: "auto-codes", table: autoCodesTable, allowed: ["productId", "code", "note", "used"] },

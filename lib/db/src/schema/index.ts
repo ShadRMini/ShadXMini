@@ -207,6 +207,11 @@ export const providersTable = pgTable("providers", {
   priority: integer("priority").notNull().default(0),
   active: boolean("active").notNull().default(true),
   providerType: text("provider_type").default("custom"),
+  productsEndpoint: text("products_endpoint"),
+  profileEndpoint: text("profile_endpoint"),
+  orderEndpoint: text("order_endpoint"),
+  checkEndpoint: text("check_endpoint"),
+  tokenHeader: text("token_header"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

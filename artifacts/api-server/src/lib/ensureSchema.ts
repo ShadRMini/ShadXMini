@@ -29,6 +29,11 @@ export async function ensureDatabaseSchema() {
       ALTER TABLE providers ADD COLUMN IF NOT EXISTS priority INTEGER DEFAULT 0;
       ALTER TABLE providers ADD COLUMN IF NOT EXISTS active BOOLEAN DEFAULT true;
       ALTER TABLE providers ADD COLUMN IF NOT EXISTS provider_type TEXT DEFAULT 'custom';
+      ALTER TABLE providers ADD COLUMN IF NOT EXISTS products_endpoint TEXT;
+      ALTER TABLE providers ADD COLUMN IF NOT EXISTS profile_endpoint TEXT;
+      ALTER TABLE providers ADD COLUMN IF NOT EXISTS order_endpoint TEXT;
+      ALTER TABLE providers ADD COLUMN IF NOT EXISTS check_endpoint TEXT;
+      ALTER TABLE providers ADD COLUMN IF NOT EXISTS token_header TEXT;
       ALTER TABLE providers ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT NOW();
     `);
 
