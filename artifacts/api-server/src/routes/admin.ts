@@ -1800,7 +1800,30 @@ router.put("/admin/settings/items", requireAdmin, async (req, res) => {
       .onConflictDoUpdate({ target: settingsTable.key, set: { value: it.value } });
   }
   res.json({ ok: true });
-}); 
+});
+
+router.put("/admin/settings/brand-logo", requireAdmin, async (req, res) => {
+  const brandLogoUrl = String(req.body?.brandLogoUrl || req.body?.logoUrl || req.body?.image || "").trim();
+  
+  await db
+    .insert(settingsTable)
+    .values({ key: "brand_logo_url", value: brandLogoUrl })
+    .onConflictDoUpdate({ target: settingsTable.key, set: { value: brandLogoUrl } });
+
+  await db
+    .insert(settingsTable)
+    .values({ key: "site_logo", value: brandLogoUrl })
+    .onConflictDoUpdate({ target: settingsTable.key, set: { value: brandLogoUrl } });
+
+  await logActivity(
+    { id: req.session.adminId, name: req.session.adminUsername },
+    "update_brand_logo",
+    "settings",
+    { brandLogoUrl: brandLogoUrl ? "updated" : "cleared" },
+  );
+
+  res.json({ ok: true, success: true, brandLogoUrl });
+});
 
 router.get("/admin/telegram/config-status", requireAdmin, async (_req, res) => {
   res.json(getTelegramConfigStatus());

@@ -59,7 +59,23 @@ export default function Layout({
 }) {
   const [open, setOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem("xpay-admin-theme") === "dark");
+  const [brandLogo, setBrandLogo] = useState<string>("");
   const navigate = useNavigate();
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/settings/public")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (active && (data?.brandLogoUrl || data?.siteLogo)) {
+          setBrandLogo(data.brandLogoUrl || data.siteLogo);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     document.documentElement.classList.toggle("admin-dark", darkMode);
@@ -87,9 +103,19 @@ export default function Layout({
         }`}
       >
         <div className="p-5 border-b border-zinc-800 flex items-center justify-between">
-          <div>
-            <div className="text-xl font-extrabold text-[#C8A45C] tracking-wide">ShadMini</div>
-            <div className="text-xs text-zinc-400 mt-0.5 font-medium">لوحة الإدارة الفاخرة</div>
+          <div className="flex items-center gap-3">
+            {brandLogo ? (
+              <img
+                src={brandLogo}
+                alt="ShadMini"
+                className="h-10 max-w-[140px] object-contain rounded-xl"
+              />
+            ) : (
+              <div>
+                <div className="text-xl font-extrabold text-[#C8A45C] tracking-wide">ShadMini</div>
+                <div className="text-xs text-zinc-400 mt-0.5 font-medium">لوحة الإدارة الفاخرة</div>
+              </div>
+            )}
           </div>
           <button className="lg:hidden text-zinc-400 hover:text-[#C8A45C]" onClick={() => setOpen(false)}>
             <X size={20} />

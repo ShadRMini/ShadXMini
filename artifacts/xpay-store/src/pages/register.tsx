@@ -92,9 +92,6 @@ export default function Register() {
           <h1 className="text-2xl sm:text-3xl font-black text-[#111827] tracking-wide">
             إنشاء حساب جديد
           </h1>
-          <p className="text-sm font-medium text-slate-500 mt-1">
-            انضم إلى عائلة <span className="text-[#C8A45C] font-bold">ShadMini</span> الفاخرة
-          </p>
         </div>
 
         {/* Error Alert */}

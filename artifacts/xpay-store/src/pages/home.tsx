@@ -1,13 +1,14 @@
 import { useGetProfile, useListBanners, useListCategories, useListNews } from "@workspace/api-client-react";
 import { useEffect, useState } from "react";
 import { Link } from "wouter";
-import { Wallet, Plus, BellRing } from "lucide-react";
+import { Wallet, Plus, BellRing, Crown } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
 import { motion } from "framer-motion";
 import { getPublicJson } from "@/lib/public-api";
+import { useAuth } from "@/lib/auth-context";
 
 type CategoryItem = {
   id: string;
@@ -60,6 +61,7 @@ function readLocalTelegramUser() {
 }
 
 export default function Home() {
+  const { user } = useAuth();
   const { data: profile, isLoading: profileLoading, isError: profileError } = useGetProfile();
   const { data: news, isLoading: newsLoading } = useListNews();
   const { data: banners, isLoading: bannersLoading } = useListBanners();
@@ -93,17 +95,15 @@ export default function Home() {
     active: Boolean(cat.active),
     productCount: Number(cat.productCount || 0),
   }));
-  const effectiveTelegramId = profile?.telegramId || localTelegramUser?.telegramId || "";
+
   const displayName =
-    (profile?.telegramId ? profile.username : "") ||
-    localTelegramUser?.username ||
+    user?.username ||
     profile?.username ||
+    localTelegramUser?.username ||
     (isInsideTelegram ? "Telegram User" : "ضيف");
-  const shortId = effectiveTelegramId
-    ? (((Number(String(effectiveTelegramId).replace(/\D/g, "").slice(-10) || "0") % 9000) + 1000)
-        .toString()
-        .padStart(4, "0"))
-    : "---";
+
+  const effectiveAvatar = user?.avatarUrl || profile?.avatarUrl;
+  const effectiveDisplayId = user?.displayId || profile?.displayId || (user ? "1001" : "");
 
   return (
     <div className="relative pb-8 animate-in fade-in duration-500 overflow-hidden">
@@ -117,23 +117,48 @@ export default function Home() {
         <div className="p-4 pt-6 bg-gradient-to-b from-card/50 to-transparent">
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20">
-                <span className="text-primary font-bold text-lg">
-                  {displayName ? displayName.charAt(0).toUpperCase() : "X"}
-                </span>
-              </div>
+              <Link href="/profile">
+                <div className="relative cursor-pointer group">
+                  {effectiveAvatar ? (
+                    <img
+                      src={effectiveAvatar}
+                      alt={displayName}
+                      className="w-11 h-11 rounded-2xl object-cover border-2 border-primary/40 shadow-md group-hover:border-primary transition"
+                    />
+                  ) : (
+                    <div className="w-11 h-11 rounded-2xl bg-primary/15 flex items-center justify-center border-2 border-primary/30 shadow-md group-hover:border-primary transition">
+                      <span className="text-primary font-black text-lg">
+                        {displayName ? displayName.charAt(0).toUpperCase() : "S"}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </Link>
               <div>
-                <p className="text-xs text-muted-foreground">أهلاً بك يا</p>
-                <p className="text-sm font-bold text-foreground">
-                  {profileLoading ? <Skeleton className="h-4 w-20" /> : displayName}
-                </p>
+                <p className="text-xs text-muted-foreground font-medium">أهلاً بك يا</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-bold text-foreground">
+                    {profileLoading && !displayName ? <Skeleton className="h-4 w-20" /> : displayName}
+                  </p>
+                  {effectiveDisplayId && (
+                    <span className="text-[11px] font-mono font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-md border border-primary/20">
+                      #{effectiveDisplayId}
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
             <Link href="/profile">
-              <div className="bg-card border border-white/5 rounded-xl px-3 py-2 flex flex-col gap-0.5 cursor-pointer min-w-[110px] sm:min-w-[140px] hover:border-primary/30 transition">
-                <span className="text-[10px] text-muted-foreground font-medium">المعرف</span>
+              <div className="bg-card border border-white/5 rounded-xl px-3 py-2 flex flex-col gap-0.5 cursor-pointer min-w-[110px] sm:min-w-[130px] hover:border-primary/30 transition">
+                <span className="text-[10px] text-muted-foreground font-medium">المعرف الرقمي</span>
                 <span className="text-xs font-mono font-bold text-primary">
-                  {profileLoading ? <Skeleton className="h-4 w-16" /> : (effectiveTelegramId || shortId || "---")}
+                  {profileLoading && !effectiveDisplayId ? (
+                    <Skeleton className="h-4 w-16" />
+                  ) : effectiveDisplayId ? (
+                    `المعرف: ${effectiveDisplayId}`
+                  ) : (
+                    "زائر"
+                  )}
                 </span>
               </div>
             </Link>

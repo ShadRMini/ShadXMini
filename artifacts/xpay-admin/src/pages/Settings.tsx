@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { get, put } from "../lib/api";
-import { Save, RefreshCcw } from "lucide-react";
+import { Save, RefreshCcw, Upload, Image as ImageIcon, Trash2 } from "lucide-react";
 
 const FIELDS: { key: string; label: string; type?: string; placeholder?: string }[] = [
   { key: "site_name", label: "اسم المتجر" },
-  { key: "site_logo", label: "رابط شعار المتجر" },
+  { key: "brand_logo_url", label: "رابط شعار المتجر (Brand Logo)", placeholder: "https://... أو ارفعه من جهازك أدناه" },
+  { key: "site_logo", label: "رابط الأيقونة المصغرة (Site Logo)" },
   { key: "site_description", label: "وصف المتجر" },
   { key: "admin_login_image", label: "صورة شاشة تسجيل دخول لوحة التحكم", placeholder: "https://example.com/admin-login.png" },
   { key: "support_email", label: "بريد الدعم" },
@@ -28,6 +29,7 @@ export default function Settings() {
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const loadAll = async () => {
     const [arr, status] = await Promise.all([
@@ -48,6 +50,11 @@ export default function Settings() {
       }
     });
 
+    // Sync brand_logo_url with site_logo fallback if empty
+    if (!obj.brand_logo_url && obj.site_logo) {
+      obj.brand_logo_url = obj.site_logo;
+    }
+
     setValues(obj);
     setTgStatus(status);
   };
@@ -55,6 +62,27 @@ export default function Settings() {
   useEffect(() => {
     loadAll().catch((e) => setErr(e.message));
   }, []);
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      setErr("حجم الصورة كبير جداً. يرجى اختيار صورة أقل من 2 ميغابايت.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64 = reader.result as string;
+      setValues((prev) => ({
+        ...prev,
+        brand_logo_url: base64,
+        site_logo: base64,
+      }));
+    };
+    reader.readAsDataURL(file);
+  };
 
   const normalizeValue = (key: string, value: any) => {
     if (key === "admin_telegram_ids") {
@@ -89,10 +117,65 @@ export default function Settings() {
     }
   };
 
+  const currentLogo = values.brand_logo_url || values.site_logo;
+
   return (
     <div className="space-y-4">
       <h1 className="text-2xl font-bold text-slate-900">الإعدادات العامة</h1>
-      <form onSubmit={save} className="bg-white rounded-xl shadow-sm border border-slate-200 p-5 space-y-4 max-w-3xl">
+      <form onSubmit={save} className="bg-white rounded-xl shadow-sm border border-slate-200 p-5 space-y-5 max-w-3xl">
+        
+        {/* Brand Logo Card */}
+        <div className="border border-slate-200 rounded-xl p-4 bg-gradient-to-br from-slate-50 to-white">
+          <div className="flex items-center gap-2 mb-3">
+            <ImageIcon className="w-5 h-5 text-[#C8A45C]" />
+            <h2 className="text-sm font-bold text-slate-800">شعار المتجر (Brand Logo)</h2>
+          </div>
+          <div className="flex flex-col sm:flex-row items-center gap-4">
+            <div className="w-24 h-24 rounded-xl border border-slate-300 bg-[#1A1A1A] p-2 flex items-center justify-center overflow-hidden shrink-0 shadow-inner">
+              {currentLogo ? (
+                <img
+                  src={currentLogo}
+                  alt="شعار المتجر"
+                  className="max-w-full max-h-full object-contain"
+                />
+              ) : (
+                <span className="text-[#C8A45C] text-xs font-bold text-center">لا يوجد شعار</span>
+              )}
+            </div>
+
+            <div className="flex-1 w-full space-y-2">
+              <div className="flex flex-wrap gap-2">
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileUpload}
+                  accept="image/*"
+                  className="hidden"
+                />
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="px-3 py-1.5 rounded-lg bg-slate-900 text-[#C8A45C] hover:bg-slate-800 text-xs font-bold flex items-center gap-1.5 transition"
+                >
+                  <Upload size={14} /> رفع صورة من الجهاز
+                </button>
+                {currentLogo && (
+                  <button
+                    type="button"
+                    onClick={() => setValues((prev) => ({ ...prev, brand_logo_url: "", site_logo: "" }))}
+                    className="px-3 py-1.5 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 text-xs font-bold flex items-center gap-1.5 transition border border-rose-200"
+                  >
+                    <Trash2 size={14} /> إزالة الشعار
+                  </button>
+                )}
+              </div>
+              <p className="text-xs text-slate-500">
+                يمكنك رفع صورة (PNG, JPG, SVG, WebP) أو إدخال رابط مباشر بالأسفل. سيظهر الشعار فوراً في الهيدر والقائمة الجانبية.
+              </p>
+            </div>
+          </div>
+        </div>
+
         <div className="border rounded-lg p-4 bg-slate-50">
           <div className="flex items-center justify-between mb-2">
             <h2 className="text-sm font-bold text-slate-800">تكامل تيليجرام</h2>

@@ -23,7 +23,23 @@ import { useAuth } from "@/lib/auth-context";
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [brandLogo, setBrandLogo] = useState<string>("");
   const { user, logout } = useAuth();
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/settings/public")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (active && (data?.brandLogoUrl || data?.siteLogo)) {
+          setBrandLogo(data.brandLogoUrl || data.siteLogo);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
 
   // Close drawer on route change
   useEffect(() => {
@@ -75,15 +91,24 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     <div className="flex flex-col h-full bg-[#1A1A1A] text-white select-none">
       {/* Header / Brand */}
       <div className="p-5 border-b border-zinc-800 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-[#C8A45C] text-[#1A1A1A] font-black flex items-center justify-center text-lg shadow-md shadow-[#C8A45C]/25">
-            SM
-          </div>
-          <div>
-            <div className="text-lg font-black text-[#C8A45C] tracking-wide">ShadMini</div>
-            <div className="text-[11px] text-zinc-400 font-medium">المنصة الفاخرة للخدمات الرقمية</div>
-          </div>
-        </div>
+        <Link href="/" className="flex items-center gap-3">
+          {brandLogo ? (
+            <img
+              src={brandLogo}
+              alt="ShadMini"
+              className="h-10 max-w-[140px] object-contain rounded-xl"
+            />
+          ) : (
+            <>
+              <div className="w-10 h-10 rounded-2xl bg-[#C8A45C] text-[#1A1A1A] font-black flex items-center justify-center text-lg shadow-md shadow-[#C8A45C]/25">
+                SM
+              </div>
+              <div>
+                <div className="text-lg font-black text-[#C8A45C] tracking-wide">ShadMini</div>
+              </div>
+            </>
+          )}
+        </Link>
         <button
           onClick={() => setDrawerOpen(false)}
           className="lg:hidden text-zinc-400 hover:text-[#C8A45C] p-1.5 rounded-xl hover:bg-zinc-800 transition"
@@ -253,12 +278,22 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             </button>
 
             <Link href="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-xl bg-[#1A1A1A] text-[#C8A45C] font-black flex items-center justify-center text-sm border border-[#C8A45C]/40">
-                SM
-              </div>
-              <span className="font-extrabold text-base text-[#111827] tracking-wide">
-                Shad<span className="text-[#C8A45C]">Mini</span>
-              </span>
+              {brandLogo ? (
+                <img
+                  src={brandLogo}
+                  alt="ShadMini"
+                  className="h-8 max-w-[120px] object-contain rounded-lg"
+                />
+              ) : (
+                <>
+                  <div className="w-8 h-8 rounded-xl bg-[#1A1A1A] text-[#C8A45C] font-black flex items-center justify-center text-sm border border-[#C8A45C]/40">
+                    SM
+                  </div>
+                  <span className="font-extrabold text-base text-[#111827] tracking-wide">
+                    Shad<span className="text-[#C8A45C]">Mini</span>
+                  </span>
+                </>
+              )}
             </Link>
           </div>
 

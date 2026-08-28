@@ -84,6 +84,9 @@ router.get("/app-settings", async (_req, res) => {
     popupLinkText: String(map.get("store_popup_link_text") || ""),
     popupLinkUrl: String(map.get("store_popup_link_url") || ""),
     adminLoginImage: String(map.get("admin_login_image") || ""),
+    brandLogoUrl: String(map.get("brand_logo_url") || map.get("site_logo") || ""),
+    siteLogo: String(map.get("brand_logo_url") || map.get("site_logo") || ""),
+    siteName: String(map.get("site_name") || "ShadMini"),
     
     // Dynamic About & Contact Info
     aboutTitle: String(map.get("about_us_title") || defaultAboutTitle),
@@ -91,6 +94,17 @@ router.get("/app-settings", async (_req, res) => {
     contactPhone: String(map.get("contact_support_phone") || defaultContactPhone),
     contactEmail: String(map.get("contact_support_email") || defaultContactEmail),
     contactTelegram: String(map.get("contact_support_telegram") || defaultContactTelegram),
+  });
+});
+
+router.get("/settings/public", async (_req, res) => {
+  const rows = await db.select().from(settingsTable);
+  const map = new Map(rows.map((row) => [row.key, row.value]));
+  res.json({
+    brandLogoUrl: String(map.get("brand_logo_url") || map.get("site_logo") || ""),
+    siteLogo: String(map.get("brand_logo_url") || map.get("site_logo") || ""),
+    siteName: String(map.get("site_name") || "ShadMini"),
+    adminLoginImage: String(map.get("admin_login_image") || ""),
   });
 });
 
