@@ -1347,6 +1347,25 @@ makeCrud("social-links", socialLinksTable, {
   allowedFields: ["platform", "url", "label", "order"],
 });
 
+router.patch("/admin/social-links/reorder", requireAdmin, async (req, res) => {
+  try {
+    const items = req.body?.items; // Array of { id: number, order: number }
+    if (Array.isArray(items)) {
+      for (const item of items) {
+        if (item.id !== undefined && item.order !== undefined) {
+          await db
+            .update(socialLinksTable)
+            .set({ order: Number(item.order) })
+            .where(eq(socialLinksTable.id, Number(item.id)));
+        }
+      }
+    }
+    res.json({ ok: true });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Cascade delete للمزودين: حذف المنتجات المرتبطة ثم حذف المزود
 router.delete("/admin/providers/:id", requireAdmin, async (req, res) => {
   const providerId = Number(req.params.id);
@@ -1784,6 +1803,54 @@ router.put("/admin/settings/use-legacy-theme-page", requireAdmin, async (req, re
     await db
       .insert(settingsTable)
       .values({ key: "use_legacy_theme_page", value })
+      .onConflictDoUpdate({ target: settingsTable.key, set: { value } });
+    res.json({ ok: true, value });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.get("/admin/settings/use-legacy-settings-page", async (_req, res) => {
+  try {
+    const [row] = await db.select().from(settingsTable).where(eq(settingsTable.key, "use_legacy_settings_page")).limit(1);
+    const value = row?.value;
+    const isLegacy = value === "true" || value === true;
+    res.json({ key: "use_legacy_settings_page", value: String(isLegacy) });
+  } catch (err: any) {
+    res.json({ key: "use_legacy_settings_page", value: "false" });
+  }
+});
+
+router.put("/admin/settings/use-legacy-settings-page", requireAdmin, async (req, res) => {
+  try {
+    const value = String(req.body?.value === true || req.body?.value === "true");
+    await db
+      .insert(settingsTable)
+      .values({ key: "use_legacy_settings_page", value })
+      .onConflictDoUpdate({ target: settingsTable.key, set: { value } });
+    res.json({ ok: true, value });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.get("/admin/settings/use-legacy-social-links-page", async (_req, res) => {
+  try {
+    const [row] = await db.select().from(settingsTable).where(eq(settingsTable.key, "use_legacy_social_links_page")).limit(1);
+    const value = row?.value;
+    const isLegacy = value === "true" || value === true;
+    res.json({ key: "use_legacy_social_links_page", value: String(isLegacy) });
+  } catch (err: any) {
+    res.json({ key: "use_legacy_social_links_page", value: "false" });
+  }
+});
+
+router.put("/admin/settings/use-legacy-social-links-page", requireAdmin, async (req, res) => {
+  try {
+    const value = String(req.body?.value === true || req.body?.value === "true");
+    await db
+      .insert(settingsTable)
+      .values({ key: "use_legacy_social_links_page", value })
       .onConflictDoUpdate({ target: settingsTable.key, set: { value } });
     res.json({ ok: true, value });
   } catch (err: any) {

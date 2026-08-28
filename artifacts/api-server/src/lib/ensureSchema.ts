@@ -300,6 +300,7 @@ export async function ensureDatabaseSchema() {
       { key: "use_legacy_users_page", val: false },
       { key: "use_legacy_settings_page", val: false },
       { key: "use_legacy_theme_page", val: false },
+      { key: "use_legacy_social_links_page", val: false },
       { key: "theme_primary", val: "#C8A45C" },
       { key: "theme_secondary", val: "#B8954A" },
       { key: "theme_accent", val: "#FDE68A" },
