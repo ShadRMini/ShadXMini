@@ -269,9 +269,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    <div className="min-h-screen bg-[#F5F2EB] flex" dir="rtl">
+    <div className="min-h-screen bg-[#1A1A1A] text-white flex" dir="rtl">
       {/* Desktop Sidebar (visible on lg and above screens) */}
-      <aside className="hidden lg:block w-72 h-screen sticky top-0 border-l border-zinc-800 z-30 shadow-2xl shrink-0">
+      <aside className="hidden lg:block w-72 h-screen sticky top-0 border-l border-zinc-800 z-30 shadow-2xl shrink-0 bg-[#1A1A1A]">
         {renderSidebarContent()}
       </aside>
 
@@ -292,17 +292,17 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       )}
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 pb-20 lg:pb-8">
+      <div className="flex-1 flex flex-col min-w-0 pb-20 lg:pb-8 bg-[#1A1A1A]">
         {/* Mobile / Top Header Bar */}
-        <header className="sticky top-0 z-20 bg-white/95 backdrop-blur-md border-b border-[#D1D5DB] px-4 py-3 flex items-center justify-between shadow-xs">
+        <header className="sticky top-0 z-20 bg-[#1A1A1A]/95 backdrop-blur-md border-b border-[#C8A45C]/30 px-4 py-3 flex items-center justify-between shadow-md">
           <div className="flex items-center gap-3">
             {/* Hamburger Button */}
             <button
               onClick={() => setDrawerOpen(true)}
-              className="p-2 rounded-xl text-[#111827] hover:bg-slate-100 border border-slate-200 transition active:scale-95"
+              className="p-2 rounded-xl text-[#FDE68A] hover:bg-[#2D2D2D] border border-[#C8A45C]/30 transition active:scale-95 cursor-pointer"
               aria-label="فتح القائمة الجانبية"
             >
-              <Menu size={22} className="text-[#1A1A1A]" />
+              <Menu size={22} className="text-[#C8A45C]" />
             </button>
 
             <Link href="/" className="flex items-center gap-2">
@@ -315,10 +315,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 />
               ) : (
                 <>
-                  <div className="w-8 h-8 rounded-xl bg-[#1A1A1A] text-[#C8A45C] font-black flex items-center justify-center text-sm border border-[#C8A45C]/40">
+                  <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#2D2D2D] to-[#1A1A1A] text-[#C8A45C] font-black flex items-center justify-center text-sm border border-[#C8A45C]/50 shadow-xs">
                     SM
                   </div>
-                  <span className="font-extrabold text-base text-[#111827] tracking-wide">
+                  <span className="font-extrabold text-base text-white tracking-wide">
                     Shad<span className="text-[#C8A45C]">Mini</span>
                   </span>
                 </>
@@ -333,9 +333,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 <NotificationBellDropdown />
 
                 <Link href="/deposit">
-                  <div className="flex items-center gap-1.5 bg-[#F5F2EB] border border-[#C8A45C]/40 px-3 py-1.5 rounded-full cursor-pointer hover:border-[#C8A45C] transition">
-                    <span className="text-[11px] font-bold text-slate-600">الرصيد:</span>
-                    <span className="text-xs font-black text-[#C8A45C]">
+                  <div className="flex items-center gap-1.5 bg-[#2D2D2D] border border-[#C8A45C]/40 px-3 py-1.5 rounded-full cursor-pointer hover:border-[#C8A45C] hover:bg-[#383838] transition shadow-xs">
+                    <span className="text-[11px] font-bold text-zinc-300">الرصيد:</span>
+                    <span className="text-xs font-black text-[#FDE68A]">
                       ${Number(user.balanceUsd || 0).toFixed(2)}
                     </span>
                     <Plus size={13} className="text-[#C8A45C]" />
@@ -344,7 +344,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               </>
             ) : (
               <Link href="/login">
-                <button className="bg-[#C8A45C] text-[#1A1A1A] font-bold text-xs px-3.5 py-1.5 rounded-full shadow-xs">
+                <button className="bg-[#C8A45C] hover:bg-[#B8954A] text-[#1A1A1A] font-black text-xs px-3.5 py-1.5 rounded-full shadow-sm cursor-pointer transition">
                   دخول
                 </button>
               </Link>

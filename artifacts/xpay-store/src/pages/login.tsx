@@ -70,37 +70,39 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-[100dvh] flex flex-col justify-center items-center p-4 sm:p-6 bg-[#F5F2EB]" dir="rtl">
-      <div className="w-full max-w-md bg-white rounded-3xl p-6 sm:p-8 shadow-2xl border border-[#D1D5DB]">
+    <div className="min-h-[100dvh] flex flex-col justify-center items-center p-4 sm:p-6 bg-[#1A1A1A] text-white" dir="rtl">
+      <div className="w-full max-w-md bg-[#2D2D2D] rounded-3xl p-6 sm:p-8 shadow-2xl border border-[#C8A45C]/40 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-40 h-40 bg-[#C8A45C]/10 rounded-full blur-3xl pointer-events-none" />
+
         {/* Header with Logo */}
-        <div className="text-center mb-6">
+        <div className="text-center mb-6 relative z-10">
           <div className="inline-flex w-16 h-16 rounded-2xl bg-[#1A1A1A] border-2 border-[#C8A45C] text-[#C8A45C] text-2xl font-black items-center justify-center shadow-lg shadow-[#C8A45C]/20 mb-3">
-            SM
+            XP
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-[#111827] tracking-wide">
+          <h1 className="text-2xl sm:text-3xl font-black text-[#FDE68A] tracking-wide">
             تسجيل الدخول
           </h1>
-          <p className="text-sm font-medium text-slate-500 mt-1">
-            مرحباً بك في متجر <span className="text-[#C8A45C] font-bold">ShadMini</span>
+          <p className="text-sm font-medium text-zinc-400 mt-1">
+            مرحباً بك مجددًا في متجر <span className="text-[#C8A45C] font-bold">XPay</span>
           </p>
         </div>
 
         {/* Error Alert */}
         {error && (
-          <div className="mb-5 p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs sm:text-sm flex items-start gap-2.5">
-            <AlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+          <div className="mb-5 p-3.5 rounded-xl bg-red-950/70 border border-red-500/40 text-red-300 text-xs sm:text-sm flex items-start gap-2.5 shadow-md">
+            <AlertCircle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
             <span className="leading-relaxed font-medium">{error}</span>
           </div>
         )}
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 relative z-10">
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1.5">
+            <label className="block text-xs font-bold text-zinc-300 mb-1.5">
               اسم المستخدم أو البريد الإلكتروني
             </label>
             <div className="relative">
-              <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-slate-400">
+              <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-zinc-500">
                 <User size={18} />
               </div>
               <input
@@ -109,17 +111,17 @@ export default function Login() {
                 onChange={(e) => setIdentifier(e.target.value)}
                 placeholder="أدخل اسم المستخدم أو الإيميل"
                 disabled={loading}
-                className="w-full bg-[#FFFFFF] border border-[#D1D5DB] rounded-xl pr-10 pl-3 py-3 text-sm text-[#111827] placeholder:text-slate-400 focus:outline-none focus:border-[#C8A45C] focus:ring-2 focus:ring-[#C8A45C]/20 transition"
+                className="w-full bg-[#3D3D3D] border border-[#4B5563] rounded-xl pr-10 pl-3 py-3 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:border-[#C8A45C] focus:ring-2 focus:ring-[#C8A45C]/25 transition"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1.5">
+            <label className="block text-xs font-bold text-zinc-300 mb-1.5">
               كلمة المرور
             </label>
             <div className="relative">
-              <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-slate-400">
+              <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-zinc-500">
                 <Lock size={18} />
               </div>
               <input
@@ -128,12 +130,12 @@ export default function Login() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 disabled={loading}
-                className="w-full bg-[#FFFFFF] border border-[#D1D5DB] rounded-xl pr-10 pl-10 py-3 text-sm text-[#111827] placeholder:text-slate-400 focus:outline-none focus:border-[#C8A45C] focus:ring-2 focus:ring-[#C8A45C]/20 transition"
+                className="w-full bg-[#3D3D3D] border border-[#4B5563] rounded-xl pr-10 pl-10 py-3 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:border-[#C8A45C] focus:ring-2 focus:ring-[#C8A45C]/25 transition"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 hover:text-slate-600 transition"
+                className="absolute inset-y-0 left-0 pl-3 flex items-center text-zinc-400 hover:text-zinc-200 transition cursor-pointer"
               >
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
@@ -143,7 +145,7 @@ export default function Login() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-[#C8A45C] hover:bg-[#B8954A] active:scale-[0.98] text-[#1A1A1A] font-extrabold py-3.5 px-4 rounded-xl shadow-lg shadow-[#C8A45C]/30 flex items-center justify-center gap-2 text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-2"
+            className="w-full bg-[#C8A45C] hover:bg-[#B8954A] active:scale-[0.98] text-[#1A1A1A] font-black py-3.5 px-4 rounded-xl shadow-lg shadow-[#C8A45C]/30 flex items-center justify-center gap-2 text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-2 cursor-pointer"
           >
             {loading ? (
               <div className="w-5 h-5 border-2 border-[#1A1A1A] border-t-transparent rounded-full animate-spin" />
@@ -157,10 +159,10 @@ export default function Login() {
         </form>
 
         {/* Footer info */}
-        <div className="mt-6 text-center border-t border-slate-100 pt-5">
-          <p className="text-xs sm:text-sm text-slate-600">
+        <div className="mt-6 text-center border-t border-zinc-700/80 pt-5 relative z-10">
+          <p className="text-xs sm:text-sm text-zinc-400">
             ليس لديك حساب بعد؟{" "}
-            <Link href="/register" className="font-bold text-[#C8A45C] hover:text-[#B8954A] underline underline-offset-4">
+            <Link href="/register" className="font-black text-[#FDE68A] hover:text-[#C8A45C] underline underline-offset-4">
               إنشاء حساب جديد
             </Link>
           </p>

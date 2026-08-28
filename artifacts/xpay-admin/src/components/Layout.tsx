@@ -143,29 +143,29 @@ export default function Layout({
   }, {});
 
   return (
-    <div className="flex min-h-screen bg-[#F5F2EB]" dir="rtl">
+    <div className="flex min-h-screen bg-[#1A1A1A] text-white" dir="rtl">
       <aside
-        className={`fixed lg:static z-40 inset-y-0 right-0 w-72 bg-[#1A1A1A] border-l border-zinc-800 transform transition-transform overflow-y-auto ${
+        className={`fixed lg:static z-40 inset-y-0 right-0 w-72 bg-[#1A1A1A] border-l border-[#C8A45C]/20 transform transition-transform overflow-y-auto ${
           open ? "translate-x-0" : "translate-x-full lg:translate-x-0"
         }`}
       >
-        <div className="p-5 border-b border-zinc-800 flex items-center justify-between">
+        <div className="p-5 border-b border-[#C8A45C]/20 flex items-center justify-between">
           <div className="flex items-center gap-3">
             {brandLogo ? (
               <img
                 src={brandLogo}
-                alt="ShadMini"
+                alt="XPay"
                 onError={() => setBrandLogo("")}
                 className="h-10 max-w-[140px] object-contain rounded-xl"
               />
             ) : (
               <div>
-                <div className="text-xl font-extrabold text-[#C8A45C] tracking-wide">ShadMini</div>
+                <div className="text-xl font-extrabold text-[#FDE68A] tracking-wide">XPay Store</div>
                 <div className="text-xs text-zinc-400 mt-0.5 font-medium">لوحة الإدارة الفاخرة</div>
               </div>
             )}
           </div>
-          <button className="lg:hidden text-zinc-400 hover:text-[#C8A45C]" onClick={() => setOpen(false)}>
+          <button className="lg:hidden text-zinc-400 hover:text-[#C8A45C] cursor-pointer" onClick={() => setOpen(false)}>
             <X size={20} />
           </button>
         </div>
@@ -173,7 +173,7 @@ export default function Layout({
         <nav className="p-3 space-y-4">
           {Object.entries(groups || {}).map(([group, items]) => (
             <div key={group}>
-              <div className="text-xs font-semibold text-[#C8A45C]/80 px-3 mb-1.5">{group}</div>
+              <div className="text-xs font-bold text-[#C8A45C] px-3 mb-1.5">{group}</div>
               <div className="space-y-0.5">
                 {items.map((it) => (
                   <NavLink
@@ -182,10 +182,10 @@ export default function Layout({
                     end={it.to === "/"}
                     onClick={() => setOpen(false)}
                     className={({ isActive }) =>
-                      `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                      `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
                         isActive
-                          ? "bg-[#C8A45C] text-[#1A1A1A] font-bold shadow-md shadow-[#C8A45C]/30"
-                          : "text-[#F9FAFB] hover:bg-[#2A2A2A] hover:text-[#C8A45C]"
+                          ? "bg-[#C8A45C] text-[#1A1A1A] font-black shadow-md shadow-[#C8A45C]/30"
+                          : "text-zinc-300 hover:bg-[#2D2D2D] hover:text-[#FDE68A]"
                       }`
                     }
                   >
@@ -199,31 +199,31 @@ export default function Layout({
         </nav>
       </aside>
 
-      {open && <div className="fixed inset-0 bg-black/60 z-30 lg:hidden" onClick={() => setOpen(false)} />}
+      {open && <div className="fixed inset-0 bg-black/70 z-30 lg:hidden" onClick={() => setOpen(false)} />}
 
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="bg-white border-b border-[#D1D5DB] px-4 lg:px-6 py-3.5 flex items-center justify-between shadow-xs sticky top-0 z-30">
-          <button className="lg:hidden text-slate-700" onClick={() => setOpen(true)}>
+        <header className="bg-[#1A1A1A] border-b border-[#C8A45C]/20 px-4 lg:px-6 py-3.5 flex items-center justify-between shadow-md sticky top-0 z-30">
+          <button className="lg:hidden text-[#C8A45C] cursor-pointer" onClick={() => setOpen(true)}>
             <Menu size={22} />
           </button>
-          <div className="hidden lg:block text-sm font-medium text-slate-600">مرحبًا بك في لوحة إدارة XPayStore</div>
+          <div className="hidden lg:block text-sm font-medium text-zinc-300">مرحبًا بك في لوحة إدارة <span className="text-[#FDE68A] font-bold">XPay</span></div>
           <div className="flex items-center gap-3">
             
             {/* Bell Notifications Button with Dropdown */}
             <div className="relative" ref={notifRef}>
               <button
                 onClick={() => setShowNotifMenu(!showNotifMenu)}
-                className={`text-slate-600 hover:text-[#C8A45C] p-2.5 rounded-xl border transition-all relative flex items-center justify-center ${
+                className={`text-[#C8A45C] hover:text-[#FDE68A] p-2.5 rounded-xl border border-[#C8A45C]/30 transition-all relative flex items-center justify-center cursor-pointer ${
                   showNotifMenu 
-                    ? "bg-[#C8A45C]/15 border-[#C8A45C] text-[#C8A45C]" 
-                    : "bg-slate-50 hover:bg-slate-100 border-slate-200"
+                    ? "bg-[#C8A45C]/20 border-[#C8A45C]" 
+                    : "bg-[#2D2D2D] hover:bg-[#383838]"
                 }`}
                 title="مركز الإشعارات والتنبيهات"
                 type="button"
               >
-                <Bell size={19} className={unreadCount > 0 ? "text-[#C8A45C]" : "text-slate-600"} />
+                <Bell size={19} className="text-[#C8A45C]" />
                 {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 min-w-[19px] h-[19px] px-1 bg-gradient-to-r from-amber-500 to-[#C8A45C] text-[#1A1A1A] font-extrabold text-[11px] rounded-full flex items-center justify-center ring-2 ring-white shadow-xs animate-pulse">
+                  <span className="absolute -top-1 -right-1 min-w-[19px] h-[19px] px-1 bg-[#C8A45C] text-[#1A1A1A] font-black text-[11px] rounded-full flex items-center justify-center ring-2 ring-[#1A1A1A] shadow-xs animate-pulse">
                     {unreadCount > 99 ? "99+" : unreadCount}
                   </span>
                 )}
@@ -231,16 +231,16 @@ export default function Layout({
 
               {/* Dropdown Menu */}
               {showNotifMenu && (
-                <div className="absolute left-0 sm:right-auto sm:left-0 mt-2 w-80 sm:w-96 bg-[#1A1A1A] text-white rounded-2xl shadow-2xl border border-[#C8A45C]/30 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+                <div className="absolute left-0 sm:right-auto sm:left-0 mt-2 w-80 sm:w-96 bg-[#2D2D2D] text-white rounded-2xl shadow-2xl border border-[#C8A45C]/40 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-150">
                   {/* Header */}
-                  <div className="p-4 border-b border-zinc-800 flex items-center justify-between bg-zinc-900/90">
+                  <div className="p-4 border-b border-[#C8A45C]/20 flex items-center justify-between bg-[#1A1A1A]">
                     <div className="flex items-center gap-2">
                       <div className="w-7 h-7 rounded-lg bg-[#C8A45C]/20 border border-[#C8A45C]/40 flex items-center justify-center text-[#C8A45C]">
                         <Bell size={15} />
                       </div>
-                      <span className="font-bold text-sm text-[#F9FAFB]">مركز الإشعارات</span>
+                      <span className="font-bold text-sm text-[#FDE68A]">مركز الإشعارات</span>
                     </div>
-                    <span className="text-xs bg-[#C8A45C]/20 text-[#C8A45C] font-bold px-2 py-0.5 rounded-full border border-[#C8A45C]/30">
+                    <span className="text-xs bg-[#C8A45C]/20 text-[#FDE68A] font-bold px-2 py-0.5 rounded-full border border-[#C8A45C]/35">
                       {unreadCount} إشعار
                     </span>
                   </div>
@@ -260,14 +260,14 @@ export default function Layout({
                             setShowNotifMenu(false);
                             navigate("/notifications");
                           }}
-                          className="p-3.5 hover:bg-zinc-800/80 cursor-pointer transition-colors flex items-start gap-3 text-right"
+                          className="p-3.5 hover:bg-[#383838] cursor-pointer transition-colors flex items-start gap-3 text-right"
                         >
-                          <div className="w-8 h-8 rounded-lg bg-zinc-800 border border-zinc-700 flex items-center justify-center shrink-0 text-[#C8A45C] mt-0.5">
+                          <div className="w-8 h-8 rounded-lg bg-[#1A1A1A] border border-[#C8A45C]/30 flex items-center justify-center shrink-0 text-[#C8A45C] mt-0.5">
                             <Bell size={14} />
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between gap-1 mb-1">
-                              <span className="font-bold text-xs text-[#F9FAFB] truncate">
+                              <span className="font-bold text-xs text-[#FDE68A] truncate">
                                 {n.title || "إشعار جديد"}
                               </span>
                               <span className="text-[10px] text-zinc-400 shrink-0">
@@ -289,13 +289,13 @@ export default function Layout({
                   </div>
 
                   {/* Footer Action */}
-                  <div className="p-3 bg-zinc-900 border-t border-zinc-800">
+                  <div className="p-3 bg-[#1A1A1A] border-t border-[#C8A45C]/20">
                     <button
                       onClick={() => {
                         setShowNotifMenu(false);
                         navigate("/notifications");
                       }}
-                      className="w-full py-2 px-3 bg-gradient-to-r from-[#C8A45C] to-[#b5924b] text-[#1A1A1A] font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 hover:opacity-90 transition-opacity shadow-md shadow-[#C8A45C]/20"
+                      className="w-full py-2 px-3 bg-[#C8A45C] hover:bg-[#B8954A] text-[#1A1A1A] font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition shadow-md shadow-[#C8A45C]/20 cursor-pointer"
                     >
                       <span>عرض جميع الإشعارات وإرسال جديد</span>
                       <ArrowRight size={14} />
@@ -307,29 +307,29 @@ export default function Layout({
 
             <button
               onClick={() => setDarkMode((value) => !value)}
-              className="text-slate-500 hover:text-[#C8A45C] p-2.5 rounded-xl hover:bg-slate-100 border border-slate-200 transition-colors"
+              className="text-[#C8A45C] hover:text-[#FDE68A] p-2.5 rounded-xl bg-[#2D2D2D] hover:bg-[#383838] border border-[#C8A45C]/30 transition-colors cursor-pointer"
               title={darkMode ? "تفعيل الوضع الفاتح" : "تفعيل الوضع الداكن"}
               type="button"
             >
               {darkMode ? <Sun size={18} /> : <Moon size={18} />}
             </button>
             <div className="text-sm text-left hidden sm:block">
-              <div className="font-bold text-slate-900">{me?.fullName || me?.username}</div>
+              <div className="font-bold text-white">{me?.fullName || me?.username}</div>
               <div className="text-xs text-[#C8A45C] font-semibold">{me?.role}</div>
             </div>
-            <div className="w-9 h-9 rounded-full bg-[#C8A45C] text-white flex items-center justify-center font-bold shadow-sm">
+            <div className="w-9 h-9 rounded-full bg-[#C8A45C] text-[#1A1A1A] flex items-center justify-center font-bold shadow-sm">
               {(me?.fullName || me?.username || "?").charAt(0).toUpperCase()}
             </div>
             <button
               onClick={handleLogout}
-              className="text-slate-500 hover:text-rose-600 p-2.5 rounded-xl hover:bg-rose-50 border border-slate-200 transition-colors"
+              className="text-zinc-400 hover:text-rose-400 p-2.5 rounded-xl bg-[#2D2D2D] hover:bg-rose-950/40 border border-[#C8A45C]/20 transition-colors cursor-pointer"
               title="تسجيل الخروج"
             >
               <LogOut size={18} />
             </button>
           </div>
         </header>
-        <main className="flex-1 p-4 lg:p-6 overflow-x-auto bg-[#F5F2EB]">{children}</main>
+        <main className="flex-1 p-4 lg:p-6 overflow-x-auto bg-[#1A1A1A] text-white">{children}</main>
       </div>
     </div>
   );

@@ -33,61 +33,62 @@ export default function Login({ onSuccess }: { onSuccess: (u: any) => void }) {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center p-4"
-      style={{ background: "radial-gradient(circle at top, #2A2A2A 0%, #1A1A1A 60%, #111111 100%)" }}
+      className="min-h-screen flex items-center justify-center p-4 bg-[#1A1A1A] text-white"
       dir="rtl"
     >
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 border border-[#D1D5DB]">
-        <div className="text-center mb-7">
+      <div className="bg-[#2D2D2D] rounded-3xl shadow-2xl w-full max-w-md p-8 border border-[#C8A45C]/40 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-40 h-40 bg-[#C8A45C]/10 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="text-center mb-7 relative z-10">
           {loginImage ? (
-            <div className="mx-auto w-24 h-24 rounded-2xl overflow-hidden shadow-lg border border-[#D1D5DB] bg-slate-50">
-              <img src={loginImage} alt="ShadMini" className="w-full h-full object-cover" />
+            <div className="mx-auto w-24 h-24 rounded-2xl overflow-hidden shadow-lg border border-[#C8A45C]/40 bg-[#1A1A1A]">
+              <img src={loginImage} alt="XPay" className="w-full h-full object-cover" />
             </div>
           ) : (
-            <div className="inline-flex w-16 h-16 rounded-2xl bg-[#C8A45C] text-white text-2xl font-extrabold items-center justify-center shadow-lg shadow-[#C8A45C]/30">
-              SM
+            <div className="inline-flex w-16 h-16 rounded-2xl bg-[#1A1A1A] border-2 border-[#C8A45C] text-[#C8A45C] text-2xl font-black items-center justify-center shadow-lg shadow-[#C8A45C]/30">
+              XP
             </div>
           )}
-          <h1 className="text-2xl font-black text-slate-900 mt-4 tracking-wide">ShadMini</h1>
-          <p className="text-sm font-medium text-[#C8A45C] mt-1">لوحة الإدارة الفاخرة</p>
+          <h1 className="text-2xl font-black text-[#FDE68A] mt-4 tracking-wide">XPay Store</h1>
+          <p className="text-sm font-bold text-[#C8A45C] mt-1">لوحة الإدارة الفاخرة</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 relative z-10">
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1.5">اسم المستخدم</label>
+            <label className="block text-xs font-bold text-zinc-300 mb-1.5">اسم المستخدم</label>
             <div className="relative">
-              <User size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <User size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500" />
               <input
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
-                className="w-full border border-[#D1D5DB] rounded-lg pr-10 pl-3 py-2.5 text-sm focus:border-[#C8A45C] focus:ring-2 focus:ring-[#C8A45C]/20"
+                className="w-full bg-[#3D3D3D] border border-[#4B5563] text-white rounded-xl pr-10 pl-3 py-3 text-sm focus:outline-none focus:border-[#C8A45C] focus:ring-2 focus:ring-[#C8A45C]/25 transition"
                 placeholder="أدخل اسم المستخدم"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1.5">كلمة المرور</label>
+            <label className="block text-xs font-bold text-zinc-300 mb-1.5">كلمة المرور</label>
             <div className="relative">
-              <Lock size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Lock size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500" />
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full border border-[#D1D5DB] rounded-lg pr-10 pl-3 py-2.5 text-sm focus:border-[#C8A45C] focus:ring-2 focus:ring-[#C8A45C]/20"
+                className="w-full bg-[#3D3D3D] border border-[#4B5563] text-white rounded-xl pr-10 pl-3 py-3 text-sm focus:outline-none focus:border-[#C8A45C] focus:ring-2 focus:ring-[#C8A45C]/25 transition"
                 placeholder="••••••••"
               />
             </div>
           </div>
 
-          {err && <div className="p-3 bg-rose-50 text-rose-700 rounded-lg text-sm">{err}</div>}
+          {err && <div className="p-3 bg-red-950/70 border border-red-500/40 text-red-300 rounded-xl text-xs font-medium">{err}</div>}
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-[#C8A45C] hover:bg-[#B8954A] text-white font-bold py-2.5 rounded-lg shadow-md shadow-[#C8A45C]/30 disabled:opacity-50 transition"
+            className="w-full bg-[#C8A45C] hover:bg-[#B8954A] active:scale-[0.98] text-[#1A1A1A] font-black py-3.5 rounded-xl shadow-lg shadow-[#C8A45C]/30 disabled:opacity-50 transition cursor-pointer"
           >
             {loading ? "جاري الدخول..." : "تسجيل الدخول"}
           </button>

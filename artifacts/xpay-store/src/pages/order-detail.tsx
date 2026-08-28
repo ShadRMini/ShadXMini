@@ -1,4 +1,4 @@
-﻿import { useGetOrder, getGetOrderQueryKey } from "@workspace/api-client-react";
+import { useGetOrder, getGetOrderQueryKey } from "@workspace/api-client-react";
 import { useRoute, Link } from "wouter";
 import { ChevronRight, Package, Clock, CheckCircle2, XCircle, HeadphonesIcon, Copy } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -47,34 +47,34 @@ export default function OrderDetail() {
   const isReject = order.status === "reject";
 
   return (
-    <div className="min-h-screen bg-background animate-in slide-in-from-right-4 duration-300">
-      <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-xl px-4 py-3 flex items-center gap-3">
+    <div className="min-h-screen bg-[#1A1A1A] text-white animate-in slide-in-from-right-4 duration-300" dir="rtl">
+      <div className="sticky top-0 z-10 bg-[#1A1A1A]/90 backdrop-blur-xl border-b border-[#C8A45C]/30 px-4 py-3 flex items-center gap-3">
         <Link href="/orders">
-          <div className="bg-card p-2 rounded-full cursor-pointer hover:bg-white/5 transition-colors">
-            <ChevronRight className="w-5 h-5 text-foreground" />
+          <div className="bg-[#2D2D2D] p-2 rounded-full cursor-pointer hover:bg-[#3D3D3D] border border-[#C8A45C]/30 hover:border-[#C8A45C] transition-colors">
+            <ChevronRight className="w-5 h-5 text-[#C8A45C]" />
           </div>
         </Link>
-        <h1 className="font-bold text-lg">تفاصيل الطلب</h1>
+        <h1 className="font-black text-lg text-[#FDE68A]">تفاصيل الطلب</h1>
       </div>
 
-      <div className="p-4 pb-24 space-y-6">
+      <div className="p-4 pb-24 space-y-6 max-w-2xl mx-auto">
         <div
           className={`p-6 rounded-3xl border relative overflow-hidden ${
             isAccept
-              ? "bg-emerald-500/10 border-emerald-500/20"
+              ? "bg-emerald-950/40 border-emerald-500/40"
               : isReject
-                ? "bg-destructive/10 border-destructive/20"
-                : "bg-amber-500/10 border-amber-500/20"
+                ? "bg-red-950/40 border-red-500/40"
+                : "bg-amber-950/40 border-[#C8A45C]/40"
           }`}
         >
           <div className="flex flex-col items-center text-center relative z-10">
             <div
-              className={`w-16 h-16 rounded-full flex items-center justify-center mb-3 ${
+              className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-3 shadow-lg ${
                 isAccept
-                  ? "bg-emerald-500 text-white shadow-[0_0_20px_rgba(16,185,129,0.3)]"
+                  ? "bg-emerald-600 text-white shadow-[0_0_20px_rgba(16,185,129,0.3)]"
                   : isReject
-                    ? "bg-destructive text-white shadow-[0_0_20px_rgba(239,68,68,0.3)]"
-                    : "bg-amber-500 text-white shadow-[0_0_20px_rgba(245,158,11,0.3)]"
+                    ? "bg-red-600 text-white shadow-[0_0_20px_rgba(239,68,68,0.3)]"
+                    : "bg-[#C8A45C] text-[#1A1A1A] shadow-[0_0_20px_rgba(200,164,92,0.3)]"
               }`}
             >
               {isAccept ? (
@@ -85,10 +85,10 @@ export default function OrderDetail() {
                 <Clock className="w-8 h-8" />
               )}
             </div>
-            <h2 className="text-xl font-black text-foreground mb-1">
+            <h2 className="text-xl font-black text-white mb-1">
               {isAccept ? "اكتمل الطلب بنجاح" : isReject ? "تم رفض الطلب" : "الطلب قيد المراجعة"}
             </h2>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-zinc-300">
               {isAccept
                 ? "تم تنفيذ طلبك بنجاح. شكرًا لثقتك بنا."
                 : isReject
@@ -98,31 +98,31 @@ export default function OrderDetail() {
           </div>
         </div>
 
-        <div className="bg-card border border-white/5 rounded-3xl p-5 shadow-lg space-y-5">
-          <div className="flex items-center gap-4 pb-5 border-b border-white/5">
-            <div className="w-16 h-16 rounded-2xl bg-background border border-white/5 overflow-hidden shrink-0 flex items-center justify-center">
+        <div className="bg-[#2D2D2D] border border-[#C8A45C]/35 rounded-3xl p-5 shadow-xl space-y-5">
+          <div className="flex items-center gap-4 pb-5 border-b border-zinc-700/60">
+            <div className="w-16 h-16 rounded-2xl bg-[#1A1A1A] border border-[#C8A45C]/30 overflow-hidden shrink-0 flex items-center justify-center">
               {order.productImage ? (
                 <img src={order.productImage} alt="" className="w-full h-full object-cover" />
               ) : (
-                <Package className="w-8 h-8 text-muted-foreground" />
+                <Package className="w-8 h-8 text-[#C8A45C]/60" />
               )}
             </div>
             <div>
-              <h3 className="font-bold text-foreground mb-1">{order.productName}</h3>
-              <div className="text-sm text-muted-foreground">
-                الكمية: <span className="font-bold text-foreground">{order.quantity}</span>
+              <h3 className="font-black text-white mb-1 text-base">{order.productName}</h3>
+              <div className="text-sm text-zinc-400">
+                الكمية: <span className="font-black text-[#FDE68A]">{order.quantity}</span>
               </div>
             </div>
           </div>
 
           <div className="space-y-4">
             <div className="flex justify-between items-center">
-              <span className="text-sm text-muted-foreground">رقم الطلب</span>
+              <span className="text-sm text-zinc-400">رقم الطلب</span>
               <div className="flex items-center gap-2">
-                <span className="text-sm font-mono font-bold text-foreground">{order.orderNumber}</span>
+                <span className="text-sm font-mono font-black text-[#C8A45C]">#{order.orderNumber}</span>
                 <button
                   onClick={() => copyToClipboard(order.orderNumber, "رقم الطلب")}
-                  className="text-muted-foreground hover:text-primary transition-colors"
+                  className="text-zinc-400 hover:text-[#FDE68A] transition-colors cursor-pointer"
                 >
                   <Copy className="w-4 h-4" />
                 </button>
@@ -130,20 +130,20 @@ export default function OrderDetail() {
             </div>
 
             <div className="flex justify-between items-center">
-              <span className="text-sm text-muted-foreground">تاريخ الطلب</span>
-              <span className="text-sm font-medium text-foreground" dir="ltr">
+              <span className="text-sm text-zinc-400">تاريخ الطلب</span>
+              <span className="text-sm font-bold text-zinc-200" dir="ltr">
                 {formatDateTime(order.createdAt)}
               </span>
             </div>
 
             {order.userIdentifier && (
               <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">معرف اللاعب</span>
+                <span className="text-sm text-zinc-400">معرف الحساب / الرقم</span>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-mono font-bold text-foreground">{order.userIdentifier}</span>
+                  <span className="text-sm font-mono font-bold text-white">{order.userIdentifier}</span>
                   <button
                     onClick={() => copyToClipboard(order.userIdentifier!, "المعرف")}
-                    className="text-muted-foreground hover:text-primary transition-colors"
+                    className="text-zinc-400 hover:text-[#FDE68A] transition-colors cursor-pointer"
                   >
                     <Copy className="w-4 h-4" />
                   </button>
@@ -151,24 +151,24 @@ export default function OrderDetail() {
               </div>
             )}
 
-            <div className="h-px bg-white/5 w-full" />
+            <div className="h-px bg-zinc-700/60 w-full" />
 
             <div className="flex justify-between items-center">
-              <span className="text-sm text-muted-foreground">المبلغ الإجمالي</span>
+              <span className="text-sm text-zinc-400 font-bold">المبلغ الإجمالي</span>
               <div className="text-left">
-                <div className="text-lg font-black text-primary">${order.totalUsd.toFixed(2)}</div>
+                <div className="text-2xl font-black text-[#FDE68A]">${order.totalUsd.toFixed(2)}</div>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="bg-card border border-white/5 rounded-3xl p-5 shadow-lg flex items-center justify-between">
+        <div className="bg-[#2D2D2D] border border-[#C8A45C]/35 rounded-3xl p-5 shadow-lg flex items-center justify-between">
           <div>
-            <div className="font-bold text-foreground mb-1 text-sm">هل واجهت مشكلة؟</div>
-            <div className="text-xs text-muted-foreground">فريق الدعم متواجد لمساعدتك</div>
+            <div className="font-bold text-white mb-1 text-sm">هل واجهت مشكلة؟</div>
+            <div className="text-xs text-zinc-400">فريق الدعم الفني متواجد لمساعدتك</div>
           </div>
           <Link href="/support">
-            <Button variant="outline" className="rounded-xl border-white/10 hover:bg-white/5 text-xs h-9">
+            <Button variant="outline" className="rounded-xl border-[#C8A45C]/40 bg-[#1A1A1A] hover:bg-[#383838] text-[#C8A45C] hover:text-[#FDE68A] text-xs h-10 px-4 cursor-pointer font-bold">
               <HeadphonesIcon className="w-4 h-4 ml-2" />
               تواصل معنا
             </Button>

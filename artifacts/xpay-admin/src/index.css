@@ -5,17 +5,17 @@
   --primary-dark: #B8954A;
   --dark: #1A1A1A;
   --accent: #FDE68A;
-  --background: #F5F2EB;
-  --card: #FFFFFF;
-  --text-dark: #111827;
+  --background: #1A1A1A;
+  --card: #2D2D2D;
+  --text-dark: #FFFFFF;
   --text-light: #F9FAFB;
-  --border: #D1D5DB;
+  --border: #3D3D3D;
 
   --color-gold: #C8A45C;
   --color-gold-dark: #B8954A;
   --color-gold-light: #FDE68A;
   --color-deep-dark: #1A1A1A;
-  --color-warm-bg: #F5F2EB;
+  --color-card-dark: #2D2D2D;
 
   --font-family-arabic: "Cairo", sans-serif;
   --font-family-english: "Inter", sans-serif;
@@ -31,13 +31,13 @@
   --color-primary-dark: #B8954A;
   --color-gold: #C8A45C;
   --color-dark: #1A1A1A;
-  --color-beige: #F5F2EB;
+  --color-card: #2D2D2D;
 
-  --color-brand-50: #FAF6ED;
-  --color-brand-100: #F4ECD6;
-  --color-brand-200: #EBD9AC;
-  --color-brand-300: #DEC37F;
-  --color-brand-400: #D3B266;
+  --color-brand-50: #2A2418;
+  --color-brand-100: #3E3520;
+  --color-brand-200: #5C4F2E;
+  --color-brand-300: #857242;
+  --color-brand-400: #A89052;
   --color-brand-500: #C8A45C;
   --color-brand-600: #C8A45C;
   --color-brand-700: #B8954A;
@@ -59,8 +59,8 @@ body,
 
 body {
   margin: 0;
-  background-color: #F5F2EB;
-  color: #111827;
+  background-color: #1A1A1A;
+  color: #FFFFFF;
   direction: rtl;
   font-family: "Cairo", "Inter", sans-serif;
 }
@@ -70,7 +70,7 @@ body {
   height: 8px;
 }
 ::-webkit-scrollbar-thumb {
-  background: #D1D5DB;
+  background: #374151;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
@@ -87,9 +87,9 @@ button {
 input,
 select,
 textarea {
-  border-color: #D1D5DB;
-  background-color: #FFFFFF;
-  color: #111827;
+  border-color: #4B5563;
+  background-color: #3D3D3D;
+  color: #FFFFFF;
   transition: all 0.2s ease-in-out;
 }
 
@@ -103,8 +103,8 @@ textarea:focus {
 
 .btn-primary, button.bg-brand-600 {
   background-color: #C8A45C !important;
-  color: #FFFFFF !important;
-  font-weight: 600;
+  color: #1A1A1A !important;
+  font-weight: 700;
   transition: all 0.2s ease-in-out;
 }
 
@@ -118,6 +118,71 @@ textarea:focus {
   font-weight: 700;
   box-shadow: 0 0 12px rgba(200, 164, 92, 0.4);
   border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+/* Base dark and gold overrides */
+.bg-white {
+  background-color: #2D2D2D !important;
+  color: #FFFFFF;
+}
+
+.bg-slate-50,
+.bg-slate-100 {
+  background-color: #242424 !important;
+}
+
+.bg-slate-200 {
+  background-color: #333333 !important;
+}
+
+.border-slate-100,
+.border-slate-200,
+.border-slate-300,
+.border-gray-200,
+.border-gray-300 {
+  border-color: rgba(200, 164, 92, 0.25) !important;
+}
+
+.text-slate-900,
+.text-slate-800,
+.text-gray-900,
+.text-gray-800 {
+  color: #FFFFFF !important;
+}
+
+.text-slate-700,
+.text-slate-600,
+.text-gray-700,
+.text-gray-600 {
+  color: #E5E7EB !important;
+}
+
+.text-slate-500,
+.text-slate-400,
+.text-gray-500,
+.text-gray-400 {
+  color: #9CA3AF !important;
+}
+
+table thead,
+.bg-slate-100 table thead,
+.bg-slate-50 table thead {
+  background-color: #202020 !important;
+  color: #FDE68A !important;
+}
+
+tr:hover,
+.hover\:bg-slate-50:hover,
+.hover\:bg-slate-100:hover {
+  background-color: #363636 !important;
+}
+
+.shadow-sm,
+.shadow-md,
+.shadow-lg,
+.shadow-xl,
+.shadow-2xl {
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4) !important;
 }
 
 /* Admin panel dark mode. Scoped to xpay-admin only via html.admin-dark. */

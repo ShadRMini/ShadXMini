@@ -11,17 +11,18 @@
   --primary-dark: #B8954A;
   --dark: #1A1A1A;
   --accent: #FDE68A;
-  --background: #F5F2EB;
-  --card: #FFFFFF;
-  --text-dark: #111827;
-  --text-light: #F9FAFB;
-  --border: #D1D5DB;
+  --background: #1A1A1A;
+  --card: #2D2D2D;
+  --card-foreground: #FFFFFF;
+  --text-dark: #FFFFFF;
+  --text-light: #E5E7EB;
+  --border: #C8A45C55;
 
   --color-gold: #C8A45C;
   --color-gold-dark: #B8954A;
   --color-gold-light: #FDE68A;
   --color-deep-dark: #1A1A1A;
-  --color-warm-bg: #F5F2EB;
+  --color-warm-bg: #2D2D2D;
 
   --font-arabic: 'Cairo', sans-serif;
   --font-english: 'Inter', sans-serif;
@@ -35,29 +36,29 @@
   --font-english: var(--font-english);
 
   --color-primary: #C8A45C;
-  --color-primary-foreground: #FFFFFF;
+  --color-primary-foreground: #1A1A1A;
   --color-primary-dark: #B8954A;
 
-  --color-background: #F5F2EB;
-  --color-foreground: #111827;
+  --color-background: #1A1A1A;
+  --color-foreground: #FFFFFF;
 
-  --color-card: #FFFFFF;
-  --color-card-foreground: #111827;
-  --color-card-border: #D1D5DB;
+  --color-card: #2D2D2D;
+  --color-card-foreground: #FFFFFF;
+  --color-card-border: rgba(200, 164, 92, 0.35);
 
-  --color-border: #D1D5DB;
-  --color-input: #D1D5DB;
+  --color-border: rgba(200, 164, 92, 0.25);
+  --color-input: #4B5563;
   --color-ring: #C8A45C;
 
-  --color-popover: #FFFFFF;
-  --color-popover-foreground: #111827;
-  --color-popover-border: #D1D5DB;
+  --color-popover: #2D2D2D;
+  --color-popover-foreground: #FFFFFF;
+  --color-popover-border: rgba(200, 164, 92, 0.4);
 
-  --color-secondary: #F3ECE0;
-  --color-secondary-foreground: #111827;
+  --color-secondary: #3D3D3D;
+  --color-secondary-foreground: #FDE68A;
 
-  --color-muted: #EAE4D8;
-  --color-muted-foreground: #6B7280;
+  --color-muted: #242424;
+  --color-muted-foreground: #9CA3AF;
 
   --color-accent: #FDE68A;
   --color-accent-foreground: #1A1A1A;
@@ -67,42 +68,43 @@
 
   --color-sidebar: #1A1A1A;
   --color-sidebar-foreground: #F9FAFB;
-  --color-sidebar-border: rgba(200, 164, 92, 0.2);
+  --color-sidebar-border: rgba(200, 164, 92, 0.25);
   --color-sidebar-primary: #C8A45C;
-  --color-sidebar-primary-foreground: #FFFFFF;
+  --color-sidebar-primary-foreground: #1A1A1A;
 
   --color-gold: #C8A45C;
   --color-gold-dark: #B8954A;
   --color-gold-light: #FDE68A;
   --color-dark: #1A1A1A;
-  --color-beige: #F5F2EB;
+  --color-dark-card: #2D2D2D;
+  --color-dark-input: #3D3D3D;
 }
 
 @layer base {
   * {
-    border-color: #D1D5DB;
+    border-color: rgba(200, 164, 92, 0.25);
     font-family: var(--app-font-sans);
   }
   
   body {
-    background-color: #F5F2EB;
-    color: #111827;
+    background-color: #1A1A1A;
+    color: #FFFFFF;
     font-family: 'Cairo', 'Inter', sans-serif;
     min-height: 100dvh;
     direction: rtl;
   }
 
   input, select, textarea {
-    border-color: #D1D5DB;
-    background-color: #FFFFFF;
-    color: #111827;
+    border-color: #4B5563;
+    background-color: #3D3D3D;
+    color: #FFFFFF;
     transition: all 0.2s ease-in-out;
   }
 
   input:focus, select:focus, textarea:focus {
     outline: none;
     border-color: #C8A45C !important;
-    box-shadow: 0 0 0 3px rgba(200, 164, 92, 0.2) !important;
+    box-shadow: 0 0 0 3px rgba(200, 164, 92, 0.25) !important;
   }
 }
 
@@ -110,31 +112,31 @@
 
 .xpay-shell {
   isolation: isolate;
-  background-color: #F5F2EB;
+  background-color: #1A1A1A;
   background-image: 
-    radial-gradient(circle at 15% 8%, rgba(200, 164, 92, 0.08), transparent 40%),
-    radial-gradient(circle at 88% 18%, rgba(253, 230, 138, 0.12), transparent 35%),
-    linear-gradient(180deg, #F5F2EB 0%, #EFECE3 100%);
-  color: #111827;
+    radial-gradient(circle at 15% 8%, rgba(200, 164, 92, 0.12), transparent 40%),
+    radial-gradient(circle at 88% 18%, rgba(253, 230, 138, 0.08), transparent 35%),
+    linear-gradient(180deg, #1A1A1A 0%, #141414 100%);
+  color: #FFFFFF;
 }
 
 .xpay-app-frame {
-  background-color: #F5F2EB;
-  border-inline: 1px solid rgba(200, 164, 92, 0.15);
-  box-shadow: 0 20px 50px rgba(26, 26, 26, 0.06);
+  background-color: #1A1A1A;
+  border-inline: 1px solid rgba(200, 164, 92, 0.25);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
 }
 
 .xpay-brand-card {
-  background: linear-gradient(135deg, #1A1A1A 0%, #2A2A2A 100%);
+  background: linear-gradient(135deg, #2D2D2D 0%, #1F1F1F 100%);
   border: 1px solid rgba(200, 164, 92, 0.35);
   color: #F9FAFB;
-  box-shadow: 0 10px 25px -5px rgba(200, 164, 92, 0.15);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
 }
 
 .btn-primary, .bg-primary-gold {
   background-color: #C8A45C;
-  color: #FFFFFF;
-  font-weight: 600;
+  color: #1A1A1A;
+  font-weight: 700;
   transition: all 0.2s ease-in-out;
 }
 
@@ -145,21 +147,22 @@
 .vip-badge, .badge-vip {
   background: linear-gradient(135deg, #FDE68A 0%, #C8A45C 100%);
   color: #1A1A1A;
-  font-weight: 700;
+  font-weight: 800;
   box-shadow: 0 0 12px rgba(200, 164, 92, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .card-luxury {
-  background-color: #FFFFFF;
-  border-radius: 0.75rem;
-  border: 1px solid #E5E7EB;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  background-color: #2D2D2D;
+  border-radius: 1rem;
+  border: 1px solid rgba(200, 164, 92, 0.35);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  color: #FFFFFF;
 }
 
 .card-luxury:hover {
-  border-color: rgba(200, 164, 92, 0.4);
-  box-shadow: 0 10px 20px -3px rgba(200, 164, 92, 0.12);
+  border-color: #C8A45C;
+  box-shadow: 0 10px 24px -3px rgba(200, 164, 92, 0.2);
 }
 
 .gold-glow {

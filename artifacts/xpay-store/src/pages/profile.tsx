@@ -93,63 +93,63 @@ export default function Profile() {
       </div>
 
       {/* Balance Card */}
-      <div className="bg-[#F5F2EB] border border-[#C8A45C]/30 rounded-3xl p-5 shadow-md flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-[#1A1A1A] text-[#C8A45C] flex items-center justify-center shadow-md">
+      <div className="bg-[#2D2D2D] border border-[#C8A45C]/35 rounded-3xl p-5 shadow-lg flex items-center justify-between">
+        <div className="flex items-center gap-3.5">
+          <div className="w-12 h-12 rounded-2xl bg-[#1A1A1A] border border-[#C8A45C]/40 text-[#C8A45C] flex items-center justify-center shadow-md">
             <Wallet className="w-6 h-6" />
           </div>
           <div>
-            <div className="text-xs text-slate-600 font-bold">الرصيد المتاح بالمحفظة</div>
-            <div className="text-2xl font-black text-slate-900">
+            <div className="text-xs text-zinc-400 font-bold">الرصيد المتاح بالمحفظة</div>
+            <div className="text-2xl font-black text-[#FDE68A]">
               ${Number(user?.balanceUsd || profile?.balanceUsd || 0).toFixed(2)}
             </div>
           </div>
         </div>
 
         <Link href="/deposit">
-          <button className="px-4 py-2 bg-[#C8A45C] hover:bg-[#B8954A] text-[#1A1A1A] text-xs font-bold rounded-xl shadow-md transition active:scale-95">
-            شحن الرصيد
+          <button className="px-4 py-2.5 bg-[#C8A45C] hover:bg-[#B8954A] text-[#1A1A1A] text-xs font-black rounded-xl shadow-md shadow-[#C8A45C]/20 transition active:scale-95 cursor-pointer">
+            + شحن الرصيد
           </button>
         </Link>
       </div>
 
       {/* Actions List */}
-      <div className="bg-[#F5F2EB] border border-[#C8A45C]/30 rounded-3xl overflow-hidden shadow-md divide-y divide-slate-200/80">
+      <div className="bg-[#2D2D2D] border border-[#C8A45C]/35 rounded-3xl overflow-hidden shadow-lg divide-y divide-zinc-800">
         {/* Account Settings / Edit Profile */}
         <Link href="/settings">
-          <div className="p-4 flex items-center justify-between hover:bg-slate-100/80 cursor-pointer transition-colors group">
+          <div className="p-4 flex items-center justify-between hover:bg-[#383838] cursor-pointer transition-colors group">
             <div className="flex items-center gap-3.5">
-              <div className="w-11 h-11 rounded-2xl bg-[#1A1A1A] text-[#C8A45C] flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
+              <div className="w-11 h-11 rounded-2xl bg-[#1A1A1A] border border-[#C8A45C]/30 text-[#C8A45C] flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
                 <Settings className="w-5 h-5" />
               </div>
               <div>
-                <div className="font-extrabold text-sm text-slate-900 group-hover:text-[#C8A45C] transition-colors">
+                <div className="font-extrabold text-sm text-white group-hover:text-[#FDE68A] transition-colors">
                   إعدادات الحساب وتعديل الملف
                 </div>
-                <div className="text-xs text-slate-500 font-medium">
+                <div className="text-xs text-zinc-400 font-medium">
                   تعديل اسم المستخدم، البريد، الصورة، وكلمة المرور
                 </div>
               </div>
             </div>
-            <ChevronLeft className="w-5 h-5 text-slate-400 group-hover:text-[#C8A45C] transition-colors" />
+            <ChevronLeft className="w-5 h-5 text-zinc-500 group-hover:text-[#C8A45C] transition-colors" />
           </div>
         </Link>
 
         {/* Logout */}
         <div
           onClick={logout}
-          className="p-4 flex items-center justify-between hover:bg-red-50 cursor-pointer transition-colors group text-red-600"
+          className="p-4 flex items-center justify-between hover:bg-red-950/30 cursor-pointer transition-colors group text-red-400"
         >
           <div className="flex items-center gap-3.5">
-            <div className="w-11 h-11 rounded-2xl bg-red-100/80 text-red-600 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
+            <div className="w-11 h-11 rounded-2xl bg-red-950/60 border border-red-900/40 text-red-400 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
               <LogOut className="w-5 h-5" />
             </div>
             <div>
-              <div className="font-extrabold text-sm">تسجيل الخروج</div>
-              <div className="text-xs text-red-500/80 font-medium">إنهاء الجلسة على هذا المتصفح</div>
+              <div className="font-extrabold text-sm text-red-400 group-hover:text-red-300">تسجيل الخروج</div>
+              <div className="text-xs text-red-400/70 font-medium">إنهاء الجلسة على هذا المتصفح</div>
             </div>
           </div>
-          <ChevronLeft className="w-5 h-5 text-red-400 group-hover:text-red-600 transition-colors" />
+          <ChevronLeft className="w-5 h-5 text-red-500/60 group-hover:text-red-400 transition-colors" />
         </div>
       </div>
     </div>
