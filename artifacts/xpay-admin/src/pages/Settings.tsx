@@ -21,6 +21,7 @@ const FIELDS: { key: string; label: string; type?: string; placeholder?: string 
   { key: "store_popup_message", label: "نص الرسالة المنبثقة" },
   { key: "store_popup_link_text", label: "نص رابط الرسالة المنبثقة" },
   { key: "store_popup_link_url", label: "رابط الرسالة المنبثقة" },
+  { key: "use_legacy_product_form", label: "تفعيل واجهة المنتجات القديمة (Legacy) (true/false)" },
 ];
 
 export default function Settings() {
@@ -91,7 +92,7 @@ export default function Settings() {
         .map((x) => x.trim())
         .filter(Boolean);
     }
-    if (["store_popup_enabled", "registration_open"].includes(key)) {
+    if (["store_popup_enabled", "registration_open", "use_legacy_product_form"].includes(key)) {
       const text = String(value ?? "").trim().toLowerCase();
       if (text === "true") return true;
       if (text === "false") return false;

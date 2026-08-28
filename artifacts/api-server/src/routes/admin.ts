@@ -3094,4 +3094,39 @@ router.put("/admin/maintenance-settings", requireAdmin, async (req, res) => {
   }
 });
 
+// Legacy Product Form Toggle Settings
+router.get("/admin/settings/use-legacy-product-form", requireAdmin, async (_req, res) => {
+  try {
+    const rows = await db.select().from(settingsTable).where(eq(settingsTable.key, "use_legacy_product_form"));
+    const val = rows[0]?.value;
+    const isLegacy = val === true || val === "true" || JSON.stringify(val) === "true";
+    res.json({ value: isLegacy ? "true" : "false", useLegacy: isLegacy });
+  } catch (err: any) {
+    res.status(500).json({ error: err?.message || "فشل جلب إعداد واجهة المنتجات" });
+  }
+});
+
+router.put("/admin/settings/use-legacy-product-form", requireAdmin, async (req, res) => {
+  try {
+    const { value, useLegacy } = req.body;
+    const isLegacy = value === true || value === "true" || useLegacy === true || useLegacy === "true";
+
+    await db
+      .insert(settingsTable)
+      .values({ key: "use_legacy_product_form", value: isLegacy })
+      .onConflictDoUpdate({ target: settingsTable.key, set: { value: isLegacy } });
+
+    await logActivity(
+      { id: req.session.adminId, name: req.session.adminUsername },
+      "use_legacy_product_form_update",
+      "settings",
+      ["use_legacy_product_form"]
+    );
+
+    res.json({ success: true, value: isLegacy ? "true" : "false", useLegacy: isLegacy });
+  } catch (err: any) {
+    res.status(500).json({ error: err?.message || "فشل تحديث إعداد واجهة المنتجات" });
+  }
+});
+
 export default router;
