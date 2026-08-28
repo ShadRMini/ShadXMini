@@ -6,6 +6,21 @@ let schemaEnsured = false;
 export async function ensureDatabaseSchema() {
   if (schemaEnsured) return;
   try {
+    // 0. Admins table
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS admins (
+        id SERIAL PRIMARY KEY,
+        username TEXT NOT NULL UNIQUE,
+        password TEXT NOT NULL,
+        full_name TEXT NOT NULL,
+        email TEXT,
+        role TEXT NOT NULL DEFAULT 'admin',
+        permissions JSONB,
+        active BOOLEAN NOT NULL DEFAULT true,
+        created_at TIMESTAMP NOT NULL DEFAULT NOW()
+      );
+    `);
+
     // 1. Providers table & columns
     await db.execute(sql`
       CREATE TABLE IF NOT EXISTS categories (

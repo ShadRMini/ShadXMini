@@ -113,6 +113,7 @@ export default function App() {
           <Route path="/api-keys" element={<ApiKeys />} />
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/admins" element={<Admins />} />
+          <Route path="/admin/admins" element={<Navigate to="/admins" replace />} />
           <Route path="/activity" element={<ActivityLog />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/theme" element={<Theme />} />

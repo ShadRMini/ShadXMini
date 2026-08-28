@@ -1633,54 +1633,100 @@ router.get("/admin/activity", requireAdmin, async (_req, res) => {
 
 // ========== ADMINS MANAGEMENT ==========
 router.get("/admin/admins", requireAdmin, async (_req, res) => {
-  const rows = await db.select().from(adminsTable).orderBy(desc(adminsTable.id));
-  res.json(rows.map((r) => ({ ...r, password: undefined })));
+  try {
+    const rows = await db.select().from(adminsTable).orderBy(desc(adminsTable.id));
+    res.json(rows.map((r) => ({ ...r, password: undefined })));
+  } catch (err: any) {
+    console.error("Error fetching admins:", err);
+    res.status(500).json({ error: err.message || "خطأ في جلب قائمة المشرفين" });
+  }
 });
 
 router.post("/admin/admins", requireAdmin, async (req, res) => {
-  const data = filterFields(req.body, [
-    "username",
-    "password",
-    "fullName",
-    "email",
-    "role",
-    "permissions",
-    "active",
-  ]);
-  if (!data.password || typeof data.password !== "string") {
-    res.status(400).json({ error: "كلمة المرور مطلوبة" });
-    return;
+  try {
+    const data = filterFields(req.body, [
+      "username",
+      "password",
+      "fullName",
+      "email",
+      "role",
+      "permissions",
+      "active",
+    ]);
+    if (!data.username || typeof data.username !== "string" || !data.username.trim()) {
+      res.status(400).json({ error: "اسم المستخدم مطلوب" });
+      return;
+    }
+    if (!data.password || typeof data.password !== "string") {
+      res.status(400).json({ error: "كلمة المرور مطلوبة" });
+      return;
+    }
+    data.password = await hashAdminPassword(data.password);
+    if (!data.fullName) data.fullName = data.username;
+    if (!data.role) data.role = "admin";
+    if (data.active === undefined) data.active = true;
+
+    const [row] = await db.insert(adminsTable).values(data).returning();
+    res.json({ ...row, password: undefined });
+  } catch (err: any) {
+    console.error("Error creating admin:", err);
+    res.status(500).json({ error: err.message || "خطأ في إنشاء المشرف" });
   }
-  data.password = await hashAdminPassword(data.password);
-  const [row] = await db.insert(adminsTable).values(data).returning();
-  res.json({ ...row, password: undefined });
 });
 
-router.patch("/admin/admins/:id", requireAdmin, async (req, res) => {
-  const data = filterFields(req.body, [
-    "username",
-    "password",
-    "fullName",
-    "email",
-    "role",
-    "permissions",
-    "active",
-  ]);
-  if (data.password === "") delete data.password;
-  if (typeof data.password === "string") {
-    data.password = await hashAdminPassword(data.password);
+const handleUpdateAdmin = async (req: any, res: any) => {
+  try {
+    const id = Number(req.params.id);
+    if (!id) {
+      res.status(400).json({ error: "معرف المشرف غير صالحة" });
+      return;
+    }
+    const data = filterFields(req.body, [
+      "username",
+      "password",
+      "fullName",
+      "email",
+      "role",
+      "permissions",
+      "active",
+    ]);
+    if (data.password === "" || data.password === null) delete data.password;
+    if (typeof data.password === "string" && data.password.trim()) {
+      data.password = await hashAdminPassword(data.password.trim());
+    } else {
+      delete data.password;
+    }
+
+    const [row] = await db
+      .update(adminsTable)
+      .set(data)
+      .where(eq(adminsTable.id, id))
+      .returning();
+    
+    if (!row) {
+      res.status(404).json({ error: "المشرف غير موجود" });
+      return;
+    }
+
+    res.json({ ...row, password: undefined });
+  } catch (err: any) {
+    console.error("Error updating admin:", err);
+    res.status(500).json({ error: err.message || "خطأ في تعديل بيانات المشرف" });
   }
-  const [row] = await db
-    .update(adminsTable)
-    .set(data)
-    .where(eq(adminsTable.id, Number(req.params.id)))
-    .returning();
-  res.json({ ...row, password: undefined });
-});
+};
+
+router.put("/admin/admins/:id", requireAdmin, handleUpdateAdmin);
+router.patch("/admin/admins/:id", requireAdmin, handleUpdateAdmin);
 
 router.delete("/admin/admins/:id", requireAdmin, async (req, res) => {
-  await db.delete(adminsTable).where(eq(adminsTable.id, Number(req.params.id)));
-  res.json({ ok: true });
+  try {
+    const id = Number(req.params.id);
+    await db.delete(adminsTable).where(eq(adminsTable.id, id));
+    res.json({ ok: true });
+  } catch (err: any) {
+    console.error("Error deleting admin:", err);
+    res.status(500).json({ error: err.message || "خطأ في حذف المشرف" });
+  }
 });
 
 // ========== NOTIFICATIONS ==========
