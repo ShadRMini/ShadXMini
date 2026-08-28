@@ -177,46 +177,60 @@ export default function ShamCashInvoiceVerify() {
   };
 
   if (params?.method !== "sham_cash_auto") {
-    return <div className="p-4 text-center mt-20 text-muted-foreground">صفحة التحقق مخصصة لشام كاش التلقائي فقط</div>;
+    return (
+      <div className="min-h-screen bg-[#1A1A1A] p-4 text-center pt-20 text-zinc-400" dir="rtl">
+        صفحة التحقق مخصصة لشام كاش التلقائي فقط
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-background pb-24 animate-in slide-in-from-right-4 duration-300">
-      <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-xl px-4 py-3 flex items-center gap-3 border-b border-white/5">
-        <Link href="/deposit/sham_cash_auto">
-          <div className="bg-card p-2 rounded-full cursor-pointer hover:bg-white/5 transition-colors">
-            <ChevronRight className="w-5 h-5 text-foreground" />
-          </div>
-        </Link>
-        <h1 className="font-bold text-lg">تحقق من الإيداع</h1>
+    <div className="min-h-screen bg-[#1A1A1A] text-white pb-24 animate-in slide-in-from-right-4 duration-300" dir="rtl">
+      {/* Top Header */}
+      <div className="sticky top-0 z-20 bg-[#1A1A1A]/95 backdrop-blur-xl px-4 py-3.5 flex items-center justify-between border-b border-[#C8A45C]/20 shadow-md">
+        <div className="flex items-center gap-3">
+          <Link href="/deposit/sham_cash_auto">
+            <div className="bg-[#2D2D2D] p-2 rounded-xl border border-[#C8A45C]/40 hover:border-[#C8A45C] text-[#C8A45C] hover:text-[#FDE68A] transition-colors cursor-pointer shadow-xs">
+              <ChevronRight className="w-5 h-5" />
+            </div>
+          </Link>
+          <h1 className="font-bold text-base sm:text-lg text-[#FDE68A]">التحقق من إيداع شام كاش</h1>
+        </div>
+        <span className="text-[11px] px-2.5 py-1 rounded-full bg-[#C8A45C]/20 border border-[#C8A45C]/35 text-[#FDE68A] font-bold">
+          تحقق فوري
+        </span>
       </div>
 
-      <div className="p-4 mt-4 space-y-5">
-        <div className="xpay-brand-card rounded-3xl border p-6 text-center shadow-xl">
-          <div className="mx-auto mb-4 w-16 h-16 rounded-full bg-primary/15 border border-primary/20 flex items-center justify-center">
-            <ClipboardCheck className="w-8 h-8 text-primary" />
+      <div className="max-w-xl mx-auto p-4 sm:p-5 mt-2 space-y-5">
+        {/* Info Card */}
+        <div className="bg-[#2D2D2D] rounded-3xl border border-[#C8A45C]/35 p-6 text-center shadow-xl relative overflow-hidden">
+          <div className="mx-auto mb-4 w-16 h-16 rounded-2xl bg-gradient-to-br from-[#C8A45C]/25 to-[#1A1A1A] border border-[#C8A45C]/50 flex items-center justify-center text-[#C8A45C] shadow-md">
+            <ClipboardCheck className="w-8 h-8" />
           </div>
-          <h2 className="text-xl font-black text-foreground mb-2">أدخل رقم عملية شام كاش</h2>
-          <p className="text-sm text-muted-foreground leading-6">
-            بعد تحويل المبلغ، اكتب رقم العملية كما ظهر في تطبيق شام كاش ثم اضغط تحقق من العملية.
+          <h2 className="text-lg sm:text-xl font-black text-[#FDE68A] mb-2">أدخل رقم عملية شام كاش</h2>
+          <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed max-w-md mx-auto">
+            بعد تحويل المبلغ في تطبيق شام كاش، اكتب رقم العملية كما ظهر في التطبيق ثم اضغط تحقق لتأكيد الشحن فوراً.
           </p>
         </div>
 
-        <div className="bg-card border border-white/5 rounded-3xl p-5 shadow-lg space-y-4">
-          <div className="rounded-2xl bg-background/70 border border-primary/15 p-4">
-            <div className="text-xs text-muted-foreground mb-1">رقم الفاتورة</div>
-            <div className="font-mono text-sm font-bold break-all">{invoiceId || "غير متوفر"}</div>
+        {/* Verification Form Card */}
+        <div className="bg-[#2D2D2D] border border-[#C8A45C]/35 rounded-3xl p-5 sm:p-6 shadow-xl space-y-4">
+          <div className="rounded-2xl bg-[#1A1A1A] border border-[#C8A45C]/25 p-4 shadow-inner">
+            <div className="text-xs font-bold text-[#C8A45C] mb-1">رقم الفاتورة (Invoice ID)</div>
+            <div className="font-mono text-sm font-bold text-white break-all select-all">{invoiceId || "غير متوفر"}</div>
           </div>
 
           {expiresAt ? (
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <Clock3 className="w-4 h-4 text-primary" />
-              <span>تنتهي الفاتورة عند: {new Date(expiresAt).toLocaleString()}</span>
+            <div className="flex items-center gap-2 text-xs text-zinc-400 bg-[#241D12] p-3 rounded-xl border border-[#C8A45C]/20">
+              <Clock3 className="w-4 h-4 text-[#C8A45C]" />
+              <span>تنتهي صلاحية الفاتورة: {new Date(expiresAt).toLocaleString("ar-EG")}</span>
             </div>
           ) : null}
 
           <div>
-            <label className="text-sm font-bold text-foreground mb-2 block">رقم العملية *</label>
+            <label className="text-xs sm:text-sm font-bold text-[#E5E7EB] mb-2 block">
+              رقم العملية في شام كاش *
+            </label>
             <Input
               type="text"
               inputMode="numeric"
@@ -224,7 +238,7 @@ export default function ShamCashInvoiceVerify() {
               placeholder="مثال: 206259523"
               value={transactionRef}
               onChange={(e) => setTransactionRef(e.target.value.replace(/\D+/g, ""))}
-              className="h-12 bg-background border-white/5 rounded-xl text-base font-mono"
+              className="h-12 bg-[#3D3D3D] border-[#4B5563] text-white placeholder:text-zinc-400 rounded-xl text-base font-mono focus:border-[#C8A45C] focus:ring-1 focus:ring-[#C8A45C]"
             />
           </div>
 
@@ -232,10 +246,10 @@ export default function ShamCashInvoiceVerify() {
             type="button"
             onClick={verifyAutoInvoice}
             disabled={verifying || !invoiceId}
-            className="w-full h-12 rounded-xl font-bold bg-emerald-600 hover:bg-emerald-500"
+            className="w-full h-13 rounded-2xl font-black text-base bg-[#C8A45C] hover:bg-[#B8954A] text-[#1A1A1A] transition-all shadow-lg shadow-[#C8A45C]/20 cursor-pointer active:scale-98 disabled:opacity-50"
           >
-            <CheckCircle2 className="w-5 h-5 ml-2" />
-            {verifying ? "جاري التحقق..." : "تحقق من العملية"}
+            <CheckCircle2 className="w-5 h-5 ml-2 text-[#1A1A1A]" />
+            {verifying ? "جاري التحقق..." : "تحقق من العملية الآن"}
           </Button>
         </div>
       </div>

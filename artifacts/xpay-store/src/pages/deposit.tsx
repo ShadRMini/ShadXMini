@@ -1,4 +1,4 @@
-﻿import { useListPaymentMethods, getListPaymentMethodsQueryKey } from "@workspace/api-client-react";
+import { useListPaymentMethods, getListPaymentMethodsQueryKey } from "@workspace/api-client-react";
 import { useEffect, useState } from "react";
 import { Link } from "wouter";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -95,23 +95,23 @@ export default function Deposit() {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24 p-4 animate-in fade-in duration-300">
-      <div className="mb-6 mt-4 text-center">
-        <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-primary/20 shadow-[0_0_30px_hsl(var(--primary)/0.18)]">
-          <Wallet className="w-8 h-8 text-primary" />
+    <div className="min-h-screen bg-[#1A1A1A] text-white pb-24 p-4 animate-in fade-in duration-300" dir="rtl">
+      <div className="mb-6 mt-4 text-center max-w-md mx-auto">
+        <div className="w-16 h-16 bg-gradient-to-br from-[#C8A45C]/25 to-[#1A1A1A] rounded-2xl flex items-center justify-center mx-auto mb-4 border border-[#C8A45C]/50 shadow-[0_0_25px_rgba(200,164,92,0.25)]">
+          <Wallet className="w-8 h-8 text-[#C8A45C]" />
         </div>
-        <h1 className="text-2xl font-black text-foreground mb-2">اختر وسيلة الشحن</h1>
-        <p className="text-sm text-muted-foreground">وسائل دفع آمنة ومباشرة لإضافة الرصيد إلى حسابك</p>
+        <h1 className="text-2xl font-black text-[#FDE68A] mb-2">اختر وسيلة الشحن</h1>
+        <p className="text-xs sm:text-sm text-zinc-400">وسائل دفع آمنة ومباشرة لإضافة الرصيد إلى حسابك فورياً</p>
       </div>
 
       {isLoading && visibleMethods.length === 0 ? (
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-4 max-w-xl mx-auto">
           {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-32 rounded-3xl" />
+            <Skeleton key={i} className="h-36 rounded-3xl bg-zinc-800" />
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-4 max-w-xl mx-auto">
           {visibleMethods
             ?.filter((m) => m.active)
             .map((method, i) => (
@@ -119,25 +119,25 @@ export default function Deposit() {
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.1 }}
-                  className={`p-5 rounded-3xl border border-white/5 bg-card hover:bg-white/5 transition-all cursor-pointer h-full flex flex-col items-center justify-center text-center group ${getMethodColor(method.code)}`}
+                  transition={{ delay: i * 0.08 }}
+                  className="p-5 rounded-3xl border border-[#C8A45C]/35 bg-[#2D2D2D] hover:bg-[#383838] hover:border-[#C8A45C] hover:shadow-[0_0_20px_rgba(200,164,92,0.2)] transition-all cursor-pointer h-full flex flex-col items-center justify-center text-center group shadow-md"
                 >
                   <div className="mb-3 transform group-hover:scale-110 transition-transform duration-300">
                     {getMethodIcon(method)}
                   </div>
-                  <h3 className="font-bold text-foreground text-sm mb-1">{getDisplayName(method)}</h3>
-                  <p className="text-[10px] text-muted-foreground">{getDisplaySubtitle(method)}</p>
+                  <h3 className="font-bold text-[#FDE68A] text-sm mb-1">{getDisplayName(method)}</h3>
+                  <p className="text-[10px] text-zinc-400">{getDisplaySubtitle(method)}</p>
                 </motion.div>
               </Link>
             ))}
         </div>
       )}
 
-      <div className="mt-8 bg-card border border-white/5 rounded-2xl p-4 flex items-center gap-4">
-        <ShieldCheck className="w-10 h-10 text-emerald-500 shrink-0" />
+      <div className="mt-8 max-w-xl mx-auto bg-[#2D2D2D] border border-[#C8A45C]/30 rounded-2xl p-4 flex items-center gap-4 shadow-lg">
+        <ShieldCheck className="w-9 h-9 text-[#C8A45C] shrink-0" />
         <div>
-          <h4 className="text-sm font-bold text-foreground mb-1">دفع آمن 100%</h4>
-          <p className="text-xs text-muted-foreground">جميع عمليات الدفع مشفّرة ومؤمنة بالكامل. يتم إضافة الرصيد تلقائيًا أو بعد مراجعة سريعة.</p>
+          <h4 className="text-sm font-bold text-[#FDE68A] mb-1">دفع آمن ومشفّر 100%</h4>
+          <p className="text-xs text-zinc-300">جميع عمليات الدفع مشفّرة ومؤمنة بالكامل. يتم إضافة الرصيد تلقائيًا أو بعد مراجعة فورية.</p>
         </div>
       </div>
     </div>
