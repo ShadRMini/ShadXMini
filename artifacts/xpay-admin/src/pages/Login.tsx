@@ -8,12 +8,20 @@ export default function Login({ onSuccess }: { onSuccess: (u: any) => void }) {
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [loginImage, setLoginImage] = useState("");
+  const [loginTitle, setLoginTitle] = useState("ShadMini");
+  const [loginSubtitle, setLoginSubtitle] = useState("لوحة الإدارة الفاخرة");
 
   useEffect(() => {
     const baseUrl = (import.meta.env.VITE_API_URL || "").replace(/\/+$/, "");
     fetch(`${baseUrl}/api/app-settings`)
       .then((res) => (res.ok ? res.json() : null))
-      .then((data) => setLoginImage(String(data?.adminLoginImage || "")))
+      .then((data) => {
+        if (data) {
+          setLoginImage(String(data?.adminLoginImage || ""));
+          if (data?.adminLoginTitle) setLoginTitle(String(data.adminLoginTitle));
+          if (data?.adminLoginSubtitle) setLoginSubtitle(String(data.adminLoginSubtitle));
+        }
+      })
       .catch(() => {});
   }, []);
 
@@ -49,8 +57,8 @@ export default function Login({ onSuccess }: { onSuccess: (u: any) => void }) {
               XP
             </div>
           )}
-          <h1 className="text-2xl font-black text-[#FDE68A] mt-4 tracking-wide">XPay Store</h1>
-          <p className="text-sm font-bold text-[#C8A45C] mt-1">لوحة الإدارة الفاخرة</p>
+          <h1 className="text-2xl font-black text-[#FDE68A] mt-4 tracking-wide">{loginTitle}</h1>
+          <p className="text-sm font-bold text-[#C8A45C] mt-1">{loginSubtitle}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4 relative z-10">

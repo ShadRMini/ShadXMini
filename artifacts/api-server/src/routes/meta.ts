@@ -95,6 +95,12 @@ router.get("/app-settings", async (_req, res) => {
     site_logo: String(map.get("brand_logo_url") || map.get("site_logo") || ""),
     siteName: String(map.get("site_name") || "ShadMini"),
     site_name: String(map.get("site_name") || "ShadMini"),
+    admin_login_title: String(map.get("admin_login_title") || "ShadMini"),
+    adminLoginTitle: String(map.get("admin_login_title") || "ShadMini"),
+    admin_login_subtitle: String(map.get("admin_login_subtitle") || "لوحة الإدارة الفاخرة"),
+    adminLoginSubtitle: String(map.get("admin_login_subtitle") || "لوحة الإدارة الفاخرة"),
+    admin_dashboard_welcome: String(map.get("admin_dashboard_welcome") || "مرحبًا بك في لوحة إدارة ShadMini"),
+    adminDashboardWelcome: String(map.get("admin_dashboard_welcome") || "مرحبًا بك في لوحة إدارة ShadMini"),
     
     // Dynamic About & Contact Info
     aboutTitle: String(map.get("about_us_title") || defaultAboutTitle),
@@ -121,6 +127,12 @@ const getPublicSettingsHandler = async (_req: any, res: any) => {
     siteName: siteName,
     admin_login_image: adminLoginImage,
     adminLoginImage: adminLoginImage,
+    admin_login_title: String(map.get("admin_login_title") || "ShadMini"),
+    adminLoginTitle: String(map.get("admin_login_title") || "ShadMini"),
+    admin_login_subtitle: String(map.get("admin_login_subtitle") || "لوحة الإدارة الفاخرة"),
+    adminLoginSubtitle: String(map.get("admin_login_subtitle") || "لوحة الإدارة الفاخرة"),
+    admin_dashboard_welcome: String(map.get("admin_dashboard_welcome") || "مرحبًا بك في لوحة إدارة ShadMini"),
+    adminDashboardWelcome: String(map.get("admin_dashboard_welcome") || "مرحبًا بك في لوحة إدارة ShadMini"),
     news_ticker_speed: Number(map.get("news_ticker_speed") || 15),
   });
 };

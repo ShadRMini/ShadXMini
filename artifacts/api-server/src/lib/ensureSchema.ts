@@ -282,6 +282,9 @@ export async function ensureDatabaseSchema() {
       { key: "use_legacy_product_form", val: false },
       { key: "use_legacy_dashboard", val: false },
       { key: "use_legacy_api_products", val: false },
+      { key: "admin_login_title", val: "ShadMini" },
+      { key: "admin_login_subtitle", val: "لوحة الإدارة الفاخرة" },
+      { key: "admin_dashboard_welcome", val: "مرحبًا بك في لوحة إدارة ShadMini" },
     ];
     for (const item of maintenanceDefaultKeys) {
       const existing: any = await db.execute(sql`SELECT key FROM settings WHERE key = ${item.key}`);

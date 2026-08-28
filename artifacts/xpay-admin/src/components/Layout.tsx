@@ -77,6 +77,9 @@ export default function Layout({
   const [open, setOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem("xpay-admin-theme") === "dark");
   const [brandLogo, setBrandLogo] = useState<string>("");
+  const [loginTitle, setLoginTitle] = useState("ShadMini");
+  const [loginSubtitle, setLoginSubtitle] = useState("لوحة الإدارة الفاخرة");
+  const [dashboardWelcome, setDashboardWelcome] = useState("مرحبًا بك في لوحة إدارة ShadMini");
   const [notifications, setNotifications] = useState<QuickNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [showNotifMenu, setShowNotifMenu] = useState(false);
@@ -90,9 +93,12 @@ export default function Layout({
     fetch(`${baseUrl}/api/settings/public`)
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
-        if (active) {
+        if (active && data) {
           const logo = (data?.brandLogoUrl || data?.brand_logo_url || data?.siteLogo || data?.site_logo || "").trim();
           if (logo) setBrandLogo(logo);
+          if (data?.adminLoginTitle) setLoginTitle(String(data.adminLoginTitle));
+          if (data?.adminLoginSubtitle) setLoginSubtitle(String(data.adminLoginSubtitle));
+          if (data?.adminDashboardWelcome) setDashboardWelcome(String(data.adminDashboardWelcome));
         }
       })
       .catch(() => {});
@@ -161,14 +167,14 @@ export default function Layout({
             {brandLogo ? (
               <img
                 src={brandLogo}
-                alt="XPay"
+                alt={loginTitle}
                 onError={() => setBrandLogo("")}
                 className="h-10 max-w-[140px] object-contain rounded-xl"
               />
             ) : (
               <div>
-                <div className="text-xl font-extrabold text-[#FDE68A] tracking-wide">XPay Store</div>
-                <div className="text-xs text-zinc-400 mt-0.5 font-medium">لوحة الإدارة الفاخرة</div>
+                <div className="text-xl font-extrabold text-[#FDE68A] tracking-wide">{loginTitle}</div>
+                <div className="text-xs text-zinc-400 mt-0.5 font-medium">{loginSubtitle}</div>
               </div>
             )}
           </div>
@@ -213,7 +219,7 @@ export default function Layout({
           <button className="lg:hidden text-[#C8A45C] cursor-pointer" onClick={() => setOpen(true)}>
             <Menu size={22} />
           </button>
-          <div className="hidden lg:block text-sm font-medium text-zinc-300">مرحبًا بك في لوحة إدارة <span className="text-[#FDE68A] font-bold">XPay</span></div>
+          <div className="hidden lg:block text-sm font-medium text-zinc-300">{dashboardWelcome}</div>
           <div className="flex items-center gap-3">
             
             {/* Bell Notifications Button with Dropdown */}
