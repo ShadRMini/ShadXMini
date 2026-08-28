@@ -242,10 +242,12 @@ export default function DepositMethod() {
         ? `${apiBaseUrl}/api/deposits/shamcash/invoice?tg_id=${encodeURIComponent(tg.id)}&tg_username=${encodeURIComponent(tg.username || "")}`
         : `${apiBaseUrl}/api/deposits/shamcash/invoice`;
 
+      const token = typeof window !== "undefined" ? localStorage.getItem("xpay_store_auth_token") : null;
       fetch(invoiceUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
           ...(tg?.id ? { "x-telegram-id": tg.id } : {}),
           ...(tg?.initDataRaw || webAppData
             ? { "x-telegram-init-data": encodeURIComponent(tg?.initDataRaw || webAppData) }
