@@ -297,6 +297,7 @@ export async function ensureDatabaseSchema() {
       { key: "use_legacy_product_form", val: false },
       { key: "use_legacy_dashboard", val: false },
       { key: "use_legacy_api_products", val: false },
+      { key: "use_legacy_users_page", val: false },
       { key: "admin_login_title", val: "ShadMini" },
       { key: "admin_login_subtitle", val: "لوحة الإدارة الفاخرة" },
       { key: "admin_dashboard_welcome", val: "مرحبًا بك في لوحة إدارة ShadMini" },

@@ -1401,63 +1401,209 @@ makeCrud("notifications", notificationsTable, {
 
 // ========== USERS ==========
 router.get("/admin/users", requireAdmin, async (req, res) => {
-  const q = (req.query["q"] as string | undefined)?.trim();
-  let rows;
-  if (q) {
-    const numId = Number(q);
-    if (!isNaN(numId)) {
-      rows = await db
-        .select()
-        .from(usersTable)
-        .where(
-          sql`${usersTable.id} = ${numId} OR ${usersTable.displayId} ILIKE ${"%" + q + "%"} OR ${usersTable.username} ILIKE ${"%" + q + "%"} OR ${usersTable.email} ILIKE ${"%" + q + "%"} OR ${usersTable.telegramId} ILIKE ${"%" + q + "%"}`
-        )
-        .orderBy(desc(usersTable.createdAt))
-        .limit(200);
-    } else {
-      rows = await db
-        .select()
-        .from(usersTable)
-        .where(
-          sql`${usersTable.displayId} ILIKE ${"%" + q + "%"} OR ${usersTable.username} ILIKE ${"%" + q + "%"} OR ${usersTable.email} ILIKE ${"%" + q + "%"} OR ${usersTable.telegramId} ILIKE ${"%" + q + "%"}`
-        )
-        .orderBy(desc(usersTable.createdAt))
-        .limit(200);
+  try {
+    const q = (req.query["q"] as string | undefined)?.trim();
+    const role = (req.query["role"] as string | undefined)?.trim();
+    const vipLevel = req.query["vipLevel"] ? Number(req.query["vipLevel"]) : undefined;
+    const status = (req.query["status"] as string | undefined)?.trim();
+
+    const conditions: any[] = [];
+
+    if (role && role !== "all") {
+      conditions.push(eq(usersTable.role, role));
     }
-  } else {
-    rows = await db.select().from(usersTable).orderBy(desc(usersTable.createdAt)).limit(200);
+    if (vipLevel && !isNaN(vipLevel)) {
+      conditions.push(eq(usersTable.vipLevel, vipLevel));
+    }
+    if (status === "banned" || status === "true") {
+      conditions.push(eq(usersTable.banned, true));
+    } else if (status === "active" || status === "false") {
+      conditions.push(eq(usersTable.banned, false));
+    }
+
+    if (q) {
+      const numId = Number(q);
+      if (!isNaN(numId)) {
+        conditions.push(
+          sql`(${usersTable.id} = ${numId} OR ${usersTable.displayId} ILIKE ${"%" + q + "%"} OR ${usersTable.username} ILIKE ${"%" + q + "%"} OR ${usersTable.email} ILIKE ${"%" + q + "%"} OR ${usersTable.telegramId} ILIKE ${"%" + q + "%"})`
+        );
+      } else {
+        conditions.push(
+          sql`(${usersTable.displayId} ILIKE ${"%" + q + "%"} OR ${usersTable.username} ILIKE ${"%" + q + "%"} OR ${usersTable.email} ILIKE ${"%" + q + "%"} OR ${usersTable.telegramId} ILIKE ${"%" + q + "%"})`
+        );
+      }
+    }
+
+    const rows = await db
+      .select()
+      .from(usersTable)
+      .where(conditions.length ? and(...conditions) : undefined)
+      .orderBy(desc(usersTable.createdAt))
+      .limit(1000);
+
+    res.json(rows);
+  } catch (err: any) {
+    console.error("Error fetching users:", err);
+    res.status(500).json({ error: err.message || "فشل في جلب المستخدمين" });
   }
-  res.json(rows);
 });
 
-router.patch("/admin/users/:id", requireAdmin, async (req, res) => {
-  const allowed = filterFields(req.body, [
-    "username",
-    "email",
-    "balanceUsd",
-    "balanceSyp",
-    "role",
-    "banned",
-    "vipLevel",
-  ]);
-  if ("vipLevel" in allowed && allowed.vipLevel != null) {
-    allowed.vipLevel = Number(allowed.vipLevel);
+router.post("/admin/users", requireAdmin, async (req, res) => {
+  try {
+    const { username, email, password, role, vipLevel, banned } = req.body;
+    if (!username || typeof username !== "string" || !username.trim()) {
+      return res.status(400).json({ error: "اسم المستخدم مطلوب" });
+    }
+    if (!password || typeof password !== "string" || !password.trim()) {
+      return res.status(400).json({ error: "كلمة المرور مطلوبة" });
+    }
+
+    const passwordHash = await bcrypt.hash(password.trim(), 10);
+    const displayId = "USR" + Math.floor(100000 + Math.random() * 900000);
+
+    const [newUser] = await db
+      .insert(usersTable)
+      .values({
+        username: username.trim(),
+        displayId,
+        email: email ? email.trim() : null,
+        passwordHash,
+        role: role || "user",
+        vipLevel: vipLevel ? Number(vipLevel) : 1,
+        banned: Boolean(banned),
+        balanceUsd: "0.00",
+        balanceSyp: "0",
+      })
+      .returning();
+
+    await logActivity(
+      { id: req.session.adminId, name: req.session.adminUsername },
+      "create_user",
+      String(newUser.id),
+      { username: newUser.username, role: newUser.role }
+    );
+
+    res.json(newUser);
+  } catch (err: any) {
+    console.error("Error creating user:", err);
+    res.status(500).json({ error: err.message || "فشل في إنشاء المستخدم" });
   }
-  if (req.body.password && typeof req.body.password === "string" && req.body.password.trim().length > 0) {
-    allowed.passwordHash = await bcrypt.hash(req.body.password.trim(), 10);
+});
+
+const handleUpdateUser = async (req: any, res: any) => {
+  try {
+    const userId = Number(req.params.id);
+    if (!userId) {
+      return res.status(400).json({ error: "معرف المستخدم غير صالح" });
+    }
+
+    const allowed = filterFields(req.body, [
+      "username",
+      "email",
+      "balanceUsd",
+      "balanceSyp",
+      "role",
+      "banned",
+      "vipLevel",
+    ]);
+
+    if ("vipLevel" in allowed && allowed.vipLevel != null) {
+      allowed.vipLevel = Number(allowed.vipLevel);
+    }
+    if (req.body.password && typeof req.body.password === "string" && req.body.password.trim().length > 0) {
+      allowed.passwordHash = await bcrypt.hash(req.body.password.trim(), 10);
+    }
+
+    const [row] = await db
+      .update(usersTable)
+      .set(allowed)
+      .where(eq(usersTable.id, userId))
+      .returning();
+
+    if (!row) {
+      return res.status(404).json({ error: "المستخدم غير موجود" });
+    }
+
+    await logActivity(
+      { id: req.session.adminId, name: req.session.adminUsername },
+      "update_user",
+      String(userId),
+      allowed,
+    );
+
+    res.json(row);
+  } catch (err: any) {
+    console.error("Error updating user:", err);
+    res.status(500).json({ error: err.message || "فشل تحديث بيانات المستخدم" });
   }
-  const [row] = await db
-    .update(usersTable)
-    .set(allowed)
-    .where(eq(usersTable.id, Number(req.params.id)))
-    .returning();
-  await logActivity(
-    { id: req.session.adminId, name: req.session.adminUsername },
-    "update_user",
-    String(req.params.id),
-    allowed,
-  );
-  res.json(row);
+};
+
+router.put("/admin/users/:id", requireAdmin, handleUpdateUser);
+router.patch("/admin/users/:id", requireAdmin, handleUpdateUser);
+
+router.delete("/admin/users/:id", requireAdmin, async (req, res) => {
+  try {
+    const userId = Number(req.params.id);
+    await db.delete(usersTable).where(eq(usersTable.id, userId));
+    await logActivity(
+      { id: req.session.adminId, name: req.session.adminUsername },
+      "delete_user",
+      String(userId)
+    );
+    res.json({ ok: true });
+  } catch (err: any) {
+    console.error("Error deleting user:", err);
+    res.status(500).json({ error: err.message || "فشل في حذف المستخدم" });
+  }
+});
+
+router.post("/admin/users/bulk-ban", requireAdmin, async (req, res) => {
+  try {
+    const { userIds, banned } = req.body;
+    if (!Array.isArray(userIds) || userIds.length === 0) {
+      return res.status(400).json({ error: "لم يتم تحديد أي مستخدمين" });
+    }
+
+    await db
+      .update(usersTable)
+      .set({ banned: Boolean(banned) })
+      .where(inArray(usersTable.id, userIds.map(Number)));
+
+    await logActivity(
+      { id: req.session.adminId, name: req.session.adminUsername },
+      banned ? "bulk_ban_users" : "bulk_unban_users",
+      "users",
+      { userIds, count: userIds.length }
+    );
+
+    res.json({ ok: true, count: userIds.length });
+  } catch (err: any) {
+    console.error("Error bulk banning users:", err);
+    res.status(500).json({ error: err.message || "فشل في الإجراء الجماعي" });
+  }
+});
+
+router.post("/admin/users/bulk-delete", requireAdmin, async (req, res) => {
+  try {
+    const { userIds } = req.body;
+    if (!Array.isArray(userIds) || userIds.length === 0) {
+      return res.status(400).json({ error: "لم يتم تحديد أي مستخدمين" });
+    }
+
+    await db.delete(usersTable).where(inArray(usersTable.id, userIds.map(Number)));
+
+    await logActivity(
+      { id: req.session.adminId, name: req.session.adminUsername },
+      "bulk_delete_users",
+      "users",
+      { userIds, count: userIds.length }
+    );
+
+    res.json({ ok: true, count: userIds.length });
+  } catch (err: any) {
+    console.error("Error bulk deleting users:", err);
+    res.status(500).json({ error: err.message || "فشل في الحذف الجماعي" });
+  }
 });
 
 router.post("/admin/users/:id/notify", requireAdmin, async (req, res) => {
@@ -1597,6 +1743,30 @@ router.post("/admin/deposits/:id/status", requireAdmin, async (req, res) => {
 });
 
 // ========== SETTINGS ==========
+router.get("/admin/settings/use-legacy-users-page", async (_req, res) => {
+  try {
+    const [row] = await db.select().from(settingsTable).where(eq(settingsTable.key, "use_legacy_users_page")).limit(1);
+    const value = row?.value;
+    const isLegacy = value === "true" || value === true;
+    res.json({ key: "use_legacy_users_page", value: String(isLegacy) });
+  } catch (err: any) {
+    res.json({ key: "use_legacy_users_page", value: "false" });
+  }
+});
+
+router.put("/admin/settings/use-legacy-users-page", requireAdmin, async (req, res) => {
+  try {
+    const value = String(req.body?.value === true || req.body?.value === "true");
+    await db
+      .insert(settingsTable)
+      .values({ key: "use_legacy_users_page", value })
+      .onConflictDoUpdate({ target: settingsTable.key, set: { value } });
+    res.json({ ok: true, value });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.get("/admin/settings", requireAdmin, async (_req, res) => {
   const rows = await db.select().from(settingsTable);
   const out: Record<string, any> = {};
