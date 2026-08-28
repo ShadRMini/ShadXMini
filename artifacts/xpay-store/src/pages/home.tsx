@@ -17,6 +17,7 @@ type CategoryItem = {
   order: number;
   active: boolean;
   productCount: number;
+  displayStyle?: string;
 };
 
 function readLocalTelegramUser() {
@@ -67,6 +68,7 @@ export default function Home() {
     order: Number(cat.order || 0),
     active: Boolean(cat.active),
     productCount: Number(cat.productCount || 0),
+    displayStyle: String(cat.displayStyle || "large"),
   }));
 
   const displayName =
@@ -205,42 +207,22 @@ export default function Home() {
               ))}
             </div>
           ) : visibleCategories.length > 0 ? (
-            <div className="space-y-6">
-              {visibleCategories.filter(c => (c.displayStyle || "large") === "large").length > 0 && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {visibleCategories
-                    .filter(c => (c.displayStyle || "large") === "large")
-                    .map((cat, i) => (
-                      <CategoryCard
-                        key={cat.id}
-                        id={cat.id}
-                        name={cat.name}
-                        image={cat.image}
-                        imageVersion={cat.imageVersion}
-                        productCount={cat.productCount}
-                        index={i}
-                      />
-                    ))}
-                </div>
-              )}
-
-              {visibleCategories.filter(c => c.displayStyle === "small").length > 0 && (
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  {visibleCategories
-                    .filter(c => c.displayStyle === "small")
-                    .map((cat, i) => (
-                      <CategoryCard
-                        key={cat.id}
-                        id={cat.id}
-                        name={cat.name}
-                        image={cat.image}
-                        imageVersion={cat.imageVersion}
-                        productCount={cat.productCount}
-                        index={i}
-                      />
-                    ))}
-                </div>
-              )}
+            <div className={`grid gap-3.5 sm:gap-4 ${
+              (visibleCategories[0]?.displayStyle || "large") === "small"
+                ? "grid-cols-2 sm:grid-cols-3"
+                : "grid-cols-1 sm:grid-cols-2"
+            }`}>
+              {visibleCategories.map((cat, i) => (
+                <CategoryCard
+                  key={cat.id}
+                  id={cat.id}
+                  name={cat.name}
+                  image={cat.image}
+                  imageVersion={cat.imageVersion}
+                  productCount={cat.productCount}
+                  index={i}
+                />
+              ))}
             </div>
           ) : (
             <div className="rounded-3xl border border-zinc-800 bg-[#2D2D2D] px-4 py-10 text-center text-sm text-zinc-400">
