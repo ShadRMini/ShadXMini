@@ -14,7 +14,9 @@ export type UserProfile = {
   vipLevel: number;
   vipBadge?: { label: string; name: string; color: string };
   avatarUrl?: string | null;
+  hasPassword?: boolean;
   identityMissing?: boolean;
+  createdAt?: string;
 };
 
 interface AuthContextType {
@@ -23,6 +25,7 @@ interface AuthContextType {
   loading: boolean;
   login: (token: string, user: UserProfile) => void;
   logout: () => void;
+  updateUser: (updatedUser: UserProfile, newToken?: string) => void;
   refreshUser: () => Promise<UserProfile | null>;
 }
 
@@ -155,8 +158,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     window.location.href = "/login";
   }, []);
 
+  const updateUser = useCallback((updatedUser: UserProfile, newToken?: string) => {
+    try {
+      if (newToken) {
+        localStorage.setItem(TOKEN_KEY, newToken);
+        setToken(newToken);
+      }
+      localStorage.setItem(USER_KEY, JSON.stringify(updatedUser));
+    } catch (e) {
+      console.error("Storage update error", e);
+    }
+    setUser(updatedUser);
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, logout, refreshUser }}>
+    <AuthContext.Provider value={{ user, token, loading, login, logout, updateUser, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

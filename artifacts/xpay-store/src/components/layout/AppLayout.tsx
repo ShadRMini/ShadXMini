@@ -12,6 +12,7 @@ import {
   Wallet,
   Info,
   User,
+  Settings,
   LogOut,
   Shield,
   Crown,
@@ -56,6 +57,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     { href: "/deposits", label: "سجل الدفعات والمحفظة", icon: Wallet },
     { href: "/orders", label: "سجل طلباتي", icon: ListOrdered },
     { href: "/profile", label: "الملف الشخصي", icon: User },
+    { href: "/settings", label: "إعدادات الحساب", icon: Settings },
     { href: "/support", label: "تواصل معنا (الدعم)", icon: HeadphonesIcon },
     { href: "/about", label: "من نحن", icon: Info },
   ];
@@ -96,9 +98,17 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <div className="p-4 mx-3 my-3 rounded-2xl bg-zinc-900/90 border border-zinc-800">
           <div className="flex items-center gap-3">
             <div className="relative">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#C8A45C] to-[#B8954A] text-[#1A1A1A] font-black flex items-center justify-center text-xl shadow-md">
-                {displayName.charAt(0).toUpperCase()}
-              </div>
+              {user.avatarUrl ? (
+                <img
+                  src={user.avatarUrl}
+                  alt={displayName}
+                  className="w-12 h-12 rounded-2xl object-cover border border-[#C8A45C]/50 shadow-md bg-zinc-800"
+                />
+              ) : (
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#C8A45C] to-[#B8954A] text-[#1A1A1A] font-black flex items-center justify-center text-xl shadow-md">
+                  {displayName.charAt(0).toUpperCase()}
+                </div>
+              )}
               {isVip && (
                 <div className="absolute -top-1 -right-1 bg-amber-400 text-black p-0.5 rounded-full shadow-xs">
                   <Crown size={12} className="fill-black" />
