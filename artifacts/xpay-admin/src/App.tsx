@@ -127,6 +127,10 @@ export default function App() {
           <Route path="/currencies" element={<Currencies />} />
           <Route path="/languages" element={<Languages />} />
           <Route path="/maintenance" element={<Maintenance />} />
+          <Route path="/provider-reports" element={<ProviderReports />} />
+          <Route path="/api-products" element={<ApiProducts />} />
+          <Route path="/promotions" element={<Promotions />} />
+          <Route path="/currency" element={<CurrencySettings />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Layout>
