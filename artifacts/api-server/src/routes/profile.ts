@@ -201,6 +201,68 @@ router.get("/me", handleGetProfile);
 router.get("/users/me", handleGetProfile);
 router.get("/profile", handleGetProfile);
 
+const ALL_LEVELS = [
+  { id: 1, name: "برونزي", requiredSpent: 0, discountPercent: 0, badgeColor: "amber", icon: "Award" },
+  { id: 2, name: "فضي", requiredSpent: 300, discountPercent: 5, badgeColor: "slate", icon: "Award" },
+  { id: 3, name: "ذهبي", requiredSpent: 500, discountPercent: 10, badgeColor: "yellow", icon: "Trophy" },
+  { id: 4, name: "الماسي", requiredSpent: 1000, discountPercent: 15, badgeColor: "cyan", icon: "Gem" },
+  { id: 5, name: "VIP", requiredSpent: 2500, discountPercent: 20, badgeColor: "purple", icon: "Crown" },
+];
+
+async function handleGetLoyalty(req: Request, res: Response) {
+  try {
+    const u = await getOrCreateCurrentUser(req);
+    const totalSpent = Number(u.totalSpent || 0);
+
+    let current = ALL_LEVELS[0];
+    for (const lvl of ALL_LEVELS) {
+      if (totalSpent >= lvl.requiredSpent) {
+        current = lvl;
+      }
+    }
+
+    const currentIndex = ALL_LEVELS.findIndex((l) => l.id === current.id);
+    const nextLevel = currentIndex < ALL_LEVELS.length - 1 ? ALL_LEVELS[currentIndex + 1] : null;
+
+    let progressPercent = 100;
+    let amountRemaining = 0;
+
+    if (nextLevel) {
+      const span = nextLevel.requiredSpent - current.requiredSpent;
+      const spentInLevel = totalSpent - current.requiredSpent;
+      progressPercent = span > 0 ? Math.min(100, Math.max(0, Math.floor((spentInLevel / span) * 100))) : 100;
+      amountRemaining = Math.max(0, nextLevel.requiredSpent - totalSpent);
+    }
+
+    return res.json({
+      currentLevel: current,
+      totalSpent,
+      nextLevel,
+      progressPercent,
+      amountRemaining,
+      levels: ALL_LEVELS,
+    });
+  } catch (error: any) {
+    return res.json({
+      currentLevel: ALL_LEVELS[0],
+      totalSpent: 0,
+      nextLevel: ALL_LEVELS[1],
+      progressPercent: 0,
+      amountRemaining: 300,
+      levels: ALL_LEVELS,
+    });
+  }
+}
+
+async function handleGetLevels(_req: Request, res: Response) {
+  return res.json(ALL_LEVELS);
+}
+
+router.get("/me/loyalty", handleGetLoyalty);
+router.get("/loyalty/me", handleGetLoyalty);
+router.get("/levels", handleGetLevels);
+router.get("/loyalty/levels", handleGetLevels);
+
 router.patch("/me", handleUpdateProfile);
 router.patch("/users/me", handleUpdateProfile);
 router.patch("/profile", handleUpdateProfile);

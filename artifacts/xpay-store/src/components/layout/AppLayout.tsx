@@ -94,6 +94,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   const sidebarLinks = [
     { href: "/", label: "الرئيسية", icon: Home },
+    { href: "/loyalty", label: "المستوى", icon: Crown },
     { href: "/favorites", label: "مفضلتي", icon: Heart },
     { href: "/orders", label: "طلباتي", icon: ListOrdered },
     { href: "/deposits", label: "المحفظة وسجل الدفعات", icon: Wallet },
