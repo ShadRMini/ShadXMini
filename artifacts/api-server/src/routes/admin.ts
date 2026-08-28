@@ -2779,7 +2779,7 @@ router.get("/admin/provider-products/:providerId", requireAdmin, async (req, res
     if (!provider) {
       return res.status(404).json({ error: "المزود غير موجود" });
     }
-    const adapter = getAdapter(provider);
+    const adapter = getAdapter(provider.providerType);
     if (!adapter) {
       const localProds = await db.select().from(productsTable).where(eq(productsTable.providerId, providerId));
       return res.json(localProds.map(p => ({
@@ -2790,7 +2790,7 @@ router.get("/admin/provider-products/:providerId", requireAdmin, async (req, res
         externalServiceId: p.providerProductId
       })));
     }
-    const remoteProds = await adapter.getProducts();
+    const remoteProds = await adapter.fetchProducts(provider.apiKey, provider.apiUrl || undefined);
     res.json(remoteProds.map((rp: any) => ({
       id: rp.id,
       name: rp.name,
