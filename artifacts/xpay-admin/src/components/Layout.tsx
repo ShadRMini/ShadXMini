@@ -34,6 +34,7 @@ const NAV: { to: string; label: string; icon: any; group: string }[] = [
   { to: "/categories", label: "الأقسام (إضافة/حذف)", icon: FolderTree, group: "الأقسام & المنتجات" },
   { to: "/product-groups", label: "إدارة المجموعات", icon: FolderTree, group: "الأقسام & المنتجات" },
   { to: "/products", label: "المنتجات (إضافة/حذف)", icon: Package, group: "الأقسام & المنتجات" },
+  { to: "/banners", label: "البانرات والعروض المميزة", icon: ImageIcon, group: "الأقسام & المنتجات" },
   { to: "/api-products", label: "منتجات عبر API", icon: Server, group: "الأقسام & المنتجات" },
   { to: "/auto-codes", label: "كود", icon: KeyRound, group: "الأقسام & المنتجات" },
 
