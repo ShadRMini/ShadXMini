@@ -1,7 +1,7 @@
 import { useGetProfile, useListBanners, useListCategories } from "@workspace/api-client-react";
 import { useEffect, useState } from "react";
 import { Link } from "wouter";
-import { Wallet, Plus, Layers, Hash } from "lucide-react";
+import { Wallet, Plus, Layers, Hash, Sparkles } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getPublicJson } from "@/lib/public-api";
 import { useAuth } from "@/lib/auth-context";
@@ -43,6 +43,9 @@ export default function Home() {
   const { data: categories, isLoading: categoriesLoading } = useListCategories();
   const [fallbackCategories, setFallbackCategories] = useState<CategoryItem[] | null>(null);
 
+  const [showFeaturedOffers, setShowFeaturedOffers] = useState<boolean>(true);
+  const [featuredBanners, setFeaturedBanners] = useState<any[]>([]);
+
   useEffect(() => {
     let cancelled = false;
     getPublicJson<CategoryItem[]>("/categories")
@@ -52,6 +55,23 @@ export default function Home() {
       .catch((error) => {
         console.error("Fallback categories load failed:", error);
       });
+
+    // Fetch Featured Offers setting & items
+    getPublicJson<{ showFeaturedOffers: boolean }>("/public/settings/show-featured-offers")
+      .then((res) => {
+        if (!cancelled && res) {
+          setShowFeaturedOffers(Boolean(res.showFeaturedOffers));
+        }
+      })
+      .catch(() => {});
+
+    getPublicJson<any[]>("/public/banners/featured")
+      .then((items) => {
+        if (!cancelled && Array.isArray(items)) {
+          setFeaturedBanners(items);
+        }
+      })
+      .catch(() => {});
 
     return () => {
       cancelled = true;
@@ -182,6 +202,63 @@ export default function Home() {
 
         {/* Announcement / News Ticker Bar */}
         <AnnouncementBar />
+
+        {/* Featured Offers Section (If Enabled by Admin and items exist) */}
+        {showFeaturedOffers && featuredBanners.length > 0 && (
+          <div className="px-2 sm:px-4 space-y-3">
+            <div className="flex items-center justify-between pb-2 border-b border-[#C8A45C]/30">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-300">
+                  <Sparkles size={16} />
+                </div>
+                <h2 className="text-base sm:text-lg font-black text-amber-200">العروض المميزة ⭐</h2>
+              </div>
+              <span className="text-xs text-amber-400 font-bold bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/20">
+                حصرياً
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {featuredBanners.map((offer) => {
+                const offerLink = offer.link && offer.link.trim().length > 0 ? offer.link.trim() : "/deposit";
+                const isExternal = offerLink.startsWith("http://") || offerLink.startsWith("https://");
+
+                const cardContent = (
+                  <div className="group relative rounded-2xl border border-amber-500/30 bg-gradient-to-br from-[#1c1913] via-[#181510] to-zinc-950 p-4 shadow-xl hover:border-amber-500/60 transition-all flex items-center gap-4 overflow-hidden">
+                    <div className="relative w-24 h-24 rounded-xl overflow-hidden shrink-0 border border-amber-500/20">
+                      <img src={offer.image} alt={offer.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                    </div>
+
+                    <div className="flex-1 min-w-0 space-y-1">
+                      <div className="inline-block px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] font-bold">
+                        عرض مميز
+                      </div>
+                      <h3 className="text-sm font-bold text-amber-100 truncate">{offer.title}</h3>
+                      {offer.description && (
+                        <p className="text-xs text-zinc-400 line-clamp-2 leading-relaxed">{offer.description}</p>
+                      )}
+                      <div className="pt-1 flex items-center gap-1 text-[11px] font-bold text-amber-400 group-hover:translate-x-[-2px] transition-transform">
+                        <span>اكتشف العرض</span>
+                        <span>←</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+
+                return isExternal ? (
+                  <a key={offer.id} href={offerLink} target="_blank" rel="noopener noreferrer">
+                    {cardContent}
+                  </a>
+                ) : (
+                  <Link key={offer.id} href={offerLink}>
+                    {cardContent}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Categories Section */}
         <div className="px-2 sm:px-4">

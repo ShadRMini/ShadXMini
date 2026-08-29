@@ -103,8 +103,12 @@ export const bannersTable = pgTable("banners", {
   id: serial("id").primaryKey(),
   image: text("image").notNull(),
   title: text("title").notNull(),
+  description: text("description"),
   link: text("link"),
   order: integer("order").notNull().default(0),
+  active: boolean("active").notNull().default(true),
+  featured: boolean("featured").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
 export const paymentMethodsTable = pgTable("payment_methods", {

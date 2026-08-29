@@ -1325,7 +1325,62 @@ makeCrud("news", newsTable, {
 
 makeCrud("banners", bannersTable, {
   orderBy: bannersTable.order,
-  allowedFields: ["image", "title", "link", "order"],
+  allowedFields: ["image", "title", "description", "link", "order", "active", "featured"],
+});
+
+router.patch("/admin/banners/reorder", requireAdmin, async (req, res) => {
+  try {
+    const items = req.body?.items; // Array of { id: number, order: number }
+    if (Array.isArray(items)) {
+      for (const item of items) {
+        if (item.id !== undefined && item.order !== undefined) {
+          await db
+            .update(bannersTable)
+            .set({ order: Number(item.order) })
+            .where(eq(bannersTable.id, Number(item.id)));
+        }
+      }
+    }
+    res.json({ ok: true });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.patch("/admin/banners/:id/toggle-featured", requireAdmin, async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const [existing] = await db.select().from(bannersTable).where(eq(bannersTable.id, id)).limit(1);
+    if (!existing) return res.status(404).json({ error: "Banner not found" });
+
+    const newFeatured = req.body?.featured !== undefined ? Boolean(req.body.featured) : !existing.featured;
+    await db
+      .update(bannersTable)
+      .set({ featured: newFeatured })
+      .where(eq(bannersTable.id, id));
+
+    res.json({ ok: true, featured: newFeatured });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.patch("/admin/banners/:id/toggle-active", requireAdmin, async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const [existing] = await db.select().from(bannersTable).where(eq(bannersTable.id, id)).limit(1);
+    if (!existing) return res.status(404).json({ error: "Banner not found" });
+
+    const newActive = req.body?.active !== undefined ? Boolean(req.body.active) : !existing.active;
+    await db
+      .update(bannersTable)
+      .set({ active: newActive })
+      .where(eq(bannersTable.id, id));
+
+    res.json({ ok: true, active: newActive });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 makeCrud("payment-methods", paymentMethodsTable, {
@@ -1851,6 +1906,54 @@ router.put("/admin/settings/use-legacy-social-links-page", requireAdmin, async (
     await db
       .insert(settingsTable)
       .values({ key: "use_legacy_social_links_page", value })
+      .onConflictDoUpdate({ target: settingsTable.key, set: { value } });
+    res.json({ ok: true, value });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.get("/admin/settings/use-legacy-banners-page", async (_req, res) => {
+  try {
+    const [row] = await db.select().from(settingsTable).where(eq(settingsTable.key, "use_legacy_banners_page")).limit(1);
+    const value = row?.value;
+    const isLegacy = value === "true" || value === true;
+    res.json({ key: "use_legacy_banners_page", value: String(isLegacy) });
+  } catch (err: any) {
+    res.json({ key: "use_legacy_banners_page", value: "false" });
+  }
+});
+
+router.put("/admin/settings/use-legacy-banners-page", requireAdmin, async (req, res) => {
+  try {
+    const value = String(req.body?.value === true || req.body?.value === "true");
+    await db
+      .insert(settingsTable)
+      .values({ key: "use_legacy_banners_page", value })
+      .onConflictDoUpdate({ target: settingsTable.key, set: { value } });
+    res.json({ ok: true, value });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.get("/admin/settings/show-featured-offers", async (_req, res) => {
+  try {
+    const [row] = await db.select().from(settingsTable).where(eq(settingsTable.key, "show_featured_offers")).limit(1);
+    const value = row?.value;
+    const enabled = value === "true" || value === true || value === undefined; // default true
+    res.json({ key: "show_featured_offers", value: String(enabled) });
+  } catch (err: any) {
+    res.json({ key: "show_featured_offers", value: "true" });
+  }
+});
+
+router.put("/admin/settings/show-featured-offers", requireAdmin, async (req, res) => {
+  try {
+    const value = String(req.body?.value === true || req.body?.value === "true");
+    await db
+      .insert(settingsTable)
+      .values({ key: "show_featured_offers", value })
       .onConflictDoUpdate({ target: settingsTable.key, set: { value } });
     res.json({ ok: true, value });
   } catch (err: any) {
@@ -2459,7 +2562,7 @@ const PUT_RESOURCES: Array<{ path: string; table: any; allowed: string[] }> = [
     ],
   },
   { path: "news", table: newsTable, allowed: ["content", "type", "active"] },
-  { path: "banners", table: bannersTable, allowed: ["image", "title", "link", "order"] },
+  { path: "banners", table: bannersTable, allowed: ["image", "title", "description", "link", "order", "active", "featured"] },
   {
     path: "payment-methods",
     table: paymentMethodsTable,

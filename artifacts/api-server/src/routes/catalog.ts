@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { db, categoriesTable, productGroupsTable, productsTable, newsTable, bannersTable } from "@workspace/db";
+import { db, categoriesTable, productGroupsTable, productsTable, newsTable, bannersTable, settingsTable } from "@workspace/db";
 import { and, asc, eq, ilike, sql } from "drizzle-orm";
 import {
   ListCategoriesResponse,
@@ -197,22 +197,63 @@ router.get("/news", async (_req, res) => {
   }
 });
 
-router.get("/banners", async (_req, res) => {
+const handleGetBanners = async (_req: any, res: any) => {
   try {
-    const rows = await db.select().from(bannersTable).orderBy(asc(bannersTable.order));
+    const rows = await db.select().from(bannersTable).where(eq(bannersTable.active, true)).orderBy(asc(bannersTable.order));
     res.json(
-      ListBannersResponse.parse(
-        rows.map((b) => ({
-          id: String(b.id),
-          image: b.image,
-          title: b.title,
-          link: b.link ?? undefined,
-        })),
-      ),
+      rows.map((b) => ({
+        id: String(b.id),
+        image: b.image,
+        title: b.title,
+        description: b.description ?? undefined,
+        link: b.link ?? undefined,
+        order: b.order,
+        active: b.active,
+        featured: b.featured,
+      })),
     );
   } catch (error) {
     console.error("🔥 FULL ERROR in /banners:", error);
     res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+router.get("/banners", handleGetBanners);
+router.get("/public/banners", handleGetBanners);
+
+router.get("/public/banners/featured", async (_req, res) => {
+  try {
+    const rows = await db
+      .select()
+      .from(bannersTable)
+      .where(and(eq(bannersTable.active, true), eq(bannersTable.featured, true)))
+      .orderBy(asc(bannersTable.order));
+    res.json(
+      rows.map((b) => ({
+        id: String(b.id),
+        image: b.image,
+        title: b.title,
+        description: b.description ?? undefined,
+        link: b.link ?? undefined,
+        order: b.order,
+        active: b.active,
+        featured: b.featured,
+      })),
+    );
+  } catch (error) {
+    console.error("🔥 FULL ERROR in /public/banners/featured:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+router.get("/public/settings/show-featured-offers", async (_req, res) => {
+  try {
+    const [row] = await db.select().from(settingsTable).where(eq(settingsTable.key, "show_featured_offers")).limit(1);
+    const val = row?.value;
+    const showFeaturedOffers = val === "true" || val === true || val === undefined;
+    res.json({ showFeaturedOffers, value: String(showFeaturedOffers) });
+  } catch (error) {
+    res.json({ showFeaturedOffers: true, value: "true" });
   }
 });
 

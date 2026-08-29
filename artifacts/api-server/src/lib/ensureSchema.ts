@@ -144,7 +144,27 @@ export async function ensureDatabaseSchema() {
       CREATE TABLE IF NOT EXISTS settings (
         key TEXT PRIMARY KEY,
         value JSONB NOT NULL
-      )
+      );
+    `);
+
+    // 5.1 Banners table
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS banners (
+        id SERIAL PRIMARY KEY,
+        image TEXT NOT NULL,
+        title TEXT NOT NULL,
+        description TEXT,
+        link TEXT,
+        "order" INTEGER NOT NULL DEFAULT 0,
+        active BOOLEAN NOT NULL DEFAULT true,
+        featured BOOLEAN NOT NULL DEFAULT false,
+        created_at TIMESTAMP NOT NULL DEFAULT NOW()
+      );
+
+      ALTER TABLE banners ADD COLUMN IF NOT EXISTS description TEXT;
+      ALTER TABLE banners ADD COLUMN IF NOT EXISTS active BOOLEAN DEFAULT true;
+      ALTER TABLE banners ADD COLUMN IF NOT EXISTS featured BOOLEAN DEFAULT false;
+      ALTER TABLE banners ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT NOW();
     `);
 
     // 6. Tickets table
@@ -301,6 +321,8 @@ export async function ensureDatabaseSchema() {
       { key: "use_legacy_settings_page", val: false },
       { key: "use_legacy_theme_page", val: false },
       { key: "use_legacy_social_links_page", val: false },
+      { key: "use_legacy_banners_page", val: false },
+      { key: "show_featured_offers", val: true },
       { key: "theme_primary", val: "#C8A45C" },
       { key: "theme_secondary", val: "#B8954A" },
       { key: "theme_accent", val: "#FDE68A" },
