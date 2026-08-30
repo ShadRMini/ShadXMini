@@ -151,12 +151,13 @@ export default function BannerCarousel({ banners: propBanners, isLoading }: Bann
                       <img
                         src={banner.image}
                         alt={banner.title}
-                        className="w-full h-full object-cover object-center opacity-70 group-hover:scale-103 transition-transform duration-700 ease-out"
+                        className="w-full h-full object-cover object-center opacity-100 group-hover:scale-102 transition-transform duration-500 ease-out"
                         loading={index === 0 ? "eager" : "lazy"}
+                        decoding="async"
                       />
-                      {/* Gradient overlays for text readability */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#121212] via-[#1A1A1A]/75 to-transparent" />
-                      <div className="absolute inset-0 bg-gradient-to-r from-[#1A1A1A]/90 via-[#1A1A1A]/40 to-transparent" />
+                      {/* Subtle, crystal-clear bottom and right gradient only for text contrast without clouding the image */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent pointer-events-none" />
+                      <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/10 to-transparent pointer-events-none" />
                     </div>
                   ) : (
                     /* Elegant Graphic Elements when no image */

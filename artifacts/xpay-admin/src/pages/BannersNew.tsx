@@ -480,7 +480,7 @@ export default function BannersNew() {
                   alt={primaryBanner.title}
                   className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/60 to-transparent flex flex-col justify-end p-6 sm:p-8">
+                <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/80 via-zinc-950/25 to-transparent flex flex-col justify-end p-6 sm:p-8">
                   <div className="space-y-2 max-w-xl">
                     <div className="flex items-center gap-2">
                       <span className="px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[11px] font-bold">

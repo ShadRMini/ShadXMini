@@ -103,6 +103,7 @@ export default function Home() {
   const mappedBanners: BannerItem[] = (banners || []).map((b: any) => ({
     id: String(b.id),
     title: String(b.title || ""),
+    subtitle: b.description ? String(b.description) : (b.subtitle ? String(b.subtitle) : undefined),
     image: String(b.image || ""),
     link: b.link ? String(b.link) : undefined,
     order: Number(b.order || 0),
@@ -225,9 +226,8 @@ export default function Home() {
 
                 const cardContent = (
                   <div className="group relative rounded-2xl border border-amber-500/30 bg-gradient-to-br from-[#1c1913] via-[#181510] to-zinc-950 p-4 shadow-xl hover:border-amber-500/60 transition-all flex items-center gap-4 overflow-hidden">
-                    <div className="relative w-24 h-24 rounded-xl overflow-hidden shrink-0 border border-amber-500/20">
-                      <img src={offer.image} alt={offer.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                    <div className="relative w-24 h-24 rounded-xl overflow-hidden shrink-0 border border-amber-500/20 bg-black/40">
+                      <img src={offer.image} alt={offer.title} className="w-full h-full object-cover opacity-100 group-hover:scale-110 transition-transform duration-500" loading="lazy" decoding="async" />
                     </div>
 
                     <div className="flex-1 min-w-0 space-y-1">
