@@ -1991,25 +1991,50 @@ router.put("/admin/settings/show-featured-offers", requireAdmin, async (req, res
 router.get("/admin/theme-settings", requireAdmin, async (_req, res) => {
   try {
     const rows = await db.select().from(settingsTable);
+    const map = new Map(rows.map((r) => [r.key, r.value]));
+
+    const themePrimary = String(map.get("theme_primary") || "#C8A45C").trim();
+    const themeSecondary = String(map.get("theme_secondary") || "#B8954A").trim();
+    const themeAccent = String(map.get("theme_accent") || "#FDE68A").trim();
+    const themeBackground = String(map.get("theme_background") || map.get("theme_bg") || "#1A1A1A").trim();
+    const themeTextPrimary = String(map.get("theme_text_primary") || "#FFFFFF").trim();
+    const themeFontArabic = String(map.get("theme_font_arabic") || map.get("theme_font") || "Cairo").trim();
+    const themeFontEnglish = String(map.get("theme_font_english") || "Inter").trim();
+    const themeFontSize = String(map.get("theme_font_size") || "14").trim();
+    const themeBorderRadius = String(map.get("theme_border_radius") || map.get("theme_radius") || "16").trim();
+    const themeShadow = String(map.get("theme_shadow") || "medium").trim();
+    const themeDefaultMode = String(map.get("theme_default_mode") || "dark").trim();
+
     const out: Record<string, any> = {
-      theme_primary: "#C8A45C",
-      theme_secondary: "#B8954A",
-      theme_accent: "#FDE68A",
-      theme_background: "#1A1A1A",
-      theme_text_primary: "#FFFFFF",
-      theme_font_arabic: "Cairo",
-      theme_font_english: "Inter",
-      theme_border_radius: "16",
-      theme_shadow: "medium",
-      theme_default_mode: "dark",
+      theme_primary: themePrimary,
+      theme_secondary: themeSecondary,
+      theme_accent: themeAccent,
+      theme_background: themeBackground,
+      theme_text_primary: themeTextPrimary,
+      theme_font_arabic: themeFontArabic,
+      theme_font_english: themeFontEnglish,
+      theme_font_size: themeFontSize,
+      theme_border_radius: themeBorderRadius,
+      theme_shadow: themeShadow,
+      theme_default_mode: themeDefaultMode,
+      // Legacy compatibility
+      theme_bg: themeBackground,
+      theme_font: themeFontArabic,
+      theme_radius: themeBorderRadius,
+      // Direct properties
+      primary: themePrimary,
+      secondary: themeSecondary,
+      accent: themeAccent,
+      background: themeBackground,
+      textPrimary: themeTextPrimary,
+      font: themeFontArabic,
+      radius: themeBorderRadius,
     };
-    for (const r of rows) {
-      if (r.key.startsWith("theme_")) {
-        out[r.key] = r.value;
-      }
-    }
+
+    console.log("[Admin Theme] GET /admin/theme-settings loaded settings:", out);
     res.json(out);
   } catch (err: any) {
+    console.error("[Admin Theme] GET error:", err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -2017,20 +2042,45 @@ router.get("/admin/theme-settings", requireAdmin, async (_req, res) => {
 router.put("/admin/theme-settings", requireAdmin, async (req, res) => {
   try {
     const updates = req.body as Record<string, any>;
+    console.log("[Admin Theme] PUT /admin/theme-settings received update payload:", updates);
+
     for (const [key, value] of Object.entries(updates)) {
       await db
         .insert(settingsTable)
         .values({ key, value })
         .onConflictDoUpdate({ target: settingsTable.key, set: { value } });
     }
+
+    // Sync legacy/alias keys bidirectionally
+    if (updates.theme_background) {
+      await db.insert(settingsTable).values({ key: "theme_bg", value: updates.theme_background }).onConflictDoUpdate({ target: settingsTable.key, set: { value: updates.theme_background } });
+    } else if (updates.theme_bg) {
+      await db.insert(settingsTable).values({ key: "theme_background", value: updates.theme_bg }).onConflictDoUpdate({ target: settingsTable.key, set: { value: updates.theme_bg } });
+    }
+
+    if (updates.theme_font_arabic) {
+      await db.insert(settingsTable).values({ key: "theme_font", value: updates.theme_font_arabic }).onConflictDoUpdate({ target: settingsTable.key, set: { value: updates.theme_font_arabic } });
+    } else if (updates.theme_font) {
+      await db.insert(settingsTable).values({ key: "theme_font_arabic", value: updates.theme_font }).onConflictDoUpdate({ target: settingsTable.key, set: { value: updates.theme_font } });
+    }
+
+    if (updates.theme_border_radius) {
+      await db.insert(settingsTable).values({ key: "theme_radius", value: updates.theme_border_radius }).onConflictDoUpdate({ target: settingsTable.key, set: { value: updates.theme_border_radius } });
+    } else if (updates.theme_radius) {
+      await db.insert(settingsTable).values({ key: "theme_border_radius", value: updates.theme_radius }).onConflictDoUpdate({ target: settingsTable.key, set: { value: updates.theme_radius } });
+    }
+
     await logActivity(
       { id: req.session.adminId, name: req.session.adminUsername },
       "theme_update",
       "theme",
       Object.keys(updates),
     );
-    res.json({ ok: true });
+
+    console.log("[Admin Theme] Theme updated and logged successfully.");
+    res.json({ ok: true, success: true });
   } catch (err: any) {
+    console.error("[Admin Theme] PUT error:", err);
     res.status(500).json({ error: err.message });
   }
 });

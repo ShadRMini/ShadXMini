@@ -34,22 +34,58 @@ router.get("/social-links", async (_req, res) => {
   );
 });
 
-router.get("/theme", async (_req, res) => {
-  const rows = await db.select().from(settingsTable);
-  const map = new Map(rows.map((row) => [row.key, row.value]));
+router.get(["/theme", "/theme-settings", "/public/theme-settings"], async (_req, res) => {
+  try {
+    const rows = await db.select().from(settingsTable);
+    const map = new Map(rows.map((row) => [row.key, row.value]));
 
-  const normalizeThemeColor = (key: string, fallback: string, legacyValues: string[] = []) => {
-    const value = String(map.get(key) || fallback).trim();
-    return legacyValues.includes(value.toLowerCase()) ? fallback : value;
-  };
+    const themePrimary = String(map.get("theme_primary") || "#C8A45C").trim();
+    const themeSecondary = String(map.get("theme_secondary") || "#B8954A").trim();
+    const themeAccent = String(map.get("theme_accent") || "#FDE68A").trim();
+    const themeBackground = String(map.get("theme_background") || map.get("theme_bg") || "#1A1A1A").trim();
+    const themeTextPrimary = String(map.get("theme_text_primary") || "#FFFFFF").trim();
+    const themeFontArabic = String(map.get("theme_font_arabic") || map.get("theme_font") || "Cairo").trim();
+    const themeFontEnglish = String(map.get("theme_font_english") || "Inter").trim();
+    const themeBorderRadius = String(map.get("theme_border_radius") || map.get("theme_radius") || "16").trim();
+    const themeShadow = String(map.get("theme_shadow") || "medium").trim();
+    const themeDefaultMode = String(map.get("theme_default_mode") || "dark").trim();
+    const themeFontSize = String(map.get("theme_font_size") || "14").trim();
 
-  res.json({
-    primary: normalizeThemeColor("theme_primary", "#58E8FF", ["#0052cc"]),
-    accent: normalizeThemeColor("theme_accent", "#D94CFF", ["#f97316"]),
-    background: normalizeThemeColor("theme_bg", "#07091B", ["#0a1628"]),
-    font: String(map.get("theme_font") || "Cairo"),
-    radius: String(map.get("theme_radius") || "16"),
-  });
+    const responseData = {
+      // Full raw keys
+      theme_primary: themePrimary,
+      theme_secondary: themeSecondary,
+      theme_accent: themeAccent,
+      theme_background: themeBackground,
+      theme_text_primary: themeTextPrimary,
+      theme_font_arabic: themeFontArabic,
+      theme_font_english: themeFontEnglish,
+      theme_font_size: themeFontSize,
+      theme_border_radius: themeBorderRadius,
+      theme_shadow: themeShadow,
+      theme_default_mode: themeDefaultMode,
+      // Direct alias properties
+      primary: themePrimary,
+      secondary: themeSecondary,
+      accent: themeAccent,
+      background: themeBackground,
+      textPrimary: themeTextPrimary,
+      font: themeFontArabic,
+      fontArabic: themeFontArabic,
+      fontEnglish: themeFontEnglish,
+      radius: themeBorderRadius,
+      borderRadius: themeBorderRadius,
+      shadow: themeShadow,
+      defaultMode: themeDefaultMode,
+      fontSize: themeFontSize,
+    };
+
+    console.log("[API /theme] Retrieved theme configuration successfully:", responseData);
+    res.json(responseData);
+  } catch (err: any) {
+    console.error("[API /theme] Error fetching theme settings:", err);
+    res.status(500).json({ error: err?.message || "Failed to load theme settings" });
+  }
 });
 
 router.get("/app-settings", async (_req, res) => {

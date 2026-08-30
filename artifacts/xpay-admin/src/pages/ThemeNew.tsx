@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { get, put } from "../lib/api";
+import { applyAdminTheme, broadcastThemeChange, ensureGoogleFontsLoaded, DEFAULT_ADMIN_THEME } from "../lib/theme";
 import {
   Palette,
   Sparkles,
@@ -127,13 +128,18 @@ export default function ThemeNew() {
         }
       }
 
-      setTheme((prev) => ({
-        ...prev,
+      const mergedTheme = {
+        ...DEFAULT_ADMIN_THEME,
         ...data,
-      }));
+      };
+
+      setTheme(mergedTheme);
+      applyAdminTheme(mergedTheme);
+
       if (data.theme_default_mode === "light") {
         setPreviewMode("light");
       }
+      console.log("[Theme Admin] Loaded and applied theme settings:", mergedTheme);
     } catch (err: any) {
       console.error("Failed to load theme settings:", err);
       showToastMsg("فشل جلب إعدادات التصميم من السيرفر", "error");
@@ -147,18 +153,23 @@ export default function ThemeNew() {
   }, [fetchThemeSettings]);
 
   const handleFieldChange = (key: string, value: any) => {
-    setTheme((prev) => ({ ...prev, [key]: value }));
+    const updated = { ...theme, [key]: value };
+    setTheme(updated);
+    if (key.includes("font")) {
+      ensureGoogleFontsLoaded(updated.theme_font_arabic, updated.theme_font_english);
+    }
   };
 
   const applyPreset = (preset: PalettePreset) => {
-    setTheme((prev) => ({
-      ...prev,
+    const updated = {
+      ...theme,
       theme_primary: preset.primary,
       theme_secondary: preset.secondary,
       theme_accent: preset.accent,
       theme_background: preset.background,
       theme_text_primary: preset.textPrimary,
-    }));
+    };
+    setTheme(updated);
     showToastMsg(`تم تطبيق لوحة الألوان "${preset.name}" بنجاح! المعاينة حية الآن.`);
   };
 
@@ -166,13 +177,19 @@ export default function ThemeNew() {
     if (e) e.preventDefault();
     setSaving(true);
     try {
+      console.log("[Theme Admin] Saving theme settings to server:", theme);
       try {
         await put("/admin/theme-settings", theme);
       } catch {
         const items = Object.entries(theme).map(([k, v]) => ({ key: k, value: v }));
         await put("/settings/items", { items });
       }
-      showToastMsg("تم حفظ وتطبيق إعدادات التصميم بنجاح على النظام!", "success");
+
+      // Apply immediately to current admin panel & broadcast to storefront
+      applyAdminTheme(theme);
+      broadcastThemeChange(theme);
+
+      showToastMsg("تم حفظ وتطبيق إعدادات التصميم بنجاح على النظام والمتجر!", "success");
     } catch (err: any) {
       console.error("Failed to save theme settings:", err);
       showToastMsg(err?.message || "حدث خطأ أثناء حفظ التصميم", "error");

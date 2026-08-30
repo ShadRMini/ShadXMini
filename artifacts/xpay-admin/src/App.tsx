@@ -43,10 +43,32 @@ import Promotions from "./pages/Promotions";
 import CurrencySettings from "./pages/CurrencySettings";
 import CacheManagement from "./pages/CacheManagement";
 import CronJobs from "./pages/CronJobs";
+import { loadAndApplyAdminTheme } from "./lib/theme";
 
 export default function App() {
   const [auth, setAuth] = useState<"loading" | "in" | "out">("loading");
   const [me, setMe] = useState<any>(null);
+
+  useEffect(() => {
+    loadAndApplyAdminTheme();
+
+    const handleThemeStorage = (e: StorageEvent) => {
+      if (e.key === "xpay_theme_updated" || e.key === "theme_settings") {
+        loadAndApplyAdminTheme();
+      }
+    };
+    const handleCustomTheme = () => {
+      loadAndApplyAdminTheme();
+    };
+
+    window.addEventListener("storage", handleThemeStorage);
+    window.addEventListener("xpay_theme_change", handleCustomTheme);
+
+    return () => {
+      window.removeEventListener("storage", handleThemeStorage);
+      window.removeEventListener("xpay_theme_change", handleCustomTheme);
+    };
+  }, []);
 
   useEffect(() => {
     get("/me")

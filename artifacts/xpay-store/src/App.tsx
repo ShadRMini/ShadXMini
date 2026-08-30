@@ -27,6 +27,7 @@ import NotificationsPage from "@/pages/Notifications";
 import LoyaltyLevels from "@/pages/LoyaltyLevels";
 import AppLayout from "@/components/layout/AppLayout";
 import { PopupNotification } from "@/components/PopupNotification";
+import { loadAndApplyStoreTheme, DEFAULT_STORE_THEME, applyStoreTheme } from "@/lib/theme";
 import { Wrench, Construction, Clock, ShieldAlert, Server, MessageCircle } from "lucide-react";
 
 const queryClient = new QueryClient();
@@ -316,18 +317,30 @@ function App() {
   const [settings, setSettings] = useState<AppSettings | null>(null);
 
   useLayoutEffect(() => {
-    applyTheme(XPAY_BRAND_THEME);
-
     const baseUrl = apiBaseUrl();
-    fetch(`${baseUrl}/api/theme`)
-      .then(async (res) => {
-        if (!res.ok) throw new Error(`theme_http_${res.status}`);
-        return res.json() as Promise<StoreTheme>;
-      })
-      .then((theme) => applyTheme(normalizeRemoteTheme(theme)))
-      .catch((error) => {
-        console.error("Theme load failed:", error);
-      });
+    loadAndApplyStoreTheme(baseUrl);
+
+    // Real-time synchronization when admin saves theme or switches tabs
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "xpay_theme_updated" || e.key === "theme_settings") {
+        console.log("[Storefront] Detected theme change event in storage, reloading theme...");
+        loadAndApplyStoreTheme(baseUrl);
+      }
+    };
+
+    const handleCustomThemeEvent = () => {
+      loadAndApplyStoreTheme(baseUrl);
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    window.addEventListener("xpay_theme_change", handleCustomThemeEvent);
+    window.addEventListener("focus", handleCustomThemeEvent);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      window.removeEventListener("xpay_theme_change", handleCustomThemeEvent);
+      window.removeEventListener("focus", handleCustomThemeEvent);
+    };
   }, []);
 
   useEffect(() => {
