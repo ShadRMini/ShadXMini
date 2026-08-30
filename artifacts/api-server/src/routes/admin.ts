@@ -2085,6 +2085,41 @@ router.put("/admin/theme-settings", requireAdmin, async (req, res) => {
   }
 });
 
+router.post("/admin/theme-settings/apply-preset", requireAdmin, async (req, res) => {
+  try {
+    const { preset, presetId, primary, secondary, accent, background, textPrimary } = req.body;
+    console.log("[Admin Theme] Applying preset batch:", req.body);
+
+    const themeUpdates: Record<string, string> = {
+      theme_primary: primary || "#C8A45C",
+      theme_secondary: secondary || "#B8954A",
+      theme_accent: accent || "#FDE68A",
+      theme_background: background || "#1A1A1A",
+      theme_bg: background || "#1A1A1A",
+      theme_text_primary: textPrimary || "#FFFFFF",
+    };
+
+    for (const [key, value] of Object.entries(themeUpdates)) {
+      await db
+        .insert(settingsTable)
+        .values({ key, value })
+        .onConflictDoUpdate({ target: settingsTable.key, set: { value } });
+    }
+
+    await logActivity(
+      { id: req.session.adminId, name: req.session.adminUsername },
+      "theme_preset_applied",
+      "theme",
+      [preset || presetId || "custom"],
+    );
+
+    res.json({ ok: true, success: true, applied: themeUpdates });
+  } catch (err: any) {
+    console.error("[Admin Theme] Preset application error:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.get("/admin/settings", requireAdmin, async (_req, res) => {
   const rows = await db.select().from(settingsTable);
   const out: Record<string, any> = {};

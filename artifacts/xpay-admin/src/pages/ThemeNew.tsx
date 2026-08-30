@@ -20,62 +20,105 @@ import {
 } from "lucide-react";
 
 type PalettePreset = {
+  id: string;
   name: string;
+  nameEn: string;
   primary: string;
   secondary: string;
   accent: string;
   background: string;
   textPrimary: string;
+  description: string;
 };
 
 const PRESET_PALETTES: PalettePreset[] = [
   {
-    name: "ذهبي فاخر (الافتراضي)",
+    id: "gold",
+    name: "الذهبي الفاخر (الافتراضي)",
+    nameEn: "Luxury Gold",
     primary: "#C8A45C",
     secondary: "#B8954A",
     accent: "#FDE68A",
     background: "#1A1A1A",
     textPrimary: "#FFFFFF",
+    description: "الأناقة والفخامة الداكنة الكلاسيكية",
   },
   {
-    name: "أزرق ملكي",
+    id: "royal-blue",
+    name: "الأزرق الملكي",
+    nameEn: "Royal Blue",
     primary: "#3B82F6",
-    secondary: "#1D4ED8",
+    secondary: "#2563EB",
     accent: "#93C5FD",
     background: "#0F172A",
     textPrimary: "#FFFFFF",
+    description: "طابع رقمي احترافي وعصري",
   },
   {
-    name: "زمردي إمبراطوري",
+    id: "imperial-emerald",
+    name: "الزمردي الإمبراطوري",
+    nameEn: "Imperial Emerald",
     primary: "#10B981",
-    secondary: "#047857",
-    accent: "#A7F3D0",
+    secondary: "#059669",
+    accent: "#6EE7B7",
     background: "#064E3B",
     textPrimary: "#FFFFFF",
+    description: "حيوية، نمو وثقة متناهية",
   },
   {
-    name: "بنفسجي كلاسيكي",
+    id: "classic-violet",
+    name: "البنفسجي الكلاسيكي",
+    nameEn: "Classic Violet",
     primary: "#8B5CF6",
-    secondary: "#6D28D9",
-    accent: "#DDD6FE",
+    secondary: "#7C3AED",
+    accent: "#C4B5FD",
+    background: "#2E1065",
+    textPrimary: "#FFFFFF",
+    description: "إبداع وسحر بصري عميق",
+  },
+  {
+    id: "ruby-pink",
+    name: "الوردي الياقوتي",
+    nameEn: "Ruby Pink",
+    primary: "#EC4899",
+    secondary: "#DB2777",
+    accent: "#F9A8D4",
+    background: "#4C0519",
+    textPrimary: "#FFFFFF",
+    description: "جرأة، تميز، وطاقة بصرية لافتة",
+  },
+  {
+    id: "fire-red",
+    name: "الأحمر الناري",
+    nameEn: "Fire Red",
+    primary: "#EF4444",
+    secondary: "#DC2626",
+    accent: "#FCA5A5",
+    background: "#450A0A",
+    textPrimary: "#FFFFFF",
+    description: "قوة، ديناميكية وحضور استثنائي",
+  },
+  {
+    id: "calm-indigo",
+    name: "النيلي الهادئ",
+    nameEn: "Calm Indigo",
+    primary: "#4F46E5",
+    secondary: "#4338CA",
+    accent: "#A5B4FC",
     background: "#1E1B4B",
     textPrimary: "#FFFFFF",
+    description: "هدوء تقني وأناقة سيبرانية متطورة",
   },
   {
-    name: "وردي ياقوتي",
-    primary: "#F43F5E",
-    secondary: "#BE123C",
-    accent: "#FECDD3",
-    background: "#18181B",
+    id: "modern-teal",
+    name: "التركوازي العصري",
+    nameEn: "Modern Teal",
+    primary: "#14B8A6",
+    secondary: "#0D9488",
+    accent: "#99F6E4",
+    background: "#042F2E",
     textPrimary: "#FFFFFF",
-  },
-  {
-    name: "أحمر ناري",
-    primary: "#EF4444",
-    secondary: "#B91C1C",
-    accent: "#FCA5A5",
-    background: "#111827",
-    textPrimary: "#FFFFFF",
+    description: "نضارة فائقة وحداثة متجددة",
   },
 ];
 
@@ -158,6 +201,7 @@ export default function ThemeNew() {
     if (key.includes("font")) {
       ensureGoogleFontsLoaded(updated.theme_font_arabic, updated.theme_font_english);
     }
+    applyAdminTheme(updated);
   };
 
   const applyPreset = (preset: PalettePreset) => {
@@ -170,6 +214,7 @@ export default function ThemeNew() {
       theme_text_primary: preset.textPrimary,
     };
     setTheme(updated);
+    applyAdminTheme(updated);
     showToastMsg(`تم تطبيق لوحة الألوان "${preset.name}" بنجاح! المعاينة حية الآن.`);
   };
 
@@ -277,48 +322,160 @@ export default function ThemeNew() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* LEFT SIDE: CONTROLS (lg:col-span-7) */}
           <div className="lg:col-span-7 space-y-6">
-            {/* Presets Bar */}
+            {/* Presets Bar / Color Palette Grid */}
             <div className="bg-[#242424] p-5 rounded-2xl border border-[#C8A45C]/20 shadow-xl space-y-4">
               <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
-                <h2 className="text-sm font-bold text-[#FDE68A] flex items-center gap-2">
-                  <Sparkles size={18} className="text-[#C8A45C]" />
-                  أنماط اللوحات الجاهزة (Color Presets)
-                </h2>
-                <span className="text-[10px] text-zinc-400">انقر لتطبيق النمط كاملاً بضغطة واحدة</span>
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-[#C8A45C]/15 border border-[#C8A45C]/30 flex items-center justify-center text-[#C8A45C]">
+                    <Sparkles size={16} />
+                  </div>
+                  <div>
+                    <h2 className="text-sm font-bold text-[#FDE68A]">لوحة الألوان السريعة (Color Presets)</h2>
+                    <p className="text-[10px] text-zinc-400">اختر نمطاً متكاملاً أو لونا سريعاً لتطبيقه ومعاينته فوراً</p>
+                  </div>
+                </div>
+                <span className="text-[10px] bg-[#1A1A1A] border border-zinc-800 text-zinc-300 px-2.5 py-1 rounded-full font-mono">
+                  8 أنماط جاهزة
+                </span>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {/* 8 Preset Cards Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {PRESET_PALETTES.map((preset) => {
-                  const isActive =
-                    theme.theme_primary === preset.primary &&
-                    theme.theme_background === preset.background;
+                  const isPrimaryMatch = theme.theme_primary.toLowerCase() === preset.primary.toLowerCase();
+                  const isBackgroundMatch = theme.theme_background.toLowerCase() === preset.background.toLowerCase();
+                  const isActive = isPrimaryMatch && isBackgroundMatch;
 
                   return (
-                    <button
-                      key={preset.name}
-                      type="button"
+                    <div
+                      key={preset.id}
                       onClick={() => applyPreset(preset)}
-                      className={`p-3 rounded-xl border text-right transition-all flex flex-col justify-between gap-2 cursor-pointer ${
+                      className={`p-3.5 rounded-2xl border transition-all duration-200 cursor-pointer flex flex-col justify-between gap-3 relative overflow-hidden group ${
                         isActive
-                          ? "bg-[#C8A45C]/15 border-[#C8A45C] ring-1 ring-[#C8A45C]"
-                          : "bg-[#1A1A1A] border-zinc-800 hover:border-zinc-700"
+                          ? "bg-[#1F1F1F] ring-2"
+                          : "bg-[#1A1A1A] border-zinc-800 hover:border-zinc-600 hover:bg-[#202020]"
                       }`}
+                      style={{
+                        borderColor: isActive ? preset.primary : undefined,
+                        boxShadow: isActive ? `0 0 20px ${preset.primary}33` : undefined,
+                      }}
                     >
-                      <div className="flex items-center justify-between">
-                        <span className="text-[11px] font-bold text-white">{preset.name}</span>
-                        {isActive && <Check size={14} className="text-[#C8A45C]" />}
+                      {/* Active Accent Top Indicator */}
+                      {isActive && (
+                        <div
+                          className="absolute top-0 right-0 left-0 h-1"
+                          style={{ backgroundColor: preset.primary }}
+                        />
+                      )}
+
+                      {/* Card Header */}
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-xs font-bold text-white group-hover:text-[#FDE68A] transition-colors">
+                              {preset.name}
+                            </span>
+                          </div>
+                          <span className="text-[10px] text-zinc-400 font-mono block mt-0.5">
+                            {preset.nameEn} • {preset.description}
+                          </span>
+                        </div>
+
+                        {isActive ? (
+                          <span
+                            className="px-2 py-0.5 text-[9px] font-bold rounded-full flex items-center gap-1 shrink-0"
+                            style={{
+                              backgroundColor: `${preset.primary}25`,
+                              color: preset.accent,
+                              border: `1px solid ${preset.primary}60`,
+                            }}
+                          >
+                            <Check size={10} /> نشط الآن
+                          </span>
+                        ) : (
+                          <span className="text-[10px] text-zinc-400 group-hover:text-white transition-colors bg-zinc-800/80 px-2 py-0.5 rounded-lg">
+                            تطبيق
+                          </span>
+                        )}
                       </div>
 
-                      {/* Color dots */}
-                      <div className="flex items-center gap-1.5">
-                        <span className="w-4 h-4 rounded-full border border-white/20" style={{ backgroundColor: preset.primary }} />
-                        <span className="w-4 h-4 rounded-full border border-white/20" style={{ backgroundColor: preset.secondary }} />
-                        <span className="w-4 h-4 rounded-full border border-white/20" style={{ backgroundColor: preset.accent }} />
-                        <span className="w-4 h-4 rounded-full border border-white/20" style={{ backgroundColor: preset.background }} />
+                      {/* Visual 4-Color Swatch Display */}
+                      <div className="space-y-1.5 bg-[#141414] p-2.5 rounded-xl border border-zinc-800/80">
+                        {/* Gradient Bar */}
+                        <div
+                          className="h-2 rounded-full w-full shadow-inner"
+                          style={{
+                            background: `linear-gradient(to right, ${preset.background}, ${preset.primary}, ${preset.secondary}, ${preset.accent})`,
+                          }}
+                        />
+
+                        {/* Color Blocks */}
+                        <div className="grid grid-cols-4 gap-1.5 pt-1">
+                          <div className="flex flex-col items-center gap-1">
+                            <span
+                              className="w-full h-5 rounded-lg border border-white/10 shadow-sm transition-transform group-hover:scale-105"
+                              style={{ backgroundColor: preset.primary }}
+                              title={`الأساسي: ${preset.primary}`}
+                            />
+                            <span className="text-[8px] text-zinc-400 font-mono">{preset.primary}</span>
+                          </div>
+
+                          <div className="flex flex-col items-center gap-1">
+                            <span
+                              className="w-full h-5 rounded-lg border border-white/10 shadow-sm transition-transform group-hover:scale-105"
+                              style={{ backgroundColor: preset.secondary }}
+                              title={`الثانوي: ${preset.secondary}`}
+                            />
+                            <span className="text-[8px] text-zinc-400 font-mono">{preset.secondary}</span>
+                          </div>
+
+                          <div className="flex flex-col items-center gap-1">
+                            <span
+                              className="w-full h-5 rounded-lg border border-white/10 shadow-sm transition-transform group-hover:scale-105"
+                              style={{ backgroundColor: preset.accent }}
+                              title={`المميز: ${preset.accent}`}
+                            />
+                            <span className="text-[8px] text-zinc-400 font-mono">{preset.accent}</span>
+                          </div>
+
+                          <div className="flex flex-col items-center gap-1">
+                            <span
+                              className="w-full h-5 rounded-lg border border-white/10 shadow-sm transition-transform group-hover:scale-105"
+                              style={{ backgroundColor: preset.background }}
+                              title={`الخلفية: ${preset.background}`}
+                            />
+                            <span className="text-[8px] text-zinc-400 font-mono">{preset.background}</span>
+                          </div>
+                        </div>
                       </div>
-                    </button>
+                    </div>
                   );
                 })}
+              </div>
+
+              {/* Quick Single-Color Swatches */}
+              <div className="pt-2 border-t border-zinc-800/80 flex flex-wrap items-center justify-between gap-2">
+                <span className="text-[11px] font-semibold text-zinc-400 flex items-center gap-1.5">
+                  <Palette size={14} className="text-[#C8A45C]" />
+                  تغيير سريع للون الأساسي فقط:
+                </span>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  {PRESET_PALETTES.map((p) => (
+                    <button
+                      key={`single-${p.id}`}
+                      type="button"
+                      onClick={() => {
+                        handleFieldChange("theme_primary", p.primary);
+                        handleFieldChange("theme_secondary", p.secondary);
+                        handleFieldChange("theme_accent", p.accent);
+                        showToastMsg(`تم ضبط اللون الأساسي على "${p.name}"`);
+                      }}
+                      className="w-6 h-6 rounded-full border border-white/20 hover:scale-115 transition-transform cursor-pointer shadow"
+                      style={{ backgroundColor: p.primary }}
+                      title={`تطبيق اللون الأساسي: ${p.name}`}
+                    />
+                  ))}
+                </div>
               </div>
             </div>
 
