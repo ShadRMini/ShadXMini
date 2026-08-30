@@ -1355,6 +1355,97 @@ makeCrud("banners", bannersTable, {
   allowedFields: ["image", "title", "description", "link", "order", "active", "featured"],
 });
 
+// Explicit update endpoint for banner details (PUT / PATCH)
+router.put("/admin/banners/:id", requireAdmin, async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    if (!Number.isFinite(id) || id <= 0) {
+      return res.status(400).json({ error: "معرف البانر غير صالح" });
+    }
+    const [existing] = await db.select().from(bannersTable).where(eq(bannersTable.id, id)).limit(1);
+    if (!existing) {
+      return res.status(404).json({ error: "البانر المطلوب غير موجود" });
+    }
+
+    const { title, image, description, link, order, active, featured } = req.body;
+    if (!title || typeof title !== "string" || !title.trim()) {
+      return res.status(400).json({ error: "عنوان البانر مطلوب" });
+    }
+    if (!image || typeof image !== "string" || !image.trim()) {
+      return res.status(400).json({ error: "رابط صورة البانر مطلوب" });
+    }
+
+    const updateData = {
+      title: title.trim(),
+      image: image.trim(),
+      description: description !== undefined ? (description ? String(description).trim() : null) : existing.description,
+      link: link !== undefined ? (link ? String(link).trim() : null) : existing.link,
+      order: order !== undefined ? Number(order) || 0 : existing.order,
+      active: active !== undefined ? Boolean(active) : existing.active,
+      featured: featured !== undefined ? Boolean(featured) : existing.featured,
+    };
+
+    const [updated] = await db
+      .update(bannersTable)
+      .set(updateData)
+      .where(eq(bannersTable.id, id))
+      .returning();
+
+    await logActivity(
+      { id: req.session.adminId, name: req.session.adminUsername },
+      "update",
+      "banners",
+      { id, title: updated.title }
+    );
+
+    console.log(`[Admin Banners] Updated banner #${id} successfully:`, updated.title);
+    res.json({ ok: true, success: true, banner: updated, ...updated });
+  } catch (err: any) {
+    console.error("[Admin Banners PUT Error]:", err);
+    res.status(500).json({ error: err?.message || "فشل حفظ تعديلات البانر" });
+  }
+});
+
+router.post("/admin/banners", requireAdmin, async (req, res) => {
+  try {
+    const { title, image, description, link, order, active, featured } = req.body;
+    if (!title || typeof title !== "string" || !title.trim()) {
+      return res.status(400).json({ error: "عنوان البانر مطلوب" });
+    }
+    if (!image || typeof image !== "string" || !image.trim()) {
+      return res.status(400).json({ error: "رابط صورة البانر مطلوب" });
+    }
+
+    const insertData = {
+      title: title.trim(),
+      image: image.trim(),
+      description: description ? String(description).trim() : null,
+      link: link ? String(link).trim() : null,
+      order: order !== undefined ? Number(order) || 0 : 0,
+      active: active !== undefined ? Boolean(active) : true,
+      featured: featured !== undefined ? Boolean(featured) : false,
+    };
+
+    const [created] = await db
+      .insert(bannersTable)
+      .values(insertData)
+      .returning();
+
+    await logActivity(
+      { id: req.session.adminId, name: req.session.adminUsername },
+      "create",
+      "banners",
+      { id: created.id, title: created.title }
+    );
+
+    console.log(`[Admin Banners] Created banner #${created.id} successfully:`, created.title);
+    res.json({ ok: true, success: true, banner: created, ...created });
+  } catch (err: any) {
+    console.error("[Admin Banners POST Error]:", err);
+    res.status(500).json({ error: err?.message || "فشل إضافة البانر" });
+  }
+});
+
 router.patch("/admin/banners/reorder", requireAdmin, async (req, res) => {
   try {
     const items = req.body?.items; // Array of { id: number, order: number }

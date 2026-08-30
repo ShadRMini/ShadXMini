@@ -27,6 +27,7 @@ import {
   Link as LinkIcon
 } from "lucide-react";
 import { get, post, put, patch, del } from "../lib/api";
+import { toast } from "sonner";
 
 interface BannerItem {
   id: number;
@@ -163,35 +164,68 @@ export default function BannersNew() {
   };
 
   // Save Modal Form
-  const handleSaveModal = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.title.trim()) {
+  const handleSaveModal = async (e?: React.FormEvent | React.MouseEvent) => {
+    if (e && typeof e.preventDefault === "function") {
+      e.preventDefault();
+    }
+
+    if (saving) return;
+
+    const trimmedTitle = (formData.title || "").trim();
+    const trimmedImage = (formData.image || "").trim();
+
+    if (!trimmedTitle) {
+      toast.error("يرجى كتابة عنوان البانر");
       showToast("يرجى كتابة عنوان البانر", "error");
       return;
     }
-    if (!formData.image.trim()) {
+    if (!trimmedImage) {
+      toast.error("يرجى إدخال رابط الصورة");
       showToast("يرجى إدخال رابط الصورة", "error");
       return;
     }
 
+    const payload = {
+      title: trimmedTitle,
+      image: trimmedImage,
+      description: (formData.description || "").trim() || null,
+      link: (formData.link || "").trim() || null,
+      order: Number(formData.order) || 0,
+      active: Boolean(formData.active),
+      featured: Boolean(formData.featured),
+    };
+
     setSaving(true);
+    console.log("[Banners] Submitting banner form:", {
+      isEditing: Boolean(editingItem),
+      id: editingItem?.id,
+      endpoint: editingItem ? `/admin/banners/${editingItem.id}` : "/admin/banners",
+      payload,
+    });
+
     try {
-      if (editingItem) {
+      if (editingItem && editingItem.id) {
         // PUT update
-        await put(`/admin/banners/${editingItem.id}`, formData);
-        showToast("تم تحديث البانر بنجاح");
+        const res = await put(`/admin/banners/${editingItem.id}`, payload);
+        console.log("[Banners] Update success response:", res);
+        toast.success("تم تحديث البانر وحفظ التعديلات بنجاح");
+        showToast("تم تحديث البانر بنجاح", "success");
         setShowModal(false);
-        fetchBannersAndSettings();
+        await fetchBannersAndSettings();
       } else {
         // POST create
-        await post("/admin/banners", formData);
-        showToast("تم إضافة البانر بنجاح");
+        const res = await post("/admin/banners", payload);
+        console.log("[Banners] Create success response:", res);
+        toast.success("تم إضافة البانر الجديد بنجاح");
+        showToast("تم إضافة البانر بنجاح", "success");
         setShowModal(false);
-        fetchBannersAndSettings();
+        await fetchBannersAndSettings();
       }
     } catch (err: any) {
-      console.error("[Banners] Save error:", err);
-      showToast(err?.message || "حدث خطأ أثناء الحفظ", "error");
+      console.error("[Banners] Save error occurred:", err);
+      const errMsg = err?.message || "فشل الحفظ، يرجى المحاولة مجدداً";
+      toast.error(`فشل الحفظ: ${errMsg}`);
+      showToast(errMsg, "error");
     } finally {
       setSaving(false);
     }
@@ -963,10 +997,21 @@ export default function BannersNew() {
                   <button
                     type="submit"
                     disabled={saving}
-                    className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-zinc-950 font-bold text-xs shadow-lg shadow-amber-500/20 hover:brightness-110 disabled:opacity-50 transition-all"
+                    onClick={(e) => {
+                      if (!saving) {
+                        handleSaveModal(e);
+                      }
+                    }}
+                    className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-zinc-950 font-bold text-xs shadow-lg shadow-amber-500/20 hover:brightness-110 disabled:opacity-50 transition-all cursor-pointer"
                   >
                     {saving && <RefreshCw className="w-4 h-4 animate-spin" />}
-                    <span>{editingItem ? "حفظ التعديلات" : "إضافة البانر"}</span>
+                    <span>
+                      {saving
+                        ? "جاري الحفظ..."
+                        : editingItem
+                        ? "حفظ التعديلات"
+                        : "إضافة البانر"}
+                    </span>
                   </button>
                 </div>
               </form>

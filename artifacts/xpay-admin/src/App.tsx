@@ -44,6 +44,7 @@ import CurrencySettings from "./pages/CurrencySettings";
 import CacheManagement from "./pages/CacheManagement";
 import CronJobs from "./pages/CronJobs";
 import { loadAndApplyAdminTheme } from "./lib/theme";
+import { Toaster } from "sonner";
 
 export default function App() {
   const [auth, setAuth] = useState<"loading" | "in" | "out">("loading");
@@ -107,6 +108,7 @@ export default function App() {
 
   return (
     <ErrorBoundary>
+      <Toaster position="top-center" richColors theme="dark" closeButton />
       <Layout
         me={me}
         onLogout={() => {
