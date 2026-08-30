@@ -8,6 +8,7 @@ export interface StoreThemeSettings {
   fontEnglish: string;
   font?: string;
   radius: string | number;
+  borderRadius?: string | number;
   shadow?: string;
   defaultMode?: string;
   fontSize?: string;
@@ -37,7 +38,20 @@ export const DEFAULT_STORE_THEME: StoreThemeSettings = {
   shadow: "medium",
   defaultMode: "dark",
   fontSize: "14",
+  theme_primary: "#C8A45C",
+  theme_secondary: "#B8954A",
+  theme_accent: "#FDE68A",
+  theme_background: "#1A1A1A",
+  theme_text_primary: "#FFFFFF",
+  theme_font_arabic: "Cairo",
+  theme_font_english: "Inter",
+  theme_font_size: "14",
+  theme_border_radius: "16",
+  theme_shadow: "medium",
+  theme_default_mode: "dark",
 };
+
+let cachedThemeSettings: StoreThemeSettings = { ...DEFAULT_STORE_THEME };
 
 /**
  * Dynamically loads Google Fonts for Arabic & English
@@ -68,6 +82,26 @@ export function ensureGoogleFontsLoaded(arabicFont: string, englishFont: string)
 }
 
 /**
+ * Helper to convert shadow style name to CSS box-shadow
+ */
+function getShadowCss(shadow: string, primaryColor: string): string {
+  switch (shadow) {
+    case "none":
+      return "none";
+    case "soft":
+      return "0 4px 14px rgba(0, 0, 0, 0.15)";
+    case "glow":
+      return `0 0 25px ${primaryColor}40, 0 4px 15px rgba(0,0,0,0.3)`;
+    case "large":
+    case "deep":
+      return "0 15px 35px -5px rgba(0, 0, 0, 0.5), 0 0 15px rgba(0, 0, 0, 0.3)";
+    case "medium":
+    default:
+      return "0 8px 25px -4px rgba(0, 0, 0, 0.35), 0 4px 10px -2px rgba(0, 0, 0, 0.2)";
+  }
+}
+
+/**
  * Formats a hex color with alpha channel
  */
 function hexWithAlpha(hex: string, alphaHex: string): string {
@@ -86,33 +120,105 @@ function hexWithAlpha(hex: string, alphaHex: string): string {
 }
 
 /**
+ * Gets the current active mode (dark or light), prioritizing user preference in localStorage
+ */
+export function getStoreThemeMode(): "dark" | "light" {
+  try {
+    const saved = localStorage.getItem("theme-preference") || localStorage.getItem("theme_mode");
+    if (saved === "light" || saved === "dark") {
+      return saved;
+    }
+  } catch {
+    // Ignore storage restrictions
+  }
+  const defaultMode = cachedThemeSettings?.theme_default_mode || cachedThemeSettings?.defaultMode || "dark";
+  return defaultMode === "light" ? "light" : "dark";
+}
+
+/**
+ * Sets the active theme mode preference
+ */
+export function setStoreThemeMode(mode: "dark" | "light") {
+  try {
+    localStorage.setItem("theme-preference", mode);
+    localStorage.setItem("theme_mode", mode);
+  } catch {
+    // Ignore storage restrictions
+  }
+  applyStoreTheme(cachedThemeSettings);
+  window.dispatchEvent(new CustomEvent("xpay_theme_mode_changed", { detail: { mode } }));
+}
+
+/**
+ * Toggles between dark and light mode
+ */
+export function toggleStoreThemeMode(): "dark" | "light" {
+  const current = getStoreThemeMode();
+  const next = current === "dark" ? "light" : "dark";
+  setStoreThemeMode(next);
+  return next;
+}
+
+/**
  * Applies dynamic CSS variables and style overrides to the document
  */
 export function applyStoreTheme(theme: Partial<StoreThemeSettings> | null | undefined) {
-  if (!theme) return;
+  if (theme) {
+    cachedThemeSettings = { ...cachedThemeSettings, ...theme };
+  }
+  const currentTheme = cachedThemeSettings;
 
-  const primary = String(theme.primary || theme.theme_primary || DEFAULT_STORE_THEME.primary).trim();
-  const secondary = String(theme.secondary || theme.theme_secondary || DEFAULT_STORE_THEME.secondary).trim();
-  const accent = String(theme.accent || theme.theme_accent || DEFAULT_STORE_THEME.accent).trim();
-  const background = String(theme.background || theme.theme_background || DEFAULT_STORE_THEME.background).trim();
-  const textPrimary = String(theme.textPrimary || theme.theme_text_primary || DEFAULT_STORE_THEME.textPrimary).trim();
-  const fontArabic = String(theme.fontArabic || theme.theme_font_arabic || theme.font || DEFAULT_STORE_THEME.fontArabic).trim();
-  const fontEnglish = String(theme.fontEnglish || theme.theme_font_english || DEFAULT_STORE_THEME.fontEnglish).trim();
-  const rawRadius = theme.radius ?? theme.theme_border_radius ?? DEFAULT_STORE_THEME.radius;
+  const currentMode = getStoreThemeMode();
+  const isLight = currentMode === "light";
+
+  const primary = String(currentTheme.primary || currentTheme.theme_primary || DEFAULT_STORE_THEME.primary).trim();
+  const secondary = String(currentTheme.secondary || currentTheme.theme_secondary || DEFAULT_STORE_THEME.secondary).trim();
+  const accent = String(currentTheme.accent || currentTheme.theme_accent || DEFAULT_STORE_THEME.accent).trim();
+  
+  // Dynamic background & text based on current dark/light mode
+  const configuredBackground = String(currentTheme.background || currentTheme.theme_background || DEFAULT_STORE_THEME.background).trim();
+  const background = isLight
+    ? (configuredBackground === "#1A1A1A" || configuredBackground === "#111827" ? "#F8F9FA" : configuredBackground)
+    : (configuredBackground === "#F8F9FA" || configuredBackground === "#FFFFFF" || configuredBackground === "#F5F2EB" ? "#1A1A1A" : configuredBackground);
+
+  const textPrimary = isLight ? "#111827" : String(currentTheme.textPrimary || currentTheme.theme_text_primary || "#FFFFFF").trim();
+  const cardBackground = isLight ? "#FFFFFF" : "#242424";
+  const cardBorder = isLight ? "rgba(0, 0, 0, 0.08)" : `${primary}40`;
+  const surfaceMuted = isLight ? "#F1F3F5" : "#1F1F1F";
+
+  const fontArabic = String(currentTheme.fontArabic || currentTheme.theme_font_arabic || currentTheme.font || DEFAULT_STORE_THEME.fontArabic).trim();
+  const fontEnglish = String(currentTheme.fontEnglish || currentTheme.theme_font_english || DEFAULT_STORE_THEME.fontEnglish).trim();
+  const rawRadius = currentTheme.radius ?? currentTheme.theme_border_radius ?? DEFAULT_STORE_THEME.radius;
   const radiusNum = Number(rawRadius);
   const radiusPx = Number.isFinite(radiusNum) && radiusNum >= 0 ? `${radiusNum}px` : "16px";
-  const defaultMode = String(theme.defaultMode || theme.theme_default_mode || "dark").trim();
+  const rawShadow = String(currentTheme.shadow || currentTheme.theme_shadow || "medium").trim();
+  const shadowCss = getShadowCss(rawShadow, primary);
 
   // 1. Ensure Fonts
   ensureGoogleFontsLoaded(fontArabic, fontEnglish);
 
-  // 2. Set root CSS variables
+  // 2. Set root CSS variables (Both explicit --theme-* requested and direct aliases)
   const root = document.documentElement;
+  
+  // Specific requested variables
+  root.style.setProperty("--theme-primary", primary);
+  root.style.setProperty("--theme-secondary", secondary);
+  root.style.setProperty("--theme-accent", accent);
+  root.style.setProperty("--theme-background", background);
+  root.style.setProperty("--theme-text-primary", textPrimary);
+  root.style.setProperty("--theme-font-arabic", `'${fontArabic}', sans-serif`);
+  root.style.setProperty("--theme-font-english", `'${fontEnglish}', sans-serif`);
+  root.style.setProperty("--theme-border-radius", radiusPx);
+  root.style.setProperty("--theme-shadow", shadowCss);
+
+  // Core & Component CSS Variables
   root.style.setProperty("--primary", primary);
   root.style.setProperty("--primary-dark", secondary);
   root.style.setProperty("--accent", accent);
   root.style.setProperty("--background", background);
-  root.style.setProperty("--dark", background);
+  root.style.setProperty("--dark", isLight ? "#FFFFFF" : "#1A1A1A");
+  root.style.setProperty("--card", cardBackground);
+  root.style.setProperty("--card-foreground", textPrimary);
   root.style.setProperty("--color-gold", primary);
   root.style.setProperty("--color-gold-dark", secondary);
   root.style.setProperty("--color-gold-light", accent);
@@ -122,8 +228,8 @@ export function applyStoreTheme(theme: Partial<StoreThemeSettings> | null | unde
   root.style.setProperty("--font-english", `'${fontEnglish}', sans-serif`);
   root.style.setProperty("--app-font-sans", `'${fontArabic}', '${fontEnglish}', sans-serif`);
 
-  // Dark or Light mode class
-  if (defaultMode === "light") {
+  // Dark or Light class on root element
+  if (isLight) {
     root.classList.remove("dark");
     root.classList.add("light");
   } else {
@@ -145,6 +251,16 @@ export function applyStoreTheme(theme: Partial<StoreThemeSettings> | null | unde
 
   styleTag.innerHTML = `
     :root {
+      --theme-primary: ${primary} !important;
+      --theme-secondary: ${secondary} !important;
+      --theme-accent: ${accent} !important;
+      --theme-background: ${background} !important;
+      --theme-text-primary: ${textPrimary} !important;
+      --theme-font-arabic: '${fontArabic}', sans-serif !important;
+      --theme-font-english: '${fontEnglish}', sans-serif !important;
+      --theme-border-radius: ${radiusPx} !important;
+      --theme-shadow: ${shadowCss} !important;
+
       --primary: ${primary} !important;
       --primary-dark: ${secondary} !important;
       --accent: ${accent} !important;
@@ -168,7 +284,7 @@ export function applyStoreTheme(theme: Partial<StoreThemeSettings> | null | unde
       font-family: '${fontArabic}', '${fontEnglish}', sans-serif !important;
     }
 
-    /* Dynamic Brand Gold Overrides */
+    /* Dynamic Brand Primary Overrides */
     .text-\\[\\#C8A45C\\],
     .text-\\[\\#c8a45c\\],
     .text-amber-400,
@@ -214,6 +330,12 @@ export function applyStoreTheme(theme: Partial<StoreThemeSettings> | null | unde
       background-color: ${primaryAlpha10} !important;
     }
 
+    /* Card & Box Styling */
+    .card-luxury, .xpay-brand-card {
+      box-shadow: ${shadowCss} !important;
+      border-radius: ${radiusPx} !important;
+    }
+
     /* Selection Color */
     ::selection {
       background-color: ${primary} !important;
@@ -222,6 +344,7 @@ export function applyStoreTheme(theme: Partial<StoreThemeSettings> | null | unde
   `;
 
   console.log("[Theme Engine] Applied Storefront Theme successfully:", {
+    mode: currentMode,
     primary,
     secondary,
     accent,
@@ -229,24 +352,35 @@ export function applyStoreTheme(theme: Partial<StoreThemeSettings> | null | unde
     fontArabic,
     fontEnglish,
     radius: radiusPx,
+    shadow: rawShadow,
   });
 }
 
 /**
- * Fetches and applies theme from backend
+ * Fetches and applies theme from backend public API
  */
 export async function loadAndApplyStoreTheme(apiBase = ""): Promise<StoreThemeSettings> {
-  try {
-    const res = await fetch(`${apiBase}/api/theme`);
-    if (!res.ok) {
-      throw new Error(`HTTP_${res.status}`);
+  const endpoints = [
+    `${apiBase}/api/public/theme-settings`,
+    `${apiBase}/api/theme-settings`,
+    `${apiBase}/api/theme`,
+  ];
+
+  for (const endpoint of endpoints) {
+    try {
+      const res = await fetch(endpoint);
+      if (res.ok) {
+        const data: StoreThemeSettings = await res.json();
+        applyStoreTheme(data);
+        return data;
+      }
+    } catch {
+      // try next fallback
     }
-    const data: StoreThemeSettings = await res.json();
-    applyStoreTheme(data);
-    return data;
-  } catch (err) {
-    console.warn("[Theme Engine] Failed to load remote theme, using defaults:", err);
-    applyStoreTheme(DEFAULT_STORE_THEME);
-    return DEFAULT_STORE_THEME;
   }
+
+  console.warn("[Theme Engine] Failed to load remote theme, using defaults");
+  applyStoreTheme(DEFAULT_STORE_THEME);
+  return DEFAULT_STORE_THEME;
 }
+
