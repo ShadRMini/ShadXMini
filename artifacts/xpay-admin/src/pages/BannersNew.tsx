@@ -26,6 +26,7 @@ import {
   Tag,
   Link as LinkIcon
 } from "lucide-react";
+import { get, post, put, patch, del } from "../lib/api";
 
 interface BannerItem {
   id: number;
@@ -76,35 +77,33 @@ export default function BannersNew() {
     setLoading(true);
     try {
       // 1. Fetch Banners
-      const res = await fetch("/api/admin/banners");
-      if (res.ok) {
-        const data = await res.json();
-        const items = Array.isArray(data) ? data : data.data || [];
-        const formatted: BannerItem[] = items.map((item: any) => ({
-          id: Number(item.id),
-          image: String(item.image || ""),
-          title: String(item.title || ""),
-          description: String(item.description || ""),
-          link: String(item.link || ""),
-          order: Number(item.order || 0),
-          active: item.active !== undefined ? Boolean(item.active) : true,
-          featured: Boolean(item.featured),
-        }));
-        formatted.sort((a, b) => a.order - b.order);
-        setBanners(formatted);
-      } else {
-        showToast("تعذر جلب قائمة البانرات", "error");
-      }
+      const data = await get<any>("/admin/banners");
+      const items = Array.isArray(data) ? data : data.data || [];
+      const formatted: BannerItem[] = items.map((item: any) => ({
+        id: Number(item.id),
+        image: String(item.image || ""),
+        title: String(item.title || ""),
+        description: String(item.description || ""),
+        link: String(item.link || ""),
+        order: Number(item.order || 0),
+        active: item.active !== undefined ? Boolean(item.active) : true,
+        featured: Boolean(item.featured),
+      }));
+      formatted.sort((a, b) => a.order - b.order);
+      setBanners(formatted);
 
       // 2. Fetch Store Featured Setting
-      const settingRes = await fetch("/api/admin/settings/show-featured-offers");
-      if (settingRes.ok) {
-        const settingData = await settingRes.json();
-        setShowFeaturedInStore(settingData.value === "true" || settingData.value === true);
+      try {
+        const settingData = await get<any>("/admin/settings/show-featured-offers");
+        if (settingData && settingData.value !== undefined) {
+          setShowFeaturedInStore(settingData.value === "true" || settingData.value === true);
+        }
+      } catch (sErr) {
+        console.warn("[Banners] Non-critical: Could not fetch show-featured-offers setting:", sErr);
       }
-    } catch (err) {
-      console.error(err);
-      showToast("حدث خطأ في الاتصال بالخادم", "error");
+    } catch (err: any) {
+      console.error("[Banners] Error fetching banners:", err);
+      showToast(err?.message || "حدث خطأ في الاتصال بالخادم", "error");
     } finally {
       setLoading(false);
     }
@@ -121,22 +120,14 @@ export default function BannersNew() {
     setShowFeaturedInStore(newValue);
 
     try {
-      const res = await fetch("/api/admin/settings/show-featured-offers", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ value: String(newValue) }),
-      });
-      if (res.ok) {
-        showToast(
-          newValue ? "تم تفعيل عرض العروض المميزة في المتجر" : "تم تعطيل قسم العروض المميزة في المتجر"
-        );
-      } else {
-        setShowFeaturedInStore(!newValue); // Revert
-        showToast("فشل تحديث إعدادات المتجر", "error");
-      }
-    } catch (err) {
+      await put("/admin/settings/show-featured-offers", { value: String(newValue) });
+      showToast(
+        newValue ? "تم تفعيل عرض العروض المميزة في المتجر" : "تم تعطيل قسم العروض المميزة في المتجر"
+      );
+    } catch (err: any) {
+      console.error("[Banners] Toggle setting error:", err);
       setShowFeaturedInStore(!newValue); // Revert
-      showToast("حدث خطأ أثناء حفظ الإعداد", "error");
+      showToast(err?.message || "فشل تحديث إعدادات المتجر", "error");
     } finally {
       setTogglingStoreSetting(false);
     }
@@ -187,35 +178,20 @@ export default function BannersNew() {
     try {
       if (editingItem) {
         // PUT update
-        const res = await fetch(`/api/admin/banners/${editingItem.id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formData),
-        });
-        if (res.ok) {
-          showToast("تم تحديث البانر بنجاح");
-          setShowModal(false);
-          fetchBannersAndSettings();
-        } else {
-          showToast("فشل تحديث البانر", "error");
-        }
+        await put(`/admin/banners/${editingItem.id}`, formData);
+        showToast("تم تحديث البانر بنجاح");
+        setShowModal(false);
+        fetchBannersAndSettings();
       } else {
         // POST create
-        const res = await fetch("/api/admin/banners", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formData),
-        });
-        if (res.ok) {
-          showToast("تم إضافة البانر بنجاح");
-          setShowModal(false);
-          fetchBannersAndSettings();
-        } else {
-          showToast("فشل إضافة البانر", "error");
-        }
+        await post("/admin/banners", formData);
+        showToast("تم إضافة البانر بنجاح");
+        setShowModal(false);
+        fetchBannersAndSettings();
       }
-    } catch (err) {
-      showToast("حدث خطأ أثناء الحفظ", "error");
+    } catch (err: any) {
+      console.error("[Banners] Save error:", err);
+      showToast(err?.message || "حدث خطأ أثناء الحفظ", "error");
     } finally {
       setSaving(false);
     }
@@ -225,15 +201,12 @@ export default function BannersNew() {
   const handleDelete = async (id: number, title: string) => {
     if (!window.confirm(`هل أنت تأكد من حذف البانر "${title}"؟`)) return;
     try {
-      const res = await fetch(`/api/admin/banners/${id}`, { method: "DELETE" });
-      if (res.ok) {
-        showToast("تم حذف البانر بنجاح");
-        setBanners((prev) => prev.filter((b) => b.id !== id));
-      } else {
-        showToast("فشل حذف البانر", "error");
-      }
-    } catch (err) {
-      showToast("حدث خطأ أثناء الحذف", "error");
+      await del(`/admin/banners/${id}`);
+      showToast("تم حذف البانر بنجاح");
+      setBanners((prev) => prev.filter((b) => b.id !== id));
+    } catch (err: any) {
+      console.error("[Banners] Delete error:", err);
+      showToast(err?.message || "فشل حذف البانر", "error");
     }
   };
 
@@ -244,25 +217,15 @@ export default function BannersNew() {
     );
 
     try {
-      const res = await fetch(`/api/admin/banners/${id}/toggle-active`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-      });
-      if (!res.ok) {
-        // revert on failure
-        setBanners((prev) =>
-          prev.map((b) => (b.id === id ? { ...b, active: !b.active } : b))
-        );
-        showToast("فشل تحديث حالة البانر", "error");
-      } else {
-        showToast("تم تغيير حالة البانر بنجاح");
-      }
-    } catch (err) {
+      await patch(`/admin/banners/${id}/toggle-active`, {});
+      showToast("تم تغيير حالة البانر بنجاح");
+    } catch (err: any) {
+      console.error("[Banners] Toggle active error:", err);
       // revert on failure
       setBanners((prev) =>
         prev.map((b) => (b.id === id ? { ...b, active: !b.active } : b))
       );
-      showToast("حدث خطأ في الاتصال بالخادم", "error");
+      showToast(err?.message || "فشل تحديث حالة البانر", "error");
     }
   };
 
@@ -273,25 +236,15 @@ export default function BannersNew() {
     );
 
     try {
-      const res = await fetch(`/api/admin/banners/${id}/toggle-featured`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-      });
-      if (!res.ok) {
-        // revert
-        setBanners((prev) =>
-          prev.map((b) => (b.id === id ? { ...b, featured: !b.featured } : b))
-        );
-        showToast("فشل تمييز العرض", "error");
-      } else {
-        showToast("تم تغيير حالة العرض المميز بنجاح");
-      }
-    } catch (err) {
+      await patch(`/admin/banners/${id}/toggle-featured`, {});
+      showToast("تم تغيير حالة العرض المميز بنجاح");
+    } catch (err: any) {
+      console.error("[Banners] Toggle featured error:", err);
       // revert
       setBanners((prev) =>
         prev.map((b) => (b.id === id ? { ...b, featured: !b.featured } : b))
       );
-      showToast("حدث خطأ أثناء التعديل", "error");
+      showToast(err?.message || "فشل تمييز العرض", "error");
     }
   };
 
@@ -313,16 +266,13 @@ export default function BannersNew() {
     setBanners(reorderedItems);
 
     try {
-      await fetch("/api/admin/banners/reorder", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          items: reorderedItems.map((b) => ({ id: b.id, order: b.order })),
-        }),
+      await patch("/admin/banners/reorder", {
+        items: reorderedItems.map((b) => ({ id: b.id, order: b.order })),
       });
       showToast("تم تحديث ترتيب البانرات بنجاح");
-    } catch (err) {
-      showToast("حدث خطأ أثناء إعادة الترتيب", "error");
+    } catch (err: any) {
+      console.error("[Banners] Reorder error:", err);
+      showToast(err?.message || "حدث خطأ أثناء إعادة الترتيب", "error");
     }
   };
 
@@ -334,16 +284,13 @@ export default function BannersNew() {
     setBanners(reordered);
 
     try {
-      await fetch("/api/admin/banners/reorder", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          items: reordered.map((b) => ({ id: b.id, order: b.order })),
-        }),
+      await patch("/admin/banners/reorder", {
+        items: reordered.map((b) => ({ id: b.id, order: b.order })),
       });
       showToast("تم ترتيب البانرات أوتوماتيكياً حسب العنوان");
-    } catch (err) {
-      showToast("حدث خطأ أثناء الترتيب", "error");
+    } catch (err: any) {
+      console.error("[Banners] Auto-sort error:", err);
+      showToast(err?.message || "حدث خطأ أثناء الترتيب", "error");
     }
   };
 

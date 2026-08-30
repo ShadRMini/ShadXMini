@@ -845,8 +845,11 @@ function makeCrud<T extends { id: any }>(
       res.status(httpErr.status).json({ error: httpErr.message });
     }
   });
-  router.patch(`/admin/${path}/:id`, requireAdmin, async (req, res) => {
+  const handleUpdate = async (req: any, res: any) => {
     try {
+      if (path === "providers") {
+        await ensureDatabaseSchema();
+      }
       const data = await sanitizeCrudDataForRuntimeSchema(
         path,
         filterFields(req.body, opts.allowedFields),
@@ -928,7 +931,9 @@ function makeCrud<T extends { id: any }>(
       const httpErr = toHttpError(error);
       res.status(httpErr.status).json({ error: httpErr.message });
     }
-  });
+  };
+  router.patch(`/admin/${path}/:id`, requireAdmin, handleUpdate);
+  router.put(`/admin/${path}/:id`, requireAdmin, handleUpdate);
   router.delete(`/admin/${path}/:id`, requireAdmin, async (req, res) => {
     try {
       const id = Number(req.params.id);
@@ -1054,6 +1059,28 @@ async function fetchProviderLiveCostUsd(providerId: number, providerProductId: n
 async function sanitizeCrudDataForRuntimeSchema(path: string, data: any): Promise<any> {
   if (!data || typeof data !== "object") return data;
   const normalized: Record<string, any> = { ...data };
+
+  if (path === "banners") {
+    if ("title" in normalized && typeof normalized.title === "string") {
+      normalized.title = normalized.title.trim();
+    }
+    if ("image" in normalized && typeof normalized.image === "string") {
+      normalized.image = normalized.image.trim();
+    }
+    if ("description" in normalized && typeof normalized.description === "string") {
+      normalized.description = normalized.description.trim();
+      if (normalized.description === "") normalized.description = null;
+    }
+    if ("link" in normalized && typeof normalized.link === "string") {
+      normalized.link = normalized.link.trim();
+      if (normalized.link === "") normalized.link = null;
+    }
+    if ("order" in normalized) normalizeNumberField(normalized, "order", { required: false });
+    if ("active" in normalized) normalized.active = !!normalized.active;
+    if ("featured" in normalized) normalized.featured = !!normalized.featured;
+    if (isBlank(normalized.title)) throw new ValidationError("عنوان البانر مطلوب");
+    if (isBlank(normalized.image)) throw new ValidationError("رابط صورة البانر مطلوب");
+  }
 
   if (path === "categories" || path === "product-groups") {
     if ("name" in normalized && typeof normalized.name === "string") {
@@ -3654,6 +3681,113 @@ router.put("/admin/settings/use-legacy-api-products", requireAdmin, async (req, 
     res.json({ success: true, value: isLegacy ? "true" : "false", useLegacy: isLegacy });
   } catch (err: any) {
     res.status(500).json({ error: err?.message || "فشل تحديث إعداد منتجات المزود" });
+  }
+});
+
+// Legacy Banners Toggle Settings
+router.get("/admin/settings/use-legacy-banners-page", requireAdmin, async (_req, res) => {
+  try {
+    const rows = await db.select().from(settingsTable).where(eq(settingsTable.key, "use_legacy_banners_page"));
+    const val = rows[0]?.value;
+    const isLegacy = val === true || val === "true" || JSON.stringify(val) === "true";
+    res.json({ value: isLegacy ? "true" : "false", useLegacy: isLegacy });
+  } catch (err: any) {
+    res.status(500).json({ error: err?.message || "فشل جلب إعداد واجهة البانرات" });
+  }
+});
+
+router.put("/admin/settings/use-legacy-banners-page", requireAdmin, async (req, res) => {
+  try {
+    const { value, useLegacy } = req.body;
+    const isLegacy = value === true || value === "true" || useLegacy === true || useLegacy === "true";
+
+    await db
+      .insert(settingsTable)
+      .values({ key: "use_legacy_banners_page", value: isLegacy })
+      .onConflictDoUpdate({ target: settingsTable.key, set: { value: isLegacy } });
+
+    await logActivity(
+      { id: req.session.adminId, name: req.session.adminUsername },
+      "use_legacy_banners_page_update",
+      "settings",
+      ["use_legacy_banners_page"]
+    );
+
+    res.json({ success: true, value: isLegacy ? "true" : "false", useLegacy: isLegacy });
+  } catch (err: any) {
+    res.status(500).json({ error: err?.message || "فشل تحديث إعداد واجهة البانرات" });
+  }
+});
+
+// Show Featured Offers Store Setting
+router.get("/admin/settings/show-featured-offers", requireAdmin, async (_req, res) => {
+  try {
+    const rows = await db.select().from(settingsTable).where(eq(settingsTable.key, "show_featured_offers"));
+    const val = rows[0]?.value;
+    const show = val === undefined || val === true || val === "true" || JSON.stringify(val) === "true";
+    res.json({ value: show ? "true" : "false", showFeaturedOffers: show });
+  } catch (err: any) {
+    res.status(500).json({ error: err?.message || "فشل جلب إعداد العروض المميزة" });
+  }
+});
+
+router.put("/admin/settings/show-featured-offers", requireAdmin, async (req, res) => {
+  try {
+    const { value, showFeaturedOffers } = req.body;
+    const show = value === true || value === "true" || showFeaturedOffers === true || showFeaturedOffers === "true";
+
+    await db
+      .insert(settingsTable)
+      .values({ key: "show_featured_offers", value: show })
+      .onConflictDoUpdate({ target: settingsTable.key, set: { value: show } });
+
+    await logActivity(
+      { id: req.session.adminId, name: req.session.adminUsername },
+      "show_featured_offers_update",
+      "settings",
+      ["show_featured_offers"]
+    );
+
+    res.json({ success: true, value: show ? "true" : "false", showFeaturedOffers: show });
+  } catch (err: any) {
+    res.status(500).json({ error: err?.message || "فشل تحديث إعداد العروض المميزة" });
+  }
+});
+
+// Generic Settings Fallback Routes
+router.get("/admin/settings/:key", requireAdmin, async (req, res) => {
+  try {
+    const key = req.params.key;
+    const rows = await db.select().from(settingsTable).where(eq(settingsTable.key, key));
+    if (rows.length > 0) {
+      res.json({ key, value: rows[0].value });
+    } else {
+      res.json({ key, value: null });
+    }
+  } catch (err: any) {
+    res.status(500).json({ error: err?.message || "فشل جلب الإعداد" });
+  }
+});
+
+router.put("/admin/settings/:key", requireAdmin, async (req, res) => {
+  try {
+    const key = req.params.key;
+    const value = req.body.value !== undefined ? req.body.value : req.body;
+    await db
+      .insert(settingsTable)
+      .values({ key, value })
+      .onConflictDoUpdate({ target: settingsTable.key, set: { value } });
+
+    await logActivity(
+      { id: req.session.adminId, name: req.session.adminUsername },
+      "setting_update",
+      "settings",
+      [key]
+    );
+
+    res.json({ success: true, key, value });
+  } catch (err: any) {
+    res.status(500).json({ error: err?.message || "فشل حفظ الإعداد" });
   }
 });
 
