@@ -29,6 +29,8 @@ export interface SectionConfig {
   visible: boolean;
   order: number;
   label: string;
+  title?: string;
+  button_text?: string;
 }
 
 export interface CustomizationConfig {
@@ -44,18 +46,19 @@ export interface CustomizationConfig {
 }
 
 const DEFAULT_SECTIONS: SectionConfig[] = [
-  { id: "image", visible: true, order: 1, label: "صورة المنتج والبدائل" },
-  { id: "title", visible: true, order: 2, label: "اسم المنتج والتصنيف وحالة التوفر" },
-  { id: "price", visible: true, order: 3, label: "السعر المباشر والمجموع الكلي" },
-  { id: "rating", visible: true, order: 4, label: "شارات التقييم وشارات الخدمة" },
-  { id: "description", visible: true, order: 5, label: "وصف المنتج والملاحظات" },
-  { id: "quantity", visible: true, order: 6, label: "تحديد الكمية وباقات الشحن" },
-  { id: "buy_now", visible: true, order: 7, label: "زر الشراء وتأكيد الطلب" },
-  { id: "guarantees", visible: true, order: 8, label: "شارات الأمان والضمان الفوري" },
-  { id: "reviews", visible: true, order: 9, label: "آراء وتقييمات العملاء" },
-  { id: "related_products", visible: true, order: 10, label: "منتجات ذات صلة من نفس القسم" },
-  { id: "share_buttons", visible: true, order: 11, label: "أزرار المشاركة والمفضلة" },
-  { id: "specifications", visible: false, order: 12, label: "المواصفات التقنية والشحن" }
+  { id: "image", visible: true, order: 1, label: "صورة المنتج والبدائل", title: "صورة المنتج" },
+  { id: "title", visible: true, order: 2, label: "اسم المنتج والتصنيف وحالة التوفر", title: "اسم المنتج" },
+  { id: "price", visible: true, order: 3, label: "السعر المباشر والمجموع الكلي", title: "السعر" },
+  { id: "rating", visible: true, order: 4, label: "شارات التقييم وشارات الخدمة", title: "التقييمات" },
+  { id: "description", visible: true, order: 5, label: "وصف المنتج والملاحظات", title: "الوصف" },
+  { id: "quantity", visible: true, order: 6, label: "تحديد الكمية وباقات الشحن", title: "اختيار الكمية" },
+  { id: "add_to_cart", visible: true, order: 7, label: "زر الإضافة إلى السلة", title: "إضافة إلى السلة", button_text: "إضافة إلى السلة" },
+  { id: "buy_now", visible: true, order: 8, label: "زر الشراء وتأكيد الطلب", title: "شراء الآن", button_text: "شراء الآن" },
+  { id: "guarantees", visible: true, order: 9, label: "شارات الأمان والضمان الفوري", title: "الضمان والراحة" },
+  { id: "reviews", visible: true, order: 10, label: "آراء وتقييمات العملاء", title: "التقييمات والمراجعات" },
+  { id: "related_products", visible: true, order: 11, label: "منتجات ذات صلة من نفس القسم", title: "منتجات قد تعجبك" },
+  { id: "share_buttons", visible: true, order: 12, label: "أزرار المشاركة والمفضلة", title: "مشاركة والمفضلة" },
+  { id: "specifications", visible: false, order: 13, label: "المواصفات التقنية والشحن", title: "المواصفات والتفاصيل" }
 ];
 
 const DEFAULT_CUSTOMIZATION: CustomizationConfig = {
@@ -151,14 +154,27 @@ export default function ProductPageSettings() {
     setCustomization((prev) => ({ ...prev, [field]: value }));
   };
 
+  const handleSectionTextChange = (id: string, field: "title" | "button_text", value: string) => {
+    setSections((prev) =>
+      prev.map((sec) => (sec.id === id ? { ...sec, [field]: value } : sec))
+    );
+  };
+
   const handleSave = async () => {
     setSaving(true);
     try {
-      await put("/admin/product-page-settings", {
+      const payload = {
         sections,
         customization,
         use_legacy_product_page: useLegacy,
-      });
+      };
+
+      await put("/admin/product-page-settings", payload);
+      try {
+        await put("/admin/product-page-config", payload);
+      } catch (e) {
+        // optional fallback
+      }
 
       // Also sync theme-settings for backward compatibility
       await put("/admin/theme-settings", {
@@ -283,69 +299,98 @@ export default function ProductPageSettings() {
               يمكنك إخفاء أي عنصر تماماً بالنقر على زر العين، أو إعادة ترتيب الظهور باستخدام أزرار الأسهم:
             </p>
 
-            <div className="space-y-2">
+            <div className="space-y-3">
               {sections.map((sec, idx) => (
                 <div
                   key={sec.id}
-                  className={`flex items-center justify-between p-3 rounded-xl border transition-all duration-200 ${
+                  className={`p-3.5 rounded-xl border transition-all duration-200 space-y-2.5 ${
                     sec.visible
                       ? "bg-[#1A1A1A] border-zinc-800 text-white"
                       : "bg-[#1A1A1A]/40 border-zinc-800/60 text-zinc-500 opacity-60"
                   }`}
                 >
-                  <div className="flex items-center gap-3">
-                    <span className="w-6 h-6 rounded-lg bg-[#242424] border border-zinc-700 flex items-center justify-center font-mono text-[10px] text-[#C8A45C] font-bold">
-                      {idx + 1}
-                    </span>
-                    <span className="text-sm">{SECTION_ICONS[sec.id] || "📌"}</span>
-                    <div>
-                      <div className="font-bold text-xs flex items-center gap-2">
-                        <span>{sec.label}</span>
-                        {!sec.visible && (
-                          <span className="text-[9px] bg-red-950/80 text-red-400 border border-red-800/50 px-1.5 py-0.2 rounded font-normal">
-                            مخفي
-                          </span>
-                        )}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <span className="w-6 h-6 rounded-lg bg-[#242424] border border-zinc-700 flex items-center justify-center font-mono text-[10px] text-[#C8A45C] font-bold">
+                        {idx + 1}
+                      </span>
+                      <span className="text-sm">{SECTION_ICONS[sec.id] || "📌"}</span>
+                      <div>
+                        <div className="font-bold text-xs flex items-center gap-2">
+                          <span>{sec.label}</span>
+                          {!sec.visible && (
+                            <span className="text-[9px] bg-red-950/80 text-red-400 border border-red-800/50 px-1.5 py-0.2 rounded font-normal">
+                              مخفي
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-[10px] text-zinc-500 font-mono">ID: {sec.id}</span>
                       </div>
-                      <span className="text-[10px] text-zinc-500 font-mono">ID: {sec.id}</span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      {/* Move Up/Down Controls */}
+                      <div className="flex items-center gap-1 bg-[#242424] p-1 rounded-lg border border-zinc-800">
+                        <button
+                          type="button"
+                          disabled={idx === 0}
+                          onClick={() => handleMove(idx, -1)}
+                          className="p-1 text-zinc-400 hover:text-white disabled:opacity-30 rounded hover:bg-zinc-800 cursor-pointer"
+                          title="تحريك لأعلى"
+                        >
+                          <ArrowUp size={14} />
+                        </button>
+                        <button
+                          type="button"
+                          disabled={idx === sections.length - 1}
+                          onClick={() => handleMove(idx, 1)}
+                          className="p-1 text-zinc-400 hover:text-white disabled:opacity-30 rounded hover:bg-zinc-800 cursor-pointer"
+                          title="تحريك لأسفل"
+                        >
+                          <ArrowDown size={14} />
+                        </button>
+                      </div>
+
+                      {/* Visibility Toggle Button */}
+                      <button
+                        type="button"
+                        onClick={() => handleToggleVisible(sec.id)}
+                        className={`p-2 rounded-xl border text-xs font-bold transition flex items-center gap-1 cursor-pointer ${
+                          sec.visible
+                            ? "bg-[#C8A45C]/20 border-[#C8A45C]/50 text-[#FDE68A]"
+                            : "bg-zinc-800/60 border-zinc-700 text-zinc-400 hover:text-white"
+                        }`}
+                      >
+                        {sec.visible ? <Eye size={15} /> : <EyeOff size={15} />}
+                      </button>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    {/* Move Up/Down Controls */}
-                    <div className="flex items-center gap-1 bg-[#242424] p-1 rounded-lg border border-zinc-800">
-                      <button
-                        type="button"
-                        disabled={idx === 0}
-                        onClick={() => handleMove(idx, -1)}
-                        className="p-1 text-zinc-400 hover:text-white disabled:opacity-30 rounded hover:bg-zinc-800 cursor-pointer"
-                        title="تحريك لأعلى"
-                      >
-                        <ArrowUp size={14} />
-                      </button>
-                      <button
-                        type="button"
-                        disabled={idx === sections.length - 1}
-                        onClick={() => handleMove(idx, 1)}
-                        className="p-1 text-zinc-400 hover:text-white disabled:opacity-30 rounded hover:bg-zinc-800 cursor-pointer"
-                        title="تحريك لأسفل"
-                      >
-                        <ArrowDown size={14} />
-                      </button>
+                  {/* Section Title & Button Text Inputs */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 border-t border-zinc-800/80 text-xs">
+                    <div>
+                      <label className="text-[10px] text-zinc-400 block mb-1">عنوان القسم المخاطب به العميل:</label>
+                      <input
+                        type="text"
+                        value={sec.title || ""}
+                        onChange={(e) => handleSectionTextChange(sec.id, "title", e.target.value)}
+                        placeholder={sec.label}
+                        className="w-full bg-[#242424] border border-zinc-800 text-white rounded-lg px-2.5 py-1.5 text-xs focus:border-[#C8A45C] outline-none"
+                      />
                     </div>
 
-                    {/* Visibility Toggle Button */}
-                    <button
-                      type="button"
-                      onClick={() => handleToggleVisible(sec.id)}
-                      className={`p-2 rounded-xl border text-xs font-bold transition flex items-center gap-1 cursor-pointer ${
-                        sec.visible
-                          ? "bg-[#C8A45C]/20 border-[#C8A45C]/50 text-[#FDE68A]"
-                          : "bg-zinc-800/60 border-zinc-700 text-zinc-400 hover:text-white"
-                      }`}
-                    >
-                      {sec.visible ? <Eye size={15} /> : <EyeOff size={15} />}
-                    </button>
+                    {(sec.id === "buy_now" || sec.id === "add_to_cart") && (
+                      <div>
+                        <label className="text-[10px] text-zinc-400 block mb-1">نص الزر التفاعلي:</label>
+                        <input
+                          type="text"
+                          value={sec.button_text || ""}
+                          onChange={(e) => handleSectionTextChange(sec.id, "button_text", e.target.value)}
+                          placeholder="نص الزر"
+                          className="w-full bg-[#242424] border border-zinc-800 text-[#FDE68A] font-bold rounded-lg px-2.5 py-1.5 text-xs focus:border-[#C8A45C] outline-none"
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}

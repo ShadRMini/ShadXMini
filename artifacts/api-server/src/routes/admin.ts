@@ -25,6 +25,7 @@ import {
   notificationsTable,
   ticketsTable,
   ticketMessagesTable,
+  productPageConfigTable,
 } from "@workspace/db";
 import { and, desc, eq, gte, sql } from "drizzle-orm";
 import { requireAdmin } from "../lib/adminAuth.js";
@@ -2264,8 +2265,18 @@ router.put("/admin/theme-settings", requireAdmin, async (req, res) => {
   }
 });
 
-router.get("/admin/product-page-settings", requireAdmin, async (_req, res) => {
+const getProductPageConfigHandler = async (_req: any, res: any) => {
   try {
+    let dbConfig: any = null;
+    try {
+      const rows = await db.select().from(productPageConfigTable).limit(1);
+      if (Array.isArray(rows) && rows.length > 0) {
+        dbConfig = rows[0];
+      }
+    } catch (e) {
+      // fallback
+    }
+
     const rows = await db.select().from(settingsTable);
     const map = new Map<string, any>();
     if (Array.isArray(rows)) {
@@ -2281,18 +2292,19 @@ router.get("/admin/product-page-settings", requireAdmin, async (_req, res) => {
     }
 
     const defaultSections = [
-      { id: "image", visible: true, order: 1, label: "صورة المنتج والبدائل" },
-      { id: "title", visible: true, order: 2, label: "اسم المنتج والتصنيف وحالة التوفر" },
-      { id: "price", visible: true, order: 3, label: "السعر المباشر والمجموع الكلي" },
-      { id: "rating", visible: true, order: 4, label: "شارات التقييم وشارات الخدمة" },
-      { id: "description", visible: true, order: 5, label: "وصف المنتج والملاحظات" },
-      { id: "quantity", visible: true, order: 6, label: "تحديد الكمية وباقات الشحن" },
-      { id: "buy_now", visible: true, order: 7, label: "زر الشراء وتأكيد الطلب" },
-      { id: "guarantees", visible: true, order: 8, label: "شارات الأمان والضمان الفوري" },
-      { id: "reviews", visible: true, order: 9, label: "آراء وتقييمات العملاء" },
-      { id: "related_products", visible: true, order: 10, label: "منتجات ذات صلة من نفس القسم" },
-      { id: "share_buttons", visible: true, order: 11, label: "أزرار المشاركة والمفضلة" },
-      { id: "specifications", visible: false, order: 12, label: "المواصفات التقنية والشحن" }
+      { id: "image", visible: true, order: 1, label: "صورة المنتج والبدائل", title: "صورة المنتج" },
+      { id: "title", visible: true, order: 2, label: "اسم المنتج والتصنيف وحالة التوفر", title: "اسم المنتج" },
+      { id: "price", visible: true, order: 3, label: "السعر المباشر والمجموع الكلي", title: "السعر" },
+      { id: "rating", visible: true, order: 4, label: "شارات التقييم وشارات الخدمة", title: "التقييمات" },
+      { id: "description", visible: true, order: 5, label: "وصف المنتج والملاحظات", title: "الوصف" },
+      { id: "quantity", visible: true, order: 6, label: "تحديد الكمية وباقات الشحن", title: "اختيار الكمية" },
+      { id: "add_to_cart", visible: true, order: 7, label: "زر الإضافة إلى السلة", title: "إضافة إلى السلة", button_text: "إضافة إلى السلة" },
+      { id: "buy_now", visible: true, order: 8, label: "زر الشراء وتأكيد الطلب", title: "شراء الآن", button_text: "شراء الآن" },
+      { id: "guarantees", visible: true, order: 9, label: "شارات الأمان والضمان الفوري", title: "الضمان والراحة" },
+      { id: "reviews", visible: true, order: 10, label: "آراء وتقييمات العملاء", title: "التقييمات والمراجعات" },
+      { id: "related_products", visible: true, order: 11, label: "منتجات ذات صلة من نفس القسم", title: "منتجات قد تعجبك" },
+      { id: "share_buttons", visible: true, order: 12, label: "أزرار المشاركة والمفضلة", title: "مشاركة والمفضلة" },
+      { id: "specifications", visible: false, order: 13, label: "المواصفات التقنية والشحن", title: "المواصفات والتفاصيل" }
     ];
 
     const defaultCustomization = {
@@ -2307,8 +2319,8 @@ router.get("/admin/product-page-settings", requireAdmin, async (_req, res) => {
       font_family: "Cairo"
     };
 
-    const sections = map.get("product_page_layout") || defaultSections;
-    const customization = map.get("product_page_style") || defaultCustomization;
+    const sections = dbConfig?.sections || map.get("product_page_layout") || defaultSections;
+    const customization = dbConfig?.customization || map.get("product_page_style") || defaultCustomization;
     const useLegacy = map.get("use_legacy_product_page") ?? map.get("product_legacy_mode") ?? false;
 
     res.json({
@@ -2319,9 +2331,9 @@ router.get("/admin/product-page-settings", requireAdmin, async (_req, res) => {
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
-});
+};
 
-router.put("/admin/product-page-settings", requireAdmin, async (req, res) => {
+const putProductPageConfigHandler = async (req: any, res: any) => {
   try {
     const { sections, customization, use_legacy_product_page } = req.body;
 
@@ -2355,6 +2367,26 @@ router.put("/admin/product-page-settings", requireAdmin, async (req, res) => {
         .onConflictDoUpdate({ target: settingsTable.key, set: { value: use_legacy_product_page } });
     }
 
+    try {
+      if (sections || customization) {
+        await db.insert(productPageConfigTable).values({
+          id: 1,
+          sections: sections || [],
+          customization: customization || {},
+          updatedAt: new Date()
+        }).onConflictDoUpdate({
+          target: productPageConfigTable.id,
+          set: {
+            sections: sections || sql`sections`,
+            customization: customization || sql`customization`,
+            updatedAt: new Date()
+          }
+        });
+      }
+    } catch (e) {
+      // fallback
+    }
+
     await logActivity(
       { id: req.session.adminId, name: req.session.adminUsername },
       "product_page_settings_update",
@@ -2366,7 +2398,13 @@ router.put("/admin/product-page-settings", requireAdmin, async (req, res) => {
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
-});
+};
+
+router.get("/admin/product-page-settings", requireAdmin, getProductPageConfigHandler);
+router.get("/admin/product-page-config", requireAdmin, getProductPageConfigHandler);
+router.put("/admin/product-page-settings", requireAdmin, putProductPageConfigHandler);
+router.put("/admin/product-page-config", requireAdmin, putProductPageConfigHandler);
+
 
 router.post("/admin/theme-settings/apply-preset", requireAdmin, async (req, res) => {
   try {

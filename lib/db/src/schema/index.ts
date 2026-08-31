@@ -311,4 +311,11 @@ export const ticketMessagesTable = pgTable("ticket_messages", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const productPageConfigTable = pgTable("product_page_config", {
+  id: serial("id").primaryKey(),
+  sections: jsonb("sections").notNull().default('[]'),
+  customization: jsonb("customization").notNull().default('{}'),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 

@@ -401,6 +401,50 @@ export async function ensureDatabaseSchema() {
       }
     }
 
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS product_page_config (
+        id SERIAL PRIMARY KEY,
+        sections JSONB NOT NULL DEFAULT '[]',
+        customization JSONB NOT NULL DEFAULT '{}',
+        updated_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+
+    const existingConfig: any = await db.execute(sql`SELECT id FROM product_page_config LIMIT 1`);
+    const configRows = existingConfig?.rows || existingConfig;
+    if (!configRows || configRows.length === 0) {
+      await db.execute(sql`
+        INSERT INTO product_page_config (id, sections, customization) VALUES (
+          1,
+          '[
+            {"id": "image", "visible": true, "order": 1, "label": "صورة المنتج والبدائل", "title": "صورة المنتج"},
+            {"id": "title", "visible": true, "order": 2, "label": "اسم المنتج والتصنيف وحالة التوفر", "title": "اسم المنتج"},
+            {"id": "price", "visible": true, "order": 3, "label": "السعر المباشر والمجموع الكلي", "title": "السعر"},
+            {"id": "description", "visible": true, "order": 4, "label": "وصف المنتج والملاحظات", "title": "الوصف"},
+            {"id": "quantity", "visible": true, "order": 5, "label": "تحديد الكمية وباقات الشحن", "title": "اختيار الكمية"},
+            {"id": "add_to_cart", "visible": true, "order": 6, "label": "زر الإضافة إلى السلة", "title": "إضافة إلى السلة", "button_text": "إضافة إلى السلة"},
+            {"id": "buy_now", "visible": true, "order": 7, "label": "زر الشراء وتأكيد الطلب", "title": "شراء الآن", "button_text": "شراء الآن"},
+            {"id": "guarantees", "visible": true, "order": 8, "label": "شارات الأمان والضمان الفوري", "title": "الضمان والراحة"},
+            {"id": "reviews", "visible": true, "order": 9, "label": "آراء وتقييمات العملاء", "title": "التقييمات والمراجعات"},
+            {"id": "related_products", "visible": true, "order": 10, "label": "منتجات ذات صلة من نفس القسم", "title": "منتجات قد تعجبك"},
+            {"id": "share_buttons", "visible": true, "order": 11, "label": "أزرار المشاركة والمفضلة", "title": "مشاركة والمفضلة"},
+            {"id": "specifications", "visible": false, "order": 12, "label": "المواصفات التقنية والشحن", "title": "المواصفات والتفاصيل"}
+          ]'::JSONB,
+          '{
+            "image_size": "medium",
+            "price_color": "#FDE68A",
+            "button_color": "#C8A45C",
+            "button_text_color": "#1A1A1A",
+            "bg_color": "#1A1A1A",
+            "text_color": "#FFFFFF",
+            "border_color": "#C8A45C",
+            "border_radius": "16px",
+            "font_family": "Cairo"
+          }'::JSONB
+        ) ON CONFLICT (id) DO NOTHING;
+      `);
+    }
+
     schemaEnsured = true;
     console.log("[DB Schema] Runtime schema verified and synchronized successfully.");
   } catch (error) {

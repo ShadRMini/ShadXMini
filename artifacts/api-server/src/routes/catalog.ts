@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { db, categoriesTable, productGroupsTable, productsTable, newsTable, bannersTable, settingsTable } from "@workspace/db";
+import { db, categoriesTable, productGroupsTable, productsTable, newsTable, bannersTable, settingsTable, productPageConfigTable } from "@workspace/db";
 import { and, asc, eq, ilike, sql } from "drizzle-orm";
 import {
   ListCategoriesResponse,
@@ -302,6 +302,16 @@ const DEFAULT_PRODUCT_CUSTOMIZATION = {
 
 const handleGetProductPageSettings = async (_req: any, res: any) => {
   try {
+    let dbConfig: any = null;
+    try {
+      const configRows = await db.select().from(productPageConfigTable).limit(1);
+      if (Array.isArray(configRows) && configRows.length > 0) {
+        dbConfig = configRows[0];
+      }
+    } catch (e) {
+      // fallback
+    }
+
     const rows = await db.select().from(settingsTable);
     const map = new Map<string, any>();
     if (Array.isArray(rows)) {
@@ -316,8 +326,8 @@ const handleGetProductPageSettings = async (_req: any, res: any) => {
       }
     }
 
-    const sections = map.get("product_page_layout") || DEFAULT_PRODUCT_SECTIONS;
-    const customization = map.get("product_page_style") || DEFAULT_PRODUCT_CUSTOMIZATION;
+    const sections = dbConfig?.sections || map.get("product_page_layout") || DEFAULT_PRODUCT_SECTIONS;
+    const customization = dbConfig?.customization || map.get("product_page_style") || DEFAULT_PRODUCT_CUSTOMIZATION;
     const useLegacy = map.get("use_legacy_product_page") ?? map.get("product_legacy_mode") ?? false;
 
     const result: Record<string, any> = {
@@ -354,6 +364,9 @@ const handleGetProductPageSettings = async (_req: any, res: any) => {
 };
 
 router.get("/public/product-page-settings", handleGetProductPageSettings);
+router.get("/public/product-page-config", handleGetProductPageSettings);
 router.get("/product-page-settings", handleGetProductPageSettings);
+router.get("/product-page-config", handleGetProductPageSettings);
+
 
 export default router;
