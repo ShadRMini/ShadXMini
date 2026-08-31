@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { db, categoriesTable, productGroupsTable, productsTable, newsTable, bannersTable, settingsTable, productPageConfigTable } from "@workspace/db";
+import { db, categoriesTable, productGroupsTable, productsTable, newsTable, bannersTable, settingsTable, productPageConfigTable, socialLinksTable } from "@workspace/db";
 import { and, asc, eq, ilike, sql } from "drizzle-orm";
 import {
   ListCategoriesResponse,
@@ -394,5 +394,22 @@ router.get("/public/product-page-config", handleGetProductPageSettings);
 router.get("/product-page-settings", handleGetProductPageSettings);
 router.get("/product-page-config", handleGetProductPageSettings);
 
+router.get("/social-links", async (_req, res) => {
+  try {
+    const links = await db.select().from(socialLinksTable).where(eq(socialLinksTable.active, true)).orderBy(asc(socialLinksTable.order));
+    res.json(links);
+  } catch (error) {
+    res.json([]);
+  }
+});
+
+router.get("/public/social-links", async (_req, res) => {
+  try {
+    const links = await db.select().from(socialLinksTable).where(eq(socialLinksTable.active, true)).orderBy(asc(socialLinksTable.order));
+    res.json(links);
+  } catch (error) {
+    res.json([]);
+  }
+});
 
 export default router;

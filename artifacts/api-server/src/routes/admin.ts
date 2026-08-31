@@ -1083,6 +1083,23 @@ async function sanitizeCrudDataForRuntimeSchema(path: string, data: any): Promis
     if (isBlank(normalized.image)) throw new ValidationError("رابط صورة البانر مطلوب");
   }
 
+  if (path === "social-links") {
+    if ("platform" in normalized && typeof normalized.platform === "string") {
+      normalized.platform = normalized.platform.trim();
+    }
+    if ("label" in normalized && typeof normalized.label === "string") {
+      normalized.label = normalized.label.trim();
+    }
+    if ("url" in normalized && typeof normalized.url === "string") {
+      normalized.url = normalized.url.trim();
+    }
+    if ("order" in normalized) normalizeNumberField(normalized, "order", { required: false });
+    if ("active" in normalized) normalized.active = !!normalized.active;
+    if (isBlank(normalized.platform)) throw new ValidationError("اسم المنصة مطلوب");
+    if (isBlank(normalized.label)) throw new ValidationError("عنوان الرابط مطلوب");
+    if (isBlank(normalized.url)) throw new ValidationError("رابط المنصة مطلوب");
+  }
+
   if (path === "categories" || path === "product-groups") {
     if ("name" in normalized && typeof normalized.name === "string") {
       normalized.name = normalized.name.trim();
@@ -1588,7 +1605,7 @@ makeCrud("payment-methods", paymentMethodsTable, {
 
 makeCrud("social-links", socialLinksTable, {
   orderBy: socialLinksTable.order,
-  allowedFields: ["platform", "url", "label", "order"],
+  allowedFields: ["platform", "url", "label", "order", "active", "icon"],
 });
 
 router.patch("/admin/social-links/reorder", requireAdmin, async (req, res) => {

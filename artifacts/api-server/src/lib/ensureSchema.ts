@@ -445,6 +445,35 @@ export async function ensureDatabaseSchema() {
       `);
     }
 
+    // 12. Social Links table
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS social_links (
+        id SERIAL PRIMARY KEY,
+        platform TEXT NOT NULL,
+        url TEXT NOT NULL,
+        label TEXT NOT NULL,
+        "order" INTEGER NOT NULL DEFAULT 0,
+        active BOOLEAN NOT NULL DEFAULT true,
+        icon TEXT
+      );
+
+      ALTER TABLE social_links ADD COLUMN IF NOT EXISTS active BOOLEAN DEFAULT true;
+      ALTER TABLE social_links ADD COLUMN IF NOT EXISTS icon TEXT;
+    `);
+
+    const checkSocialLinks: any = await db.execute(sql`SELECT count(*)::int as c FROM social_links`);
+    if (Number(checkSocialLinks?.rows?.[0]?.c || 0) === 0) {
+      await db.execute(sql`
+        INSERT INTO social_links (platform, label, url, "order", active)
+        VALUES 
+          ('telegram', 'قناة التحديثات والمعروضات', 'https://t.me/shadx_official', 1, true),
+          ('whatsapp', 'خدمة العملاء الفورية', 'https://wa.me/963900000000', 2, true),
+          ('instagram', 'الانستغرام - العروض واليوميات', 'https://instagram.com/shadx_official', 3, true),
+          ('phone', 'الخط الساخن المباشر', 'tel:+963900000000', 4, true)
+        ON CONFLICT DO NOTHING
+      `);
+    }
+
     schemaEnsured = true;
     console.log("[DB Schema] Runtime schema verified and synchronized successfully.");
   } catch (error) {

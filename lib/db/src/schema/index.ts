@@ -134,6 +134,8 @@ export const socialLinksTable = pgTable("social_links", {
   url: text("url").notNull(),
   label: text("label").notNull(),
   order: integer("order").notNull().default(0),
+  active: boolean("active").notNull().default(true),
+  icon: text("icon"),
 });
 
 export const ordersTable = pgTable("orders", {
