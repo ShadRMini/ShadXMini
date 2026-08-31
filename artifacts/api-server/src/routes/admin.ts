@@ -2556,6 +2556,143 @@ const handlePutAboutConfig = async (req: any, res: any) => {
 router.get("/admin/about-config", requireAdmin, handleGetAboutConfig);
 router.put("/admin/about-config", requireAdmin, handlePutAboutConfig);
 
+const DEFAULT_DEPOSIT_PAGE_CONFIG = {
+  title: "شحن الرصيد",
+  subtitle: "اختر طريقة الدفع المناسبة وقم بشحن محفظتك بسهولة وأمان",
+  sections: {
+    header: { visible: true, title: "شحن الرصيد", description: "أضف رصيداً إلى محفظتك واستمتع بخدماتنا" },
+    payment_methods: { visible: true, title: "طرق الدفع المتاحة", description: "اختر طريقة الدفع المناسبة لك" },
+    amounts: { visible: true, title: "المبالغ المقترحة", description: "اختر المبلغ الذي ترغب في شحنه", suggested_amounts: [10, 25, 50, 100, 250, 500] },
+    custom_amount: { visible: true, label: "مبلغ مخصص", placeholder: "أدخل المبلغ الذي ترغب في شحنه", min: 1, max: 10000, currency: "USD" },
+    instructions: {
+      visible: true,
+      title: "تعليمات الشحن",
+      content: "يرجى اتباع التعليمات التالية لإتمام عملية الشحن بنجاح...",
+      steps: [
+        "اختر طريقة الدفع المناسبة",
+        "أدخل المبلغ الذي ترغب في شحنه",
+        "اتبع التعليمات الخاصة بطريقة الدفع المختارة",
+        "تأكد من إدخال البيانات بشكل صحيح"
+      ]
+    }
+  },
+  payment_methods_list: [
+    {
+      id: "sham_cash",
+      name: "شام كاش",
+      icon: "Landmark",
+      description: "الدفع عبر محفظة شام كاش",
+      active: true,
+      order: 1,
+      fields: [
+        { label: "رقم المحفظة", type: "text", required: true, placeholder: "أدخل رقم محفظة شام كاش" }
+      ]
+    },
+    {
+      id: "syriatel_cash",
+      name: "سيريتل كاش",
+      icon: "Smartphone",
+      description: "الدفع عبر خدمة سيريتل كاش",
+      active: true,
+      order: 2,
+      fields: [
+        { label: "رقم الهاتف", type: "text", required: true, placeholder: "أدخل رقم هاتفك" }
+      ]
+    },
+    {
+      id: "bank_transfer",
+      name: "تحويل بنكي",
+      icon: "Landmark",
+      description: "التحويل البنكي المباشر",
+      active: true,
+      order: 3,
+      fields: [
+        { label: "اسم البنك", type: "text", required: true, placeholder: "اسم البنك" },
+        { label: "رقم الحساب", type: "text", required: true, placeholder: "رقم الحساب" },
+        { label: "اسم المستفيد", type: "text", required: true, placeholder: "اسم المستفيد" }
+      ]
+    }
+  ],
+  styles: {
+    bg_color: "#1A1A1A",
+    text_color: "#FFFFFF",
+    title_color: "#C8A45C",
+    card_bg: "#2D2D2D",
+    card_border: "#C8A45C/20",
+    input_bg: "#3D3D3D",
+    input_text: "#FFFFFF",
+    input_border: "#4B5563",
+    input_focus_border: "#C8A45C",
+    button_bg: "#C8A45C",
+    button_text: "#1A1A1A",
+    button_hover: "#B8954A",
+    border_radius: "16px",
+    font_family: "Cairo",
+    amount_button_bg: "#2D2D2D",
+    amount_button_text: "#C8A45C",
+    amount_button_active_bg: "#C8A45C",
+    amount_button_active_text: "#1A1A1A"
+  }
+};
+
+const handleGetDepositConfig = async (_req: any, res: any) => {
+  try {
+    const rows = await db.select().from(settingsTable);
+    const map = new Map<string, any>();
+    if (Array.isArray(rows)) {
+      for (const row of rows) {
+        if (row.key) {
+          let val = row.value;
+          if (typeof val === "string") {
+            try { val = JSON.parse(val); } catch {}
+          }
+          map.set(row.key, val);
+        }
+      }
+    }
+
+    const config = map.get("deposit_page_config") || DEFAULT_DEPOSIT_PAGE_CONFIG;
+    const useLegacy = map.get("use_legacy_deposit_page") ?? false;
+
+    res.json({
+      config,
+      use_legacy_deposit_page: Boolean(useLegacy === true || useLegacy === "true")
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+const handlePutDepositConfig = async (req: any, res: any) => {
+  try {
+    const { config, use_legacy_deposit_page } = req.body;
+
+    if (config) {
+      await db.insert(settingsTable).values({ key: "deposit_page_config", value: config })
+        .onConflictDoUpdate({ target: settingsTable.key, set: { value: config } });
+    }
+
+    if (use_legacy_deposit_page !== undefined) {
+      await db.insert(settingsTable).values({ key: "use_legacy_deposit_page", value: use_legacy_deposit_page })
+        .onConflictDoUpdate({ target: settingsTable.key, set: { value: use_legacy_deposit_page } });
+    }
+
+    await logActivity(
+      { id: req.session.adminId, name: req.session.adminUsername },
+      "deposit_settings_update",
+      "settings",
+      ["deposit_page_config", "use_legacy_deposit_page"]
+    );
+
+    res.json({ ok: true, success: true });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+router.get("/admin/deposit-config", requireAdmin, handleGetDepositConfig);
+router.put("/admin/deposit-config", requireAdmin, handlePutDepositConfig);
+
 
 router.post("/admin/theme-settings/apply-preset", requireAdmin, async (req, res) => {
   try {

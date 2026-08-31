@@ -52,6 +52,7 @@ const NAV: { to: string; label: string; icon: any; group: string }[] = [
   { to: "/theme", label: "تخصيص التصميم", icon: Palette, group: "إعدادات النظام" },
   { to: "/product-page-settings", label: "تخصيص صفحة المنتج", icon: Package, group: "إعدادات النظام" },
   { to: "/about-settings", label: "تخصيص صفحة من نحن", icon: Info, group: "إعدادات النظام" },
+  { to: "/deposit-settings", label: "تخصيص صفحة شحن الرصيد", icon: Wallet, group: "إعدادات النظام" },
   { to: "/social-links", label: "الروابط الاجتماعية", icon: Share2, group: "إعدادات النظام" },
   { to: "/notifications", label: "الإشعارات", icon: Bell, group: "إعدادات النظام" },
   { to: "/cache", label: "الذاكرة المؤقتة (مسح الكاش)", icon: Database, group: "إعدادات النظام" },

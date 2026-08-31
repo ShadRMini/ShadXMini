@@ -331,6 +331,88 @@ export async function ensureDatabaseSchema() {
       { key: "use_legacy_social_links_page", val: false },
       { key: "use_legacy_banners_page", val: false },
       { key: "use_legacy_about_page", val: false },
+      { key: "use_legacy_deposit_page", val: false },
+      {
+        key: "deposit_page_config",
+        val: {
+          title: "شحن الرصيد",
+          subtitle: "اختر طريقة الدفع المناسبة وقم بشحن محفظتك بسهولة وأمان",
+          sections: {
+            header: { visible: true, title: "شحن الرصيد", description: "أضف رصيداً إلى محفظتك واستمتع بخدماتنا" },
+            payment_methods: { visible: true, title: "طرق الدفع المتاحة", description: "اختر طريقة الدفع المناسبة لك" },
+            amounts: { visible: true, title: "المبالغ المقترحة", description: "اختر المبلغ الذي ترغب في شحنه", suggested_amounts: [10, 25, 50, 100, 250, 500] },
+            custom_amount: { visible: true, label: "مبلغ مخصص", placeholder: "أدخل المبلغ الذي ترغب في شحنه", min: 1, max: 10000, currency: "USD" },
+            instructions: {
+              visible: true,
+              title: "تعليمات الشحن",
+              content: "يرجى اتباع التعليمات التالية لإتمام عملية الشحن بنجاح...",
+              steps: [
+                "اختر طريقة الدفع المناسبة",
+                "أدخل المبلغ الذي ترغب في شحنه",
+                "اتبع التعليمات الخاصة بطريقة الدفع المختارة",
+                "تأكد من إدخال البيانات بشكل صحيح"
+              ]
+            }
+          },
+          payment_methods_list: [
+            {
+              id: "sham_cash",
+              name: "شام كاش",
+              icon: "Landmark",
+              description: "الدفع عبر محفظة شام كاش",
+              active: true,
+              order: 1,
+              fields: [
+                { label: "رقم المحفظة", type: "text", required: true, placeholder: "أدخل رقم محفظة شام كاش" }
+              ]
+            },
+            {
+              id: "syriatel_cash",
+              name: "سيريتل كاش",
+              icon: "Smartphone",
+              description: "الدفع عبر خدمة سيريتل كاش",
+              active: true,
+              order: 2,
+              fields: [
+                { label: "رقم الهاتف", type: "text", required: true, placeholder: "أدخل رقم هاتفك" }
+              ]
+            },
+            {
+              id: "bank_transfer",
+              name: "تحويل بنكي",
+              icon: "Landmark",
+              description: "التحويل البنكي المباشر",
+              active: true,
+              order: 3,
+              fields: [
+                { label: "اسم البنك", type: "text", required: true, placeholder: "اسم البنك" },
+                { label: "رقم الحساب", type: "text", required: true, placeholder: "رقم الحساب" },
+                { label: "اسم المستفيد", type: "text", required: true, placeholder: "اسم المستفيد" }
+              ]
+            }
+          ],
+          styles: {
+            bg_color: "#1A1A1A",
+            text_color: "#FFFFFF",
+            title_color: "#C8A45C",
+            card_bg: "#2D2D2D",
+            card_border: "#C8A45C/20",
+            input_bg: "#3D3D3D",
+            input_text: "#FFFFFF",
+            input_border: "#4B5563",
+            input_focus_border: "#C8A45C",
+            button_bg: "#C8A45C",
+            button_text: "#1A1A1A",
+            button_hover: "#B8954A",
+            border_radius: "16px",
+            font_family: "Cairo",
+            amount_button_bg: "#2D2D2D",
+            amount_button_text: "#C8A45C",
+            amount_button_active_bg: "#C8A45C",
+            amount_button_active_text: "#1A1A1A"
+          }
+        }
+      },
       {
         key: "about_us_config",
         val: {
