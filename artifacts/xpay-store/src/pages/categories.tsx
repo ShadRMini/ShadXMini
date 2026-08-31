@@ -6,6 +6,8 @@ import { useEffect, useMemo, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
 import { getPublicJson } from "@/lib/public-api";
+import ProductCard from "@/components/product/ProductCard";
+import { PRODUCT_GRID_COLS, getProductGridClass } from "@/lib/grid-config";
 
 type ProductItem = {
   id: string;
@@ -115,86 +117,46 @@ export default function Categories() {
         {!search && groups.length > 0 && (
           <div className="mb-6">
             <div className="mb-3 text-sm font-black text-[#FDE68A]">الخيارات والمجموعات المتاحة</div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3.5">
+            <div className={getProductGridClass(PRODUCT_GRID_COLS)}>
               {groups.map((group, i) => (
-                <Link key={group.id} href={`/groups/${group.id}`}>
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: i * 0.04 }}
-                    className="h-full min-h-[126px] bg-[#2D2D2D] border border-[#C8A45C]/30 rounded-2xl overflow-hidden cursor-pointer group shadow-lg hover:border-[#C8A45C] hover:shadow-[0_0_15px_rgba(200,164,92,0.2)] transition-all flex flex-col"
-                  >
-                    <div className="aspect-[4/3] relative overflow-hidden bg-[#1A1A1A] shrink-0">
-                      {group.image ? (
-                        <img
-                          src={withImageVersion(group.image, group.imageVersion || `${group.id}-${group.image}`)}
-                          alt={group.name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-[#1A1A1A] flex items-center justify-center">
-                          <PackageOpen className="w-8 h-8 text-[#C8A45C]/50" />
-                        </div>
-                      )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-transparent" />
-                    </div>
-                    <div className="min-h-[58px] p-2.5 flex flex-col items-center justify-center gap-1">
-                      <h3 className="text-[11px] sm:text-xs font-bold text-white line-clamp-2 leading-snug text-center break-words group-hover:text-[#FDE68A] transition-colors">
-                        {group.name}
-                      </h3>
-                      <span className="text-[10px] font-bold text-[#C8A45C]">{group.productCount} منتج</span>
-                    </div>
-                  </motion.div>
-                </Link>
+                <ProductCard
+                  key={group.id}
+                  id={group.id}
+                  name={group.name}
+                  image={group.image}
+                  imageVersion={group.imageVersion}
+                  productCount={group.productCount}
+                  href={`/groups/${group.id}`}
+                  index={i}
+                />
               ))}
             </div>
           </div>
         )}
 
         {isLoading && visibleProducts.length === 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3.5">
-            {Array.from({ length: 10 }).map((_, i) => (
-              <div key={i} className="flex flex-col gap-2">
-                <Skeleton className="w-full aspect-[4/3] rounded-2xl bg-zinc-800" />
-                <Skeleton className="h-4 w-full bg-zinc-800" />
-                <Skeleton className="h-3 w-2/3 mx-auto bg-zinc-800" />
+          <div className={getProductGridClass(PRODUCT_GRID_COLS)}>
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="flex flex-col items-center gap-2">
+                <Skeleton className="w-full aspect-square rounded-2xl bg-zinc-800" />
+                <Skeleton className="h-3.5 w-3/4 mx-auto bg-zinc-800" />
               </div>
             ))}
           </div>
         ) : visibleProducts.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3.5">
+          <div className={getProductGridClass(PRODUCT_GRID_COLS)}>
             {visibleProducts.map((product, i) => (
-              <Link key={product.id} href={`/products/${product.id}`}>
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: i * 0.05 }}
-                  className="h-full min-h-[126px] bg-[#2D2D2D] border border-[#C8A45C]/30 rounded-2xl overflow-hidden cursor-pointer group shadow-lg hover:border-[#C8A45C] hover:shadow-[0_0_15px_rgba(200,164,92,0.2)] transition-all flex flex-col"
-                >
-                  <div className="aspect-[4/3] relative overflow-hidden bg-[#1A1A1A] shrink-0">
-                    {product.image ? (
-                      <img
-                        src={product.image}
-                        alt={product.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-[#1A1A1A] flex items-center justify-center">
-                        <PackageOpen className="w-8 h-8 text-[#C8A45C]/50" />
-                      </div>
-                    )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-transparent" />
-                  </div>
-                  <div className="min-h-[58px] p-2.5 flex flex-col items-center justify-center gap-1">
-                    <h3 className="text-[11px] sm:text-xs font-bold text-white line-clamp-2 leading-snug text-center break-words group-hover:text-[#FDE68A] transition-colors">
-                      {product.name}
-                    </h3>
-                    <span className="text-[11px] font-black text-[#FDE68A] leading-none">
-                      {formatTotalUsdPrice(product)}
-                    </span>
-                  </div>
-                </motion.div>
-              </Link>
+              <ProductCard
+                key={product.id}
+                id={product.id}
+                name={product.name}
+                image={product.image}
+                priceUsd={product.priceUsd}
+                minTotalUsd={product.minTotalUsd}
+                minQty={product.minQty}
+                categoryName={product.categoryName}
+                index={i}
+              />
             ))}
           </div>
         ) : (

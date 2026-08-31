@@ -8,6 +8,7 @@ import { useAuth } from "@/lib/auth-context";
 import CategoryCard from "@/components/categories/CategoryCard";
 import BannerCarousel, { BannerItem } from "@/components/home/BannerCarousel";
 import AnnouncementBar from "@/components/layout/AnnouncementBar";
+import { PRODUCT_GRID_COLS, getProductGridClass } from "@/lib/grid-config";
 
 type CategoryItem = {
   id: string;
@@ -279,8 +280,8 @@ export default function Home() {
           </div>
 
           {categoriesLoading && visibleCategories.length === 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {Array.from({ length: 4 }).map((_, i) => (
+            <div className={getProductGridClass(PRODUCT_GRID_COLS)}>
+              {Array.from({ length: 6 }).map((_, i) => (
                 <div key={i} className="flex flex-col items-center gap-2">
                   <Skeleton className="w-full aspect-square rounded-2xl bg-zinc-800" />
                   <Skeleton className="h-3 w-16 bg-zinc-800" />
@@ -288,12 +289,7 @@ export default function Home() {
               ))}
             </div>
           ) : visibleCategories.length > 0 ? (
-            <div
-              className="grid gap-3.5 sm:gap-4"
-              style={{
-                gridTemplateColumns: `repeat(${visibleCategories[0]?.columnsCount || 2}, minmax(0, 1fr))`,
-              }}
-            >
+            <div className={getProductGridClass(PRODUCT_GRID_COLS)}>
               {visibleCategories.map((cat, i) => (
                 <CategoryCard
                   key={cat.id}
