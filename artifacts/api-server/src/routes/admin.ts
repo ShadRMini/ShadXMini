@@ -3533,7 +3533,7 @@ router.put("/admin/currency-settings", requireAdmin, async (req, res) => {
   }
 });
 
-// Provider Products for API Products page
+// Provider Products for API Products page (Full details, single/batch import & detail route)
 router.get("/admin/provider-products/:providerId", requireAdmin, async (req, res) => {
   try {
     const providerId = Number(req.params.providerId);
@@ -3541,50 +3541,267 @@ router.get("/admin/provider-products/:providerId", requireAdmin, async (req, res
     if (!provider) {
       return res.status(404).json({ error: "المزود غير موجود" });
     }
+
+    // Fetch existing locally imported products for this provider to cross-reference
+    const localProds = await db.select().from(productsTable).where(eq(productsTable.providerId, providerId));
+    const localProdsMap = new Map(localProds.map(p => [String(p.providerProductId || p.id), p]));
+
     const adapter = getAdapter(provider.providerType);
     if (!adapter) {
-      const localProds = await db.select().from(productsTable).where(eq(productsTable.providerId, providerId));
       return res.json(localProds.map(p => ({
         id: p.id,
         name: p.name,
         price: p.priceUsd,
-        available: p.available,
-        externalServiceId: p.providerProductId
+        basePrice: p.basePriceUsd || p.providerUnitPrice || p.priceUsd,
+        providerUnitPrice: p.providerUnitPrice || p.basePriceUsd || p.priceUsd,
+        finalUnitPrice: p.finalUnitPrice || p.priceUsd,
+        storeProfitPerUnit: p.storeProfitPerUnit || "0",
+        category: "عام",
+        categoryName: "عام",
+        categoryImage: p.image || null,
+        image: p.image || null,
+        available: p.available ?? true,
+        externalServiceId: String(p.providerProductId || p.id),
+        minQty: p.minQuantity || p.minQty || 1,
+        maxQty: p.maxQuantity || p.maxQty || null,
+        quantityType: p.quantityType || "fixed",
+        quantityValues: p.quantityValues || null,
+        productType: p.productType || "amount",
+        params: p.description ? [p.description] : [],
+        description: p.description || "",
+        providerId: provider.id,
+        providerName: provider.name,
+        providerType: provider.providerType,
+        isImported: true,
+        localProduct: p,
+        rawData: p
       })));
     }
+
     const remoteProds = await adapter.fetchProducts(provider.apiKey, provider.apiUrl || undefined);
-    res.json(remoteProds.map((rp: any) => ({
-      id: rp.id,
-      name: rp.name,
-      price: rp.price,
-      category: rp.categoryName || rp.category || "عام",
-      available: rp.available ?? true,
-      externalServiceId: rp.id
-    })));
+    res.json(remoteProds.map((rp: any) => {
+      const extId = String(rp.id || rp.externalServiceId || "");
+      const matchedLocal = localProdsMap.get(extId);
+      return {
+        id: rp.id,
+        name: rp.name,
+        price: rp.price,
+        basePrice: rp.basePrice ?? rp.price,
+        providerUnitPrice: rp.basePrice ?? rp.price,
+        category: rp.categoryName || rp.category || "عام",
+        categoryName: rp.categoryName || rp.category || "عام",
+        categoryImage: rp.categoryImage || rp.rawData?.category_img || null,
+        image: rp.categoryImage || rp.rawData?.category_img || null,
+        available: rp.available ?? true,
+        externalServiceId: extId,
+        minQty: rp.minQty ?? 1,
+        maxQty: rp.maxQty ?? null,
+        quantityType: rp.quantityType || "fixed",
+        quantityValues: rp.quantityValues || null,
+        productType: rp.productType || "amount",
+        params: rp.rawData?.params || (rp.description ? [rp.description] : []),
+        description: rp.description || "",
+        providerId: provider.id,
+        providerName: provider.name,
+        providerType: provider.providerType,
+        isImported: Boolean(matchedLocal),
+        localProduct: matchedLocal || null,
+        rawData: rp.rawData || rp
+      };
+    }));
   } catch (err: any) {
     res.status(500).json({ error: err?.message || "فشل جلب منتجات المزود" });
   }
 });
 
+// Single product details from provider
+router.get("/admin/provider-products/:providerId/:productId", requireAdmin, async (req, res) => {
+  try {
+    const providerId = Number(req.params.providerId);
+    const productId = req.params.productId;
+    const [provider] = await db.select().from(providersTable).where(eq(providersTable.id, providerId));
+    if (!provider) {
+      return res.status(404).json({ error: "المزود غير موجود" });
+    }
+
+    const localProds = await db.select().from(productsTable).where(eq(productsTable.providerId, providerId));
+    const matchedLocal = localProds.find(p => String(p.providerProductId) === String(productId) || String(p.id) === String(productId));
+
+    const adapter = getAdapter(provider.providerType);
+    if (!adapter) {
+      if (!matchedLocal) return res.status(404).json({ error: "المنتج غير موجود" });
+      return res.json({
+        id: matchedLocal.id,
+        name: matchedLocal.name,
+        price: matchedLocal.priceUsd,
+        basePrice: matchedLocal.providerUnitPrice || matchedLocal.basePriceUsd || matchedLocal.priceUsd,
+        available: matchedLocal.available,
+        externalServiceId: String(matchedLocal.providerProductId || matchedLocal.id),
+        providerId: provider.id,
+        providerName: provider.name,
+        isImported: true,
+        localProduct: matchedLocal,
+        rawData: matchedLocal
+      });
+    }
+
+    const remoteProds = await adapter.fetchProducts(provider.apiKey, provider.apiUrl || undefined);
+    const found = remoteProds.find(rp => String(rp.id) === String(productId) || String(rp.externalServiceId) === String(productId));
+    if (!found) {
+      return res.status(404).json({ error: "المنتج غير موجود لدى المزود" });
+    }
+
+    res.json({
+      id: found.id,
+      name: found.name,
+      price: found.price,
+      basePrice: found.basePrice ?? found.price,
+      providerUnitPrice: found.basePrice ?? found.price,
+      category: found.categoryName || found.category || "عام",
+      categoryName: found.categoryName || found.category || "عام",
+      categoryImage: found.categoryImage || found.rawData?.category_img || null,
+      image: found.categoryImage || found.rawData?.category_img || null,
+      available: found.available ?? true,
+      externalServiceId: String(found.id || found.externalServiceId || ""),
+      minQty: found.minQty ?? 1,
+      maxQty: found.maxQty ?? null,
+      quantityType: found.quantityType || "fixed",
+      quantityValues: found.quantityValues || null,
+      productType: found.productType || "amount",
+      params: found.rawData?.params || (found.description ? [found.description] : []),
+      description: found.description || "",
+      providerId: provider.id,
+      providerName: provider.name,
+      providerType: provider.providerType,
+      isImported: Boolean(matchedLocal),
+      localProduct: matchedLocal || null,
+      rawData: found.rawData || found
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err?.message || "فشل جلب تفاصيل المنتج من المزود" });
+  }
+});
+
+// Import products (Single or Batch with rich attributes)
 router.post("/admin/provider-products/import", requireAdmin, async (req, res) => {
   try {
-    const { providerId, name, price, externalServiceId, categoryId } = req.body;
-    if (!providerId || !name) {
-      return res.status(400).json({ error: "بيانات الاستيراد غير مكتملة" });
+    const body = req.body;
+    const itemsToImport: any[] = Array.isArray(body.products) ? body.products : [body];
+
+    if (itemsToImport.length === 0) {
+      return res.status(400).json({ error: "لم يتم تحديد أي منتجات للاستيراد" });
     }
-    const [newProd] = await db.insert(productsTable).values({
-      name: String(name),
-      priceUsd: String(price || "0"),
-      providerId: Number(providerId),
-      providerProductId: String(externalServiceId || ""),
-      categoryId: categoryId ? Number(categoryId) : null,
-      available: true,
-      active: true,
-      source: "api"
-    } as any).returning();
-    res.json({ ok: true, product: newProd, message: "تم استيراد المنتج بنجاح" });
+
+    const defaultProviderId = body.providerId ? Number(body.providerId) : undefined;
+    const defaultCategoryId = body.categoryId ? Number(body.categoryId) : undefined;
+
+    // Cache categories to resolve by categoryName if needed
+    const allCategories = await db.select().from(categoriesTable);
+    const categoryMapByName = new Map(allCategories.map(c => [c.name.trim().toLowerCase(), c.id]));
+
+    const importedProducts: any[] = [];
+
+    for (const item of itemsToImport) {
+      const providerId = Number(item.providerId || defaultProviderId);
+      const name = String(item.name || "").trim();
+      const extServiceId = String(item.externalServiceId || item.providerProductId || item.id || "");
+
+      if (!providerId || !name) {
+        continue;
+      }
+
+      // Resolve category
+      let categoryId = item.categoryId ? Number(item.categoryId) : (defaultCategoryId || null);
+      if (!categoryId && (item.category || item.categoryName)) {
+        const catName = String(item.category || item.categoryName).trim();
+        const existingCatId = categoryMapByName.get(catName.toLowerCase());
+        if (existingCatId) {
+          categoryId = existingCatId;
+        } else {
+          try {
+            const [newCat] = await db.insert(categoriesTable).values({
+              name: catName,
+              image: item.categoryImage || item.image || "/placeholder.png",
+              order: 0,
+              active: true,
+              displayStyle: "large"
+            } as any).returning();
+            if (newCat?.id) {
+              categoryId = newCat.id;
+              categoryMapByName.set(catName.toLowerCase(), newCat.id);
+            }
+          } catch {
+            // fallback
+          }
+        }
+      }
+
+      const costPrice = String(item.providerUnitPrice ?? item.basePrice ?? item.price ?? "0");
+      const finalPrice = String(item.finalUnitPrice ?? item.priceUsd ?? item.price ?? costPrice);
+      const profit = String(item.storeProfitPerUnit ?? (Number(finalPrice) - Number(costPrice)).toFixed(4));
+
+      const productPayload: any = {
+        name,
+        priceUsd: finalPrice,
+        providerUnitPrice: costPrice,
+        basePriceUsd: costPrice,
+        finalUnitPrice: finalPrice,
+        storeProfitPerUnit: profit,
+        providerId,
+        providerProductId: extServiceId,
+        categoryId: categoryId || null,
+        groupId: item.groupId ? Number(item.groupId) : null,
+        image: item.image || item.categoryImage || null,
+        available: item.available !== false,
+        active: true,
+        source: "api",
+        minQuantity: item.minQty ?? item.minQuantity ?? 1,
+        maxQuantity: item.maxQty ?? item.maxQuantity ?? null,
+        quantityType: item.quantityType || "fixed",
+        quantityValues: item.quantityValues || null,
+        productType: item.productType || "amount",
+        description: item.description || (Array.isArray(item.params) ? item.params.join(", ") : ""),
+      };
+
+      // Check if product already exists with this provider and external id
+      const [existing] = await db.select().from(productsTable).where(
+        and(
+          eq(productsTable.providerId, providerId),
+          eq(productsTable.providerProductId, extServiceId)
+        )
+      );
+
+      if (existing) {
+        const [updated] = await db.update(productsTable)
+          .set(productPayload)
+          .where(eq(productsTable.id, existing.id))
+          .returning();
+        importedProducts.push(updated);
+      } else {
+        const [created] = await db.insert(productsTable)
+          .values(productPayload)
+          .returning();
+        importedProducts.push(created);
+      }
+    }
+
+    await logActivity(
+      { id: req.session.adminId, name: req.session.adminUsername },
+      "import",
+      "products",
+      { count: importedProducts.length, providerId: defaultProviderId }
+    );
+
+    res.json({
+      ok: true,
+      count: importedProducts.length,
+      importedCount: importedProducts.length,
+      product: importedProducts[0] || null,
+      products: importedProducts,
+      message: `تم استيراد ${importedProducts.length} منتج بنجاح إلى قاعدة البيانات المحلية`
+    });
   } catch (err: any) {
-    res.status(500).json({ error: err?.message || "فشل استيراد المنتج" });
+    res.status(500).json({ error: err?.message || "فشل استيراد المنتجات" });
   }
 });
 
