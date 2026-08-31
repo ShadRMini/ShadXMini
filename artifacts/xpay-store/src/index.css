@@ -145,16 +145,20 @@
 @layer base {
   * {
     border-color: var(--border-color);
-    font-family: var(--app-font-sans);
+    font-family: var(--theme-font-arabic, 'Cairo'), var(--theme-font-english, 'Inter'), sans-serif;
   }
   
   html, body {
     background-color: var(--bg-primary);
     color: var(--text-primary);
-    font-family: 'Cairo', 'Inter', sans-serif;
+    font-family: var(--theme-font-arabic, 'Cairo'), var(--theme-font-english, 'Inter'), sans-serif;
     min-height: 100dvh;
     direction: rtl;
     transition: background-color 0.25s ease, color 0.25s ease;
+  }
+
+  input, select, textarea, button {
+    font-family: var(--theme-font-arabic, 'Cairo'), var(--theme-font-english, 'Inter'), sans-serif;
   }
 
   input, select, textarea {
@@ -180,7 +184,10 @@
 .text-theme-secondary { color: var(--text-secondary) !important; }
 .text-theme-muted { color: var(--text-muted) !important; }
 .border-theme { border-color: var(--border-color) !important; }
-.shadow-theme { box-shadow: 0 8px 25px -4px var(--shadow-color) !important; }
+.shadow-theme { box-shadow: var(--theme-shadow) !important; }
+.rounded-theme { border-radius: var(--theme-border-radius) !important; }
+.font-theme-arabic { font-family: var(--theme-font-arabic), sans-serif !important; }
+.font-theme-english { font-family: var(--theme-font-english), sans-serif !important; }
 
 /* Luxury Dark & Gold Custom Components */
 
@@ -200,7 +207,8 @@
   background: var(--bg-card);
   border: 1px solid var(--border-color);
   color: var(--text-primary);
-  box-shadow: 0 10px 25px -5px var(--shadow-color);
+  border-radius: var(--theme-border-radius);
+  box-shadow: var(--theme-shadow);
 }
 
 .btn-primary, .bg-primary-gold {
@@ -215,7 +223,7 @@
 }
 
 .vip-badge, .badge-vip {
-  background: linear-gradient(135deg, #FDE68A 0%, #C8A45C 100%);
+  background: linear-gradient(135deg, var(--gold-light) 0%, var(--gold-primary) 100%);
   color: #1A1A1A;
   font-weight: 800;
   box-shadow: 0 0 12px rgba(200, 164, 92, 0.4);
@@ -224,15 +232,14 @@
 
 .card-luxury {
   background-color: var(--bg-card);
-  border-radius: 1rem;
+  border-radius: var(--theme-border-radius);
   border: 1px solid var(--border-color);
-  box-shadow: 0 4px 12px var(--shadow-color);
+  box-shadow: var(--theme-shadow);
   color: var(--text-primary);
 }
 
 .card-luxury:hover {
   border-color: var(--gold-primary);
-  box-shadow: 0 10px 24px -3px rgba(200, 164, 92, 0.2);
 }
 
 .gold-glow {
@@ -248,17 +255,17 @@
 }
 
 /* ========================================================================= */
-/* 🌟 COMPLETE SITE-WIDE LIGHT MODE TRANSFORMATION STYLES                  */
+/* 🌟 COMPLETE SITE-WIDE LIGHT MODE DYNAMIC STYLES                         */
 /* ========================================================================= */
 
 .light {
-  background-color: #F5F2EB !important;
-  color: #111827 !important;
+  background-color: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
 }
 
 .light body {
-  background-color: #F5F2EB !important;
-  color: #111827 !important;
+  background-color: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
 }
 
 /* 1. Surfaces, Headers, Shells, and Drawers */
@@ -271,7 +278,7 @@
 .light .bg-\[\#181818\],
 .light .bg-zinc-950,
 .light .bg-black {
-  background-color: #F5F2EB !important;
+  background-color: var(--bg-primary) !important;
 }
 
 /* 2. Cards, Popups, Modals, Containers, Panels */
@@ -291,7 +298,7 @@
 .light .bg-\[\#12072b\]\/95,
 .light .bg-gradient-to-br.from-\[\#2D2D2D\],
 .light .bg-gradient-to-br.from-\[\#1c1913\] {
-  background-color: #FFFFFF !important;
+  background-color: var(--bg-card) !important;
   background-image: none !important;
 }
 
@@ -301,60 +308,51 @@
 .light input,
 .light select,
 .light textarea {
-  background-color: #F9FAFB !important;
-  border-color: #D1D5DB !important;
-  color: #111827 !important;
+  background-color: var(--bg-input) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
 }
 
 .light input::placeholder,
 .light textarea::placeholder {
-  color: #9CA3AF !important;
+  color: var(--text-muted) !important;
 }
 
 /* 4. Text and Typographic Hierarchy in Light Mode */
 .light .text-white,
 .light .text-zinc-100,
 .light .text-zinc-50 {
-  color: #111827 !important;
+  color: var(--text-primary) !important;
 }
 
 .light .text-zinc-200,
 .light .text-zinc-300,
 .light .text-\[\#E5E7EB\] {
-  color: #374151 !important;
+  color: var(--text-secondary) !important;
 }
 
 .light .text-zinc-400,
 .light .text-zinc-500,
 .light .text-muted-foreground {
-  color: #6B7280 !important;
+  color: var(--text-muted) !important;
 }
 
-/* 5. Gold & Brand Accents - Always prominent and rich in Light Mode */
+/* 5. Gold & Brand Accents */
 .light .text-\[\#FDE68A\],
 .light .text-amber-200,
 .light .text-amber-300 {
-  color: #9A7B38 !important;
+  color: var(--gold-light) !important;
 }
 
 .light .text-\[\#C8A45C\],
 .light .text-amber-400,
 .light .text-amber-500 {
-  color: #B8954A !important;
+  color: var(--gold-primary) !important;
 }
 
 .light .bg-\[\#C8A45C\],
 .light .bg-amber-500 {
-  background-color: #C8A45C !important;
-  color: #111827 !important;
-}
-
-.light .bg-\[\#C8A45C\]\/10,
-.light .bg-\[\#C8A45C\]\/15,
-.light .bg-\[\#C8A45C\]\/20,
-.light .bg-amber-500\/10,
-.light .bg-amber-500\/20 {
-  background-color: rgba(200, 164, 92, 0.12) !important;
+  background-color: var(--gold-primary) !important;
 }
 
 .light .border-\[\#C8A45C\],
@@ -363,7 +361,7 @@
 .light .border-\[\#C8A45C\]\/50,
 .light .border-amber-500\/30,
 .light .border-amber-500\/40 {
-  border-color: rgba(200, 164, 92, 0.4) !important;
+  border-color: var(--border-color) !important;
 }
 
 /* 6. Subtle Borders and Dividers */
@@ -373,13 +371,13 @@
 .light .border-\[\#4B5563\],
 .light .divide-zinc-800\/60,
 .light .divide-zinc-800 {
-  border-color: #E5E7EB !important;
+  border-color: var(--border-color) !important;
 }
 
 /* 7. Skeletons & Loaders */
 .light .bg-zinc-800,
 .light .bg-zinc-700 {
-  background-color: #E5E7EB !important;
+  background-color: var(--bg-input) !important;
 }
 
 /* 8. Shadows & Cards in Light Mode */
@@ -387,15 +385,15 @@
 .light .shadow-xl,
 .light .shadow-lg,
 .light .shadow-md {
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.06), 0 2px 6px -1px rgba(0, 0, 0, 0.04) !important;
+  box-shadow: var(--theme-shadow) !important;
 }
 
 /* 9. Header, Navigation, and Backdrop in Light Mode */
 .light header,
 .light nav,
 .light .sticky {
-  background-color: rgba(245, 242, 235, 0.92) !important;
-  border-color: rgba(200, 164, 92, 0.25) !important;
+  background-color: var(--bg-primary) !important;
+  border-color: var(--border-color) !important;
 }
 
 .light .bg-black\/60,

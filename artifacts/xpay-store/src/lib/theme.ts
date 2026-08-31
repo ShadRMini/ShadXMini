@@ -178,16 +178,19 @@ export function applyStoreTheme(theme?: Partial<StoreThemeSettings> | null | und
   const secondary = String(currentTheme.secondary || currentTheme.theme_secondary || DEFAULT_STORE_THEME.secondary).trim();
   const accent = String(currentTheme.accent || currentTheme.theme_accent || DEFAULT_STORE_THEME.accent).trim();
 
-  // Dark & Light standard palettes
-  const bgPrimary = isLight ? "#F5F2EB" : "#1A1A1A";
+  // Dark & Light customized / standard palettes
+  const customDarkBg = String(currentTheme.theme_background || currentTheme.background || "").trim();
+  const customTextPrimary = String(currentTheme.theme_text_primary || currentTheme.textPrimary || "").trim();
+
+  const bgPrimary = isLight ? "#F5F2EB" : (customDarkBg || "#1A1A1A");
   const bgSecondary = isLight ? "#FFFFFF" : "#242424";
   const bgCard = isLight ? "#FFFFFF" : "#2D2D2D";
   const bgInput = isLight ? "#F9FAFB" : "#3D3D3D";
-  const textPrimary = isLight ? "#111827" : "#FFFFFF";
+  const textPrimary = isLight ? "#111827" : (customTextPrimary || "#FFFFFF");
   const textSecondary = isLight ? "#374151" : "#E5E7EB";
   const textMuted = isLight ? "#6B7280" : "#9CA3AF";
   const borderColor = isLight ? "#D1D5DB" : "#4B5563";
-  const shadowColor = isLight ? "rgba(0, 0, 0, 0.08)" : "rgba(0, 0, 0, 0.3)";
+  const shadowColor = isLight ? "rgba(0, 0, 0, 0.08)" : "rgba(0, 0, 0, 0.35)";
 
   const fontArabic = String(currentTheme.fontArabic || currentTheme.theme_font_arabic || currentTheme.font || DEFAULT_STORE_THEME.fontArabic).trim();
   const fontEnglish = String(currentTheme.fontEnglish || currentTheme.theme_font_english || DEFAULT_STORE_THEME.fontEnglish).trim();
@@ -243,7 +246,7 @@ export function applyStoreTheme(theme?: Partial<StoreThemeSettings> | null | und
   root.style.setProperty("--primary-dark", secondary);
   root.style.setProperty("--accent", accent);
   root.style.setProperty("--background", bgPrimary);
-  root.style.setProperty("--dark", isLight ? "#FFFFFF" : "#1A1A1A");
+  root.style.setProperty("--dark", isLight ? "#FFFFFF" : bgPrimary);
   root.style.setProperty("--card", bgCard);
   root.style.setProperty("--card-foreground", textPrimary);
   root.style.setProperty("--color-gold", primary);
@@ -298,9 +301,23 @@ export function applyStoreTheme(theme?: Partial<StoreThemeSettings> | null | und
       font-family: '${fontArabic}', '${fontEnglish}', sans-serif !important;
     }
 
-    * {
+    body, html, *, button, input, select, textarea {
       font-family: '${fontArabic}', '${fontEnglish}', sans-serif !important;
     }
+
+    /* Helper theme classes */
+    .bg-theme-primary { background-color: ${bgPrimary} !important; }
+    .bg-theme-secondary { background-color: ${bgSecondary} !important; }
+    .bg-theme-card { background-color: ${bgCard} !important; }
+    .bg-theme-input { background-color: ${bgInput} !important; }
+    .text-theme-primary { color: ${textPrimary} !important; }
+    .text-theme-secondary { color: ${textSecondary} !important; }
+    .text-theme-muted { color: ${textMuted} !important; }
+    .border-theme { border-color: ${borderColor} !important; }
+    .shadow-theme { box-shadow: ${shadowCss} !important; }
+    .rounded-theme { border-radius: ${radiusPx} !important; }
+    .font-theme-arabic { font-family: '${fontArabic}', sans-serif !important; }
+    .font-theme-english { font-family: '${fontEnglish}', sans-serif !important; }
 
     /* Dynamic Brand Primary Overrides */
     .text-\\[\\#C8A45C\\],
@@ -349,9 +366,22 @@ export function applyStoreTheme(theme?: Partial<StoreThemeSettings> | null | und
     }
 
     /* Card & Box Styling */
-    .card-luxury, .xpay-brand-card {
-      box-shadow: ${shadowCss} !important;
+    .rounded-theme,
+    .rounded-3xl,
+    .rounded-2xl,
+    .rounded-xl,
+    .card-luxury,
+    .xpay-brand-card {
       border-radius: ${radiusPx} !important;
+    }
+
+    .shadow-theme,
+    .shadow-2xl,
+    .shadow-xl,
+    .shadow-lg,
+    .card-luxury,
+    .xpay-brand-card {
+      box-shadow: ${shadowCss} !important;
     }
 
     /* Selection Color */
