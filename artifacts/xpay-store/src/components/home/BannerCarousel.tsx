@@ -14,6 +14,14 @@ export interface BannerItem {
   order?: number;
   subtitle?: string;
   ctaText?: string;
+  showDiscoverBtn?: boolean;
+  showAutoExecBtn?: boolean;
+  showReliableBtn?: boolean;
+  showFeaturedBtn?: boolean;
+  show_discover_btn?: boolean;
+  show_auto_exec_btn?: boolean;
+  show_reliable_btn?: boolean;
+  show_featured_btn?: boolean;
 }
 
 interface BannerCarouselProps {
@@ -28,6 +36,10 @@ const DEFAULT_BANNER: BannerItem = {
   image: "",
   link: "/deposit",
   ctaText: "إضافة رصيد (شحن)",
+  showDiscoverBtn: true,
+  showAutoExecBtn: true,
+  showReliableBtn: true,
+  showFeaturedBtn: true,
 };
 
 export default function BannerCarousel({ banners: propBanners, isLoading }: BannerCarouselProps) {
@@ -139,6 +151,13 @@ export default function BannerCarousel({ banners: propBanners, isLoading }: Bann
               );
             };
 
+            const showDiscover = Boolean(banner.showDiscoverBtn ?? banner.show_discover_btn);
+            const showAutoExec = Boolean(banner.showAutoExecBtn ?? banner.show_auto_exec_btn);
+            const showReliable = Boolean(banner.showReliableBtn ?? banner.show_reliable_btn);
+            const showFeatured = Boolean(banner.showFeaturedBtn ?? banner.show_featured_btn);
+            const hasTopBadges = showFeatured || showReliable;
+            const hasBottomActions = showDiscover || showAutoExec;
+
             return (
               <div
                 key={banner.id || index}
@@ -170,17 +189,29 @@ export default function BannerCarousel({ banners: propBanners, isLoading }: Bann
 
                   {/* Banner Content */}
                   <div className="relative z-10 h-full min-h-[190px] sm:min-h-[230px] md:min-h-[260px] p-5 sm:p-7 md:p-8 flex flex-col justify-between">
-                    {/* Top Tag */}
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#C8A45C]/20 border border-[#C8A45C]/40 text-[#FDE68A] text-[11px] sm:text-xs font-bold shadow-xs">
-                        <Sparkles className="w-3.5 h-3.5 text-[#C8A45C]" />
-                        <span>عرض مميز</span>
+                    {/* Top Tag Row */}
+                    {hasTopBadges ? (
+                      <div className="flex items-center justify-between gap-2">
+                        <div>
+                          {showFeatured && (
+                            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#C8A45C]/20 border border-[#C8A45C]/40 text-[#FDE68A] text-[11px] sm:text-xs font-bold shadow-xs">
+                              <Sparkles className="w-3.5 h-3.5 text-[#C8A45C]" />
+                              <span>عرض مميز</span>
+                            </div>
+                          )}
+                        </div>
+                        <div>
+                          {showReliable && (
+                            <div className="flex items-center gap-1 text-[10px] sm:text-xs text-zinc-300 bg-black/40 px-2.5 py-1 rounded-full border border-[#C8A45C]/20">
+                              <ShieldCheck className="w-3.5 h-3.5 text-[#C8A45C]" />
+                              <span>خدمة موثوقة</span>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                      <div className="flex items-center gap-1 text-[10px] text-zinc-400">
-                        <ShieldCheck className="w-3.5 h-3.5 text-[#C8A45C]" />
-                        <span>خدمة موثوقة</span>
-                      </div>
-                    </div>
+                    ) : (
+                      <div />
+                    )}
 
                     {/* Middle Content */}
                     <div className="my-auto py-2 max-w-xl">
@@ -195,21 +226,33 @@ export default function BannerCarousel({ banners: propBanners, isLoading }: Bann
                     </div>
 
                     {/* Bottom Action Bar */}
-                    <div className="flex items-center justify-between gap-4 pt-1">
-                      <div className="inline-flex items-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl sm:rounded-2xl bg-[#C8A45C] hover:bg-[#B8954A] text-[#1A1A1A] font-black text-xs sm:text-sm transition-all shadow-md shadow-[#C8A45C]/20 cursor-pointer group-hover:shadow-lg">
-                        <span>{banner.ctaText || "اكتشف الآن"}</span>
-                        {isExternal ? (
-                          <ExternalLink className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5]" />
-                        ) : (
-                          <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5]" />
-                        )}
-                      </div>
+                    {hasBottomActions ? (
+                      <div className="flex items-center justify-between gap-4 pt-1">
+                        <div>
+                          {showDiscover && (
+                            <div className="inline-flex items-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl sm:rounded-2xl bg-[#C8A45C] hover:bg-[#B8954A] text-[#1A1A1A] font-black text-xs sm:text-sm transition-all shadow-md shadow-[#C8A45C]/20 cursor-pointer group-hover:shadow-lg">
+                              <span>{banner.ctaText || "اكتشف الآن"}</span>
+                              {isExternal ? (
+                                <ExternalLink className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5]" />
+                              ) : (
+                                <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5]" />
+                              )}
+                            </div>
+                          )}
+                        </div>
 
-                      <div className="flex items-center gap-1.5 text-[11px] text-zinc-400">
-                        <Zap className="w-3.5 h-3.5 text-[#C8A45C]" />
-                        <span>تنفيذ تلقائي وفوري</span>
+                        <div>
+                          {showAutoExec && (
+                            <div className="flex items-center gap-1.5 text-[11px] sm:text-xs text-zinc-300 bg-black/40 px-3 py-1.5 rounded-full border border-[#C8A45C]/20">
+                              <Zap className="w-3.5 h-3.5 text-[#C8A45C]" />
+                              <span>تنفيذ تلقائي وفوري</span>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
+                    ) : (
+                      <div />
+                    )}
                   </div>
                 </BannerWrapper>
               </div>

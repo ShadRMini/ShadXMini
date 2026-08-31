@@ -1352,7 +1352,19 @@ makeCrud("news", newsTable, {
 
 makeCrud("banners", bannersTable, {
   orderBy: bannersTable.order,
-  allowedFields: ["image", "title", "description", "link", "order", "active", "featured"],
+  allowedFields: [
+    "image",
+    "title",
+    "description",
+    "link",
+    "order",
+    "active",
+    "featured",
+    "showDiscoverBtn",
+    "showAutoExecBtn",
+    "showReliableBtn",
+    "showFeaturedBtn",
+  ],
 });
 
 // Explicit update endpoint for banner details (PUT / PATCH)
@@ -1367,13 +1379,34 @@ router.put("/admin/banners/:id", requireAdmin, async (req, res) => {
       return res.status(404).json({ error: "البانر المطلوب غير موجود" });
     }
 
-    const { title, image, description, link, order, active, featured } = req.body;
+    const {
+      title,
+      image,
+      description,
+      link,
+      order,
+      active,
+      featured,
+      showDiscoverBtn,
+      show_discover_btn,
+      showAutoExecBtn,
+      show_auto_exec_btn,
+      showReliableBtn,
+      show_reliable_btn,
+      showFeaturedBtn,
+      show_featured_btn,
+    } = req.body;
     if (!title || typeof title !== "string" || !title.trim()) {
       return res.status(400).json({ error: "عنوان البانر مطلوب" });
     }
     if (!image || typeof image !== "string" || !image.trim()) {
       return res.status(400).json({ error: "رابط صورة البانر مطلوب" });
     }
+
+    const discoverVal = showDiscoverBtn !== undefined ? Boolean(showDiscoverBtn) : (show_discover_btn !== undefined ? Boolean(show_discover_btn) : existing.showDiscoverBtn);
+    const autoExecVal = showAutoExecBtn !== undefined ? Boolean(showAutoExecBtn) : (show_auto_exec_btn !== undefined ? Boolean(show_auto_exec_btn) : existing.showAutoExecBtn);
+    const reliableVal = showReliableBtn !== undefined ? Boolean(showReliableBtn) : (show_reliable_btn !== undefined ? Boolean(show_reliable_btn) : existing.showReliableBtn);
+    const featuredVal = showFeaturedBtn !== undefined ? Boolean(showFeaturedBtn) : (show_featured_btn !== undefined ? Boolean(show_featured_btn) : existing.showFeaturedBtn);
 
     const updateData = {
       title: title.trim(),
@@ -1383,6 +1416,10 @@ router.put("/admin/banners/:id", requireAdmin, async (req, res) => {
       order: order !== undefined ? Number(order) || 0 : existing.order,
       active: active !== undefined ? Boolean(active) : existing.active,
       featured: featured !== undefined ? Boolean(featured) : existing.featured,
+      showDiscoverBtn: discoverVal,
+      showAutoExecBtn: autoExecVal,
+      showReliableBtn: reliableVal,
+      showFeaturedBtn: featuredVal,
     };
 
     const [updated] = await db
@@ -1408,13 +1445,34 @@ router.put("/admin/banners/:id", requireAdmin, async (req, res) => {
 
 router.post("/admin/banners", requireAdmin, async (req, res) => {
   try {
-    const { title, image, description, link, order, active, featured } = req.body;
+    const {
+      title,
+      image,
+      description,
+      link,
+      order,
+      active,
+      featured,
+      showDiscoverBtn,
+      show_discover_btn,
+      showAutoExecBtn,
+      show_auto_exec_btn,
+      showReliableBtn,
+      show_reliable_btn,
+      showFeaturedBtn,
+      show_featured_btn,
+    } = req.body;
     if (!title || typeof title !== "string" || !title.trim()) {
       return res.status(400).json({ error: "عنوان البانر مطلوب" });
     }
     if (!image || typeof image !== "string" || !image.trim()) {
       return res.status(400).json({ error: "رابط صورة البانر مطلوب" });
     }
+
+    const discoverVal = showDiscoverBtn !== undefined ? Boolean(showDiscoverBtn) : Boolean(show_discover_btn);
+    const autoExecVal = showAutoExecBtn !== undefined ? Boolean(showAutoExecBtn) : Boolean(show_auto_exec_btn);
+    const reliableVal = showReliableBtn !== undefined ? Boolean(showReliableBtn) : Boolean(show_reliable_btn);
+    const featuredVal = showFeaturedBtn !== undefined ? Boolean(showFeaturedBtn) : Boolean(show_featured_btn);
 
     const insertData = {
       title: title.trim(),
@@ -1424,6 +1482,10 @@ router.post("/admin/banners", requireAdmin, async (req, res) => {
       order: order !== undefined ? Number(order) || 0 : 0,
       active: active !== undefined ? Boolean(active) : true,
       featured: featured !== undefined ? Boolean(featured) : false,
+      showDiscoverBtn: discoverVal,
+      showAutoExecBtn: autoExecVal,
+      showReliableBtn: reliableVal,
+      showFeaturedBtn: featuredVal,
     };
 
     const [created] = await db
@@ -2765,7 +2827,23 @@ const PUT_RESOURCES: Array<{ path: string; table: any; allowed: string[] }> = [
     ],
   },
   { path: "news", table: newsTable, allowed: ["content", "type", "active"] },
-  { path: "banners", table: bannersTable, allowed: ["image", "title", "description", "link", "order", "active", "featured"] },
+  {
+    path: "banners",
+    table: bannersTable,
+    allowed: [
+      "image",
+      "title",
+      "description",
+      "link",
+      "order",
+      "active",
+      "featured",
+      "showDiscoverBtn",
+      "showAutoExecBtn",
+      "showReliableBtn",
+      "showFeaturedBtn",
+    ],
+  },
   {
     path: "payment-methods",
     table: paymentMethodsTable,

@@ -24,7 +24,9 @@ import {
   UploadCloud,
   Layers,
   Tag,
-  Link as LinkIcon
+  Link as LinkIcon,
+  Zap,
+  ShieldCheck
 } from "lucide-react";
 import { get, post, put, patch, del } from "../lib/api";
 import { toast } from "sonner";
@@ -38,6 +40,14 @@ interface BannerItem {
   order: number;
   active: boolean;
   featured: boolean;
+  showDiscoverBtn?: boolean;
+  showAutoExecBtn?: boolean;
+  showReliableBtn?: boolean;
+  showFeaturedBtn?: boolean;
+  show_discover_btn?: boolean;
+  show_auto_exec_btn?: boolean;
+  show_reliable_btn?: boolean;
+  show_featured_btn?: boolean;
   createdAt?: string;
 }
 
@@ -66,6 +76,10 @@ export default function BannersNew() {
     order: 0,
     active: true,
     featured: false,
+    showDiscoverBtn: false,
+    showAutoExecBtn: false,
+    showReliableBtn: false,
+    showFeaturedBtn: false,
   });
 
   const showToast = useCallback((text: string, type: "success" | "error" = "success") => {
@@ -89,6 +103,10 @@ export default function BannersNew() {
         order: Number(item.order || 0),
         active: item.active !== undefined ? Boolean(item.active) : true,
         featured: Boolean(item.featured),
+        showDiscoverBtn: item.showDiscoverBtn !== undefined ? Boolean(item.showDiscoverBtn) : Boolean(item.show_discover_btn),
+        showAutoExecBtn: item.showAutoExecBtn !== undefined ? Boolean(item.showAutoExecBtn) : Boolean(item.show_auto_exec_btn),
+        showReliableBtn: item.showReliableBtn !== undefined ? Boolean(item.showReliableBtn) : Boolean(item.show_reliable_btn),
+        showFeaturedBtn: item.showFeaturedBtn !== undefined ? Boolean(item.showFeaturedBtn) : Boolean(item.show_featured_btn),
       }));
       formatted.sort((a, b) => a.order - b.order);
       setBanners(formatted);
@@ -145,6 +163,10 @@ export default function BannersNew() {
       order: banners.length > 0 ? Math.max(...banners.map((b) => b.order)) + 1 : 1,
       active: true,
       featured: false,
+      showDiscoverBtn: false,
+      showAutoExecBtn: false,
+      showReliableBtn: false,
+      showFeaturedBtn: false,
     });
     setShowModal(true);
   };
@@ -159,6 +181,10 @@ export default function BannersNew() {
       order: item.order,
       active: item.active,
       featured: item.featured,
+      showDiscoverBtn: item.showDiscoverBtn ?? item.show_discover_btn ?? false,
+      showAutoExecBtn: item.showAutoExecBtn ?? item.show_auto_exec_btn ?? false,
+      showReliableBtn: item.showReliableBtn ?? item.show_reliable_btn ?? false,
+      showFeaturedBtn: item.showFeaturedBtn ?? item.show_featured_btn ?? false,
     });
     setShowModal(true);
   };
@@ -193,6 +219,14 @@ export default function BannersNew() {
       order: Number(formData.order) || 0,
       active: Boolean(formData.active),
       featured: Boolean(formData.featured),
+      showDiscoverBtn: Boolean(formData.showDiscoverBtn),
+      showAutoExecBtn: Boolean(formData.showAutoExecBtn),
+      showReliableBtn: Boolean(formData.showReliableBtn),
+      showFeaturedBtn: Boolean(formData.showFeaturedBtn),
+      show_discover_btn: Boolean(formData.showDiscoverBtn),
+      show_auto_exec_btn: Boolean(formData.showAutoExecBtn),
+      show_reliable_btn: Boolean(formData.showReliableBtn),
+      show_featured_btn: Boolean(formData.showFeaturedBtn),
     };
 
     setSaving(true);
@@ -505,7 +539,7 @@ export default function BannersNew() {
                     معاينة حية للمتجر (Storefront Hero Preview)
                   </h3>
                 </div>
-                <span className="text-[11px] text-zinc-500">العرض الرئيسي الحالي للزوار</span>
+                <span className="text-[11px] text-zinc-500">العرض الرئيسي الحالي للزوار مع الأزرار التفاعلية</span>
               </div>
 
               <div className="relative rounded-3xl overflow-hidden border border-amber-500/30 bg-zinc-950 aspect-[21/9] sm:aspect-[25/8] max-h-72 shadow-2xl group">
@@ -514,28 +548,59 @@ export default function BannersNew() {
                   alt={primaryBanner.title}
                   className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/80 via-zinc-950/25 to-transparent flex flex-col justify-end p-6 sm:p-8">
-                  <div className="space-y-2 max-w-xl">
+                <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/85 via-zinc-950/30 to-transparent flex flex-col justify-between p-5 sm:p-7 md:p-8">
+                  {/* Top Badges */}
+                  <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
                       <span className="px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[11px] font-bold">
                         {primaryBanner.featured ? "عرض مميز 🔥" : "بانر رئيسي"}
                       </span>
                       <span className="text-xs text-zinc-400">ترتيب #{primaryBanner.order}</span>
+                      {primaryBanner.showFeaturedBtn && (
+                        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-bold">
+                          <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                          <span>عرض مميز</span>
+                        </div>
+                      )}
                     </div>
-                    <h2 className="text-xl sm:text-3xl font-black text-amber-100 leading-tight">
+
+                    {primaryBanner.showReliableBtn && (
+                      <div className="flex items-center gap-1 text-xs text-zinc-300 bg-black/40 px-2.5 py-1 rounded-full border border-amber-500/20">
+                        <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
+                        <span>خدمة موثوقة</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Title & Desc */}
+                  <div className="space-y-1.5 max-w-xl my-auto">
+                    <h2 className="text-xl sm:text-3xl font-black text-amber-100 leading-tight drop-shadow-md">
                       {primaryBanner.title}
                     </h2>
                     {primaryBanner.description && (
-                      <p className="text-xs sm:text-sm text-zinc-300 line-clamp-2 leading-relaxed">
+                      <p className="text-xs sm:text-sm text-zinc-300 line-clamp-2 leading-relaxed font-medium">
                         {primaryBanner.description}
                       </p>
                     )}
-                    {primaryBanner.link && (
-                      <div className="pt-2">
-                        <span className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500 text-zinc-950 text-xs font-bold shadow-lg shadow-amber-500/20">
-                          <span>استكشف الآن</span>
+                  </div>
+
+                  {/* Bottom Actions */}
+                  <div className="flex items-center justify-between gap-4 pt-1">
+                    <div>
+                      {primaryBanner.showDiscoverBtn ? (
+                        <span className="inline-flex items-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-zinc-950 text-xs sm:text-sm font-black shadow-lg shadow-amber-500/20">
+                          <span>اكتشف الان</span>
                           <ExternalLink className="w-3.5 h-3.5" />
                         </span>
+                      ) : (
+                        <div />
+                      )}
+                    </div>
+
+                    {primaryBanner.showAutoExecBtn && (
+                      <div className="flex items-center gap-1.5 text-xs text-zinc-300 bg-black/40 px-3 py-1.5 rounded-full border border-amber-500/20">
+                        <Zap className="w-3.5 h-3.5 text-amber-400" />
+                        <span>تنفيذ تلقائي وفوري</span>
                       </div>
                     )}
                   </div>
@@ -777,6 +842,38 @@ export default function BannersNew() {
                         </div>
                       </div>
                     )}
+
+                    {/* Interactive Buttons Active Indicators */}
+                    <div className="pt-2 border-t border-zinc-800/60 flex flex-wrap items-center gap-1.5">
+                      <span className="text-[10px] text-zinc-500 font-medium">الأزرار التفاعلية:</span>
+                      {item.showDiscoverBtn && (
+                        <span className="px-2 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[10px] font-bold flex items-center gap-1">
+                          <ExternalLink className="w-2.5 h-2.5" />
+                          <span>اكتشف الان</span>
+                        </span>
+                      )}
+                      {item.showAutoExecBtn && (
+                        <span className="px-2 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[10px] font-bold flex items-center gap-1">
+                          <Zap className="w-2.5 h-2.5" />
+                          <span>تنفيذ تلقائي</span>
+                        </span>
+                      )}
+                      {item.showReliableBtn && (
+                        <span className="px-2 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[10px] font-bold flex items-center gap-1">
+                          <ShieldCheck className="w-2.5 h-2.5" />
+                          <span>خدمة موثوقة</span>
+                        </span>
+                      )}
+                      {item.showFeaturedBtn && (
+                        <span className="px-2 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[10px] font-bold flex items-center gap-1">
+                          <Sparkles className="w-2.5 h-2.5" />
+                          <span>عرض مميز</span>
+                        </span>
+                      )}
+                      {!item.showDiscoverBtn && !item.showAutoExecBtn && !item.showReliableBtn && !item.showFeaturedBtn && (
+                        <span className="text-[10px] text-zinc-600 italic">معطلة لهذا البانر</span>
+                      )}
+                    </div>
                   </div>
 
                   {/* Card Actions Footer */}
@@ -981,6 +1078,131 @@ export default function BannersNew() {
                       <Star className={`w-4 h-4 ${formData.featured ? "fill-amber-400 text-amber-400" : ""}`} />
                       <span>{formData.featured ? "نعم مميز" : "عادي"}</span>
                     </button>
+                  </div>
+                </div>
+
+                {/* Interactive Buttons Config Section */}
+                <div className="rounded-2xl border border-amber-500/25 bg-gradient-to-b from-amber-500/10 via-[#191612] to-zinc-950 p-4 sm:p-5 space-y-4 shadow-lg">
+                  <div className="flex items-center justify-between pb-3 border-b border-amber-500/15">
+                    <div className="flex items-center gap-2.5">
+                      <div className="p-2 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                        <Sparkles className="w-4 h-4 text-amber-400" />
+                      </div>
+                      <div>
+                        <h4 className="text-xs sm:text-sm font-bold text-amber-200">التحكم في الأزرار والشارات التفاعلية للبانر</h4>
+                        <p className="text-[11px] text-zinc-400">تفعيل أو إلغاء تفعيل كل زر وشارة بشكل مستقل لهذا البانر</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {/* 1. Discover Now */}
+                    <div
+                      onClick={() => setFormData({ ...formData, showDiscoverBtn: !formData.showDiscoverBtn })}
+                      className={`cursor-pointer flex items-center justify-between p-3 rounded-xl border transition-all select-none ${
+                        formData.showDiscoverBtn
+                          ? "bg-amber-500/15 border-amber-500/50 text-amber-100 shadow-sm"
+                          : "bg-zinc-900/90 border-zinc-800 text-zinc-400 hover:border-zinc-700"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <div className={`p-2 rounded-lg ${formData.showDiscoverBtn ? "bg-amber-500 text-zinc-950 font-bold" : "bg-zinc-800 text-zinc-400"}`}>
+                          <ExternalLink className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold">زر "اكتشف الان"</p>
+                          <p className="text-[10px] text-zinc-500">زر إجراء رئيسي باللون الذهبي</p>
+                        </div>
+                      </div>
+                      <div>
+                        {formData.showDiscoverBtn ? (
+                          <ToggleRight className="w-6 h-6 text-amber-400" />
+                        ) : (
+                          <ToggleLeft className="w-6 h-6 text-zinc-600" />
+                        )}
+                      </div>
+                    </div>
+
+                    {/* 2. Auto & Instant Execution */}
+                    <div
+                      onClick={() => setFormData({ ...formData, showAutoExecBtn: !formData.showAutoExecBtn })}
+                      className={`cursor-pointer flex items-center justify-between p-3 rounded-xl border transition-all select-none ${
+                        formData.showAutoExecBtn
+                          ? "bg-amber-500/15 border-amber-500/50 text-amber-100 shadow-sm"
+                          : "bg-zinc-900/90 border-zinc-800 text-zinc-400 hover:border-zinc-700"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <div className={`p-2 rounded-lg ${formData.showAutoExecBtn ? "bg-amber-500 text-zinc-950 font-bold" : "bg-zinc-800 text-zinc-400"}`}>
+                          <Zap className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold">زر "تنفيذ تلقائي وفوري"</p>
+                          <p className="text-[10px] text-zinc-500">شارة سرعة تنفيذ الطلبات</p>
+                        </div>
+                      </div>
+                      <div>
+                        {formData.showAutoExecBtn ? (
+                          <ToggleRight className="w-6 h-6 text-amber-400" />
+                        ) : (
+                          <ToggleLeft className="w-6 h-6 text-zinc-600" />
+                        )}
+                      </div>
+                    </div>
+
+                    {/* 3. Reliable Service */}
+                    <div
+                      onClick={() => setFormData({ ...formData, showReliableBtn: !formData.showReliableBtn })}
+                      className={`cursor-pointer flex items-center justify-between p-3 rounded-xl border transition-all select-none ${
+                        formData.showReliableBtn
+                          ? "bg-amber-500/15 border-amber-500/50 text-amber-100 shadow-sm"
+                          : "bg-zinc-900/90 border-zinc-800 text-zinc-400 hover:border-zinc-700"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <div className={`p-2 rounded-lg ${formData.showReliableBtn ? "bg-amber-500 text-zinc-950 font-bold" : "bg-zinc-800 text-zinc-400"}`}>
+                          <ShieldCheck className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold">زر "خدمة موثوقة"</p>
+                          <p className="text-[10px] text-zinc-500">شارة الموثوقية والأمان</p>
+                        </div>
+                      </div>
+                      <div>
+                        {formData.showReliableBtn ? (
+                          <ToggleRight className="w-6 h-6 text-amber-400" />
+                        ) : (
+                          <ToggleLeft className="w-6 h-6 text-zinc-600" />
+                        )}
+                      </div>
+                    </div>
+
+                    {/* 4. Featured Offer */}
+                    <div
+                      onClick={() => setFormData({ ...formData, showFeaturedBtn: !formData.showFeaturedBtn })}
+                      className={`cursor-pointer flex items-center justify-between p-3 rounded-xl border transition-all select-none ${
+                        formData.showFeaturedBtn
+                          ? "bg-amber-500/15 border-amber-500/50 text-amber-100 shadow-sm"
+                          : "bg-zinc-900/90 border-zinc-800 text-zinc-400 hover:border-zinc-700"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <div className={`p-2 rounded-lg ${formData.showFeaturedBtn ? "bg-amber-500 text-zinc-950 font-bold" : "bg-zinc-800 text-zinc-400"}`}>
+                          <Sparkles className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold">زر "عرض مميز"</p>
+                          <p className="text-[10px] text-zinc-500">شارة العرض الحصري المميز</p>
+                        </div>
+                      </div>
+                      <div>
+                        {formData.showFeaturedBtn ? (
+                          <ToggleRight className="w-6 h-6 text-amber-400" />
+                        ) : (
+                          <ToggleLeft className="w-6 h-6 text-zinc-600" />
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
 

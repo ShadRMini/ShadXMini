@@ -210,6 +210,14 @@ const handleGetBanners = async (_req: any, res: any) => {
         order: b.order,
         active: b.active,
         featured: b.featured,
+        showDiscoverBtn: b.showDiscoverBtn ?? false,
+        showAutoExecBtn: b.showAutoExecBtn ?? false,
+        showReliableBtn: b.showReliableBtn ?? false,
+        showFeaturedBtn: b.showFeaturedBtn ?? false,
+        show_discover_btn: b.showDiscoverBtn ?? false,
+        show_auto_exec_btn: b.showAutoExecBtn ?? false,
+        show_reliable_btn: b.showReliableBtn ?? false,
+        show_featured_btn: b.showFeaturedBtn ?? false,
       })),
     );
   } catch (error) {
@@ -238,6 +246,14 @@ router.get("/public/banners/featured", async (_req, res) => {
         order: b.order,
         active: b.active,
         featured: b.featured,
+        showDiscoverBtn: b.showDiscoverBtn ?? false,
+        showAutoExecBtn: b.showAutoExecBtn ?? false,
+        showReliableBtn: b.showReliableBtn ?? false,
+        showFeaturedBtn: b.showFeaturedBtn ?? false,
+        show_discover_btn: b.showDiscoverBtn ?? false,
+        show_auto_exec_btn: b.showAutoExecBtn ?? false,
+        show_reliable_btn: b.showReliableBtn ?? false,
+        show_featured_btn: b.showFeaturedBtn ?? false,
       })),
     );
   } catch (error) {

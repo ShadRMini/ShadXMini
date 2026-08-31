@@ -107,6 +107,10 @@ export default function Home() {
     image: String(b.image || ""),
     link: b.link ? String(b.link) : undefined,
     order: Number(b.order || 0),
+    showDiscoverBtn: b.showDiscoverBtn ?? b.show_discover_btn ?? false,
+    showAutoExecBtn: b.showAutoExecBtn ?? b.show_auto_exec_btn ?? false,
+    showReliableBtn: b.showReliableBtn ?? b.show_reliable_btn ?? false,
+    showFeaturedBtn: b.showFeaturedBtn ?? b.show_featured_btn ?? false,
   }));
 
   return (

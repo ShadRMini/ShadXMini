@@ -108,6 +108,10 @@ export const bannersTable = pgTable("banners", {
   order: integer("order").notNull().default(0),
   active: boolean("active").notNull().default(true),
   featured: boolean("featured").notNull().default(false),
+  showDiscoverBtn: boolean("show_discover_btn").notNull().default(false),
+  showAutoExecBtn: boolean("show_auto_exec_btn").notNull().default(false),
+  showReliableBtn: boolean("show_reliable_btn").notNull().default(false),
+  showFeaturedBtn: boolean("show_featured_btn").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

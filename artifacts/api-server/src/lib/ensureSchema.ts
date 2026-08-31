@@ -158,12 +158,20 @@ export async function ensureDatabaseSchema() {
         "order" INTEGER NOT NULL DEFAULT 0,
         active BOOLEAN NOT NULL DEFAULT true,
         featured BOOLEAN NOT NULL DEFAULT false,
+        show_discover_btn BOOLEAN NOT NULL DEFAULT false,
+        show_auto_exec_btn BOOLEAN NOT NULL DEFAULT false,
+        show_reliable_btn BOOLEAN NOT NULL DEFAULT false,
+        show_featured_btn BOOLEAN NOT NULL DEFAULT false,
         created_at TIMESTAMP NOT NULL DEFAULT NOW()
       );
 
       ALTER TABLE banners ADD COLUMN IF NOT EXISTS description TEXT;
       ALTER TABLE banners ADD COLUMN IF NOT EXISTS active BOOLEAN DEFAULT true;
       ALTER TABLE banners ADD COLUMN IF NOT EXISTS featured BOOLEAN DEFAULT false;
+      ALTER TABLE banners ADD COLUMN IF NOT EXISTS show_discover_btn BOOLEAN DEFAULT false;
+      ALTER TABLE banners ADD COLUMN IF NOT EXISTS show_auto_exec_btn BOOLEAN DEFAULT false;
+      ALTER TABLE banners ADD COLUMN IF NOT EXISTS show_reliable_btn BOOLEAN DEFAULT false;
+      ALTER TABLE banners ADD COLUMN IF NOT EXISTS show_featured_btn BOOLEAN DEFAULT false;
       ALTER TABLE banners ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT NOW();
     `);
 
