@@ -76,6 +76,26 @@ interface CustomizationConfig {
   border_color?: string;
   border_radius?: string;
   font_family?: string;
+  unit_price_color?: string;
+  quantity_label_color?: string;
+  quantity_value_color?: string;
+  quantity_button_color?: string;
+  quantity_button_bg?: string;
+  player_id_label_color?: string;
+  player_id_input_border?: string;
+  player_id_input_focus?: string;
+  player_id_input_bg?: string;
+  player_id_input_text?: string;
+  breadcrumb_text_color?: string;
+  breadcrumb_active_color?: string;
+  action_buttons_color?: string;
+  action_buttons_bg?: string;
+  total_price_color?: string;
+  purchase_button_text?: string;
+  purchase_button_bg?: string;
+  disclaimer_text_color?: string;
+  page_bg_color?: string;
+  general_text_color?: string;
 }
 
 interface ProductPageSettings {
@@ -122,6 +142,26 @@ const DEFAULT_CUSTOMIZATION: CustomizationConfig = {
   default_unit_price: 0,
   total_amount: 0,
   direct_shipping_label: "مطلوب للشحن المباشر",
+  unit_price_color: "#E5E7EB",
+  quantity_label_color: "#E5E7EB",
+  quantity_value_color: "#FFFFFF",
+  quantity_button_color: "#C8A45C",
+  quantity_button_bg: "#2D2D2D",
+  player_id_label_color: "#E5E7EB",
+  player_id_input_border: "#4B5563",
+  player_id_input_focus: "#C8A45C",
+  player_id_input_bg: "#1A1A1A",
+  player_id_input_text: "#FFFFFF",
+  breadcrumb_text_color: "#9CA3AF",
+  breadcrumb_active_color: "#C8A45C",
+  action_buttons_color: "#C8A45C",
+  action_buttons_bg: "transparent",
+  total_price_color: "#C8A45C",
+  purchase_button_text: "#1A1A1A",
+  purchase_button_bg: "#C8A45C",
+  disclaimer_text_color: "#9CA3AF",
+  page_bg_color: "#1A1A1A",
+  general_text_color: "#FFFFFF",
 };
 
 const DEFAULT_SETTINGS: ProductPageSettings = {
@@ -420,8 +460,8 @@ export default function ProductDetail() {
   };
 
   const customBgStyle = {
-    backgroundColor: customization.bg_color || settings.product_bg_color || "#1A1A1A",
-    color: customization.text_color || settings.product_text_color || "#FFFFFF",
+    backgroundColor: customization.page_bg_color || customization.bg_color || settings.product_bg_color || "#1A1A1A",
+    color: customization.general_text_color || customization.text_color || settings.product_text_color || "#FFFFFF",
     fontFamily: customization.font_family || "Cairo, sans-serif",
   };
 
@@ -521,15 +561,15 @@ export default function ProductDetail() {
             style={{ backgroundColor: customization.info_box_bg_color || "#1A1A1A" }}
           >
             <div>
-              <div className="text-xs text-zinc-400 font-semibold mb-0.5">سعر الوحدة</div>
-              <div className="text-2xl font-black font-mono" style={{ color: customization.price_color || "#FDE68A" }}>
+              <div className="text-xs font-semibold mb-0.5" style={{ color: customization.unit_price_color || "#E5E7EB" }}>سعر الوحدة</div>
+              <div className="text-2xl font-black font-mono" style={{ color: customization.unit_price_color || customization.price_color || "#FDE68A" }}>
                 ${unitPrice ? unitPrice.toFixed(4) : "0.0000"}
               </div>
             </div>
 
             <div className="text-left border-r border-zinc-700/80 pr-4">
-              <div className="text-xs text-[#C8A45C] font-semibold">المجموع الكلي</div>
-              <div className="text-2xl font-black font-mono" style={{ color: customization.price_color || "#FDE68A" }}>
+              <div className="text-xs font-semibold" style={{ color: customization.total_price_color || "#C8A45C" }}>المجموع الكلي</div>
+              <div className="text-2xl font-black font-mono" style={{ color: customization.total_price_color || customization.price_color || "#FDE68A" }}>
                 ${totalUsd.toFixed(4)}
               </div>
             </div>
@@ -559,8 +599,13 @@ export default function ProductDetail() {
         return (
           <div key={sec.id} className="space-y-3 pt-2 border-t border-zinc-800">
             <div className="flex justify-between items-center mb-1">
-              <label className="text-xs font-bold text-zinc-200">{sec.title || "حدد الكمية المطلوبة:"}</label>
-              <span className="text-[11px] text-[#C8A45C] font-semibold">
+              <label
+                className="text-xs font-bold"
+                style={{ color: customization.quantity_label_color || "#E5E7EB" }}
+              >
+                {sec.title || "اختبار الكمية / حدد الكمية المطلوبة:"}
+              </label>
+              <span className="text-[11px] font-semibold" style={{ color: customization.quantity_button_color || "#C8A45C" }}>
                 (الحد الأدنى: {minQty.toLocaleString()})
               </span>
             </div>
@@ -568,7 +613,7 @@ export default function ProductDetail() {
             {usesFixedQuantity ? (
               <div className="rounded-2xl border border-[#C8A45C]/40 bg-[#C8A45C]/10 p-3.5 text-center">
                 <div className="text-xs text-zinc-300">كمية رسمية ثابتة لهذه الباقة</div>
-                <div className="text-xl font-black text-[#FDE68A] mt-1">{minQty.toLocaleString()}</div>
+                <div className="text-xl font-black mt-1" style={{ color: customization.quantity_value_color || "#FFFFFF" }}>{minQty.toLocaleString()}</div>
               </div>
             ) : usesOfficialQuantityList ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -583,8 +628,9 @@ export default function ProductDetail() {
                     className={`rounded-2xl border px-3 py-3 text-sm font-black transition cursor-pointer ${
                       quantity === value
                         ? "border-[#C8A45C] bg-[#C8A45C] text-[#1A1A1A] shadow-md shadow-[#C8A45C]/30"
-                        : "border-[#4B5563] bg-[#1A1A1A] text-white hover:border-[#C8A45C]/60"
+                        : "border-[#4B5563] bg-[#1A1A1A] hover:border-[#C8A45C]/60"
                     }`}
+                    style={quantity === value ? {} : { color: customization.quantity_value_color || "#FFFFFF" }}
                   >
                     {value.toLocaleString()}
                   </button>
@@ -596,12 +642,16 @@ export default function ProductDetail() {
                   type="button"
                   onClick={handleDecrement}
                   disabled={quantity <= minQty}
-                  className="w-12 h-12 rounded-2xl bg-[#1A1A1A] border border-zinc-700 hover:border-[#C8A45C] text-white flex items-center justify-center font-bold text-lg disabled:opacity-40 transition cursor-pointer shrink-0"
+                  className="w-12 h-12 rounded-2xl border border-zinc-700 hover:border-[#C8A45C] flex items-center justify-center font-bold text-lg disabled:opacity-40 transition cursor-pointer shrink-0"
+                  style={{
+                    color: customization.quantity_button_color || "#C8A45C",
+                    backgroundColor: customization.quantity_button_bg || "#2D2D2D",
+                  }}
                 >
                   <Minus size={18} />
                 </button>
 
-                <div className="flex-1 bg-[#1A1A1A] border border-zinc-700 focus-within:border-[#C8A45C] rounded-2xl p-1 transition">
+                <div className="flex-1 rounded-2xl p-1 transition" style={{ backgroundColor: customization.player_id_input_bg || "#1A1A1A", border: `1px solid ${customization.player_id_input_border || "#4B5563"}` }}>
                   <Input
                     type="text"
                     inputMode="numeric"
@@ -609,14 +659,19 @@ export default function ProductDetail() {
                     value={quantityInput}
                     onChange={(e) => handleQtyInputChange(e.target.value)}
                     onBlur={() => commitQuantityInput()}
-                    className="w-full h-10 text-center font-black text-xl bg-transparent text-white border-0 focus-visible:ring-0"
+                    className="w-full h-10 text-center font-black text-xl bg-transparent border-0 focus-visible:ring-0"
+                    style={{ color: customization.quantity_value_color || "#FFFFFF" }}
                   />
                 </div>
 
                 <button
                   type="button"
                   onClick={handleIncrement}
-                  className="w-12 h-12 rounded-2xl bg-[#1A1A1A] border border-zinc-700 hover:border-[#C8A45C] text-white flex items-center justify-center font-bold text-lg transition cursor-pointer shrink-0"
+                  className="w-12 h-12 rounded-2xl border border-zinc-700 hover:border-[#C8A45C] flex items-center justify-center font-bold text-lg transition cursor-pointer shrink-0"
+                  style={{
+                    color: customization.quantity_button_color || "#C8A45C",
+                    backgroundColor: customization.quantity_button_bg || "#2D2D2D",
+                  }}
                 >
                   <Plus size={18} />
                 </button>
@@ -626,9 +681,9 @@ export default function ProductDetail() {
             {/* Account ID / Phone Number Inputs */}
             {(purchaseMode === "apps" || purchaseMode === "games") && (
               <div className="pt-2">
-                <label className="text-xs font-bold text-zinc-200 mb-2 block flex items-center justify-between">
+                <label className="text-xs font-bold mb-2 block flex items-center justify-between" style={{ color: customization.player_id_label_color || "#E5E7EB" }}>
                   <span>معرّف الحساب (Player ID) *</span>
-                  <span className="text-[10px] text-[#C8A45C]">
+                  <span className="text-[10px]" style={{ color: customization.breadcrumb_active_color || "#C8A45C" }}>
                     {customization.direct_shipping_label || "مطلوب للشحن المباشر"}
                   </span>
                 </label>
@@ -636,7 +691,18 @@ export default function ProductDetail() {
                   value={accountId}
                   onChange={(e) => setAccountId(e.target.value)}
                   placeholder="أدخل معرّف الحساب (مثال: 123456789)"
-                  className="h-13 bg-[#1A1A1A] border-zinc-700 text-white rounded-2xl px-4 focus-visible:ring-[#C8A45C] focus-visible:border-[#C8A45C] text-base placeholder:text-zinc-500 font-mono"
+                  className="h-13 rounded-2xl px-4 text-base placeholder:text-zinc-500 font-mono transition-all"
+                  style={{
+                    backgroundColor: customization.player_id_input_bg || "#1A1A1A",
+                    borderColor: customization.player_id_input_border || "#4B5563",
+                    color: customization.player_id_input_text || "#FFFFFF",
+                  }}
+                  onFocus={(e) => {
+                    e.currentTarget.style.borderColor = customization.player_id_input_focus || "#C8A45C";
+                  }}
+                  onBlur={(e) => {
+                    e.currentTarget.style.borderColor = customization.player_id_input_border || "#4B5563";
+                  }}
                 />
               </div>
             )}
@@ -648,22 +714,33 @@ export default function ProductDetail() {
                   <span className="font-mono text-base">{quantity} وحدة</span>
                 </div>
                 <div>
-                  <label className="text-xs font-bold text-zinc-200 mb-2 block flex items-center justify-between">
+                  <label className="text-xs font-bold mb-2 block flex items-center justify-between" style={{ color: customization.player_id_label_color || "#E5E7EB" }}>
                     <span>رقم الخط المطلوب شحنه *</span>
-                    <span className="text-[10px] text-[#C8A45C]">مثال: 09XXXXXXXX</span>
+                    <span className="text-[10px]" style={{ color: customization.breadcrumb_active_color || "#C8A45C" }}>مثال: 09XXXXXXXX</span>
                   </label>
                   <Input
                     value={phoneNumber}
                     onChange={(e) => setPhoneNumber(e.target.value)}
                     placeholder="أدخل رقم الخط (09XXXXXXXX)"
-                    className="h-13 bg-[#1A1A1A] border-zinc-700 text-white rounded-2xl px-4 focus-visible:ring-[#C8A45C] focus-visible:border-[#C8A45C] text-base placeholder:text-zinc-500 font-mono"
+                    className="h-13 rounded-2xl px-4 text-base placeholder:text-zinc-500 font-mono transition-all"
+                    style={{
+                      backgroundColor: customization.player_id_input_bg || "#1A1A1A",
+                      borderColor: customization.player_id_input_border || "#4B5563",
+                      color: customization.player_id_input_text || "#FFFFFF",
+                    }}
+                    onFocus={(e) => {
+                      e.currentTarget.style.borderColor = customization.player_id_input_focus || "#C8A45C";
+                    }}
+                    onBlur={(e) => {
+                      e.currentTarget.style.borderColor = customization.player_id_input_border || "#4B5563";
+                    }}
                   />
                 </div>
               </div>
             )}
 
-            <p className="text-[11px] text-amber-300/90 bg-amber-950/40 border border-amber-500/30 p-3 rounded-2xl flex items-center gap-2 font-medium">
-              <AlertCircle className="w-4 h-4 text-[#C8A45C] shrink-0" />
+            <p className="text-[11px] bg-amber-950/40 border border-amber-500/30 p-3 rounded-2xl flex items-center gap-2 font-medium" style={{ color: customization.disclaimer_text_color || "#9CA3AF" }}>
+              <AlertCircle className="w-4 h-4 shrink-0" style={{ color: customization.action_buttons_color || "#C8A45C" }} />
               برجاء التأكد من صحة البيانات المدخلة قبل تأكيد عملية الشراء.
             </p>
           </div>
@@ -678,8 +755,8 @@ export default function ProductDetail() {
             disabled={createOrder.isPending || !product.available}
             className="w-full h-15 rounded-2xl text-base sm:text-lg font-black shadow-xl transition transform hover:-translate-y-0.5 cursor-pointer disabled:opacity-50"
             style={{
-              backgroundColor: customization.button_color || "#C8A45C",
-              color: customization.button_text_color || "#1A1A1A",
+              backgroundColor: customization.purchase_button_bg || customization.button_color || "#C8A45C",
+              color: customization.purchase_button_text || customization.button_text_color || "#1A1A1A",
             }}
           >
             {createOrder.isPending ? (
@@ -690,7 +767,7 @@ export default function ProductDetail() {
             ) : (
               <span className="flex items-center gap-2">
                 <ShoppingCart size={20} />
-                {sec.button_text || "تأكيد الشراء الفوري"} (${totalUsd.toFixed(4)})
+                {sec.button_text || "شراء الآن / تأكيد الشراء الفوري"} (${totalUsd.toFixed(4)})
               </span>
             )}
           </Button>
@@ -1038,16 +1115,16 @@ export default function ProductDetail() {
         <div className="flex flex-wrap items-center justify-between gap-3 bg-[#242424]/90 p-3.5 rounded-2xl border border-[#C8A45C]/25 backdrop-blur-md shadow-lg">
           <div className="flex items-center gap-2 text-xs">
             <Link href="/">
-              <span className="text-zinc-400 hover:text-white transition cursor-pointer font-medium">الرئيسية</span>
+              <span className="hover:text-white transition cursor-pointer font-medium" style={{ color: customization.breadcrumb_text_color || "#9CA3AF" }}>الرئيسية</span>
             </Link>
-            <ChevronRight size={14} className="text-zinc-500" />
+            <ChevronRight size={14} style={{ color: customization.breadcrumb_text_color || "#9CA3AF" }} />
             <Link href={`/categories/${product.categoryId}`}>
-              <span className="text-[#C8A45C] hover:text-[#FDE68A] font-bold transition cursor-pointer">
+              <span className="font-bold transition cursor-pointer" style={{ color: customization.breadcrumb_active_color || "#C8A45C" }}>
                 {product.categoryName}
               </span>
             </Link>
-            <ChevronRight size={14} className="text-zinc-500" />
-            <span className="text-zinc-200 font-bold truncate max-w-[180px] sm:max-w-xs">{product.name}</span>
+            <ChevronRight size={14} style={{ color: customization.breadcrumb_text_color || "#9CA3AF" }} />
+            <span className="font-bold truncate max-w-[180px] sm:max-w-xs" style={{ color: customization.breadcrumb_active_color || "#FFFFFF" }}>{product.name}</span>
           </div>
 
           <div className="flex items-center gap-2">
@@ -1062,7 +1139,11 @@ export default function ProductDetail() {
                   toast.success("تم نسخ رابط المنتج للمشاركة 📋");
                 }
               }}
-              className="p-2 bg-[#1A1A1A] hover:bg-[#2F2F2F] text-zinc-300 hover:text-white rounded-xl border border-zinc-700 transition cursor-pointer text-xs flex items-center gap-1.5"
+              className="p-2 rounded-xl border border-zinc-700 transition cursor-pointer text-xs flex items-center gap-1.5"
+              style={{
+                color: customization.action_buttons_color || "#C8A45C",
+                backgroundColor: customization.action_buttons_bg === "transparent" ? "#1A1A1A" : (customization.action_buttons_bg || "#1A1A1A"),
+              }}
               title="مشاركة المنتج"
             >
               <Share2 size={16} />
@@ -1074,11 +1155,11 @@ export default function ProductDetail() {
               type="button"
               onClick={toggleFavorite}
               disabled={favLoading}
-              className={`p-2 rounded-xl border transition cursor-pointer text-xs flex items-center gap-1.5 ${
-                isFavorite
-                  ? "bg-[#C8A45C]/20 border-[#C8A45C] text-[#C8A45C]"
-                  : "bg-[#1A1A1A] hover:bg-[#2F2F2F] border-zinc-700 text-zinc-300 hover:text-white"
-              }`}
+              className="p-2 rounded-xl border border-zinc-700 transition cursor-pointer text-xs flex items-center gap-1.5"
+              style={{
+                color: customization.action_buttons_color || "#C8A45C",
+                backgroundColor: customization.action_buttons_bg === "transparent" ? "#1A1A1A" : (customization.action_buttons_bg || "#1A1A1A"),
+              }}
               title="إضافة للمفضلة"
             >
               <Heart size={16} className={isFavorite ? "fill-[#C8A45C]" : ""} />
@@ -1089,7 +1170,11 @@ export default function ProductDetail() {
             <button
               type="button"
               onClick={() => setLegacyOverride(true)}
-              className="p-2 bg-[#1A1A1A] hover:bg-[#2F2F2F] text-zinc-400 hover:text-[#FDE68A] rounded-xl border border-zinc-800 transition cursor-pointer text-xs flex items-center gap-1"
+              className="p-2 rounded-xl border border-zinc-800 transition cursor-pointer text-xs flex items-center gap-1"
+              style={{
+                color: customization.action_buttons_color || "#9CA3AF",
+                backgroundColor: customization.action_buttons_bg === "transparent" ? "#1A1A1A" : (customization.action_buttons_bg || "#1A1A1A"),
+              }}
               title="التبديل إلى الوضع الكلاسيكي"
             >
               <LayoutGrid size={15} />

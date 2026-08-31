@@ -4424,7 +4424,27 @@ const ADMIN_DEFAULT_PRODUCT_CUSTOMIZATION = {
   info_box_bg_color: "#242424",
   default_unit_price: 0,
   total_amount: 0,
-  direct_shipping_label: "مطلوب للشحن المباشر"
+  direct_shipping_label: "مطلوب للشحن المباشر",
+  unit_price_color: "#E5E7EB",
+  quantity_label_color: "#E5E7EB",
+  quantity_value_color: "#FFFFFF",
+  quantity_button_color: "#C8A45C",
+  quantity_button_bg: "#2D2D2D",
+  player_id_label_color: "#E5E7EB",
+  player_id_input_border: "#4B5563",
+  player_id_input_focus: "#C8A45C",
+  player_id_input_bg: "#1A1A1A",
+  player_id_input_text: "#FFFFFF",
+  breadcrumb_text_color: "#9CA3AF",
+  breadcrumb_active_color: "#C8A45C",
+  action_buttons_color: "#C8A45C",
+  action_buttons_bg: "transparent",
+  total_price_color: "#C8A45C",
+  purchase_button_text: "#1A1A1A",
+  purchase_button_bg: "#C8A45C",
+  disclaimer_text_color: "#9CA3AF",
+  page_bg_color: "#1A1A1A",
+  general_text_color: "#FFFFFF"
 };
 
 router.get(["/admin/product-page-settings", "/admin/product-page-config"], requireAdmin, async (_req, res) => {
