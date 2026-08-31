@@ -58,16 +58,16 @@ export interface CustomizationConfig {
   price_color: string;
   button_color: string;
   button_text_color: string;
-  bg_color: string;
-  text_color: string;
-  border_color: string;
-  border_radius: string;
-  font_family: string;
   product_name_color?: string;
   info_box_bg_color?: string;
   default_unit_price?: number;
   total_amount?: number;
   direct_shipping_label?: string;
+  bg_color?: string;
+  text_color?: string;
+  border_color?: string;
+  border_radius?: string;
+  font_family?: string;
 }
 
 const DEFAULT_SECTIONS: SectionConfig[] = [
@@ -527,18 +527,36 @@ export default function ProductPageSettings() {
             </DndContext>
           </div>
 
-          {/* 3. Style & Color Customization */}
+          {/* 3. Style & Color Customization (Page Specific) */}
           <div className="bg-[#242424] p-5 rounded-2xl border border-[#C8A45C]/30 shadow-xl space-y-4">
-            <div className="flex items-center gap-2 border-b border-zinc-800 pb-3">
-              <Palette size={18} className="text-[#C8A45C]" />
-              <h2 className="text-xs font-bold text-[#FDE68A]">تخصيص المظهر والألوان (Customization & Styles)</h2>
+            <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
+              <div className="flex items-center gap-2">
+                <Palette size={18} className="text-[#C8A45C]" />
+                <h2 className="text-xs font-bold text-[#FDE68A]">تخصيص الخصائص البصرية لصفحة المنتج (Product Page Customization)</h2>
+              </div>
+              <span className="text-[10px] bg-[#C8A45C]/15 border border-[#C8A45C]/30 text-[#FDE68A] px-2.5 py-0.5 rounded-full font-semibold">
+                إعدادات خاصة بالصفحة
+              </span>
+            </div>
+
+            {/* Source of Truth Information Banner */}
+            <div className="p-3 bg-[#1A1A1A] border border-blue-500/30 rounded-xl text-[11px] text-zinc-300 flex items-start gap-2.5">
+              <span className="text-blue-400 text-sm mt-0.5">ℹ️</span>
+              <div>
+                <strong className="text-white block mb-0.5">مصدر الحقيقة الموحد للإعدادات (Single Source of Truth):</strong>
+                <span>
+                  الخطوط العامة للمتجر، الشعار، وخلفية المتجر الرئيسية تُدار حصرياً من صفحة{" "}
+                  <a href="/theme" className="text-[#FDE68A] underline hover:text-white font-bold">تخصيص التصميم (Theme)</a>.
+                  الحقول أدناه تُخصص مظهر ونصوص صفحة تفاصيل المنتج بشكل مستقل وسلس.
+                </span>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
               {/* Image Size Selector */}
               <div className="space-y-1.5 p-3 bg-[#1A1A1A] rounded-xl border border-zinc-800 col-span-1 sm:col-span-2">
                 <label className="block text-zinc-300 font-bold flex items-center justify-between">
-                  <span>حجم صورة المنتج بالصفحة:</span>
+                  <span>حجم عرض صورة المنتج بالصفحة:</span>
                   <span className="font-mono text-[#FDE68A] text-[10px] bg-[#242424] px-2 py-0.5 rounded border border-[#C8A45C]/30">
                     {customization.image_size}
                   </span>
@@ -563,116 +581,6 @@ export default function ProductPageSettings() {
                     </button>
                   ))}
                 </div>
-              </div>
-
-              {/* Background Color */}
-              <div className="space-y-1.5 p-3 bg-[#1A1A1A] rounded-xl border border-zinc-800">
-                <label className="block text-zinc-300 font-semibold">خلفية الصفحة (Background)</label>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="color"
-                    value={customization.bg_color}
-                    onChange={(e) => handleCustomizationChange("bg_color", e.target.value)}
-                    className="w-8 h-8 rounded-lg border border-zinc-700 bg-transparent cursor-pointer"
-                  />
-                  <input
-                    type="text"
-                    value={customization.bg_color}
-                    onChange={(e) => handleCustomizationChange("bg_color", e.target.value)}
-                    className="flex-1 bg-[#242424] border border-zinc-700 text-white font-mono px-2.5 py-1 rounded-lg text-xs"
-                  />
-                </div>
-              </div>
-
-              {/* Text Color */}
-              <div className="space-y-1.5 p-3 bg-[#1A1A1A] rounded-xl border border-zinc-800">
-                <label className="block text-zinc-300 font-semibold">لون النص الرئيسي (Text)</label>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="color"
-                    value={customization.text_color}
-                    onChange={(e) => handleCustomizationChange("text_color", e.target.value)}
-                    className="w-8 h-8 rounded-lg border border-zinc-700 bg-transparent cursor-pointer"
-                  />
-                  <input
-                    type="text"
-                    value={customization.text_color}
-                    onChange={(e) => handleCustomizationChange("text_color", e.target.value)}
-                    className="flex-1 bg-[#242424] border border-zinc-700 text-white font-mono px-2.5 py-1 rounded-lg text-xs"
-                  />
-                </div>
-              </div>
-
-              {/* Button Color */}
-              <div className="space-y-1.5 p-3 bg-[#1A1A1A] rounded-xl border border-zinc-800">
-                <label className="block text-zinc-300 font-semibold">لون زر الشراء الرئيسي</label>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="color"
-                    value={customization.button_color}
-                    onChange={(e) => handleCustomizationChange("button_color", e.target.value)}
-                    className="w-8 h-8 rounded-lg border border-zinc-700 bg-transparent cursor-pointer"
-                  />
-                  <input
-                    type="text"
-                    value={customization.button_color}
-                    onChange={(e) => handleCustomizationChange("button_color", e.target.value)}
-                    className="flex-1 bg-[#242424] border border-zinc-700 text-white font-mono px-2.5 py-1 rounded-lg text-xs"
-                  />
-                </div>
-              </div>
-
-              {/* Price Color */}
-              <div className="space-y-1.5 p-3 bg-[#1A1A1A] rounded-xl border border-zinc-800">
-                <label className="block text-zinc-300 font-semibold">لون خط السعر والمجموع</label>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="color"
-                    value={customization.price_color}
-                    onChange={(e) => handleCustomizationChange("price_color", e.target.value)}
-                    className="w-8 h-8 rounded-lg border border-zinc-700 bg-transparent cursor-pointer"
-                  />
-                  <input
-                    type="text"
-                    value={customization.price_color}
-                    onChange={(e) => handleCustomizationChange("price_color", e.target.value)}
-                    className="flex-1 bg-[#242424] border border-zinc-700 text-white font-mono px-2.5 py-1 rounded-lg text-xs"
-                  />
-                </div>
-              </div>
-
-              {/* Border Color */}
-              <div className="space-y-1.5 p-3 bg-[#1A1A1A] rounded-xl border border-zinc-800">
-                <label className="block text-zinc-300 font-semibold">لون الإطار والحدود (Border)</label>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="color"
-                    value={customization.border_color}
-                    onChange={(e) => handleCustomizationChange("border_color", e.target.value)}
-                    className="w-8 h-8 rounded-lg border border-zinc-700 bg-transparent cursor-pointer"
-                  />
-                  <input
-                    type="text"
-                    value={customization.border_color}
-                    onChange={(e) => handleCustomizationChange("border_color", e.target.value)}
-                    className="flex-1 bg-[#242424] border border-zinc-700 text-white font-mono px-2.5 py-1 rounded-lg text-xs"
-                  />
-                </div>
-              </div>
-
-              {/* Border Radius */}
-              <div className="space-y-1.5 p-3 bg-[#1A1A1A] rounded-xl border border-zinc-800">
-                <label className="block text-zinc-300 font-semibold">انحناء الزوايا (Radius)</label>
-                <select
-                  value={customization.border_radius}
-                  onChange={(e) => handleCustomizationChange("border_radius", e.target.value)}
-                  className="w-full bg-[#242424] border border-zinc-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-mono"
-                >
-                  <option value="8px">8px (حاد)</option>
-                  <option value="12px">12px (متوسط)</option>
-                  <option value="16px">16px (افتراضي ناعم)</option>
-                  <option value="24px">24px (دائري بلس)</option>
-                </select>
               </div>
 
               {/* Product Name Color */}
@@ -713,6 +621,63 @@ export default function ProductPageSettings() {
                 </div>
               </div>
 
+              {/* Price Color */}
+              <div className="space-y-1.5 p-3 bg-[#1A1A1A] rounded-xl border border-zinc-800">
+                <label className="block text-zinc-300 font-semibold">لون خط السعر والمجموع (Price Color)</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={customization.price_color || "#FDE68A"}
+                    onChange={(e) => handleCustomizationChange("price_color", e.target.value)}
+                    className="w-8 h-8 rounded-lg border border-zinc-700 bg-transparent cursor-pointer"
+                  />
+                  <input
+                    type="text"
+                    value={customization.price_color || "#FDE68A"}
+                    onChange={(e) => handleCustomizationChange("price_color", e.target.value)}
+                    className="flex-1 bg-[#242424] border border-zinc-700 text-white font-mono px-2.5 py-1 rounded-lg text-xs"
+                  />
+                </div>
+              </div>
+
+              {/* Button Color */}
+              <div className="space-y-1.5 p-3 bg-[#1A1A1A] rounded-xl border border-zinc-800">
+                <label className="block text-zinc-300 font-semibold">لون أزرار الشراء بالصفحة (Button Color)</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={customization.button_color || "#C8A45C"}
+                    onChange={(e) => handleCustomizationChange("button_color", e.target.value)}
+                    className="w-8 h-8 rounded-lg border border-zinc-700 bg-transparent cursor-pointer"
+                  />
+                  <input
+                    type="text"
+                    value={customization.button_color || "#C8A45C"}
+                    onChange={(e) => handleCustomizationChange("button_color", e.target.value)}
+                    className="flex-1 bg-[#242424] border border-zinc-700 text-white font-mono px-2.5 py-1 rounded-lg text-xs"
+                  />
+                </div>
+              </div>
+
+              {/* Button Text Color */}
+              <div className="space-y-1.5 p-3 bg-[#1A1A1A] rounded-xl border border-zinc-800">
+                <label className="block text-zinc-300 font-semibold">لون كتابة الأزرار (Button Text Color)</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={customization.button_text_color || "#1A1A1A"}
+                    onChange={(e) => handleCustomizationChange("button_text_color", e.target.value)}
+                    className="w-8 h-8 rounded-lg border border-zinc-700 bg-transparent cursor-pointer"
+                  />
+                  <input
+                    type="text"
+                    value={customization.button_text_color || "#1A1A1A"}
+                    onChange={(e) => handleCustomizationChange("button_text_color", e.target.value)}
+                    className="flex-1 bg-[#242424] border border-zinc-700 text-white font-mono px-2.5 py-1 rounded-lg text-xs"
+                  />
+                </div>
+              </div>
+
               {/* Default Unit Price */}
               <div className="space-y-1.5 p-3 bg-[#1A1A1A] rounded-xl border border-zinc-800">
                 <label className="block text-zinc-300 font-semibold">سعر الوحدة الافتراضي ($ Default Unit Price)</label>
@@ -721,7 +686,7 @@ export default function ProductPageSettings() {
                   step="0.01"
                   value={customization.default_unit_price ?? 0}
                   onChange={(e) => handleCustomizationChange("default_unit_price", e.target.value)}
-                  placeholder="0.00"
+                  placeholder="0.00 (تلقائي إن كان 0)"
                   className="w-full bg-[#242424] border border-zinc-700 text-[#FDE68A] font-mono px-2.5 py-1.5 rounded-lg text-xs"
                 />
               </div>

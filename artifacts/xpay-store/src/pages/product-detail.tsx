@@ -66,16 +66,16 @@ interface CustomizationConfig {
   price_color: string;
   button_color: string;
   button_text_color: string;
-  bg_color: string;
-  text_color: string;
-  border_color: string;
-  border_radius: string;
-  font_family: string;
   product_name_color?: string;
   info_box_bg_color?: string;
   default_unit_price?: number;
   total_amount?: number;
   direct_shipping_label?: string;
+  bg_color?: string;
+  text_color?: string;
+  border_color?: string;
+  border_radius?: string;
+  font_family?: string;
 }
 
 interface ProductPageSettings {
