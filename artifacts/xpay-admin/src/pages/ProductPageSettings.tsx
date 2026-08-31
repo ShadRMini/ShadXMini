@@ -63,6 +63,11 @@ export interface CustomizationConfig {
   border_color: string;
   border_radius: string;
   font_family: string;
+  product_name_color?: string;
+  info_box_bg_color?: string;
+  default_unit_price?: number;
+  total_amount?: number;
+  direct_shipping_label?: string;
 }
 
 const DEFAULT_SECTIONS: SectionConfig[] = [
@@ -90,7 +95,12 @@ const DEFAULT_CUSTOMIZATION: CustomizationConfig = {
   text_color: "#FFFFFF",
   border_color: "#C8A45C",
   border_radius: "16px",
-  font_family: "Cairo"
+  font_family: "Cairo",
+  product_name_color: "#FFFFFF",
+  info_box_bg_color: "#242424",
+  default_unit_price: 0,
+  total_amount: 0,
+  direct_shipping_label: "مطلوب للشحن المباشر",
 };
 
 const SECTION_ICONS: Record<string, string> = {
@@ -664,6 +674,82 @@ export default function ProductPageSettings() {
                   <option value="24px">24px (دائري بلس)</option>
                 </select>
               </div>
+
+              {/* Product Name Color */}
+              <div className="space-y-1.5 p-3 bg-[#1A1A1A] rounded-xl border border-zinc-800">
+                <label className="block text-zinc-300 font-semibold">لون نص اسم المنتج (Product Name Color)</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={customization.product_name_color || "#FFFFFF"}
+                    onChange={(e) => handleCustomizationChange("product_name_color", e.target.value)}
+                    className="w-8 h-8 rounded-lg border border-zinc-700 bg-transparent cursor-pointer"
+                  />
+                  <input
+                    type="text"
+                    value={customization.product_name_color || "#FFFFFF"}
+                    onChange={(e) => handleCustomizationChange("product_name_color", e.target.value)}
+                    className="flex-1 bg-[#242424] border border-zinc-700 text-white font-mono px-2.5 py-1 rounded-lg text-xs"
+                  />
+                </div>
+              </div>
+
+              {/* Info Box Background Color */}
+              <div className="space-y-1.5 p-3 bg-[#1A1A1A] rounded-xl border border-zinc-800">
+                <label className="block text-zinc-300 font-semibold">خلفية مربع معلومات المنتج (Info Box BG)</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={customization.info_box_bg_color || "#242424"}
+                    onChange={(e) => handleCustomizationChange("info_box_bg_color", e.target.value)}
+                    className="w-8 h-8 rounded-lg border border-zinc-700 bg-transparent cursor-pointer"
+                  />
+                  <input
+                    type="text"
+                    value={customization.info_box_bg_color || "#242424"}
+                    onChange={(e) => handleCustomizationChange("info_box_bg_color", e.target.value)}
+                    className="flex-1 bg-[#242424] border border-zinc-700 text-white font-mono px-2.5 py-1 rounded-lg text-xs"
+                  />
+                </div>
+              </div>
+
+              {/* Default Unit Price */}
+              <div className="space-y-1.5 p-3 bg-[#1A1A1A] rounded-xl border border-zinc-800">
+                <label className="block text-zinc-300 font-semibold">سعر الوحدة الافتراضي ($ Default Unit Price)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={customization.default_unit_price ?? 0}
+                  onChange={(e) => handleCustomizationChange("default_unit_price", e.target.value)}
+                  placeholder="0.00"
+                  className="w-full bg-[#242424] border border-zinc-700 text-[#FDE68A] font-mono px-2.5 py-1.5 rounded-lg text-xs"
+                />
+              </div>
+
+              {/* Total Amount */}
+              <div className="space-y-1.5 p-3 bg-[#1A1A1A] rounded-xl border border-zinc-800">
+                <label className="block text-zinc-300 font-semibold">المجموع الكلي ($ Total Amount)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={customization.total_amount ?? 0}
+                  onChange={(e) => handleCustomizationChange("total_amount", e.target.value)}
+                  placeholder="0.00 (تلقائي إن كان 0)"
+                  className="w-full bg-[#242424] border border-zinc-700 text-[#FDE68A] font-mono px-2.5 py-1.5 rounded-lg text-xs"
+                />
+              </div>
+
+              {/* Direct Shipping Text */}
+              <div className="space-y-1.5 p-3 bg-[#1A1A1A] rounded-xl border border-zinc-800 col-span-1 sm:col-span-2">
+                <label className="block text-zinc-300 font-semibold">نص "مطلوب للشحن المباشر" (Direct Shipping Text)</label>
+                <input
+                  type="text"
+                  value={customization.direct_shipping_label || "مطلوب للشحن المباشر"}
+                  onChange={(e) => handleCustomizationChange("direct_shipping_label", e.target.value)}
+                  placeholder="مطلوب للشحن المباشر"
+                  className="w-full bg-[#242424] border border-zinc-700 text-white px-2.5 py-1.5 rounded-lg text-xs"
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -729,21 +815,44 @@ export default function ProductPageSettings() {
                           <span className="text-[9px] bg-[#C8A45C]/20 text-[#C8A45C] px-2 py-0.5 rounded-full font-bold">
                             بطاقات العرض المميزة
                           </span>
-                          <div className="font-black text-sm text-white">{sec.title || "بطاقة شحن رصيد إلكترونية 100$"}</div>
+                          <div
+                            className="font-black text-sm leading-snug"
+                            style={{ color: customization.product_name_color || "#FFFFFF" }}
+                          >
+                            {sec.title || "بطاقة شحن رصيد إلكترونية 100$"}
+                          </div>
                         </div>
                       );
 
                     case "price":
+                      const previewUnitPrice = customization.default_unit_price && Number(customization.default_unit_price) > 0
+                        ? Number(customization.default_unit_price).toFixed(2)
+                        : "99.00";
+                      const previewTotal = customization.total_amount && Number(customization.total_amount) > 0
+                        ? Number(customization.total_amount).toFixed(2)
+                        : previewUnitPrice;
+
                       return (
                         <div
                           key={sec.id}
-                          className="p-3 rounded-xl border flex items-center justify-between my-1 bg-black/30"
-                          style={{ borderColor: `${customization.border_color}40` }}
+                          className="p-3 rounded-xl border flex items-center justify-between my-1"
+                          style={{
+                            backgroundColor: customization.info_box_bg_color || "#242424",
+                            borderColor: `${customization.border_color}40`,
+                          }}
                         >
-                          <span className="text-zinc-400 text-[10px]">{sec.title || "السعر الإجمالي:"}</span>
-                          <span className="font-black font-mono text-base" style={{ color: customization.price_color }}>
-                            $99.0000
-                          </span>
+                          <div>
+                            <span className="text-zinc-400 text-[10px] block">{sec.title || "سعر الوحدة:"}</span>
+                            <span className="font-bold text-xs" style={{ color: customization.price_color }}>
+                              ${previewUnitPrice}
+                            </span>
+                          </div>
+                          <div className="text-left">
+                            <span className="text-[#C8A45C] text-[10px] block">المجموع الكلي:</span>
+                            <span className="font-black font-mono text-sm" style={{ color: customization.price_color }}>
+                              ${previewTotal}
+                            </span>
+                          </div>
                         </div>
                       );
 

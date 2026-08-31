@@ -71,6 +71,11 @@ interface CustomizationConfig {
   border_color: string;
   border_radius: string;
   font_family: string;
+  product_name_color?: string;
+  info_box_bg_color?: string;
+  default_unit_price?: number;
+  total_amount?: number;
+  direct_shipping_label?: string;
 }
 
 interface ProductPageSettings {
@@ -111,7 +116,12 @@ const DEFAULT_CUSTOMIZATION: CustomizationConfig = {
   text_color: "#FFFFFF",
   border_color: "#C8A45C",
   border_radius: "16px",
-  font_family: "Cairo"
+  font_family: "Cairo",
+  product_name_color: "#FFFFFF",
+  info_box_bg_color: "#242424",
+  default_unit_price: 0,
+  total_amount: 0,
+  direct_shipping_label: "مطلوب للشحن المباشر",
 };
 
 const DEFAULT_SETTINGS: ProductPageSettings = {
@@ -285,7 +295,12 @@ export default function ProductDetail() {
   const usesOfficialQuantityList = quantityType === "list" && officialQuantityValues.length > 0;
   const usesFixedQuantity = quantityType === "fixed";
   const purchaseMode = detectPurchaseMode(product.categoryName, product.productType);
-  const totalUsd = product.priceUsd * quantity;
+  const unitPrice = (customization.default_unit_price && Number(customization.default_unit_price) > 0)
+    ? Number(customization.default_unit_price)
+    : product.priceUsd;
+  const totalUsd = (customization.total_amount && Number(customization.total_amount) > 0)
+    ? Number(customization.total_amount)
+    : unitPrice * quantity;
 
   const isLegacy = legacyOverride !== null ? legacyOverride : settings.product_legacy_mode;
 
@@ -476,19 +491,26 @@ export default function ProductDetail() {
               )}
             </div>
 
-            <h1 className="text-2xl sm:text-3xl font-black text-white leading-snug tracking-tight">
-              {product.name}
+            <h1
+              className="text-2xl sm:text-3xl font-black leading-snug tracking-tight"
+              style={{ color: customization.product_name_color || "#FFFFFF" }}
+            >
+              {sec.title || product.name}
             </h1>
           </div>
         );
 
       case "price":
         return (
-          <div key={sec.id} className="bg-gradient-to-r from-[#1A1A1A] to-[#242424] border border-[#C8A45C]/40 p-4 rounded-2xl flex items-center justify-between shadow-inner">
+          <div
+            key={sec.id}
+            className="border border-[#C8A45C]/40 p-4 rounded-2xl flex items-center justify-between shadow-inner"
+            style={{ backgroundColor: customization.info_box_bg_color || "#1A1A1A" }}
+          >
             <div>
               <div className="text-xs text-zinc-400 font-semibold mb-0.5">سعر الوحدة الافتراضي</div>
               <div className="text-2xl font-black font-mono" style={{ color: customization.price_color || "#FDE68A" }}>
-                ${product.priceUsd ? product.priceUsd.toFixed(4) : "0.0000"}
+                ${unitPrice ? unitPrice.toFixed(4) : "0.0000"}
               </div>
             </div>
 
@@ -591,7 +613,9 @@ export default function ProductDetail() {
               <div className="pt-2">
                 <label className="text-xs font-bold text-zinc-200 mb-2 block flex items-center justify-between">
                   <span>معرّف الحساب (Player ID) *</span>
-                  <span className="text-[10px] text-[#C8A45C]">مطلوب للشحن المباشر</span>
+                  <span className="text-[10px] text-[#C8A45C]">
+                    {customization.direct_shipping_label || "مطلوب للشحن المباشر"}
+                  </span>
                 </label>
                 <Input
                   value={accountId}
@@ -1070,7 +1094,10 @@ export default function ProductDetail() {
 
           {/* RIGHT COLUMN (md:col-span-7) */}
           <div className="md:col-span-7 space-y-5">
-            <div className="bg-[#242424] border border-[#C8A45C]/30 rounded-3xl p-6 shadow-2xl space-y-6">
+            <div
+              className="border border-[#C8A45C]/30 rounded-3xl p-6 shadow-2xl space-y-6"
+              style={{ backgroundColor: customization.info_box_bg_color || "#242424" }}
+            >
               {sections
                 .filter(
                   (s) =>

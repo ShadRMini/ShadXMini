@@ -4419,7 +4419,12 @@ const ADMIN_DEFAULT_PRODUCT_CUSTOMIZATION = {
   text_color: "#FFFFFF",
   border_color: "#C8A45C",
   border_radius: "16px",
-  font_family: "Cairo"
+  font_family: "Cairo",
+  product_name_color: "#FFFFFF",
+  info_box_bg_color: "#242424",
+  default_unit_price: 0,
+  total_amount: 0,
+  direct_shipping_label: "مطلوب للشحن المباشر"
 };
 
 router.get(["/admin/product-page-settings", "/admin/product-page-config"], requireAdmin, async (_req, res) => {
