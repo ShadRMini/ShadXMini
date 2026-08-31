@@ -477,13 +477,25 @@ export default function ProductDetail() {
           </div>
         );
 
-      case "title":
+      case "title": {
+        const isGenericTitle = !sec.title || sec.title === "اسم المنتج" || sec.title === "عنوان المنتج" || sec.title.trim() === "";
+        const displayTitle = isGenericTitle ? product.name : sec.title;
+
         return (
           <div key={sec.id}>
-            <div className="flex items-center gap-2 mb-2">
+            <div className="flex items-center gap-2 mb-2 flex-wrap">
               <span className="text-xs font-bold text-[#C8A45C] bg-[#C8A45C]/15 border border-[#C8A45C]/30 px-3 py-1 rounded-full">
                 {product.categoryName}
               </span>
+              {product.available ? (
+                <span className="text-[11px] text-emerald-400 bg-emerald-950/60 border border-emerald-500/30 px-2.5 py-1 rounded-full font-bold flex items-center gap-1">
+                  <CheckCircle2 size={10} /> متوفر وشحن فوري
+                </span>
+              ) : (
+                <span className="text-[11px] text-red-400 bg-red-950/60 border border-red-500/30 px-2.5 py-1 rounded-full font-bold">
+                  غير متوفر حالياً
+                </span>
+              )}
               {product.productType && (
                 <span className="text-[11px] text-zinc-400 bg-[#1A1A1A] px-2.5 py-1 rounded-full font-mono">
                   {product.productType === "amount" ? "رصيد / كميات" : "باقة محددة"}
@@ -495,10 +507,11 @@ export default function ProductDetail() {
               className="text-2xl sm:text-3xl font-black leading-snug tracking-tight"
               style={{ color: customization.product_name_color || "#FFFFFF" }}
             >
-              {sec.title || product.name}
+              {displayTitle}
             </h1>
           </div>
         );
+      }
 
       case "price":
         return (
@@ -508,7 +521,7 @@ export default function ProductDetail() {
             style={{ backgroundColor: customization.info_box_bg_color || "#1A1A1A" }}
           >
             <div>
-              <div className="text-xs text-zinc-400 font-semibold mb-0.5">سعر الوحدة الافتراضي</div>
+              <div className="text-xs text-zinc-400 font-semibold mb-0.5">سعر الوحدة</div>
               <div className="text-2xl font-black font-mono" style={{ color: customization.price_color || "#FDE68A" }}>
                 ${unitPrice ? unitPrice.toFixed(4) : "0.0000"}
               </div>
@@ -533,12 +546,14 @@ export default function ProductDetail() {
         );
 
       case "description":
-        return product.description ? (
+        return (
           <div key={sec.id} className="bg-[#1A1A1A] p-4 rounded-2xl border border-zinc-800 text-xs text-zinc-300 leading-relaxed space-y-1">
-            <div className="font-bold text-[#C8A45C] mb-1">{sec.title || "تفاصيل وملاحظات المنتج:"}</div>
-            <p className="whitespace-pre-line">{product.description}</p>
+            <div className="font-bold text-[#C8A45C] mb-1">
+              {sec.title && sec.title !== "تفاصيل وملاحظات المنتج:" && sec.title !== "الوصف" ? sec.title : "تفاصيل وملاحظات المنتج:"}
+            </div>
+            <p className="whitespace-pre-line">{product.description || "لا توجد ملاحظات أو تفاصيل إضافية مخصصة لهذا المنتج."}</p>
           </div>
-        ) : null;
+        );
 
       case "quantity":
         return (
