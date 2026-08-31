@@ -6,15 +6,14 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
 const formatDateTime = (value: string | Date) =>
-  new Intl.DateTimeFormat("en-CA", {
+  new Intl.DateTimeFormat("ar-SY", {
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
     hour: "2-digit",
     minute: "2-digit",
-    second: "2-digit",
     hour12: false,
-  }).format(new Date(value)).replace(",", "");
+  }).format(new Date(value));
 
 export default function OrderDetail() {
   const [, params] = useRoute("/orders/:id");
@@ -31,51 +30,130 @@ export default function OrderDetail() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background p-4 pt-8">
-        <Skeleton className="h-8 w-32 mb-8" />
-        <Skeleton className="h-32 w-full rounded-3xl mb-4" />
-        <Skeleton className="h-64 w-full rounded-3xl" />
+      <div 
+        className="min-h-screen p-4 pt-8 max-w-2xl mx-auto"
+        style={{
+          backgroundColor: "var(--bg-primary, #1A1A1A)",
+          color: "var(--text-primary, #FFFFFF)",
+        }}
+      >
+        <Skeleton className="h-8 w-32 mb-8 bg-zinc-800" />
+        <Skeleton className="h-32 w-full rounded-3xl mb-4 bg-zinc-800" />
+        <Skeleton className="h-64 w-full rounded-3xl bg-zinc-800" />
       </div>
     );
   }
 
   if (!order) {
-    return <div className="p-4 text-center mt-20 text-muted-foreground">الطلب غير موجود</div>;
+    return (
+      <div 
+        className="min-h-screen flex flex-col items-center justify-center p-4 text-center"
+        style={{
+          backgroundColor: "var(--bg-primary, #1A1A1A)",
+          color: "var(--text-muted, #9CA3AF)",
+        }}
+      >
+        <div 
+          className="p-6 rounded-3xl border mb-4 max-w-sm w-full"
+          style={{
+            backgroundColor: "var(--bg-card, #2D2D2D)",
+            borderColor: "var(--border-color, #4B5563)",
+          }}
+        >
+          <Package className="w-12 h-12 mx-auto mb-2" style={{ color: "var(--gold-primary, #C8A45C)" }} />
+          <p className="font-bold text-lg" style={{ color: "var(--text-primary, #FFFFFF)" }}>الطلب غير موجود</p>
+          <p className="text-xs mt-1">تأكد من رقم الطلب أو حاول الوصول إليه من قائمة طلباتي</p>
+        </div>
+        <Link href="/orders">
+          <Button 
+            className="rounded-2xl font-bold cursor-pointer"
+            style={{
+              backgroundColor: "var(--gold-primary, #C8A45C)",
+              color: "#1A1A1A",
+            }}
+          >
+            العودة للطلبات
+          </Button>
+        </Link>
+      </div>
+    );
   }
 
   const isAccept = order.status === "accept";
   const isReject = order.status === "reject";
 
   return (
-    <div className="min-h-screen bg-[#1A1A1A] text-white animate-in slide-in-from-right-4 duration-300" dir="rtl">
-      <div className="sticky top-0 z-10 bg-[#1A1A1A]/90 backdrop-blur-xl border-b border-[#C8A45C]/30 px-4 py-3 flex items-center gap-3">
+    <div 
+      className="min-h-screen animate-in slide-in-from-right-4 duration-300" 
+      dir="rtl"
+      style={{
+        backgroundColor: "var(--bg-primary, #1A1A1A)",
+        color: "var(--text-primary, #FFFFFF)",
+      }}
+    >
+      {/* Top Bar */}
+      <div 
+        className="sticky top-0 z-10 backdrop-blur-xl border-b px-4 py-3 flex items-center gap-3"
+        style={{
+          backgroundColor: "rgba(26, 26, 26, 0.9)",
+          borderColor: "var(--border-color, rgba(200, 164, 92, 0.3))",
+        }}
+      >
         <Link href="/orders">
-          <div className="bg-[#2D2D2D] p-2 rounded-full cursor-pointer hover:bg-[#3D3D3D] border border-[#C8A45C]/30 hover:border-[#C8A45C] transition-colors">
-            <ChevronRight className="w-5 h-5 text-[#C8A45C]" />
+          <div 
+            className="p-2 rounded-full cursor-pointer transition border"
+            style={{
+              backgroundColor: "var(--bg-card, #2D2D2D)",
+              borderColor: "var(--border-color, rgba(200, 164, 92, 0.3))",
+              color: "var(--gold-primary, #C8A45C)",
+            }}
+          >
+            <ChevronRight className="w-5 h-5" />
           </div>
         </Link>
-        <h1 className="font-black text-lg text-[#FDE68A]">تفاصيل الطلب</h1>
+        <h1 
+          className="font-black text-lg"
+          style={{ color: "var(--gold-light, #FDE68A)" }}
+        >
+          تفاصيل الطلب #{order.orderNumber}
+        </h1>
       </div>
 
-      <div className="p-4 pb-24 space-y-6 max-w-2xl mx-auto">
+      <div className="p-4 pb-24 space-y-5 max-w-2xl mx-auto">
+        {/* Status Card Banner */}
         <div
-          className={`p-6 rounded-3xl border relative overflow-hidden ${
-            isAccept
-              ? "bg-emerald-950/40 border-emerald-500/40"
+          className="p-6 rounded-3xl border relative overflow-hidden transition"
+          style={{
+            backgroundColor: isAccept
+              ? "rgba(16, 185, 129, 0.12)"
               : isReject
-                ? "bg-red-950/40 border-red-500/40"
-                : "bg-amber-950/40 border-[#C8A45C]/40"
-          }`}
+                ? "rgba(239, 68, 68, 0.12)"
+                : "rgba(245, 158, 11, 0.12)",
+            borderColor: isAccept
+              ? "rgba(16, 185, 129, 0.35)"
+              : isReject
+                ? "rgba(239, 68, 68, 0.35)"
+                : "rgba(245, 158, 11, 0.35)",
+            borderWidth: "1px",
+            borderStyle: "solid",
+          }}
         >
           <div className="flex flex-col items-center text-center relative z-10">
             <div
-              className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-3 shadow-lg ${
-                isAccept
-                  ? "bg-emerald-600 text-white shadow-[0_0_20px_rgba(16,185,129,0.3)]"
+              className="w-16 h-16 rounded-2xl flex items-center justify-center mb-3 shadow-lg"
+              style={{
+                backgroundColor: isAccept
+                  ? "#10B981"
                   : isReject
-                    ? "bg-red-600 text-white shadow-[0_0_20px_rgba(239,68,68,0.3)]"
-                    : "bg-[#C8A45C] text-[#1A1A1A] shadow-[0_0_20px_rgba(200,164,92,0.3)]"
-              }`}
+                    ? "#EF4444"
+                    : "#C8A45C",
+                color: isAccept || isReject ? "#FFFFFF" : "#1A1A1A",
+                boxShadow: isAccept
+                  ? "0 0 20px rgba(16, 185, 129, 0.3)"
+                  : isReject
+                    ? "0 0 20px rgba(239, 68, 68, 0.3)"
+                    : "0 0 20px rgba(200, 164, 92, 0.3)",
+              }}
             >
               {isAccept ? (
                 <CheckCircle2 className="w-8 h-8" />
@@ -86,43 +164,66 @@ export default function OrderDetail() {
               )}
             </div>
             <h2 className="text-xl font-black text-white mb-1">
-              {isAccept ? "اكتمل الطلب بنجاح" : isReject ? "تم رفض الطلب" : "الطلب قيد المراجعة"}
+              {isAccept ? "اكتمل الطلب بنجاح" : isReject ? "تم رفض الطلب" : "الطلب قيد الانتظار والمعالجة"}
             </h2>
-            <p className="text-sm text-zinc-300">
+            <p className="text-sm text-zinc-300 max-w-sm">
               {isAccept
-                ? "تم تنفيذ طلبك بنجاح. شكرًا لثقتك بنا."
+                ? "تم تنفيذ طلبك وإرسال كافة القسائم أو الشحن المطلوب بنجاح."
                 : isReject
-                  ? "تعذر تنفيذ الطلب. يرجى مراجعة الدعم."
-                  : "طلبك قيد المعالجة، وسيتم تحديث الحالة قريبًا."}
+                  ? "تعذر تنفيذ الطلب. يمكنك التواصل مع فريق الدعم الفني للاستفسار."
+                  : "طلبك قيد المراجعة والمعالجة الفورية، وسيتم تحديث حالته في أقرب وقت."}
             </p>
           </div>
         </div>
 
-        <div className="bg-[#2D2D2D] border border-[#C8A45C]/35 rounded-3xl p-5 shadow-xl space-y-5">
-          <div className="flex items-center gap-4 pb-5 border-b border-zinc-700/60">
-            <div className="w-16 h-16 rounded-2xl bg-[#1A1A1A] border border-[#C8A45C]/30 overflow-hidden shrink-0 flex items-center justify-center">
+        {/* Order Details Card */}
+        <div 
+          className="rounded-3xl p-5 shadow-xl space-y-5 border"
+          style={{
+            backgroundColor: "var(--bg-card, #2D2D2D)",
+            borderColor: "var(--border-color, rgba(200, 164, 92, 0.35))",
+          }}
+        >
+          {/* Header Item Info */}
+          <div 
+            className="flex items-center gap-4 pb-5 border-b"
+            style={{ borderColor: "var(--border-color, rgba(255, 255, 255, 0.1))" }}
+          >
+            <div 
+              className="w-16 h-16 rounded-2xl overflow-hidden shrink-0 flex items-center justify-center border"
+              style={{
+                backgroundColor: "var(--bg-primary, #1A1A1A)",
+                borderColor: "var(--border-color, rgba(200, 164, 92, 0.3))",
+              }}
+            >
               {order.productImage ? (
-                <img src={order.productImage} alt="" className="w-full h-full object-cover" />
+                <img src={order.productImage} alt={order.productName} className="w-full h-full object-cover" />
               ) : (
-                <Package className="w-8 h-8 text-[#C8A45C]/60" />
+                <Package className="w-8 h-8" style={{ color: "var(--gold-primary, #C8A45C)" }} />
               )}
             </div>
-            <div>
-              <h3 className="font-black text-white mb-1 text-base">{order.productName}</h3>
-              <div className="text-sm text-zinc-400">
-                الكمية: <span className="font-black text-[#FDE68A]">{order.quantity}</span>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-black text-white mb-1 text-base truncate">{order.productName}</h3>
+              <div className="text-sm" style={{ color: "var(--text-muted, #9CA3AF)" }}>
+                الكمية المطلوبة: <span className="font-black" style={{ color: "var(--gold-light, #FDE68A)" }}>{order.quantity}</span>
               </div>
             </div>
           </div>
 
-          <div className="space-y-4">
+          {/* Details Table */}
+          <div className="space-y-4 text-sm">
             <div className="flex justify-between items-center">
-              <span className="text-sm text-zinc-400">رقم الطلب</span>
+              <span style={{ color: "var(--text-muted, #9CA3AF)" }}>رقم الطلب</span>
               <div className="flex items-center gap-2">
-                <span className="text-sm font-mono font-black text-[#C8A45C]">#{order.orderNumber}</span>
+                <span className="font-mono font-black" style={{ color: "var(--gold-primary, #C8A45C)" }}>
+                  #{order.orderNumber}
+                </span>
                 <button
+                  type="button"
                   onClick={() => copyToClipboard(order.orderNumber, "رقم الطلب")}
-                  className="text-zinc-400 hover:text-[#FDE68A] transition-colors cursor-pointer"
+                  className="transition-colors cursor-pointer p-1 rounded-lg hover:bg-white/5"
+                  style={{ color: "var(--text-muted, #9CA3AF)" }}
+                  title="نسخ رقم الطلب"
                 >
                   <Copy className="w-4 h-4" />
                 </button>
@@ -130,20 +231,25 @@ export default function OrderDetail() {
             </div>
 
             <div className="flex justify-between items-center">
-              <span className="text-sm text-zinc-400">تاريخ الطلب</span>
-              <span className="text-sm font-bold text-zinc-200" dir="ltr">
+              <span style={{ color: "var(--text-muted, #9CA3AF)" }}>تاريخ الطلب</span>
+              <span className="font-bold" style={{ color: "var(--text-secondary, #E5E7EB)" }} dir="ltr">
                 {formatDateTime(order.createdAt)}
               </span>
             </div>
 
             {order.userIdentifier && (
               <div className="flex justify-between items-center">
-                <span className="text-sm text-zinc-400">معرف الحساب / الرقم</span>
+                <span style={{ color: "var(--text-muted, #9CA3AF)" }}>معرف الحساب / الرقم</span>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-mono font-bold text-white">{order.userIdentifier}</span>
+                  <span className="font-mono font-bold text-white bg-[#1A1A1A] px-2.5 py-1 rounded-lg border border-[#4B5563]">
+                    {order.userIdentifier}
+                  </span>
                   <button
+                    type="button"
                     onClick={() => copyToClipboard(order.userIdentifier!, "المعرف")}
-                    className="text-zinc-400 hover:text-[#FDE68A] transition-colors cursor-pointer"
+                    className="transition-colors cursor-pointer p-1 rounded-lg hover:bg-white/5"
+                    style={{ color: "var(--text-muted, #9CA3AF)" }}
+                    title="نسخ المعرف"
                   >
                     <Copy className="w-4 h-4" />
                   </button>
@@ -151,26 +257,43 @@ export default function OrderDetail() {
               </div>
             )}
 
-            <div className="h-px bg-zinc-700/60 w-full" />
+            <div className="h-px my-2" style={{ backgroundColor: "var(--border-color, rgba(255, 255, 255, 0.1))" }} />
 
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-zinc-400 font-bold">المبلغ الإجمالي</span>
+            <div className="flex justify-between items-center pt-1">
+              <span className="font-bold text-base" style={{ color: "var(--text-primary, #FFFFFF)" }}>المبلغ الإجمالي</span>
               <div className="text-left">
-                <div className="text-2xl font-black text-[#FDE68A]">${order.totalUsd.toFixed(2)}</div>
+                <div className="text-2xl font-black" style={{ color: "var(--gold-light, #FDE68A)" }}>
+                  ${order.totalUsd.toFixed(2)}
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="bg-[#2D2D2D] border border-[#C8A45C]/35 rounded-3xl p-5 shadow-lg flex items-center justify-between">
+        {/* Support Banner */}
+        <div 
+          className="rounded-3xl p-5 shadow-lg flex flex-wrap items-center justify-between gap-3 border"
+          style={{
+            backgroundColor: "var(--bg-card, #2D2D2D)",
+            borderColor: "var(--border-color, rgba(200, 164, 92, 0.35))",
+          }}
+        >
           <div>
-            <div className="font-bold text-white mb-1 text-sm">هل واجهت مشكلة؟</div>
-            <div className="text-xs text-zinc-400">فريق الدعم الفني متواجد لمساعدتك</div>
+            <div className="font-bold text-white mb-1 text-sm">هل تواجه استفساراً حول الطلب؟</div>
+            <div className="text-xs" style={{ color: "var(--text-muted, #9CA3AF)" }}>فريق الدعم الفني المباشر جاهز لمساعدتك</div>
           </div>
           <Link href="/support">
-            <Button variant="outline" className="rounded-xl border-[#C8A45C]/40 bg-[#1A1A1A] hover:bg-[#383838] text-[#C8A45C] hover:text-[#FDE68A] text-xs h-10 px-4 cursor-pointer font-bold">
-              <HeadphonesIcon className="w-4 h-4 ml-2" />
-              تواصل معنا
+            <Button 
+              variant="outline" 
+              className="rounded-2xl border text-xs h-10 px-4 cursor-pointer font-bold transition flex items-center gap-1.5"
+              style={{
+                backgroundColor: "var(--bg-primary, #1A1A1A)",
+                borderColor: "var(--gold-primary, #C8A45C)",
+                color: "var(--gold-primary, #C8A45C)",
+              }}
+            >
+              <HeadphonesIcon className="w-4 h-4" />
+              التواصل مع الدعم
             </Button>
           </Link>
         </div>
