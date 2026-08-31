@@ -144,56 +144,72 @@ export default function ApiProducts() {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-right text-sm">
-            <thead className="bg-[#1A1A1A] text-zinc-400 text-xs font-bold border-b border-[#C8A45C]/20">
+          <table className="w-full text-right text-xs sm:text-sm border-collapse">
+            <thead className="bg-[#1A1A1A] text-[#FDE68A] text-xs font-black border-b border-[#C8A45C]/30 select-none">
               <tr>
-                <th className="px-5 py-3.5">ID</th>
-                <th className="px-5 py-3.5">اسم المنتج</th>
-                <th className="px-5 py-3.5">المزود</th>
-                <th className="px-5 py-3.5">السعر</th>
-                <th className="px-5 py-3.5">معلومات إضافية</th>
-                {selectedProvider !== "all" && <th className="px-5 py-3.5 text-center">استيراد</th>}
+                <th className="px-5 py-4">ID</th>
+                <th className="px-5 py-4">اسم المنتج</th>
+                <th className="px-5 py-4">المزود</th>
+                <th className="px-5 py-4">السعر (USD)</th>
+                <th className="px-5 py-4">معلومات إضافية</th>
+                {selectedProvider !== "all" && <th className="px-5 py-4 text-center">استيراد</th>}
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-800">
+            <tbody>
               {loading || fetchingRemote ? (
                 <tr>
-                  <td colSpan={selectedProvider !== "all" ? 6 : 5} className="text-center py-10 text-zinc-400 font-bold">
-                    جاري جلب المنتجات...
+                  <td colSpan={selectedProvider !== "all" ? 6 : 5} className="text-center py-16 bg-[#242424] text-zinc-400 font-bold">
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <div className="w-8 h-8 border-2 border-[#C8A45C] border-t-transparent rounded-full animate-spin mb-2" />
+                      <span className="text-sm font-bold text-[#FDE68A]">جاري جلب المنتجات من المزود...</span>
+                    </div>
                   </td>
                 </tr>
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={selectedProvider !== "all" ? 6 : 5} className="text-center py-16 text-zinc-400 font-bold">
+                  <td colSpan={selectedProvider !== "all" ? 6 : 5} className="text-center py-16 bg-[#242424] text-zinc-400 font-bold">
                     لا توجد منتجات مطابقة أو لم يتم جلب المنتجات بعد. اختر مزوداً واضغط "جلب المنتجات".
                   </td>
                 </tr>
               ) : (
-                filtered.map((p, idx) => (
-                  <tr key={p.id || idx} className="hover:bg-[#353535] transition-colors">
-                    <td className="px-5 py-4 font-mono text-[#FDE68A] font-bold">#{p.id}</td>
-                    <td className="px-5 py-4 font-bold text-white">{p.name}</td>
-                    <td className="px-5 py-4 text-zinc-300">
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#1A1A1A] border border-zinc-700 text-xs text-[#C8A45C]">
-                        <Server size={12} /> {selectedProvider === "all" ? (p.providerName || "المحلي") : "مزود API"}
-                      </span>
-                    </td>
-                    <td className="px-5 py-4 font-mono text-emerald-400 font-bold">${Number(p.price || p.priceUsd || 0).toFixed(2)}</td>
-                    <td className="px-5 py-4 text-xs text-zinc-400">
-                      {p.externalServiceId ? `External ID: ${p.externalServiceId}` : "نشط ومستقر"}
-                    </td>
-                    {selectedProvider !== "all" && (
-                      <td className="px-5 py-4 text-center">
-                        <button
-                          onClick={() => handleImport(p)}
-                          className="inline-flex items-center gap-1.5 bg-[#C8A45C] hover:bg-[#b8934d] text-[#1A1A1A] px-3 py-1.5 rounded-xl text-xs font-bold transition shadow cursor-pointer"
-                        >
-                          <Download size={12} /> استيراد للمتجر
-                        </button>
+                filtered.map((p, idx) => {
+                  const isEven = idx % 2 === 0;
+                  const rowBg = isEven ? "bg-[#242424]" : "bg-[#2D2D2D]";
+
+                  return (
+                    <tr key={p.id || idx} className={`${rowBg} border-b border-[#C8A45C]/10 hover:bg-[#353535] transition-colors`}>
+                      <td className="px-5 py-3.5 font-mono text-[#C8A45C] font-bold">
+                        <span className="bg-[#1A1A1A] px-2 py-0.5 rounded-lg border border-[#C8A45C]/20 inline-block">
+                          #{p.id}
+                        </span>
                       </td>
-                    )}
-                  </tr>
-                ))
+                      <td className="px-5 py-3.5 font-bold text-white">{p.name}</td>
+                      <td className="px-5 py-3.5 text-zinc-300">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#1A1A1A] border border-[#C8A45C]/20 text-xs text-[#FDE68A]">
+                          <Server size={12} className="text-[#C8A45C]" /> {selectedProvider === "all" ? (p.providerName || "المحلي") : "مزود API"}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3.5 font-mono text-[#FDE68A] font-black">
+                        <span className="bg-[#1A1A1A] px-2 py-0.5 rounded-lg border border-[#C8A45C]/30 inline-block">
+                          ${Number(p.price || p.priceUsd || 0).toFixed(4)}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3.5 text-xs text-zinc-400">
+                        {p.externalServiceId ? `External ID: ${p.externalServiceId}` : "نشط ومستقر"}
+                      </td>
+                      {selectedProvider !== "all" && (
+                        <td className="px-5 py-3.5 text-center">
+                          <button
+                            onClick={() => handleImport(p)}
+                            className="inline-flex items-center gap-1.5 bg-[#C8A45C] hover:bg-[#b8934d] text-[#1A1A1A] px-3.5 py-1.5 rounded-xl text-xs font-black transition shadow cursor-pointer"
+                          >
+                            <Download size={13} /> استيراد للمتجر
+                          </button>
+                        </td>
+                      )}
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
