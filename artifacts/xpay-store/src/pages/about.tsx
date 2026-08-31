@@ -27,11 +27,8 @@ export default function About() {
         {/* Hero Card */}
         <div className="bg-[#2D2D2D] border border-[#C8A45C]/40 text-white rounded-3xl p-6 sm:p-8 text-center shadow-xl relative overflow-hidden">
           <div className="absolute top-0 right-0 w-40 h-40 bg-[#C8A45C]/10 rounded-full blur-3xl pointer-events-none" />
-          <div className="inline-flex w-14 h-14 rounded-2xl bg-[#C8A45C] text-[#1A1A1A] text-xl font-black items-center justify-center mb-4 shadow-lg shadow-[#C8A45C]/20">
-            XP
-          </div>
           <h2 className="text-xl sm:text-2xl font-black text-[#FDE68A] mb-2">
-            منصة XPay الرقمية
+            منصة ShadMini للخدمات الرقمية
           </h2>
           <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed font-medium">
             المنصة الرائدة والأسرع لخدمات شحن الألعاب، البطاقات الرقمية، والاشتراكات في الوطن العربي بأعلى معايير الأمان والسرعة.

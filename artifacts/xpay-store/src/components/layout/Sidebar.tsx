@@ -73,7 +73,7 @@ export default function Sidebar({ brandLogo, onClose }: SidebarProps) {
   const vipBadgeName =
     user?.vipBadge?.name || (vipLevel >= 4 ? "SVIP" : vipLevel === 3 ? "VIP3" : vipLevel === 2 ? "VIP2" : "VIP1");
 
-  const displayName = user?.username || "عضو XPay";
+  const displayName = user?.username || "عضو";
   const displayId = user?.displayId || user?.telegramId || "---";
 
   return (
@@ -84,7 +84,7 @@ export default function Sidebar({ brandLogo, onClose }: SidebarProps) {
     >
       {/* Header / Brand */}
       <div
-        className={`p-5 border-b flex items-center justify-between ${
+        className={`p-5 border-b flex items-center justify-between min-h-[72px] ${
           isDark ? "border-zinc-800" : "border-zinc-200"
         }`}
       >
@@ -92,38 +92,16 @@ export default function Sidebar({ brandLogo, onClose }: SidebarProps) {
           {brandLogo ? (
             <img
               src={brandLogo}
-              alt="XPay"
+              alt="ShadMini"
               className="store-brand-logo object-contain rounded-xl transition-all duration-200"
               style={{
-                height: "var(--theme-logo-size, 40px)",
-                maxHeight: "72px",
-                maxWidth: "calc(var(--theme-logo-size, 40px) * 3)",
+                height: "var(--theme-logo-size, 80px)",
+                maxHeight: "56px",
+                maxWidth: "200px",
+                width: "auto",
               }}
             />
-          ) : (
-            <>
-              <div
-                className="rounded-2xl bg-[#C8A45C] text-[#1A1A1A] font-black flex items-center justify-center text-lg shadow-md shadow-[#C8A45C]/25 shrink-0"
-                style={{
-                  width: "var(--theme-logo-size, 40px)",
-                  height: "var(--theme-logo-size, 40px)",
-                  maxHeight: "56px",
-                  maxWidth: "56px",
-                }}
-              >
-                XP
-              </div>
-              <div>
-                <div
-                  className={`text-lg font-black tracking-wide ${
-                    isDark ? "text-[#FDE68A]" : "text-[#B8954A]"
-                  }`}
-                >
-                  XPay Store
-                </div>
-              </div>
-            </>
-          )}
+          ) : null}
         </Link>
         {onClose && (
           <button

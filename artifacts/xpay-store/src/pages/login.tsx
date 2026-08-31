@@ -92,33 +92,22 @@ export default function Login() {
             <Link href="/" className="mb-4 inline-block hover:opacity-90 transition">
               <img
                 src={brandLogo}
-                alt="XPay"
+                alt="ShadMini"
                 className="store-brand-logo object-contain rounded-2xl transition-all duration-200"
                 style={{
-                  height: "var(--theme-logo-size, 56px)",
+                  height: "var(--theme-logo-size, 80px)",
                   maxHeight: "80px",
-                  maxWidth: "calc(var(--theme-logo-size, 56px) * 3)",
+                  maxWidth: "240px",
+                  width: "auto",
                 }}
               />
             </Link>
-          ) : (
-            <Link href="/" className="inline-flex rounded-2xl bg-[#1A1A1A] border-2 border-[#C8A45C] text-[#C8A45C] font-black items-center justify-center shadow-lg shadow-[#C8A45C]/20 mb-3 hover:scale-105 transition"
-              style={{
-                width: "var(--theme-logo-size, 56px)",
-                height: "var(--theme-logo-size, 56px)",
-                maxHeight: "72px",
-                maxWidth: "72px",
-                fontSize: "1.5rem",
-              }}
-            >
-              XP
-            </Link>
-          )}
+          ) : null}
           <h1 className="text-2xl sm:text-3xl font-black text-[#FDE68A] tracking-wide">
             تسجيل الدخول
           </h1>
           <p className="text-sm font-medium text-zinc-400 mt-1">
-            مرحباً بك مجددًا في متجر <span className="text-[#C8A45C] font-bold">XPay</span>
+            مرحباً بك مجددًا في المتجر
           </p>
         </div>
 

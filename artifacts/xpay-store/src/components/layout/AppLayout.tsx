@@ -107,48 +107,32 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 pb-20 lg:pb-8 bg-[var(--bg-primary,#1A1A1A)]">
         {/* Mobile / Top Header Bar */}
-        <header className="sticky top-0 z-20 bg-[var(--bg-primary,#1A1A1A)]/95 backdrop-blur-md border-b border-[var(--border-color,rgba(200,164,92,0.3))] px-4 py-3 flex items-center justify-between shadow-md">
-          <div className="flex items-center gap-3">
+        <header className="sticky top-0 z-20 h-[72px] bg-[var(--bg-primary,#1A1A1A)]/95 backdrop-blur-md border-b border-[var(--border-color,rgba(200,164,92,0.3))] px-4 flex items-center justify-between shadow-md shrink-0">
+          <div className="flex items-center gap-3 h-full">
             {/* Hamburger Button */}
             <button
               onClick={() => setDrawerOpen(true)}
-              className="p-2 rounded-xl text-[#FDE68A] hover:bg-[var(--bg-card)] border border-[#C8A45C]/30 transition active:scale-95 cursor-pointer"
+              className="p-2 rounded-xl text-[#FDE68A] hover:bg-[var(--bg-card)] border border-[#C8A45C]/30 transition active:scale-95 cursor-pointer shrink-0"
               aria-label="فتح القائمة الجانبية"
             >
               <Menu size={22} className="text-[#C8A45C]" />
             </button>
 
-            <Link href="/" className="flex items-center gap-2">
+            <Link href="/" className="flex items-center gap-2.5 h-full py-2">
               {brandLogo ? (
                 <img
                   src={brandLogo}
-                  alt="XPay"
+                  alt="ShadMini"
                   onError={() => setBrandLogo("")}
                   className="store-brand-logo object-contain rounded-lg transition-all duration-200"
                   style={{
-                    height: "var(--theme-logo-size, 36px)",
-                    maxHeight: "56px",
-                    maxWidth: "calc(var(--theme-logo-size, 36px) * 3.5)",
+                    height: "var(--theme-logo-size, 80px)",
+                    maxHeight: "52px",
+                    maxWidth: "220px",
+                    width: "auto",
                   }}
                 />
-              ) : (
-                <>
-                  <div
-                    className="rounded-xl bg-gradient-to-br from-[#C8A45C] to-[#B8954A] text-[#1A1A1A] font-black flex items-center justify-center text-sm shadow-xs shrink-0"
-                    style={{
-                      width: "var(--theme-logo-size, 32px)",
-                      height: "var(--theme-logo-size, 32px)",
-                      maxHeight: "44px",
-                      maxWidth: "44px",
-                    }}
-                  >
-                    XP
-                  </div>
-                  <span className="font-extrabold text-base text-[var(--text-primary,#FFFFFF)] tracking-wide">
-                    XPay <span className="text-[#C8A45C]">Store</span>
-                  </span>
-                </>
-              )}
+              ) : null}
             </Link>
           </div>
 

@@ -50,11 +50,11 @@ export default function Login({ onSuccess }: { onSuccess: (u: any) => void }) {
         <div className="text-center mb-7 relative z-10">
           {loginImage ? (
             <div className="mx-auto w-24 h-24 rounded-2xl overflow-hidden shadow-lg border border-[#C8A45C]/40 bg-[#1A1A1A]">
-              <img src={loginImage} alt="XPay" className="w-full h-full object-cover" />
+              <img src={loginImage} alt="ShadMini" className="w-full h-full object-cover" />
             </div>
           ) : (
             <div className="inline-flex w-16 h-16 rounded-2xl bg-[#1A1A1A] border-2 border-[#C8A45C] text-[#C8A45C] text-2xl font-black items-center justify-center shadow-lg shadow-[#C8A45C]/30">
-              XP
+              S
             </div>
           )}
           <h1 className="text-2xl font-black text-[#FDE68A] mt-4 tracking-wide">{loginTitle}</h1>

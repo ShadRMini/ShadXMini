@@ -896,7 +896,7 @@ export default function ThemeNew() {
                     )}
                     <div className="truncate">
                       <div className="font-extrabold truncate" style={{ color: theme.theme_accent }}>
-                        XPay Store
+                        ShadMini Store
                       </div>
                       <div className="text-[10px] opacity-70 truncate">شعار المتجر الحجم: {parseInt(String(theme.theme_logo_size || "80")) || 80}px</div>
                     </div>

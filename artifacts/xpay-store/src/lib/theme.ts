@@ -292,6 +292,7 @@ export function applyStoreTheme(theme?: Partial<StoreThemeSettings> | null | und
       --theme-shadow: ${shadowCss} !important;
       --theme-logo-size: ${logoSizePx} !important;
       --logo-size: ${logoSizePx} !important;
+      --header-height: 72px !important;
 
       --primary: ${primary} !important;
       --primary-dark: ${secondary} !important;
@@ -333,10 +334,18 @@ export function applyStoreTheme(theme?: Partial<StoreThemeSettings> | null | und
     /* Logo scaling rules */
     .store-brand-logo,
     .theme-logo {
-      height: ${logoSizePx} !important;
-      max-height: ${logoSizePx} !important;
-      max-width: calc(${logoSizePx} * 3) !important;
-      object-fit: contain !important;
+      height: ${logoSizePx};
+      max-height: calc(var(--header-height, 72px) - 20px);
+      width: auto;
+      max-width: 260px;
+      object-fit: contain;
+    }
+
+    .logo-container {
+      height: var(--header-height, 72px);
+      display: flex;
+      align-items: center;
+      overflow: hidden;
     }
 
     /* Dynamic Brand Primary Overrides */
