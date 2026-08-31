@@ -5,8 +5,25 @@
 @plugin "@tailwindcss/typography";
 
 @custom-variant dark (&:is(.dark *));
+@custom-variant light (&:is(.light *));
 
-:root {
+/* 1️⃣ CSS Variables - Dark Mode (Default) */
+:root,
+:root.dark,
+.dark {
+  --bg-primary: #1A1A1A;
+  --bg-secondary: #242424;
+  --bg-card: #2D2D2D;
+  --bg-input: #3D3D3D;
+  --text-primary: #FFFFFF;
+  --text-secondary: #E5E7EB;
+  --text-muted: #9CA3AF;
+  --border-color: #4B5563;
+  --shadow-color: rgba(0, 0, 0, 0.3);
+  --gold-primary: #C8A45C;
+  --gold-light: #FDE68A;
+  --gold-dark: #B8954A;
+
   --primary: #C8A45C;
   --primary-dark: #B8954A;
   --dark: #1A1A1A;
@@ -16,7 +33,7 @@
   --card-foreground: #FFFFFF;
   --text-dark: #FFFFFF;
   --text-light: #E5E7EB;
-  --border: #C8A45C55;
+  --border: rgba(200, 164, 92, 0.35);
 
   --color-gold: #C8A45C;
   --color-gold-dark: #B8954A;
@@ -24,10 +41,58 @@
   --color-deep-dark: #1A1A1A;
   --color-warm-bg: #2D2D2D;
 
+  --theme-primary: #C8A45C;
+  --theme-secondary: #B8954A;
+  --theme-accent: #FDE68A;
+  --theme-background: #1A1A1A;
+  --theme-text-primary: #FFFFFF;
+  --theme-font-arabic: 'Cairo', sans-serif;
+  --theme-font-english: 'Inter', sans-serif;
+  --theme-border-radius: 16px;
+  --theme-shadow: 0 8px 25px -4px rgba(0, 0, 0, 0.35);
+
   --font-arabic: 'Cairo', sans-serif;
   --font-english: 'Inter', sans-serif;
   --app-font-sans: 'Cairo', 'Inter', sans-serif;
   --radius: 1rem;
+}
+
+/* 1️⃣ CSS Variables - Light Mode */
+:root.light,
+.light {
+  --bg-primary: #F5F2EB;
+  --bg-secondary: #FFFFFF;
+  --bg-card: #FFFFFF;
+  --bg-input: #F9FAFB;
+  --text-primary: #111827;
+  --text-secondary: #374151;
+  --text-muted: #6B7280;
+  --border-color: #D1D5DB;
+  --shadow-color: rgba(0, 0, 0, 0.08);
+  --gold-primary: #C8A45C;
+  --gold-light: #FDE68A;
+  --gold-dark: #B8954A;
+
+  --primary: #C8A45C;
+  --primary-dark: #B8954A;
+  --dark: #FFFFFF;
+  --accent: #FDE68A;
+  --background: #F5F2EB;
+  --card: #FFFFFF;
+  --card-foreground: #111827;
+  --text-dark: #111827;
+  --text-light: #374151;
+  --border: rgba(200, 164, 92, 0.3);
+
+  --color-gold: #C8A45C;
+  --color-gold-dark: #B8954A;
+  --color-gold-light: #FDE68A;
+  --color-deep-dark: #F5F2EB;
+  --color-warm-bg: #FFFFFF;
+
+  --theme-background: #F5F2EB;
+  --theme-text-primary: #111827;
+  --theme-shadow: 0 4px 18px rgba(0, 0, 0, 0.07);
 }
 
 @theme inline {
@@ -39,26 +104,26 @@
   --color-primary-foreground: #1A1A1A;
   --color-primary-dark: #B8954A;
 
-  --color-background: #1A1A1A;
-  --color-foreground: #FFFFFF;
+  --color-background: var(--bg-primary);
+  --color-foreground: var(--text-primary);
 
-  --color-card: #2D2D2D;
-  --color-card-foreground: #FFFFFF;
-  --color-card-border: rgba(200, 164, 92, 0.35);
+  --color-card: var(--bg-card);
+  --color-card-foreground: var(--text-primary);
+  --color-card-border: var(--border-color);
 
-  --color-border: rgba(200, 164, 92, 0.25);
-  --color-input: #4B5563;
+  --color-border: var(--border-color);
+  --color-input: var(--bg-input);
   --color-ring: #C8A45C;
 
-  --color-popover: #2D2D2D;
-  --color-popover-foreground: #FFFFFF;
-  --color-popover-border: rgba(200, 164, 92, 0.4);
+  --color-popover: var(--bg-card);
+  --color-popover-foreground: var(--text-primary);
+  --color-popover-border: var(--border-color);
 
-  --color-secondary: #3D3D3D;
-  --color-secondary-foreground: #FDE68A;
+  --color-secondary: var(--bg-secondary);
+  --color-secondary-foreground: #B8954A;
 
-  --color-muted: #242424;
-  --color-muted-foreground: #9CA3AF;
+  --color-muted: var(--bg-secondary);
+  --color-muted-foreground: var(--text-muted);
 
   --color-accent: #FDE68A;
   --color-accent-foreground: #1A1A1A;
@@ -66,82 +131,87 @@
   --color-destructive: #EF4444;
   --color-destructive-foreground: #FFFFFF;
 
-  --color-sidebar: #1A1A1A;
-  --color-sidebar-foreground: #F9FAFB;
-  --color-sidebar-border: rgba(200, 164, 92, 0.25);
+  --color-sidebar: var(--bg-primary);
+  --color-sidebar-foreground: var(--text-primary);
+  --color-sidebar-border: var(--border-color);
   --color-sidebar-primary: #C8A45C;
   --color-sidebar-primary-foreground: #1A1A1A;
 
   --color-gold: #C8A45C;
   --color-gold-dark: #B8954A;
   --color-gold-light: #FDE68A;
-  --color-dark: #1A1A1A;
-  --color-dark-card: #2D2D2D;
-  --color-dark-input: #3D3D3D;
 }
 
 @layer base {
   * {
-    border-color: rgba(200, 164, 92, 0.25);
+    border-color: var(--border-color);
     font-family: var(--app-font-sans);
   }
   
-  body {
-    background-color: #1A1A1A;
-    color: #FFFFFF;
+  html, body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
     font-family: 'Cairo', 'Inter', sans-serif;
     min-height: 100dvh;
     direction: rtl;
+    transition: background-color 0.25s ease, color 0.25s ease;
   }
 
   input, select, textarea {
-    border-color: #4B5563;
-    background-color: #3D3D3D;
-    color: #FFFFFF;
+    border-color: var(--border-color);
+    background-color: var(--bg-input);
+    color: var(--text-primary);
     transition: all 0.2s ease-in-out;
   }
 
   input:focus, select:focus, textarea:focus {
     outline: none;
-    border-color: #C8A45C !important;
+    border-color: var(--gold-primary) !important;
     box-shadow: 0 0 0 3px rgba(200, 164, 92, 0.25) !important;
   }
 }
+
+/* 4️⃣ Helper Theme Classes */
+.bg-theme-primary { background-color: var(--bg-primary) !important; }
+.bg-theme-secondary { background-color: var(--bg-secondary) !important; }
+.bg-theme-card { background-color: var(--bg-card) !important; }
+.bg-theme-input { background-color: var(--bg-input) !important; }
+.text-theme-primary { color: var(--text-primary) !important; }
+.text-theme-secondary { color: var(--text-secondary) !important; }
+.text-theme-muted { color: var(--text-muted) !important; }
+.border-theme { border-color: var(--border-color) !important; }
+.shadow-theme { box-shadow: 0 8px 25px -4px var(--shadow-color) !important; }
 
 /* Luxury Dark & Gold Custom Components */
 
 .xpay-shell {
   isolation: isolate;
-  background-color: #1A1A1A;
-  background-image: 
-    radial-gradient(circle at 15% 8%, rgba(200, 164, 92, 0.12), transparent 40%),
-    radial-gradient(circle at 88% 18%, rgba(253, 230, 138, 0.08), transparent 35%),
-    linear-gradient(180deg, #1A1A1A 0%, #141414 100%);
-  color: #FFFFFF;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
 }
 
 .xpay-app-frame {
-  background-color: #1A1A1A;
-  border-inline: 1px solid rgba(200, 164, 92, 0.25);
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+  background-color: var(--bg-primary);
+  border-inline: 1px solid var(--border-color);
+  box-shadow: 0 20px 50px var(--shadow-color);
 }
 
 .xpay-brand-card {
-  background: linear-gradient(135deg, #2D2D2D 0%, #1F1F1F 100%);
-  border: 1px solid rgba(200, 164, 92, 0.35);
-  color: #F9FAFB;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  box-shadow: 0 10px 25px -5px var(--shadow-color);
 }
 
 .btn-primary, .bg-primary-gold {
-  background-color: #C8A45C;
+  background-color: var(--gold-primary);
   color: #1A1A1A;
   font-weight: 700;
   transition: all 0.2s ease-in-out;
 }
 
 .btn-primary:hover, .bg-primary-gold:hover {
-  background-color: #B8954A;
+  background-color: var(--gold-dark);
 }
 
 .vip-badge, .badge-vip {
@@ -153,15 +223,15 @@
 }
 
 .card-luxury {
-  background-color: #2D2D2D;
+  background-color: var(--bg-card);
   border-radius: 1rem;
-  border: 1px solid rgba(200, 164, 92, 0.35);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-  color: #FFFFFF;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 4px 12px var(--shadow-color);
+  color: var(--text-primary);
 }
 
 .card-luxury:hover {
-  border-color: #C8A45C;
+  border-color: var(--gold-primary);
   box-shadow: 0 10px 24px -3px rgba(200, 164, 92, 0.2);
 }
 
@@ -170,11 +240,173 @@
 }
 
 .gold-text {
-  color: #C8A45C;
+  color: var(--gold-primary);
 }
 
 .gold-border {
-  border-color: #C8A45C;
+  border-color: var(--gold-primary);
+}
+
+/* ========================================================================= */
+/* 🌟 COMPLETE SITE-WIDE LIGHT MODE TRANSFORMATION STYLES                  */
+/* ========================================================================= */
+
+.light {
+  background-color: #F5F2EB !important;
+  color: #111827 !important;
+}
+
+.light body {
+  background-color: #F5F2EB !important;
+  color: #111827 !important;
+}
+
+/* 1. Surfaces, Headers, Shells, and Drawers */
+.light .min-h-screen,
+.light .min-h-\[100dvh\],
+.light .bg-\[\#1A1A1A\],
+.light .bg-\[\#141414\],
+.light .bg-\[\#121212\],
+.light .bg-\[\#111111\],
+.light .bg-\[\#181818\],
+.light .bg-zinc-950,
+.light .bg-black {
+  background-color: #F5F2EB !important;
+}
+
+/* 2. Cards, Popups, Modals, Containers, Panels */
+.light .bg-\[\#2D2D2D\],
+.light .bg-\[\#242424\],
+.light .bg-\[\#222222\],
+.light .bg-\[\#1F1F1F\],
+.light .bg-\[\#282828\],
+.light .bg-zinc-900,
+.light .bg-zinc-900\/90,
+.light .bg-zinc-900\/80,
+.light .bg-zinc-900\/60,
+.light .bg-zinc-800,
+.light .bg-zinc-800\/90,
+.light .bg-zinc-800\/80,
+.light .bg-zinc-800\/60,
+.light .bg-\[\#12072b\]\/95,
+.light .bg-gradient-to-br.from-\[\#2D2D2D\],
+.light .bg-gradient-to-br.from-\[\#1c1913\] {
+  background-color: #FFFFFF !important;
+  background-image: none !important;
+}
+
+/* 3. Inputs, Textareas, Selects */
+.light .bg-\[\#3D3D3D\],
+.light .bg-\[\#383838\],
+.light input,
+.light select,
+.light textarea {
+  background-color: #F9FAFB !important;
+  border-color: #D1D5DB !important;
+  color: #111827 !important;
+}
+
+.light input::placeholder,
+.light textarea::placeholder {
+  color: #9CA3AF !important;
+}
+
+/* 4. Text and Typographic Hierarchy in Light Mode */
+.light .text-white,
+.light .text-zinc-100,
+.light .text-zinc-50 {
+  color: #111827 !important;
+}
+
+.light .text-zinc-200,
+.light .text-zinc-300,
+.light .text-\[\#E5E7EB\] {
+  color: #374151 !important;
+}
+
+.light .text-zinc-400,
+.light .text-zinc-500,
+.light .text-muted-foreground {
+  color: #6B7280 !important;
+}
+
+/* 5. Gold & Brand Accents - Always prominent and rich in Light Mode */
+.light .text-\[\#FDE68A\],
+.light .text-amber-200,
+.light .text-amber-300 {
+  color: #9A7B38 !important;
+}
+
+.light .text-\[\#C8A45C\],
+.light .text-amber-400,
+.light .text-amber-500 {
+  color: #B8954A !important;
+}
+
+.light .bg-\[\#C8A45C\],
+.light .bg-amber-500 {
+  background-color: #C8A45C !important;
+  color: #111827 !important;
+}
+
+.light .bg-\[\#C8A45C\]\/10,
+.light .bg-\[\#C8A45C\]\/15,
+.light .bg-\[\#C8A45C\]\/20,
+.light .bg-amber-500\/10,
+.light .bg-amber-500\/20 {
+  background-color: rgba(200, 164, 92, 0.12) !important;
+}
+
+.light .border-\[\#C8A45C\],
+.light .border-\[\#C8A45C\]\/30,
+.light .border-\[\#C8A45C\]\/40,
+.light .border-\[\#C8A45C\]\/50,
+.light .border-amber-500\/30,
+.light .border-amber-500\/40 {
+  border-color: rgba(200, 164, 92, 0.4) !important;
+}
+
+/* 6. Subtle Borders and Dividers */
+.light .border-zinc-800,
+.light .border-zinc-700,
+.light .border-zinc-600,
+.light .border-\[\#4B5563\],
+.light .divide-zinc-800\/60,
+.light .divide-zinc-800 {
+  border-color: #E5E7EB !important;
+}
+
+/* 7. Skeletons & Loaders */
+.light .bg-zinc-800,
+.light .bg-zinc-700 {
+  background-color: #E5E7EB !important;
+}
+
+/* 8. Shadows & Cards in Light Mode */
+.light .shadow-2xl,
+.light .shadow-xl,
+.light .shadow-lg,
+.light .shadow-md {
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.06), 0 2px 6px -1px rgba(0, 0, 0, 0.04) !important;
+}
+
+/* 9. Header, Navigation, and Backdrop in Light Mode */
+.light header,
+.light nav,
+.light .sticky {
+  background-color: rgba(245, 242, 235, 0.92) !important;
+  border-color: rgba(200, 164, 92, 0.25) !important;
+}
+
+.light .bg-black\/60,
+.light .bg-black\/70,
+.light .bg-black\/75 {
+  background-color: rgba(17, 24, 39, 0.5) !important;
+}
+
+/* 10. Star / Background decorations */
+.light .home-stars {
+  opacity: 0.15;
 }
 
 @keyframes xpay-news-marquee {
@@ -200,24 +432,25 @@
   body,
   #root {
     min-height: 100dvh;
-    background-color: var(--theme-background, var(--background, #1A1A1A));
+    background-color: var(--bg-primary);
   }
 
   .xpay-shell {
-    background-color: var(--theme-background, var(--background, #1A1A1A));
+    background-color: var(--bg-primary);
   }
 
   .xpay-app-frame {
     max-width: none;
     border-inline: 0;
     box-shadow: none;
-    background-color: var(--theme-background, var(--background, #1A1A1A));
+    background-color: var(--bg-primary);
   }
 
   .xpay-shell nav {
-    background: var(--theme-background, rgba(26, 26, 26, 0.95));
+    background: var(--bg-primary);
     backdrop-filter: blur(12px);
-    border-top: 1px solid rgba(200, 164, 92, 0.25);
-    box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.25);
+    border-top: 1px solid var(--border-color);
+    box-shadow: 0 -10px 30px var(--shadow-color);
   }
 }
+

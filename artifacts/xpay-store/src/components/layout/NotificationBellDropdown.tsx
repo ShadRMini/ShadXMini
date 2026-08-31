@@ -115,14 +115,14 @@ export default function NotificationBellDropdown() {
       {/* Bell Button with Badge */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 rounded-xl bg-[#1A1A1A] border border-[#C8A45C]/35 hover:border-[#C8A45C] text-[#C8A45C] hover:text-[#FDE68A] transition active:scale-95 cursor-pointer shadow-xs"
+        className="relative p-2 rounded-xl bg-[var(--bg-card)] border border-[#C8A45C]/35 hover:border-[#C8A45C] text-[#C8A45C] hover:text-[#FDE68A] transition active:scale-95 cursor-pointer shadow-xs"
         title="الإشعارات والتنبيهات"
         aria-label="الإشعارات والتنبيهات"
         type="button"
       >
         <Bell className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
         {unreadCount > 0 && (
-          <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 bg-gradient-to-r from-red-600 to-amber-600 text-white font-mono text-[10px] font-black rounded-full flex items-center justify-center border border-[#1A1A1A] shadow-md animate-bounce">
+          <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 bg-gradient-to-r from-red-600 to-amber-600 text-white font-mono text-[10px] font-black rounded-full flex items-center justify-center border border-[var(--bg-primary)] shadow-md animate-bounce">
             {unreadCount > 99 ? "99+" : unreadCount}
           </span>
         )}
@@ -130,14 +130,14 @@ export default function NotificationBellDropdown() {
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute left-0 sm:right-auto sm:left-0 mt-2 w-80 sm:w-96 bg-[#1A1A1A] border border-[#C8A45C]/40 rounded-2xl shadow-2xl z-50 overflow-hidden text-right">
+        <div className="absolute left-0 sm:right-auto sm:left-0 mt-2 w-80 sm:w-96 bg-[var(--bg-card,#242424)] border border-[#C8A45C]/40 rounded-2xl shadow-2xl z-50 overflow-hidden text-right">
           {/* Header */}
-          <div className="p-3.5 bg-gradient-to-l from-[#241D12] to-[#1A1A1A] border-b border-[#C8A45C]/20 flex items-center justify-between">
+          <div className="p-3.5 bg-gradient-to-l from-[#C8A45C]/15 to-[var(--bg-secondary)] border-b border-[var(--border-color,rgba(200,164,92,0.2))] flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="p-1.5 rounded-lg bg-[#C8A45C]/20 text-[#C8A45C]">
                 <Bell size={15} />
               </div>
-              <span className="text-xs font-bold text-[#FDE68A]">التنبيهات والإشعارات</span>
+              <span className="text-xs font-bold text-[#C8A45C]">التنبيهات والإشعارات</span>
               {unreadCount > 0 && (
                 <span className="text-[10px] bg-[#C8A45C]/20 text-[#C8A45C] px-2 py-0.5 rounded-full font-bold">
                   {unreadCount} جديد
@@ -148,7 +148,7 @@ export default function NotificationBellDropdown() {
             {unreadCount > 0 && (
               <button
                 onClick={handleMarkAllAsRead}
-                className="text-[11px] text-[#C8A45C] hover:text-[#FDE68A] flex items-center gap-1 transition cursor-pointer font-medium"
+                className="text-[11px] text-[#C8A45C] hover:text-[#B8954A] flex items-center gap-1 transition cursor-pointer font-medium"
               >
                 <CheckCheck size={13} />
                 <span>قراءة الكل</span>
@@ -157,19 +157,19 @@ export default function NotificationBellDropdown() {
           </div>
 
           {/* List Content */}
-          <div className="max-h-80 overflow-y-auto divide-y divide-zinc-800/60 custom-scrollbar">
+          <div className="max-h-80 overflow-y-auto divide-y divide-[var(--border-color,rgba(255,255,255,0.06))] custom-scrollbar">
             {loading ? (
-              <div className="p-6 text-center text-xs text-zinc-400">
+              <div className="p-6 text-center text-xs text-[var(--text-muted)]">
                 <div className="inline-block w-5 h-5 border-2 border-[#C8A45C] border-t-transparent rounded-full animate-spin mb-2" />
                 <p>جاري تحميل الإشعارات...</p>
               </div>
             ) : notifications.length === 0 ? (
-              <div className="p-8 text-center text-xs text-zinc-400">
-                <div className="w-10 h-10 rounded-full bg-zinc-800/80 border border-zinc-700 flex items-center justify-center mx-auto mb-2 text-zinc-500">
+              <div className="p-8 text-center text-xs text-[var(--text-muted)]">
+                <div className="w-10 h-10 rounded-full bg-[var(--bg-input)] border border-[var(--border-color)] flex items-center justify-center mx-auto mb-2 text-[var(--text-muted)]">
                   <Bell size={18} />
                 </div>
-                <p className="font-semibold text-zinc-300">لا توجد إشعارات حالياً</p>
-                <p className="text-[11px] text-zinc-500 mt-1">ستظهر هنا تحديثات طلباتك وعمليات الشحن</p>
+                <p className="font-semibold text-[var(--text-primary)]">لا توجد إشعارات حالياً</p>
+                <p className="text-[11px] text-[var(--text-muted)] mt-1">ستظهر هنا تحديثات طلباتك وعمليات الشحن</p>
               </div>
             ) : (
               notifications.map((item) => {
@@ -189,7 +189,7 @@ export default function NotificationBellDropdown() {
                     className={`p-3 transition-colors ${
                       isUnread
                         ? "bg-[#C8A45C]/10 hover:bg-[#C8A45C]/15 border-r-2 border-[#C8A45C]"
-                        : "hover:bg-zinc-900/60"
+                        : "hover:bg-[var(--bg-secondary)]"
                     }`}
                   >
                     <div className="flex items-start justify-between gap-2">
@@ -197,16 +197,16 @@ export default function NotificationBellDropdown() {
                         {item.title && (
                           <h4
                             className={`text-xs font-bold mb-1 leading-snug ${
-                              isUnread ? "text-[#FDE68A]" : "text-zinc-200"
+                              isUnread ? "text-[#C8A45C]" : "text-[var(--text-primary)]"
                             }`}
                           >
                             {item.title}
                           </h4>
                         )}
-                        <p className="text-[11px] text-zinc-300 leading-relaxed break-words">
+                        <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed break-words">
                           {item.content}
                         </p>
-                        <div className="flex items-center gap-1.5 mt-2 text-[10px] text-zinc-400">
+                        <div className="flex items-center gap-1.5 mt-2 text-[10px] text-[var(--text-muted)]">
                           <Clock size={11} className="text-[#C8A45C]" />
                           <span>{formattedDate}</span>
                         </div>
@@ -229,11 +229,11 @@ export default function NotificationBellDropdown() {
           </div>
 
           {/* Footer View All Link */}
-          <div className="p-2.5 bg-[#12100C] border-t border-[#C8A45C]/20 text-center">
+          <div className="p-2.5 bg-[var(--bg-secondary)] border-t border-[var(--border-color,rgba(200,164,92,0.2))] text-center">
             <Link
               href="/notifications"
               onClick={() => setIsOpen(false)}
-              className="w-full flex items-center justify-center gap-1.5 py-2 text-xs font-bold text-[#FDE68A] bg-[#C8A45C]/20 hover:bg-[#C8A45C]/30 border border-[#C8A45C]/30 rounded-xl transition cursor-pointer"
+              className="w-full flex items-center justify-center gap-1.5 py-2 text-xs font-bold text-[#C8A45C] bg-[#C8A45C]/20 hover:bg-[#C8A45C]/30 border border-[#C8A45C]/30 rounded-xl transition cursor-pointer"
             >
               <span>عرض جميع الإشعارات</span>
               <ExternalLink size={13} />

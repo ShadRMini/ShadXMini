@@ -82,9 +82,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   ];
 
   return (
-    <div className="min-h-screen bg-[var(--theme-background,#1A1A1A)] text-[var(--theme-text-primary,#FFFFFF)] flex transition-colors duration-200" dir="rtl">
+    <div className="min-h-screen bg-[var(--bg-primary,#1A1A1A)] text-[var(--text-primary,#FFFFFF)] flex transition-colors duration-200" dir="rtl">
       {/* Desktop Sidebar (visible on lg and above screens) */}
-      <aside className="hidden lg:block w-72 h-screen sticky top-0 border-l border-zinc-800/80 dark:border-zinc-800 z-30 shadow-2xl shrink-0 bg-[var(--theme-background,#1A1A1A)]">
+      <aside className="hidden lg:block w-72 h-screen sticky top-0 border-l border-[var(--border-color,rgba(200,164,92,0.25))] z-30 shadow-2xl shrink-0 bg-[var(--bg-primary,#1A1A1A)]">
         <Sidebar brandLogo={brandLogo} />
       </aside>
 
@@ -98,21 +98,21 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           />
 
           {/* Sliding Drawer Container (RTL from right) */}
-          <div className="fixed inset-y-0 right-0 max-w-[300px] w-full bg-[var(--theme-background,#1A1A1A)] shadow-2xl z-50 transform transition-transform duration-300 ease-in-out animate-in slide-in-from-right">
+          <div className="fixed inset-y-0 right-0 max-w-[300px] w-full bg-[var(--bg-primary,#1A1A1A)] shadow-2xl z-50 transform transition-transform duration-300 ease-in-out animate-in slide-in-from-right border-l border-[var(--border-color,rgba(200,164,92,0.25))]">
             <Sidebar brandLogo={brandLogo} onClose={() => setDrawerOpen(false)} />
           </div>
         </div>
       )}
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 pb-20 lg:pb-8 bg-[var(--theme-background,#1A1A1A)]">
+      <div className="flex-1 flex flex-col min-w-0 pb-20 lg:pb-8 bg-[var(--bg-primary,#1A1A1A)]">
         {/* Mobile / Top Header Bar */}
-        <header className="sticky top-0 z-20 bg-[var(--theme-background,#1A1A1A)]/95 backdrop-blur-md border-b border-[#C8A45C]/30 px-4 py-3 flex items-center justify-between shadow-md">
+        <header className="sticky top-0 z-20 bg-[var(--bg-primary,#1A1A1A)]/95 backdrop-blur-md border-b border-[var(--border-color,rgba(200,164,92,0.3))] px-4 py-3 flex items-center justify-between shadow-md">
           <div className="flex items-center gap-3">
             {/* Hamburger Button */}
             <button
               onClick={() => setDrawerOpen(true)}
-              className="p-2 rounded-xl text-[#FDE68A] hover:bg-zinc-800/60 border border-[#C8A45C]/30 transition active:scale-95 cursor-pointer"
+              className="p-2 rounded-xl text-[#FDE68A] hover:bg-[var(--bg-card)] border border-[#C8A45C]/30 transition active:scale-95 cursor-pointer"
               aria-label="فتح القائمة الجانبية"
             >
               <Menu size={22} className="text-[#C8A45C]" />
@@ -122,17 +122,17 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               {brandLogo ? (
                 <img
                   src={brandLogo}
-                  alt="ShadMini"
+                  alt="XPay"
                   onError={() => setBrandLogo("")}
                   className="h-8 max-w-[120px] object-contain rounded-lg"
                 />
               ) : (
                 <>
-                  <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#2D2D2D] to-[#1A1A1A] text-[#C8A45C] font-black flex items-center justify-center text-sm border border-[#C8A45C]/50 shadow-xs">
-                    SM
+                  <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#C8A45C] to-[#B8954A] text-[#1A1A1A] font-black flex items-center justify-center text-sm shadow-xs">
+                    XP
                   </div>
-                  <span className="font-extrabold text-base text-white tracking-wide">
-                    Shad<span className="text-[#C8A45C]">Mini</span>
+                  <span className="font-extrabold text-base text-[var(--text-primary,#FFFFFF)] tracking-wide">
+                    XPay <span className="text-[#C8A45C]">Store</span>
                   </span>
                 </>
               )}
@@ -146,8 +146,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 <NotificationBellDropdown />
 
                 <Link href="/deposit">
-                  <div className="flex items-center gap-1.5 bg-zinc-900/90 border border-[#C8A45C]/40 px-3 py-1.5 rounded-full cursor-pointer hover:border-[#C8A45C] hover:bg-zinc-800 transition shadow-xs">
-                    <span className="text-[11px] font-bold text-zinc-300">الرصيد:</span>
+                  <div className="flex items-center gap-1.5 bg-[var(--bg-card)] border border-[#C8A45C]/40 px-3 py-1.5 rounded-full cursor-pointer hover:border-[#C8A45C] transition shadow-xs">
+                    <span className="text-[11px] font-bold text-[var(--text-muted,#9CA3AF)]">الرصيد:</span>
                     <span className="text-xs font-black text-[#FDE68A]">
                       ${Number(user.balanceUsd || 0).toFixed(2)}
                     </span>
@@ -172,7 +172,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       </div>
 
       {/* Bottom Floating Navigation Bar (Mobile / Tablet Only) */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-[var(--theme-background,#1A1A1A)]/95 backdrop-blur-xl border-t border-[#C8A45C]/30 pb-safe z-40 shadow-[0_-10px_30px_rgba(0,0,0,0.4)]">
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-[var(--bg-primary,#1A1A1A)]/95 backdrop-blur-xl border-t border-[var(--border-color,rgba(200,164,92,0.3))] pb-safe z-40 shadow-[0_-10px_30px_var(--shadow-color,rgba(0,0,0,0.3))]">
         <div className="flex items-center justify-around px-2 h-16 max-w-md mx-auto">
           {bottomNavItems.map((item) => {
             const isActive =
@@ -202,14 +202,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 <div className="flex flex-col items-center justify-center w-14 h-full cursor-pointer group">
                   <div
                     className={`p-1.5 rounded-xl transition-all duration-300 ${
-                      isActive ? "bg-[#C8A45C]/20 text-[#C8A45C]" : "text-zinc-400 group-hover:text-[#C8A45C]"
+                      isActive ? "bg-[#C8A45C]/20 text-[#C8A45C]" : "text-[var(--text-muted,#9CA3AF)] group-hover:text-[#C8A45C]"
                     }`}
                   >
                     <item.icon className="w-5 h-5" strokeWidth={isActive ? 2.5 : 2} />
                   </div>
                   <span
                     className={`text-[10px] mt-0.5 transition-colors ${
-                      isActive ? "text-[#C8A45C] font-extrabold" : "text-zinc-400 font-medium"
+                      isActive ? "text-[#C8A45C] font-extrabold" : "text-[var(--text-muted,#9CA3AF)] font-medium"
                     }`}
                   >
                     {item.label}
