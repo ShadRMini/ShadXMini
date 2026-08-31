@@ -2422,6 +2422,140 @@ router.get("/admin/product-page-config", requireAdmin, getProductPageConfigHandl
 router.put("/admin/product-page-settings", requireAdmin, putProductPageConfigHandler);
 router.put("/admin/product-page-config", requireAdmin, putProductPageConfigHandler);
 
+const DEFAULT_ABOUT_US_CONFIG = {
+  title: "من نحن",
+  subtitle: "نحن منصة رقمية متكاملة تقدم حلولاً مبتكرة في عالم التجارة الإلكترونية والخدمات الرقمية",
+  sections: [
+    {
+      id: "intro",
+      type: "text",
+      title: "قصتنا",
+      content: "بدأت رحلتنا في تقديم أسرع وأرقى الخدمات الرقمية للبطاقات والشحن وباقات الألعاب بطرق سريعة وآمنة بأسعار منافسة ومعالجة فورية.",
+      image: "",
+      order: 1,
+      visible: true
+    },
+    {
+      id: "mission",
+      type: "text",
+      title: "رسالتنا",
+      content: "تمكين الأفراد والشركات من الوصول إلى كافة الخدمات والبطاقات الرقمية بسهولة، سرعة وأمان لا مثيل له.",
+      image: "",
+      order: 2,
+      visible: true
+    },
+    {
+      id: "vision",
+      type: "text",
+      title: "رؤيتنا",
+      content: "أن نكون الخيار الأول والمنصة الرائدة والأكثر موثوقية في المنطقة لتوفير حلول الشحن الرقمي والخدمات الإلكترونية.",
+      image: "",
+      order: 3,
+      visible: true
+    },
+    {
+      id: "team",
+      type: "team",
+      title: "فريقنا المتميز",
+      members: [
+        { name: "أحمد علي", role: "المدير التنفيذي", image: "", bio: "خبرة تزيد عن 8 سنوات في إدارة المنصات الرقمية وخدمات الدفع." },
+        { name: "سارة المحمود", role: "مديرة الدعم والعمليات", image: "", bio: "متخصصة في جودة الخدمة ودعم العملاء الفوري على مدار الساعة." }
+      ],
+      order: 4,
+      visible: true
+    },
+    {
+      id: "stats",
+      type: "stats",
+      title: "إحصائيات المنصة",
+      statistics: [
+        { label: "عميل سعيد", value: "+10,000" },
+        { label: "طلب مكتمل", value: "+50,000" },
+        { label: "سرعة التنفيذ", value: "فوري" },
+        { label: "ساعات الدعم", value: "24/7" }
+      ],
+      order: 5,
+      visible: true
+    },
+    {
+      id: "contact",
+      type: "contact",
+      title: "تواصل معنا مباشرة",
+      email: "support@shadx.com",
+      phone: "+963 900 000 000",
+      address: "دمشق، سوريا",
+      order: 6,
+      visible: true
+    }
+  ],
+  style: {
+    bg_color: "#1A1A1A",
+    text_color: "#FFFFFF",
+    title_color: "#C8A45C",
+    section_bg: "#2D2D2D",
+    border_radius: "16px",
+    font_family: "Cairo"
+  }
+};
+
+const handleGetAboutConfig = async (_req: any, res: any) => {
+  try {
+    const rows = await db.select().from(settingsTable);
+    const map = new Map<string, any>();
+    if (Array.isArray(rows)) {
+      for (const row of rows) {
+        if (row.key) {
+          let val = row.value;
+          if (typeof val === "string") {
+            try { val = JSON.parse(val); } catch {}
+          }
+          map.set(row.key, val);
+        }
+      }
+    }
+
+    const config = map.get("about_us_config") || DEFAULT_ABOUT_US_CONFIG;
+    const useLegacy = map.get("use_legacy_about_page") ?? false;
+
+    res.json({
+      config,
+      use_legacy_about_page: Boolean(useLegacy === true || useLegacy === "true")
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+const handlePutAboutConfig = async (req: any, res: any) => {
+  try {
+    const { config, use_legacy_about_page } = req.body;
+
+    if (config) {
+      await db.insert(settingsTable).values({ key: "about_us_config", value: config })
+        .onConflictDoUpdate({ target: settingsTable.key, set: { value: config } });
+    }
+
+    if (use_legacy_about_page !== undefined) {
+      await db.insert(settingsTable).values({ key: "use_legacy_about_page", value: use_legacy_about_page })
+        .onConflictDoUpdate({ target: settingsTable.key, set: { value: use_legacy_about_page } });
+    }
+
+    await logActivity(
+      { id: req.session.adminId, name: req.session.adminUsername },
+      "about_settings_update",
+      "settings",
+      ["about_us_config", "use_legacy_about_page"]
+    );
+
+    res.json({ ok: true, success: true });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+router.get("/admin/about-config", requireAdmin, handleGetAboutConfig);
+router.put("/admin/about-config", requireAdmin, handlePutAboutConfig);
+
 
 router.post("/admin/theme-settings/apply-preset", requireAdmin, async (req, res) => {
   try {

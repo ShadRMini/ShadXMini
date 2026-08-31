@@ -330,6 +330,85 @@ export async function ensureDatabaseSchema() {
       { key: "use_legacy_theme_page", val: false },
       { key: "use_legacy_social_links_page", val: false },
       { key: "use_legacy_banners_page", val: false },
+      { key: "use_legacy_about_page", val: false },
+      {
+        key: "about_us_config",
+        val: {
+          title: "من نحن",
+          subtitle: "نحن منصة رقمية متكاملة تقدم حلولاً مبتكرة في عالم التجارة الإلكترونية والخدمات الرقمية",
+          sections: [
+            {
+              id: "intro",
+              type: "text",
+              title: "قصتنا",
+              content: "بدأت رحلتنا في تقديم أسرع وأرقى الخدمات الرقمية للبطاقات والشحن وباقات الألعاب بطرق سريعة وآمنة بأسعار منافسة ومعالجة فورية.",
+              image: "",
+              order: 1,
+              visible: true
+            },
+            {
+              id: "mission",
+              type: "text",
+              title: "رسالتنا",
+              content: "تمكين الأفراد والشركات من الوصول إلى كافة الخدمات والبطاقات الرقمية بسهولة، سرعة وأمان لا مثيل له.",
+              image: "",
+              order: 2,
+              visible: true
+            },
+            {
+              id: "vision",
+              type: "text",
+              title: "رؤيتنا",
+              content: "أن نكون الخيار الأول والمنصة الرائدة والأكثر موثوقية في المنطقة لتوفير حلول الشحن الرقمي والخدمات الإلكترونية.",
+              image: "",
+              order: 3,
+              visible: true
+            },
+            {
+              id: "team",
+              type: "team",
+              title: "فريقنا المتميز",
+              members: [
+                { name: "أحمد علي", role: "المدير التنفيذي", image: "", bio: "خبرة تزيد عن 8 سنوات في إدارة المنصات الرقمية وخدمات الدفع." },
+                { name: "سارة المحمود", role: "مديرة الدعم والعمليات", image: "", bio: "متخصصة في جودة الخدمة ودعم العملاء الفوري على مدار الساعة." }
+              ],
+              order: 4,
+              visible: true
+            },
+            {
+              id: "stats",
+              type: "stats",
+              title: "إحصائيات المنصة",
+              statistics: [
+                { label: "عميل سعيد", value: "+10,000" },
+                { label: "طلب مكتمل", value: "+50,000" },
+                { label: "سرعة التنفيذ", value: "فوري" },
+                { label: "ساعات الدعم", value: "24/7" }
+              ],
+              order: 5,
+              visible: true
+            },
+            {
+              id: "contact",
+              type: "contact",
+              title: "تواصل معنا مباشرة",
+              email: "support@shadx.com",
+              phone: "+963 900 000 000",
+              address: "دمشق، سوريا",
+              order: 6,
+              visible: true
+            }
+          ],
+          style: {
+            bg_color: "#1A1A1A",
+            text_color: "#FFFFFF",
+            title_color: "#C8A45C",
+            section_bg: "#2D2D2D",
+            border_radius: "16px",
+            font_family: "Cairo"
+          }
+        }
+      },
       { key: "show_featured_offers", val: true },
       { key: "theme_primary", val: "#C8A45C" },
       { key: "theme_secondary", val: "#B8954A" },
