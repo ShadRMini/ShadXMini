@@ -52,7 +52,7 @@ function PreviewTotals({ row }: { row: any }) {
       <div className="text-sm font-bold text-slate-800">معاينة السعر قبل الحفظ</div>
       <div className="grid gap-2 text-xs text-slate-700 sm:grid-cols-3">
         <div className="rounded-lg bg-white p-3 shadow-sm">
-          <div className="text-slate-500">سعر المزود للوحدة</div>
+          <div className="text-slate-500">سعر التكلفة (من المزود)</div>
           <div className="font-mono font-bold">${formatMoney(providerUnit)}</div>
         </div>
         <div className="rounded-lg bg-white p-3 shadow-sm">
@@ -60,8 +60,10 @@ function PreviewTotals({ row }: { row: any }) {
           <div className="font-mono font-bold text-blue-700">${formatMoney(finalUnit)}</div>
         </div>
         <div className="rounded-lg bg-white p-3 shadow-sm">
-          <div className="text-slate-500">الربح المحسوب للوحدة</div>
-          <div className="font-mono font-bold">${formatMoney(profitUnit)}</div>
+          <div className="text-slate-500">الربح المحسوب / الخصم</div>
+          <div className={`font-mono font-bold ${profitUnit >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
+            {profitUnit >= 0 ? `+$${formatMoney(profitUnit)}` : `-$${formatMoney(Math.abs(profitUnit))}`}
+          </div>
         </div>
       </div>
       <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
@@ -171,13 +173,13 @@ export default function ProductsLegacy() {
     }
 
     if (payload.providerUnitPrice && !preciseDecimalPattern.test(payload.providerUnitPrice)) {
-      throw new Error("سعر المزود يجب أن يكون رقما موجبا.");
+      throw new Error("سعر التكلفة يجب أن يكون رقما موجبا.");
     }
 
     const providerUnit = asNumber(payload.providerUnitPrice || payload.basePriceUsd || 0);
     const finalUnit = asNumber(payload.finalUnitPrice);
-    if (finalUnit < providerUnit) {
-      throw new Error("سعر البيع النهائي يجب أن يكون أكبر من أو يساوي سعر المزود.");
+    if (finalUnit < 0) {
+      throw new Error("سعر البيع النهائي يجب أن يكون أكبر من أو يساوي 0.");
     }
 
     payload.storeProfitPerUnit = (finalUnit - providerUnit).toFixed(8);
@@ -267,10 +269,10 @@ export default function ProductsLegacy() {
         },
         {
           name: "providerUnitPrice",
-          label: "سعر المزود لكل وحدة",
+          label: "سعر التكلفة (من المزود)",
           type: "text",
           readOnly: true,
-          helperText: "يتم تحديثه من API المزود ولا يعدل يدويا.",
+          helperText: "يمثل التكلفة الأساسية للمنتج من المزود. يمكن تحديد سعر بيع نهائي أعلى أو أقل حسب العروض والتخفيضات.",
         },
         {
           name: "quantityType",

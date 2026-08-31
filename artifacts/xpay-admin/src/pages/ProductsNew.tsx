@@ -32,7 +32,7 @@ function calculateFinalUnitPrice(row: any): number {
 }
 
 function resolveProfitPerUnit(row: any): number {
-  return Math.max(0, calculateFinalUnitPrice(row) - resolveProviderUnitPrice(row));
+  return calculateFinalUnitPrice(row) - resolveProviderUnitPrice(row);
 }
 
 function formatMoney(value: number): string {
@@ -254,8 +254,8 @@ export default function ProductsNew() {
       const providerUnit = asNumber(provUnitStr);
       const finalUnit = asNumber(finalUnitStr);
 
-      if (finalUnit < providerUnit) {
-        throw new Error("سعر البيع النهائي يجب أن يكون أكبر من أو يساوي سعر المزود.");
+      if (finalUnit < 0) {
+        throw new Error("سعر البيع النهائي يجب أن يكون أكبر من أو يساوي 0.");
       }
 
       const storeProfit = (finalUnit - providerUnit).toFixed(8);
@@ -373,7 +373,7 @@ export default function ProductsNew() {
   // Preview Calculations
   const previewProvider = asNumber(formData.providerUnitPrice || 0);
   const previewFinal = asNumber(formData.finalUnitPrice || 0);
-  const previewProfit = Math.max(0, previewFinal - previewProvider);
+  const previewProfit = previewFinal - previewProvider;
   const profitMarginPercent = previewFinal > 0 ? ((previewProfit / previewFinal) * 100).toFixed(1) : "0.0";
   const previewMin = Math.max(1, Number(formData.minQuantity || 1));
   const previewMax = formData.maxQuantity !== "" ? Math.max(previewMin, Number(formData.maxQuantity)) : previewMin;
@@ -502,9 +502,9 @@ export default function ProductsNew() {
                     <th className="p-4 font-bold">المعرف</th>
                     <th className="p-4 font-bold">الصورة والاسم</th>
                     <th className="p-4 font-bold">الفئة / المجموعة</th>
-                    <th className="p-4 font-bold">سعر المزود</th>
+                    <th className="p-4 font-bold">سعر التكلفة</th>
                     <th className="p-4 font-bold">سعر البيع النهائي</th>
-                    <th className="p-4 font-bold">الربح</th>
+                    <th className="p-4 font-bold">الربح / الخصم</th>
                     <th className="p-4 font-bold">الحالة</th>
                     <th className="p-4 font-bold text-center">الإجراءات</th>
                   </tr>
@@ -565,7 +565,13 @@ export default function ProductsNew() {
                           </td>
                           <td className="p-4 font-mono text-zinc-300">${formatMoney(provUnit)}</td>
                           <td className="p-4 font-mono font-bold text-[#FDE68A]">${formatMoney(finalUnit)}</td>
-                          <td className="p-4 font-mono text-emerald-400">+${formatMoney(profitUnit)}</td>
+                          <td className="p-4 font-mono">
+                            {profitUnit >= 0 ? (
+                              <span className="text-emerald-400 font-bold">+${formatMoney(profitUnit)}</span>
+                            ) : (
+                              <span className="text-rose-400 font-bold">-${formatMoney(Math.abs(profitUnit))}</span>
+                            )}
+                          </td>
                           <td className="p-4">
                             <button
                               onClick={() => handleToggleAvailable(p)}
@@ -815,7 +821,7 @@ export default function ProductsNew() {
                 </div>
                 <div>
                   <h2 className="text-lg sm:text-xl font-black text-[#FDE68A]">2. التسعير والمالية (Pricing & Financial)</h2>
-                  <p className="text-xs text-zinc-400 mt-0.5">التحكم الدقيق في سعر المزود، سعر البيع النهائي، وحساب الأرباح</p>
+                  <p className="text-xs text-zinc-400 mt-0.5">التحكم في سعر التكلفة (من المزود)، سعر البيع النهائي، وحساب الأرباح أو التخفيضات</p>
                 </div>
               </div>
               <span className="text-xs px-3 py-1 bg-emerald-950/80 text-emerald-300 border border-emerald-500/40 rounded-full font-bold">
@@ -824,10 +830,10 @@ export default function ProductsNew() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* Provider Unit Price */}
+              {/* Provider Unit Price (Cost Price) */}
               <div>
                 <label className="block text-xs font-bold text-zinc-200 mb-2">
-                  سعر الوحدة من المزود ($)
+                  سعر التكلفة (من المزود) ($)
                 </label>
                 <div className="relative">
                   <input
@@ -838,7 +844,7 @@ export default function ProductsNew() {
                     className="w-full bg-[#1A1A1A] border border-zinc-700 rounded-2xl px-4 py-3.5 text-sm font-mono text-white focus:outline-none focus:border-[#C8A45C]"
                   />
                 </div>
-                <p className="text-[11px] text-zinc-400 mt-1.5">تكلفة الشراء الأساسية من المزود (دعم حتى 12 خانة عشرية).</p>
+                <p className="text-[11px] text-zinc-400 mt-1.5">السعر الأساسي وتكلفة الشراء من المزود. يمكن تحديد سعر بيع نهائي أعلى أو أقل للعروض والتخفيضات.</p>
               </div>
 
               {/* Final Selling Price */}
@@ -856,7 +862,7 @@ export default function ProductsNew() {
                     className="w-full bg-[#1A1A1A] border border-[#C8A45C]/60 rounded-2xl px-4 py-3.5 text-sm font-mono text-[#FDE68A] font-black focus:outline-none focus:border-[#C8A45C] focus:ring-1 focus:ring-[#C8A45C]"
                   />
                 </div>
-                <p className="text-[11px] text-zinc-400 mt-1.5">السعر الفعلي الذي يدفعه العميل للشراء من متجرك.</p>
+                <p className="text-[11px] text-zinc-400 mt-1.5">السعر الفعلي الذي يدفعه العميل للشراء من متجرك (يدعم التخفيض والبيع بأقل من التكلفة).</p>
               </div>
 
               {/* Price in SYP */}
@@ -885,22 +891,28 @@ export default function ProductsNew() {
                   المعاينة المباشرة للأرباح والأسعار
                 </div>
                 <div className="text-xs text-zinc-400">
-                  هامش الربح: <span className="text-emerald-400 font-bold font-mono">%{profitMarginPercent}</span>
+                  {previewProfit >= 0 ? (
+                    <>هامش الربح: <span className="text-emerald-400 font-bold font-mono">%{profitMarginPercent}</span></>
+                  ) : (
+                    <>نسبة التخفيض: <span className="text-rose-400 font-bold font-mono">%{Math.abs(Number(profitMarginPercent))}</span></>
+                  )}
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
                 <div className="bg-[#242424] p-4 rounded-xl border border-zinc-700">
-                  <div className="text-zinc-400">سعر المزود (التكلفة)</div>
+                  <div className="text-zinc-400">سعر التكلفة (المزود)</div>
                   <div className="font-mono text-white font-bold text-base mt-1">${formatMoney(previewProvider)}</div>
                 </div>
                 <div className="bg-[#242424] p-4 rounded-xl border border-zinc-700">
                   <div className="text-zinc-400">سعر البيع النهائي</div>
                   <div className="font-mono text-[#FDE68A] font-bold text-base mt-1">${formatMoney(previewFinal)}</div>
                 </div>
-                <div className="bg-[#242424] p-4 rounded-xl border border-emerald-500/30 bg-emerald-950/20">
-                  <div className="text-zinc-400">صافي الربح لكل وحدة</div>
-                  <div className="font-mono text-emerald-400 font-bold text-base mt-1">+${formatMoney(previewProfit)}</div>
+                <div className={`p-4 rounded-xl border ${previewProfit >= 0 ? "bg-emerald-950/20 border-emerald-500/30" : "bg-rose-950/20 border-rose-500/30"}`}>
+                  <div className="text-zinc-400">{previewProfit >= 0 ? "صافي الربح لكل وحدة" : "فرق التخفيض لكل وحدة"}</div>
+                  <div className={`font-mono font-bold text-base mt-1 ${previewProfit >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                    {previewProfit >= 0 ? `+$${formatMoney(previewProfit)}` : `-$${formatMoney(Math.abs(previewProfit))}`}
+                  </div>
                 </div>
               </div>
 
@@ -913,7 +925,7 @@ export default function ProductsNew() {
                       <th className="p-3">الكمية</th>
                       <th className="p-3">تكلفة المزود الإجمالية</th>
                       <th className="p-3">سعر البيع الإجمالي</th>
-                      <th className="p-3">إجمالي الربح المتوقع</th>
+                      <th className="p-3">إجمالي الربح / التخفيض</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-zinc-800 font-mono">
@@ -922,7 +934,9 @@ export default function ProductsNew() {
                       <td className="p-3 font-bold">{previewMin}</td>
                       <td className="p-3 text-zinc-400">${formatMoney(previewProvider * previewMin)}</td>
                       <td className="p-3 text-[#FDE68A] font-bold">${formatMoney(previewFinal * previewMin)}</td>
-                      <td className="p-3 text-emerald-400 font-bold">+${formatMoney(previewProfit * previewMin)}</td>
+                      <td className={`p-3 font-bold ${previewProfit >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                        {previewProfit >= 0 ? `+$${formatMoney(previewProfit * previewMin)}` : `-$${formatMoney(Math.abs(previewProfit) * previewMin)}`}
+                      </td>
                     </tr>
                     {previewMax > previewMin && (
                       <>
@@ -931,14 +945,18 @@ export default function ProductsNew() {
                           <td className="p-3 font-bold">{previewMid}</td>
                           <td className="p-3 text-zinc-400">${formatMoney(previewProvider * previewMid)}</td>
                           <td className="p-3 text-[#FDE68A] font-bold">${formatMoney(previewFinal * previewMid)}</td>
-                          <td className="p-3 text-emerald-400 font-bold">+${formatMoney(previewProfit * previewMid)}</td>
+                          <td className={`p-3 font-bold ${previewProfit >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                            {previewProfit >= 0 ? `+$${formatMoney(previewProfit * previewMid)}` : `-$${formatMoney(Math.abs(previewProfit) * previewMid)}`}
+                          </td>
                         </tr>
                         <tr>
                           <td className="p-3 text-zinc-300 font-sans">الحد الأقصى للطلب</td>
                           <td className="p-3 font-bold">{previewMax}</td>
                           <td className="p-3 text-zinc-400">${formatMoney(previewProvider * previewMax)}</td>
                           <td className="p-3 text-[#FDE68A] font-bold">${formatMoney(previewFinal * previewMax)}</td>
-                          <td className="p-3 text-emerald-400 font-bold">+${formatMoney(previewProfit * previewMax)}</td>
+                          <td className={`p-3 font-bold ${previewProfit >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                            {previewProfit >= 0 ? `+$${formatMoney(previewProfit * previewMax)}` : `-$${formatMoney(Math.abs(previewProfit) * previewMax)}`}
+                          </td>
                         </tr>
                       </>
                     )}

@@ -1154,15 +1154,20 @@ async function sanitizeCrudDataForRuntimeSchema(path: string, data: any): Promis
     if (!isExternalProduct && isBlank(normalized.categoryId)) {
       throw new ValidationError("categoryId is required for manual products");
     }
-    if (isBlank(normalized.priceUsd)) throw new ValidationError("priceUsd is required");
-    if (String(normalized.priceUsd).startsWith("-")) {
+    if (isBlank(normalized.priceUsd) && isBlank(normalized.finalUnitPrice)) {
+      throw new ValidationError("priceUsd or finalUnitPrice is required");
+    }
+    if (isBlank(normalized.finalUnitPrice) && normalized.priceUsd != null && String(normalized.priceUsd).startsWith("-")) {
       throw new ValidationError("priceUsd must be zero or a positive decimal");
     }
-    if (normalized.storeProfitPerUnit != null && String(normalized.storeProfitPerUnit).startsWith("-")) {
-      throw new ValidationError("storeProfitPerUnit must be zero or a positive decimal");
+    if (normalized.finalUnitPrice != null && !isBlank(normalized.finalUnitPrice) && decimalToScaled(normalized.finalUnitPrice) < 0n) {
+      throw new ValidationError("finalUnitPrice must be greater than or equal to 0");
     }
     if (normalized.basePriceUsd != null && String(normalized.basePriceUsd).startsWith("-")) {
       throw new ValidationError("basePriceUsd must be zero or a positive decimal");
+    }
+    if (normalized.providerUnitPrice != null && String(normalized.providerUnitPrice).startsWith("-")) {
+      throw new ValidationError("providerUnitPrice must be zero or a positive decimal");
     }
 
     if (normalized.minQty != null && normalized.maxQty != null && normalized.minQty > normalized.maxQty) {
@@ -1228,18 +1233,21 @@ async function sanitizeCrudDataForRuntimeSchema(path: string, data: any): Promis
     const requestedFinalUnitPrice = normalized.finalUnitPrice;
 
     if (!isBlank(requestedFinalUnitPrice)) {
-      const derivedProfit = subtractUnitPrices(requestedFinalUnitPrice, providerUnitPrice);
-      if (decimalToScaled(derivedProfit) < 0n) {
-        throw new ValidationError("finalUnitPrice must be greater than or equal to providerUnitPrice");
+      if (decimalToScaled(requestedFinalUnitPrice) < 0n) {
+        throw new ValidationError("finalUnitPrice must be greater than or equal to 0");
       }
+      const derivedProfit = subtractUnitPrices(requestedFinalUnitPrice, providerUnitPrice);
       normalized.storeProfitPerUnit = derivedProfit;
       normalized.priceUsd = derivedProfit;
-      normalized.finalUnitPrice = addUnitPrices(providerUnitPrice, derivedProfit);
+      normalized.finalUnitPrice = requestedFinalUnitPrice;
     } else {
       const storeProfitPerUnit = normalized.storeProfitPerUnit ?? normalized.priceUsd ?? "0";
       normalized.storeProfitPerUnit = storeProfitPerUnit;
       normalized.priceUsd = storeProfitPerUnit;
       normalized.finalUnitPrice = addUnitPrices(providerUnitPrice, storeProfitPerUnit);
+      if (decimalToScaled(normalized.finalUnitPrice) < 0n) {
+        throw new ValidationError("finalUnitPrice must be greater than or equal to 0");
+      }
     }
   }
 
