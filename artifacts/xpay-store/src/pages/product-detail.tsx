@@ -76,6 +76,12 @@ interface CustomizationConfig {
   border_color?: string;
   border_radius?: string;
   font_family?: string;
+  quantity_input_bg?: string;
+  quantity_input_text?: string;
+  quantity_input_border?: string;
+  quantity_input_focus_border?: string;
+  quantity_buttons_bg?: string;
+  quantity_buttons_text?: string;
   unit_price_color?: string;
   quantity_label_color?: string;
   quantity_value_color?: string;
@@ -603,74 +609,165 @@ export default function ProductDetail() {
                 className="text-xs font-bold"
                 style={{ color: customization.quantity_label_color || "#E5E7EB" }}
               >
-                {sec.title || "اختبار الكمية / حدد الكمية المطلوبة:"}
+                {sec.title || "حدد الكمية المطلوبة:"}
               </label>
-              <span className="text-[11px] font-semibold" style={{ color: customization.quantity_button_color || "#C8A45C" }}>
+              <span className="text-[11px] font-semibold" style={{ color: customization.quantity_buttons_text || customization.quantity_button_color || "#C8A45C" }}>
                 (الحد الأدنى: {minQty.toLocaleString()})
               </span>
             </div>
 
             {usesFixedQuantity ? (
-              <div className="rounded-2xl border border-[#C8A45C]/40 bg-[#C8A45C]/10 p-3.5 text-center">
-                <div className="text-xs text-zinc-300">كمية رسمية ثابتة لهذه الباقة</div>
-                <div className="text-xl font-black mt-1" style={{ color: customization.quantity_value_color || "#FFFFFF" }}>{minQty.toLocaleString()}</div>
+              <div
+                className="p-3.5 text-center transition"
+                style={{
+                  backgroundColor: customization.quantity_input_bg || customization.player_id_input_bg || "rgba(200, 164, 92, 0.1)",
+                  borderWidth: "1px",
+                  borderStyle: "solid",
+                  borderColor: customization.quantity_input_border || customization.player_id_input_border || "rgba(200, 164, 92, 0.4)",
+                  borderRadius: "16px",
+                }}
+              >
+                <div className="text-xs" style={{ color: customization.disclaimer_text_color || "#D1D5DB" }}>كمية رسمية ثابتة لهذه الباقة</div>
+                <div className="text-xl font-black mt-1" style={{ color: customization.quantity_input_text || customization.quantity_value_color || "#FFFFFF" }}>{minQty.toLocaleString()}</div>
               </div>
             ) : usesOfficialQuantityList ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {officialQuantityValues.map((value: number) => (
-                  <button
-                    key={value}
-                    type="button"
-                    onClick={() => {
-                      setQuantity(value);
-                      setQuantityInput(String(value));
-                    }}
-                    className={`rounded-2xl border px-3 py-3 text-sm font-black transition cursor-pointer ${
-                      quantity === value
-                        ? "border-[#C8A45C] bg-[#C8A45C] text-[#1A1A1A] shadow-md shadow-[#C8A45C]/30"
-                        : "border-[#4B5563] bg-[#1A1A1A] hover:border-[#C8A45C]/60"
-                    }`}
-                    style={quantity === value ? {} : { color: customization.quantity_value_color || "#FFFFFF" }}
-                  >
-                    {value.toLocaleString()}
-                  </button>
-                ))}
+                {officialQuantityValues.map((value: number) => {
+                  const isSelected = quantity === value;
+                  return (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => {
+                        setQuantity(value);
+                        setQuantityInput(String(value));
+                      }}
+                      style={{
+                        backgroundColor: isSelected
+                          ? (customization.purchase_button_bg || customization.quantity_button_color || "#C8A45C")
+                          : (customization.quantity_input_bg || customization.player_id_input_bg || "#1A1A1A"),
+                        color: isSelected
+                          ? (customization.purchase_button_text || "#1A1A1A")
+                          : (customization.quantity_input_text || customization.quantity_value_color || "#FFFFFF"),
+                        borderColor: isSelected
+                          ? (customization.purchase_button_bg || customization.quantity_button_color || "#C8A45C")
+                          : (customization.quantity_input_border || customization.player_id_input_border || "#4B5563"),
+                        borderWidth: "1px",
+                        borderStyle: "solid",
+                        borderRadius: "16px",
+                        padding: "12px",
+                        fontSize: "14px",
+                        fontWeight: "900",
+                        cursor: "pointer",
+                        transition: "all 0.2s",
+                      }}
+                    >
+                      {value.toLocaleString()}
+                    </button>
+                  );
+                })}
               </div>
             ) : (
               <div className="flex items-center gap-3">
+                {/* Decrement Button (-) */}
                 <button
                   type="button"
                   onClick={handleDecrement}
                   disabled={quantity <= minQty}
-                  className="w-12 h-12 rounded-2xl border border-zinc-700 hover:border-[#C8A45C] flex items-center justify-center font-bold text-lg disabled:opacity-40 transition cursor-pointer shrink-0"
                   style={{
-                    color: customization.quantity_button_color || "#C8A45C",
-                    backgroundColor: customization.quantity_button_bg || "#2D2D2D",
+                    backgroundColor: customization.quantity_buttons_bg || customization.quantity_button_bg || "#2D2D2D",
+                    color: customization.quantity_buttons_text || customization.quantity_button_color || "#C8A45C",
+                    borderRadius: "16px",
+                    width: "48px",
+                    height: "48px",
+                    border: "none",
+                    fontSize: "20px",
+                    fontWeight: "bold",
+                    cursor: quantity <= minQty ? "not-allowed" : "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    transition: "all 0.2s",
+                    opacity: quantity <= minQty ? 0.4 : 1,
+                    flexShrink: 0,
+                  }}
+                  onMouseEnter={(e) => {
+                    if (quantity > minQty) {
+                      e.currentTarget.style.backgroundColor = (customization.quantity_buttons_bg || customization.quantity_button_bg)
+                        ? `${customization.quantity_buttons_bg || customization.quantity_button_bg}CC`
+                        : "#3D3D3D";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = customization.quantity_buttons_bg || customization.quantity_button_bg || "#2D2D2D";
                   }}
                 >
                   <Minus size={18} />
                 </button>
 
-                <div className="flex-1 rounded-2xl p-1 transition" style={{ backgroundColor: customization.player_id_input_bg || "#1A1A1A", border: `1px solid ${customization.player_id_input_border || "#4B5563"}` }}>
-                  <Input
-                    type="text"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    value={quantityInput}
-                    onChange={(e) => handleQtyInputChange(e.target.value)}
-                    onBlur={() => commitQuantityInput()}
-                    className="w-full h-10 text-center font-black text-xl bg-transparent border-0 focus-visible:ring-0"
-                    style={{ color: customization.quantity_value_color || "#FFFFFF" }}
-                  />
-                </div>
+                {/* Quantity Input Box */}
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  value={quantityInput}
+                  onChange={(e) => handleQtyInputChange(e.target.value)}
+                  style={{
+                    backgroundColor: customization.quantity_input_bg || customization.player_id_input_bg || "#1A1A1A",
+                    color: customization.quantity_input_text || customization.quantity_value_color || "#FFFFFF",
+                    borderColor: customization.quantity_input_border || customization.player_id_input_border || "#4B5563",
+                    borderRadius: "16px",
+                    height: "48px",
+                    fontSize: "20px",
+                    fontWeight: "900",
+                    outline: "none",
+                    textAlign: "center",
+                    borderWidth: "1px",
+                    borderStyle: "solid",
+                    transition: "border-color 0.2s, box-shadow 0.2s",
+                    padding: "0 12px",
+                    flex: "1",
+                    minWidth: "0",
+                  }}
+                  onFocus={(e) => {
+                    const focusColor = customization.quantity_input_focus_border || customization.player_id_input_focus || "#C8A45C";
+                    e.target.style.borderColor = focusColor;
+                    e.target.style.boxShadow = `0 0 0 3px ${focusColor}40`;
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = customization.quantity_input_border || customization.player_id_input_border || "#4B5563";
+                    e.target.style.boxShadow = "none";
+                    commitQuantityInput();
+                  }}
+                />
 
+                {/* Increment Button (+) */}
                 <button
                   type="button"
                   onClick={handleIncrement}
-                  className="w-12 h-12 rounded-2xl border border-zinc-700 hover:border-[#C8A45C] flex items-center justify-center font-bold text-lg transition cursor-pointer shrink-0"
                   style={{
-                    color: customization.quantity_button_color || "#C8A45C",
-                    backgroundColor: customization.quantity_button_bg || "#2D2D2D",
+                    backgroundColor: customization.quantity_buttons_bg || customization.quantity_button_bg || "#2D2D2D",
+                    color: customization.quantity_buttons_text || customization.quantity_button_color || "#C8A45C",
+                    borderRadius: "16px",
+                    width: "48px",
+                    height: "48px",
+                    border: "none",
+                    fontSize: "20px",
+                    fontWeight: "bold",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    transition: "all 0.2s",
+                    flexShrink: 0,
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = (customization.quantity_buttons_bg || customization.quantity_button_bg)
+                      ? `${customization.quantity_buttons_bg || customization.quantity_button_bg}CC`
+                      : "#3D3D3D";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = customization.quantity_buttons_bg || customization.quantity_button_bg || "#2D2D2D";
                   }}
                 >
                   <Plus size={18} />
