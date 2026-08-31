@@ -273,46 +273,77 @@ router.get("/public/settings/show-featured-offers", async (_req, res) => {
   }
 });
 
+const DEFAULT_PRODUCT_SECTIONS = [
+  { id: "image", visible: true, order: 1, label: "صورة المنتج والبدائل" },
+  { id: "title", visible: true, order: 2, label: "اسم المنتج والتصنيف وحالة التوفر" },
+  { id: "price", visible: true, order: 3, label: "السعر المباشر والمجموع الكلي" },
+  { id: "rating", visible: true, order: 4, label: "شارات التقييم وشارات الخدمة" },
+  { id: "description", visible: true, order: 5, label: "وصف المنتج والملاحظات" },
+  { id: "quantity", visible: true, order: 6, label: "تحديد الكمية وباقات الشحن" },
+  { id: "buy_now", visible: true, order: 7, label: "زر الشراء وتأكيد الطلب" },
+  { id: "guarantees", visible: true, order: 8, label: "شارات الأمان والضمان الفوري" },
+  { id: "reviews", visible: true, order: 9, label: "آراء وتقييمات العملاء" },
+  { id: "related_products", visible: true, order: 10, label: "منتجات ذات صلة من نفس القسم" },
+  { id: "share_buttons", visible: true, order: 11, label: "أزرار المشاركة والمفضلة" },
+  { id: "specifications", visible: false, order: 12, label: "المواصفات التقنية والشحن" }
+];
+
+const DEFAULT_PRODUCT_CUSTOMIZATION = {
+  image_size: "250px",
+  price_color: "#FDE68A",
+  button_color: "#C8A45C",
+  button_text_color: "#1A1A1A",
+  bg_color: "#1A1A1A",
+  text_color: "#FFFFFF",
+  border_color: "#C8A45C",
+  border_radius: "16px",
+  font_family: "Cairo"
+};
+
 const handleGetProductPageSettings = async (_req: any, res: any) => {
   try {
     const rows = await db.select().from(settingsTable);
-    const result: Record<string, any> = {
-      product_image_size: "250px",
-      product_layout_order: ["image", "title", "price", "description", "quantity", "buttons", "reviews", "related", "guarantees"],
-      product_show_reviews: true,
-      product_show_related: true,
-      product_show_guarantees: true,
-      product_bg_color: "#1A1A1A",
-      product_text_color: "#FFFFFF",
-      product_button_color: "#C8A45C",
-      product_border_color: "#C8A45C",
-      product_legacy_mode: false,
-    };
-
+    const map = new Map<string, any>();
     if (Array.isArray(rows)) {
       for (const row of rows) {
-        if (row.key && row.key.startsWith("product_")) {
+        if (row.key) {
           let val = row.value;
           if (typeof val === "string") {
-            try {
-              val = JSON.parse(val);
-            } catch {
-              // use string val as is
-            }
+            try { val = JSON.parse(val); } catch {}
           }
-          result[row.key] = val;
+          map.set(row.key, val);
         }
       }
     }
 
+    const sections = map.get("product_page_layout") || DEFAULT_PRODUCT_SECTIONS;
+    const customization = map.get("product_page_style") || DEFAULT_PRODUCT_CUSTOMIZATION;
+    const useLegacy = map.get("use_legacy_product_page") ?? map.get("product_legacy_mode") ?? false;
+
+    const result: Record<string, any> = {
+      sections,
+      customization,
+      use_legacy_product_page: Boolean(useLegacy === true || useLegacy === "true"),
+      // Backwards compatibility flat properties
+      product_image_size: customization.image_size || map.get("product_image_size") || "250px",
+      product_layout_order: Array.isArray(sections) ? sections.map((s: any) => s.id) : ["image", "title", "price", "description", "quantity", "buy_now", "reviews", "related_products", "guarantees"],
+      product_show_reviews: map.get("product_show_reviews") !== undefined ? map.get("product_show_reviews") : true,
+      product_show_related: map.get("product_show_related") !== undefined ? map.get("product_show_related") : true,
+      product_show_guarantees: map.get("product_show_guarantees") !== undefined ? map.get("product_show_guarantees") : true,
+      product_bg_color: customization.bg_color || map.get("product_bg_color") || "#1A1A1A",
+      product_text_color: customization.text_color || map.get("product_text_color") || "#FFFFFF",
+      product_button_color: customization.button_color || map.get("product_button_color") || "#C8A45C",
+      product_border_color: customization.border_color || map.get("product_border_color") || "#C8A45C",
+      product_legacy_mode: Boolean(useLegacy === true || useLegacy === "true"),
+    };
+
     res.json(result);
   } catch (error) {
     res.json({
+      sections: DEFAULT_PRODUCT_SECTIONS,
+      customization: DEFAULT_PRODUCT_CUSTOMIZATION,
+      use_legacy_product_page: false,
       product_image_size: "250px",
-      product_layout_order: ["image", "title", "price", "description", "quantity", "buttons", "reviews", "related", "guarantees"],
-      product_show_reviews: true,
-      product_show_related: true,
-      product_show_guarantees: true,
       product_bg_color: "#1A1A1A",
       product_text_color: "#FFFFFF",
       product_button_color: "#C8A45C",

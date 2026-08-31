@@ -356,6 +356,38 @@ export async function ensureDatabaseSchema() {
       { key: "product_button_color", val: "#C8A45C" },
       { key: "product_border_color", val: "#C8A45C" },
       { key: "product_legacy_mode", val: false },
+      { key: "use_legacy_product_page", val: false },
+      {
+        key: "product_page_layout",
+        val: [
+          { id: "image", visible: true, order: 1, label: "صورة المنتج والبدائل" },
+          { id: "title", visible: true, order: 2, label: "اسم المنتج والتصنيف وحالة التوفر" },
+          { id: "price", visible: true, order: 3, label: "السعر المباشر والمجموع الكلي" },
+          { id: "rating", visible: true, order: 4, label: "شارات التقييم وشارات الخدمة" },
+          { id: "description", visible: true, order: 5, label: "وصف المنتج والملاحظات" },
+          { id: "quantity", visible: true, order: 6, label: "تحديد الكمية وباقات الشحن" },
+          { id: "buy_now", visible: true, order: 7, label: "زر الشراء وتأكيد الطلب" },
+          { id: "guarantees", visible: true, order: 8, label: "شارات الأمان والضمان الفوري" },
+          { id: "reviews", visible: true, order: 9, label: "آراء وتقييمات العملاء" },
+          { id: "related_products", visible: true, order: 10, label: "منتجات ذات صلة من نفس القسم" },
+          { id: "share_buttons", visible: true, order: 11, label: "أزرار المشاركة والمفضلة" },
+          { id: "specifications", visible: false, order: 12, label: "المواصفات التقنية والشحن" }
+        ]
+      },
+      {
+        key: "product_page_style",
+        val: {
+          image_size: "250px",
+          price_color: "#FDE68A",
+          button_color: "#C8A45C",
+          button_text_color: "#1A1A1A",
+          bg_color: "#1A1A1A",
+          text_color: "#FFFFFF",
+          border_color: "#C8A45C",
+          border_radius: "16px",
+          font_family: "Cairo"
+        }
+      },
     ];
     for (const item of maintenanceDefaultKeys) {
       const existing: any = await db.execute(sql`SELECT key FROM settings WHERE key = ${item.key}`);

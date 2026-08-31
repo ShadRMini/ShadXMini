@@ -2264,6 +2264,110 @@ router.put("/admin/theme-settings", requireAdmin, async (req, res) => {
   }
 });
 
+router.get("/admin/product-page-settings", requireAdmin, async (_req, res) => {
+  try {
+    const rows = await db.select().from(settingsTable);
+    const map = new Map<string, any>();
+    if (Array.isArray(rows)) {
+      for (const row of rows) {
+        if (row.key) {
+          let val = row.value;
+          if (typeof val === "string") {
+            try { val = JSON.parse(val); } catch {}
+          }
+          map.set(row.key, val);
+        }
+      }
+    }
+
+    const defaultSections = [
+      { id: "image", visible: true, order: 1, label: "صورة المنتج والبدائل" },
+      { id: "title", visible: true, order: 2, label: "اسم المنتج والتصنيف وحالة التوفر" },
+      { id: "price", visible: true, order: 3, label: "السعر المباشر والمجموع الكلي" },
+      { id: "rating", visible: true, order: 4, label: "شارات التقييم وشارات الخدمة" },
+      { id: "description", visible: true, order: 5, label: "وصف المنتج والملاحظات" },
+      { id: "quantity", visible: true, order: 6, label: "تحديد الكمية وباقات الشحن" },
+      { id: "buy_now", visible: true, order: 7, label: "زر الشراء وتأكيد الطلب" },
+      { id: "guarantees", visible: true, order: 8, label: "شارات الأمان والضمان الفوري" },
+      { id: "reviews", visible: true, order: 9, label: "آراء وتقييمات العملاء" },
+      { id: "related_products", visible: true, order: 10, label: "منتجات ذات صلة من نفس القسم" },
+      { id: "share_buttons", visible: true, order: 11, label: "أزرار المشاركة والمفضلة" },
+      { id: "specifications", visible: false, order: 12, label: "المواصفات التقنية والشحن" }
+    ];
+
+    const defaultCustomization = {
+      image_size: "250px",
+      price_color: "#FDE68A",
+      button_color: "#C8A45C",
+      button_text_color: "#1A1A1A",
+      bg_color: "#1A1A1A",
+      text_color: "#FFFFFF",
+      border_color: "#C8A45C",
+      border_radius: "16px",
+      font_family: "Cairo"
+    };
+
+    const sections = map.get("product_page_layout") || defaultSections;
+    const customization = map.get("product_page_style") || defaultCustomization;
+    const useLegacy = map.get("use_legacy_product_page") ?? map.get("product_legacy_mode") ?? false;
+
+    res.json({
+      sections,
+      customization,
+      use_legacy_product_page: Boolean(useLegacy === true || useLegacy === "true")
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.put("/admin/product-page-settings", requireAdmin, async (req, res) => {
+  try {
+    const { sections, customization, use_legacy_product_page } = req.body;
+
+    if (sections) {
+      await db.insert(settingsTable).values({ key: "product_page_layout", value: sections })
+        .onConflictDoUpdate({ target: settingsTable.key, set: { value: sections } });
+    }
+
+    if (customization) {
+      await db.insert(settingsTable).values({ key: "product_page_style", value: customization })
+        .onConflictDoUpdate({ target: settingsTable.key, set: { value: customization } });
+
+      if (customization.image_size) {
+        await db.insert(settingsTable).values({ key: "product_image_size", value: customization.image_size })
+          .onConflictDoUpdate({ target: settingsTable.key, set: { value: customization.image_size } });
+      }
+      if (customization.bg_color) {
+        await db.insert(settingsTable).values({ key: "product_bg_color", value: customization.bg_color })
+          .onConflictDoUpdate({ target: settingsTable.key, set: { value: customization.bg_color } });
+      }
+      if (customization.button_color) {
+        await db.insert(settingsTable).values({ key: "product_button_color", value: customization.button_color })
+          .onConflictDoUpdate({ target: settingsTable.key, set: { value: customization.button_color } });
+      }
+    }
+
+    if (use_legacy_product_page !== undefined) {
+      await db.insert(settingsTable).values({ key: "use_legacy_product_page", value: use_legacy_product_page })
+        .onConflictDoUpdate({ target: settingsTable.key, set: { value: use_legacy_product_page } });
+      await db.insert(settingsTable).values({ key: "product_legacy_mode", value: use_legacy_product_page })
+        .onConflictDoUpdate({ target: settingsTable.key, set: { value: use_legacy_product_page } });
+    }
+
+    await logActivity(
+      { id: req.session.adminId, name: req.session.adminUsername },
+      "product_page_settings_update",
+      "settings",
+      ["product_page_layout", "product_page_style", "use_legacy_product_page"]
+    );
+
+    res.json({ ok: true, success: true });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.post("/admin/theme-settings/apply-preset", requireAdmin, async (req, res) => {
   try {
     const { preset, presetId, primary, secondary, accent, background, textPrimary } = req.body;

@@ -43,6 +43,7 @@ import Promotions from "./pages/Promotions";
 import CurrencySettings from "./pages/CurrencySettings";
 import CacheManagement from "./pages/CacheManagement";
 import CronJobs from "./pages/CronJobs";
+import ProductPageSettings from "./pages/ProductPageSettings";
 import { loadAndApplyAdminTheme } from "./lib/theme";
 import { Toaster } from "sonner";
 
@@ -141,6 +142,7 @@ export default function App() {
           <Route path="/activity" element={<ActivityLog />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/theme" element={<Theme />} />
+          <Route path="/product-page-settings" element={<ProductPageSettings />} />
           <Route path="/reports" element={<Reports />} />
           <Route path="/tickets" element={<Tickets />} />
           <Route path="/tickets/:id" element={<TicketDetail />} />
