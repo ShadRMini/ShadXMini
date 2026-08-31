@@ -21,7 +21,7 @@ export const DEFAULT_ADMIN_THEME: AdminThemeSettings = {
   theme_accent: "#FDE68A",
   theme_background: "#1A1A1A",
   theme_text_primary: "#FFFFFF",
-  theme_font_arabic: "Cairo",
+  theme_font_arabic: "Changa",
   theme_font_english: "Inter",
   theme_font_size: "14",
   theme_border_radius: "16",

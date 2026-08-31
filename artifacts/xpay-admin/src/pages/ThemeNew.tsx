@@ -122,8 +122,8 @@ const PRESET_PALETTES: PalettePreset[] = [
   },
 ];
 
-const GOOGLE_FONTS_ARABIC = ["Cairo", "Tajawal", "Noto Kufi Arabic", "Almarai"];
-const GOOGLE_FONTS_ENGLISH = ["Inter", "Poppins", "Roboto", "Montserrat"];
+const GOOGLE_FONTS_ARABIC = ["Changa", "Cairo", "Almarai", "Tajawal", "Noto Kufi Arabic"];
+const GOOGLE_FONTS_ENGLISH = ["Inter", "Poppins", "Roboto", "Montserrat", "Open Sans"];
 
 export default function ThemeNew() {
   const [loading, setLoading] = useState(true);
@@ -137,7 +137,7 @@ export default function ThemeNew() {
     theme_accent: "#FDE68A",
     theme_background: "#1A1A1A",
     theme_text_primary: "#FFFFFF",
-    theme_font_arabic: "Cairo",
+    theme_font_arabic: "Changa",
     theme_font_english: "Inter",
     theme_font_size: "14",
     theme_border_radius: "16",

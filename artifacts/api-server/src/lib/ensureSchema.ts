@@ -328,7 +328,7 @@ export async function ensureDatabaseSchema() {
       { key: "theme_accent", val: "#FDE68A" },
       { key: "theme_background", val: "#1A1A1A" },
       { key: "theme_text_primary", val: "#FFFFFF" },
-      { key: "theme_font_arabic", val: "Cairo" },
+      { key: "theme_font_arabic", val: "Changa" },
       { key: "theme_font_english", val: "Inter" },
       { key: "theme_border_radius", val: "16" },
       { key: "theme_shadow", val: "medium" },

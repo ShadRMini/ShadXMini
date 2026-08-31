@@ -7,7 +7,7 @@ const FIELDS = [
   { key: "theme_primary", label: "اللون الرئيسي", type: "color", default: "#C8A45C" },
   { key: "theme_accent", label: "اللون الثانوي (Accent)", type: "color", default: "#FDE68A" },
   { key: "theme_bg", label: "خلفية المتجر", type: "color", default: "#1A1A1A" },
-  { key: "theme_font", label: "الخط العربي والافتراضي", type: "text", default: "Cairo" },
+  { key: "theme_font", label: "الخط العربي والافتراضي", type: "text", default: "Changa" },
   { key: "theme_radius", label: "نصف القطر (px)", type: "number", default: "16" },
 ];
 
