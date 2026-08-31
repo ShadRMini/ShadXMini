@@ -34,7 +34,7 @@ router.get("/social-links", async (_req, res) => {
   );
 });
 
-router.get(["/theme", "/theme-settings", "/public/theme-settings"], async (_req, res) => {
+router.get(["/theme", "/theme-settings", "/public/theme-settings", "/admin/theme-settings"], async (_req, res) => {
   try {
     const rows = await db.select().from(settingsTable);
     const map = new Map(rows.map((row) => [row.key, row.value]));
@@ -50,6 +50,7 @@ router.get(["/theme", "/theme-settings", "/public/theme-settings"], async (_req,
     const themeShadow = String(map.get("theme_shadow") || "medium").trim();
     const themeDefaultMode = String(map.get("theme_default_mode") || "dark").trim();
     const themeFontSize = String(map.get("theme_font_size") || "14").trim();
+    const themeLogoSize = String(map.get("theme_logo_size") || map.get("logo_size") || "80px").trim();
 
     const responseData = {
       // Full raw keys
@@ -64,6 +65,7 @@ router.get(["/theme", "/theme-settings", "/public/theme-settings"], async (_req,
       theme_border_radius: themeBorderRadius,
       theme_shadow: themeShadow,
       theme_default_mode: themeDefaultMode,
+      theme_logo_size: themeLogoSize,
       // Direct alias properties
       primary: themePrimary,
       secondary: themeSecondary,
@@ -78,6 +80,8 @@ router.get(["/theme", "/theme-settings", "/public/theme-settings"], async (_req,
       shadow: themeShadow,
       defaultMode: themeDefaultMode,
       fontSize: themeFontSize,
+      logoSize: themeLogoSize,
+      logo_size: themeLogoSize,
     };
 
     console.log("[API /theme] Retrieved theme configuration successfully:", responseData);
@@ -85,6 +89,77 @@ router.get(["/theme", "/theme-settings", "/public/theme-settings"], async (_req,
   } catch (err: any) {
     console.error("[API /theme] Error fetching theme settings:", err);
     res.status(500).json({ error: err?.message || "Failed to load theme settings" });
+  }
+});
+
+router.put(["/admin/theme-settings", "/theme-settings"], async (req, res) => {
+  try {
+    const body = req.body || {};
+    const allowedKeys = [
+      "theme_primary",
+      "theme_secondary",
+      "theme_accent",
+      "theme_background",
+      "theme_text_primary",
+      "theme_font_arabic",
+      "theme_font_english",
+      "theme_font_size",
+      "theme_border_radius",
+      "theme_shadow",
+      "theme_default_mode",
+      "theme_logo_size",
+      // alias keys
+      "primary",
+      "secondary",
+      "accent",
+      "background",
+      "textPrimary",
+      "fontArabic",
+      "fontEnglish",
+      "fontSize",
+      "radius",
+      "borderRadius",
+      "shadow",
+      "defaultMode",
+      "logoSize",
+      "logo_size",
+    ];
+
+    const updates: { key: string; value: any }[] = [];
+
+    // Direct mapping
+    if (body.theme_primary || body.primary) updates.push({ key: "theme_primary", value: String(body.theme_primary || body.primary).trim() });
+    if (body.theme_secondary || body.secondary) updates.push({ key: "theme_secondary", value: String(body.theme_secondary || body.secondary).trim() });
+    if (body.theme_accent || body.accent) updates.push({ key: "theme_accent", value: String(body.theme_accent || body.accent).trim() });
+    if (body.theme_background || body.background) updates.push({ key: "theme_background", value: String(body.theme_background || body.background).trim() });
+    if (body.theme_text_primary || body.textPrimary) updates.push({ key: "theme_text_primary", value: String(body.theme_text_primary || body.textPrimary).trim() });
+    if (body.theme_font_arabic || body.fontArabic) updates.push({ key: "theme_font_arabic", value: String(body.theme_font_arabic || body.fontArabic).trim() });
+    if (body.theme_font_english || body.fontEnglish) updates.push({ key: "theme_font_english", value: String(body.theme_font_english || body.fontEnglish).trim() });
+    if (body.theme_font_size || body.fontSize) updates.push({ key: "theme_font_size", value: String(body.theme_font_size || body.fontSize).trim() });
+    if (body.theme_border_radius !== undefined || body.radius !== undefined || body.borderRadius !== undefined) {
+      updates.push({ key: "theme_border_radius", value: String(body.theme_border_radius ?? body.radius ?? body.borderRadius).trim() });
+    }
+    if (body.theme_shadow || body.shadow) updates.push({ key: "theme_shadow", value: String(body.theme_shadow || body.shadow).trim() });
+    if (body.theme_default_mode || body.defaultMode) updates.push({ key: "theme_default_mode", value: String(body.theme_default_mode || body.defaultMode).trim() });
+    if (body.theme_logo_size !== undefined || body.logoSize !== undefined || body.logo_size !== undefined) {
+      const rawLogoSize = String(body.theme_logo_size ?? body.logoSize ?? body.logo_size).trim();
+      const val = rawLogoSize.includes("px") || rawLogoSize.includes("%") || rawLogoSize.includes("rem") ? rawLogoSize : `${rawLogoSize}px`;
+      updates.push({ key: "theme_logo_size", value: val });
+    }
+
+    // Save all to database
+    for (const item of updates) {
+      await db
+        .insert(settingsTable)
+        .values({ key: item.key, value: item.value })
+        .onConflictDoUpdate({ target: settingsTable.key, set: { value: item.value } });
+    }
+
+    console.log(`[API /admin/theme-settings] Successfully updated ${updates.length} theme properties:`, updates.map((u) => u.key));
+    res.json({ ok: true, success: true, updated: updates });
+  } catch (err: any) {
+    console.error("[API /admin/theme-settings] Error saving theme settings:", err);
+    res.status(500).json({ error: err?.message || "Failed to update theme settings" });
   }
 });
 
@@ -131,6 +206,8 @@ router.get("/app-settings", async (_req, res) => {
     site_logo: String(map.get("brand_logo_url") || map.get("site_logo") || ""),
     siteName: String(map.get("site_name") || "ShadMini"),
     site_name: String(map.get("site_name") || "ShadMini"),
+    theme_logo_size: String(map.get("theme_logo_size") || map.get("logo_size") || "80px").trim(),
+    logoSize: String(map.get("theme_logo_size") || map.get("logo_size") || "80px").trim(),
     admin_login_title: String(map.get("admin_login_title") || "ShadMini"),
     adminLoginTitle: String(map.get("admin_login_title") || "ShadMini"),
     admin_login_subtitle: String(map.get("admin_login_subtitle") || "لوحة الإدارة الفاخرة"),
@@ -161,6 +238,8 @@ const getPublicSettingsHandler = async (_req: any, res: any) => {
     siteLogo: logo,
     site_name: siteName,
     siteName: siteName,
+    theme_logo_size: String(map.get("theme_logo_size") || map.get("logo_size") || "80px").trim(),
+    logoSize: String(map.get("theme_logo_size") || map.get("logo_size") || "80px").trim(),
     admin_login_image: adminLoginImage,
     adminLoginImage: adminLoginImage,
     admin_login_title: String(map.get("admin_login_title") || "ShadMini"),

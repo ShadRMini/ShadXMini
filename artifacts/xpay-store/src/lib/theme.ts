@@ -12,6 +12,7 @@ export interface StoreThemeSettings {
   shadow?: string;
   defaultMode?: string;
   fontSize?: string;
+  logoSize?: string;
   theme_primary?: string;
   theme_secondary?: string;
   theme_accent?: string;
@@ -23,6 +24,7 @@ export interface StoreThemeSettings {
   theme_border_radius?: string | number;
   theme_shadow?: string;
   theme_default_mode?: string;
+  theme_logo_size?: string;
 }
 
 export const DEFAULT_STORE_THEME: StoreThemeSettings = {
@@ -38,6 +40,7 @@ export const DEFAULT_STORE_THEME: StoreThemeSettings = {
   shadow: "medium",
   defaultMode: "dark",
   fontSize: "14",
+  logoSize: "80px",
   theme_primary: "#C8A45C",
   theme_secondary: "#B8954A",
   theme_accent: "#FDE68A",
@@ -49,6 +52,7 @@ export const DEFAULT_STORE_THEME: StoreThemeSettings = {
   theme_border_radius: "16",
   theme_shadow: "medium",
   theme_default_mode: "dark",
+  theme_logo_size: "80px",
 };
 
 let cachedThemeSettings: StoreThemeSettings = { ...DEFAULT_STORE_THEME };
@@ -200,6 +204,9 @@ export function applyStoreTheme(theme?: Partial<StoreThemeSettings> | null | und
   const rawShadow = String(currentTheme.shadow || currentTheme.theme_shadow || "medium").trim();
   const shadowCss = getShadowCss(rawShadow, primary, isLight);
 
+  const rawLogoSize = String(currentTheme.theme_logo_size || currentTheme.logoSize || DEFAULT_STORE_THEME.theme_logo_size).trim();
+  const logoSizePx = rawLogoSize.includes("px") || rawLogoSize.includes("%") || rawLogoSize.includes("rem") ? rawLogoSize : `${rawLogoSize}px`;
+
   // 1. Ensure Fonts
   ensureGoogleFontsLoaded(fontArabic, fontEnglish);
 
@@ -240,6 +247,8 @@ export function applyStoreTheme(theme?: Partial<StoreThemeSettings> | null | und
   root.style.setProperty("--theme-font-english", `'${fontEnglish}', sans-serif`);
   root.style.setProperty("--theme-border-radius", radiusPx);
   root.style.setProperty("--theme-shadow", shadowCss);
+  root.style.setProperty("--theme-logo-size", logoSizePx);
+  root.style.setProperty("--logo-size", logoSizePx);
 
   // Core & Component CSS Variables
   root.style.setProperty("--primary", primary);
@@ -281,6 +290,8 @@ export function applyStoreTheme(theme?: Partial<StoreThemeSettings> | null | und
       --theme-font-english: '${fontEnglish}', sans-serif !important;
       --theme-border-radius: ${radiusPx} !important;
       --theme-shadow: ${shadowCss} !important;
+      --theme-logo-size: ${logoSizePx} !important;
+      --logo-size: ${logoSizePx} !important;
 
       --primary: ${primary} !important;
       --primary-dark: ${secondary} !important;
@@ -318,6 +329,15 @@ export function applyStoreTheme(theme?: Partial<StoreThemeSettings> | null | und
     .rounded-theme { border-radius: ${radiusPx} !important; }
     .font-theme-arabic { font-family: '${fontArabic}', sans-serif !important; }
     .font-theme-english { font-family: '${fontEnglish}', sans-serif !important; }
+
+    /* Logo scaling rules */
+    .store-brand-logo,
+    .theme-logo {
+      height: ${logoSizePx} !important;
+      max-height: ${logoSizePx} !important;
+      max-width: calc(${logoSizePx} * 3) !important;
+      object-fit: contain !important;
+    }
 
     /* Dynamic Brand Primary Overrides */
     .text-\\[\\#C8A45C\\],

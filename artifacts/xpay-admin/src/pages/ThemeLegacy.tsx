@@ -9,6 +9,7 @@ const FIELDS = [
   { key: "theme_bg", label: "خلفية المتجر", type: "color", default: "#1A1A1A" },
   { key: "theme_font", label: "الخط العربي والافتراضي", type: "text", default: "Changa" },
   { key: "theme_radius", label: "نصف القطر (px)", type: "number", default: "16" },
+  { key: "theme_logo_size", label: "حجم الشعار في المتجر (px)", type: "number", default: "80" },
 ];
 
 export default function ThemeLegacy() {
@@ -61,6 +62,7 @@ export default function ThemeLegacy() {
         theme_font: values.theme_font,
         theme_border_radius: values.theme_radius,
         theme_radius: values.theme_radius,
+        theme_logo_size: values.theme_logo_size ? `${values.theme_logo_size}px` : "80px",
       };
 
       try {

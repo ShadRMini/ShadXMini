@@ -50,6 +50,8 @@
   --theme-font-english: 'Inter', sans-serif;
   --theme-border-radius: 16px;
   --theme-shadow: 0 8px 25px -4px rgba(0, 0, 0, 0.35);
+  --theme-logo-size: 80px;
+  --logo-size: 80px;
 
   --font-arabic: 'Cairo', sans-serif;
   --font-english: 'Inter', sans-serif;
@@ -93,6 +95,8 @@
   --theme-background: #F5F2EB;
   --theme-text-primary: #111827;
   --theme-shadow: 0 4px 18px rgba(0, 0, 0, 0.07);
+  --theme-logo-size: 80px;
+  --logo-size: 80px;
 }
 
 @theme inline {
@@ -188,6 +192,17 @@
 .rounded-theme { border-radius: var(--theme-border-radius) !important; }
 .font-theme-arabic { font-family: var(--theme-font-arabic), sans-serif !important; }
 .font-theme-english { font-family: var(--theme-font-english), sans-serif !important; }
+.store-brand-logo,
+.theme-logo {
+  height: var(--theme-logo-size, 80px) !important;
+  max-height: var(--theme-logo-size, 80px) !important;
+  max-width: calc(var(--theme-logo-size, 80px) * 3) !important;
+  object-fit: contain !important;
+}
+.theme-logo-emblem {
+  width: var(--theme-logo-size, 80px) !important;
+  height: var(--theme-logo-size, 80px) !important;
+}
 
 /* Luxury Dark & Gold Custom Components */
 

@@ -341,6 +341,8 @@ export async function ensureDatabaseSchema() {
       { key: "theme_border_radius", val: "16" },
       { key: "theme_shadow", val: "medium" },
       { key: "theme_default_mode", val: "dark" },
+      { key: "theme_font_size", val: "14" },
+      { key: "theme_logo_size", val: "80px" },
       { key: "admin_login_title", val: "ShadMini" },
       { key: "admin_login_subtitle", val: "لوحة الإدارة الفاخرة" },
       { key: "admin_dashboard_welcome", val: "مرحبًا بك في لوحة إدارة ShadMini" },

@@ -16,7 +16,10 @@ import {
   Sliders,
   Layers,
   Check,
-  Info
+  Info,
+  ImageIcon,
+  Maximize,
+  Sparkle
 } from "lucide-react";
 
 type PalettePreset = {
@@ -143,7 +146,10 @@ export default function ThemeNew() {
     theme_border_radius: "16",
     theme_shadow: "medium",
     theme_default_mode: "dark",
+    theme_logo_size: "80px",
   });
+
+  const [brandLogo, setBrandLogo] = useState<string>("");
 
   // Preview Mode Toggle (Temporary Light/Dark for Live Preview)
   const [previewMode, setPreviewMode] = useState<"dark" | "light">("dark");
@@ -169,6 +175,15 @@ export default function ThemeNew() {
             if (s.key.startsWith("theme_")) data[s.key] = s.value;
           });
         }
+      }
+
+      // Fetch public settings for brand logo
+      try {
+        const publicSettings = await get<any>("/settings/public");
+        const logo = publicSettings?.brand_logo_url || publicSettings?.brandLogoUrl || publicSettings?.site_logo || publicSettings?.siteLogo || "";
+        if (logo) setBrandLogo(logo);
+      } catch {
+        // Fallback
       }
 
       const mergedTheme = {
@@ -729,6 +744,79 @@ export default function ThemeNew() {
                 </div>
               </div>
             </div>
+
+            {/* Logo Size & Brand Identity Section */}
+            <div className="bg-[#242424] p-5 rounded-2xl border border-[#C8A45C]/20 shadow-xl space-y-4">
+              <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
+                <h2 className="text-sm font-bold text-[#FDE68A] flex items-center gap-2">
+                  <ImageIcon size={18} className="text-[#C8A45C]" />
+                  الهوية البصرية وحجم الشعار في المتجر (Logo Size)
+                </h2>
+                <span className="font-mono text-xs font-bold text-[#C8A45C] bg-[#1A1A1A] border border-[#C8A45C]/30 px-2.5 py-1 rounded-lg">
+                  {parseInt(String(theme.theme_logo_size || "80")) || 80}px
+                </span>
+              </div>
+
+              <div className="space-y-4 text-xs">
+                {/* Logo Size Slider */}
+                <div className="space-y-2 p-4 bg-[#1A1A1A] rounded-xl border border-zinc-800">
+                  <div className="flex items-center justify-between">
+                    <label className="font-semibold text-zinc-300 flex items-center gap-1.5">
+                      <Maximize size={14} className="text-[#C8A45C]" />
+                      التحكم بحجم الشعار (العرض / الارتفاع التناسبي)
+                    </label>
+                    <span className="font-mono text-[#FDE68A] font-bold text-sm">
+                      {parseInt(String(theme.theme_logo_size || "80")) || 80}px
+                    </span>
+                  </div>
+
+                  <input
+                    type="range"
+                    min="40"
+                    max="160"
+                    step="2"
+                    value={parseInt(String(theme.theme_logo_size || "80")) || 80}
+                    onChange={(e) => handleFieldChange("theme_logo_size", `${e.target.value}px`)}
+                    className="w-full accent-[#C8A45C] cursor-pointer h-2 bg-zinc-800 rounded-lg"
+                  />
+
+                  {/* Preset Pills */}
+                  <div className="pt-2 flex flex-wrap items-center gap-2">
+                    <span className="text-[11px] text-zinc-400 font-medium">أحجام جاهزة:</span>
+                    {[
+                      { label: "صغير", size: "50px" },
+                      { label: "متوسط (افتراضي)", size: "80px" },
+                      { label: "كبير", size: "110px" },
+                      { label: "جامبو", size: "140px" },
+                    ].map((preset) => {
+                      const isCurrent = (parseInt(String(theme.theme_logo_size || "80")) || 80) === parseInt(preset.size);
+                      return (
+                        <button
+                          key={preset.size}
+                          type="button"
+                          onClick={() => handleFieldChange("theme_logo_size", preset.size)}
+                          className={`px-2.5 py-1 rounded-lg text-[11px] font-bold border transition cursor-pointer ${
+                            isCurrent
+                              ? "bg-[#C8A45C] text-black border-[#C8A45C] shadow-xs"
+                              : "bg-[#242424] text-zinc-300 border-zinc-700 hover:border-[#C8A45C] hover:text-white"
+                          }`}
+                        >
+                          {preset.label} ({preset.size})
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="p-3 bg-[#1A1A1A] rounded-xl border border-zinc-800/80 flex items-start gap-2.5 text-zinc-400 text-[11px] leading-relaxed">
+                  <Info size={16} className="text-[#C8A45C] shrink-0 mt-0.5" />
+                  <span>
+                    يُطبق هذا الخيار تلقائياً وفوراً على كافة أماكن ظهور الشعار في واجهة المتجر:
+                    الهيدر العلوي، القائمة الجانبية (Sidebar)، الفوتر، وشاشات تسجيل الدخول وإنشاء الحساب.
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* RIGHT SIDE: LIVE PREVIEW (lg:col-span-5) */}
@@ -777,36 +865,52 @@ export default function ThemeNew() {
                   borderColor: `${theme.theme_primary}40`,
                 }}
               >
-                {/* Header Preview */}
-                <div className="flex items-center justify-between border-b pb-3" style={{ borderColor: `${theme.theme_primary}30` }}>
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="w-8 h-8 flex items-center justify-center font-black"
-                      style={{
-                        backgroundColor: theme.theme_primary,
-                        color: "#000000",
-                        borderRadius: `${Math.max(4, Number(theme.theme_border_radius) - 4)}px`,
-                      }}
-                    >
-                      S
-                    </div>
-                    <div>
-                      <div className="font-extrabold" style={{ color: theme.theme_accent }}>
-                        ShadMini Store
+                {/* Header Preview with Dynamic Logo */}
+                <div className="flex items-center justify-between border-b pb-3 gap-3" style={{ borderColor: `${theme.theme_primary}30` }}>
+                  <div className="flex items-center gap-3 min-w-0">
+                    {brandLogo ? (
+                      <img
+                        src={brandLogo}
+                        alt="Brand Logo"
+                        style={{
+                          height: `${Math.min(64, Math.max(28, Math.round((parseInt(String(theme.theme_logo_size || "80")) || 80) * 0.45)))}px`,
+                          maxWidth: `${Math.min(160, Math.max(70, Math.round((parseInt(String(theme.theme_logo_size || "80")) || 80) * 1.5)))}px`,
+                          objectFit: "contain",
+                          borderRadius: `${Math.max(4, Number(theme.theme_border_radius) - 6)}px`,
+                        }}
+                      />
+                    ) : (
+                      <div
+                        className="flex items-center justify-center font-black transition-all shadow-sm shrink-0"
+                        style={{
+                          width: `${Math.min(48, Math.max(28, Math.round((parseInt(String(theme.theme_logo_size || "80")) || 80) * 0.45)))}px`,
+                          height: `${Math.min(48, Math.max(28, Math.round((parseInt(String(theme.theme_logo_size || "80")) || 80) * 0.45)))}px`,
+                          backgroundColor: theme.theme_primary,
+                          color: "#000000",
+                          borderRadius: `${Math.max(4, Number(theme.theme_border_radius) - 4)}px`,
+                          fontSize: `${Math.min(20, Math.max(12, Math.round((parseInt(String(theme.theme_logo_size || "80")) || 80) * 0.2)))}px`,
+                        }}
+                      >
+                        XP
                       </div>
-                      <div className="text-[10px] opacity-70">متجر الخدمات الرقمية المتميز</div>
+                    )}
+                    <div className="truncate">
+                      <div className="font-extrabold truncate" style={{ color: theme.theme_accent }}>
+                        XPay Store
+                      </div>
+                      <div className="text-[10px] opacity-70 truncate">شعار المتجر الحجم: {parseInt(String(theme.theme_logo_size || "80")) || 80}px</div>
                     </div>
                   </div>
 
                   <span
-                    className="px-2 py-0.5 text-[10px] font-bold"
+                    className="px-2 py-0.5 text-[10px] font-bold shrink-0"
                     style={{
                       backgroundColor: `${theme.theme_primary}20`,
                       color: theme.theme_accent,
                       borderRadius: `${Math.max(4, Number(theme.theme_border_radius) - 6)}px`,
                     }}
                   >
-                    نشط الآن
+                    معاينة حية
                   </span>
                 </div>
 
@@ -860,13 +964,13 @@ export default function ThemeNew() {
 
                 {/* English Text Sample */}
                 <div className="text-[11px] font-mono opacity-60 text-left dir-ltr" style={{ fontFamily: `${theme.theme_font_english}, sans-serif` }}>
-                  Sample English Font ({theme.theme_font_english}) • Border Radius: {theme.theme_border_radius}px
+                  Sample English Font ({theme.theme_font_english}) • Logo Size: {theme.theme_logo_size || "80px"}
                 </div>
               </div>
 
               <div className="text-[11px] text-zinc-500 flex items-center gap-1.5 pt-2">
                 <Info size={14} className="text-[#C8A45C]" />
-                <span>المعاينة تتحدث فوراً عند تغيير أي لون أو خط. احفظ لتطبيقها نهائياً.</span>
+                <span>المعاينة تتحدث فوراً عند تغيير أي خيار أو حجم الشعار. اضغط حفظ لتطبيقها نهائياً.</span>
               </div>
             </div>
           </div>

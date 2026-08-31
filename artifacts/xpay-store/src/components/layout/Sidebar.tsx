@@ -93,11 +93,24 @@ export default function Sidebar({ brandLogo, onClose }: SidebarProps) {
             <img
               src={brandLogo}
               alt="XPay"
-              className="h-10 max-w-[140px] object-contain rounded-xl"
+              className="store-brand-logo object-contain rounded-xl transition-all duration-200"
+              style={{
+                height: "var(--theme-logo-size, 40px)",
+                maxHeight: "72px",
+                maxWidth: "calc(var(--theme-logo-size, 40px) * 3)",
+              }}
             />
           ) : (
             <>
-              <div className="w-10 h-10 rounded-2xl bg-[#C8A45C] text-[#1A1A1A] font-black flex items-center justify-center text-lg shadow-md shadow-[#C8A45C]/25">
+              <div
+                className="rounded-2xl bg-[#C8A45C] text-[#1A1A1A] font-black flex items-center justify-center text-lg shadow-md shadow-[#C8A45C]/25 shrink-0"
+                style={{
+                  width: "var(--theme-logo-size, 40px)",
+                  height: "var(--theme-logo-size, 40px)",
+                  maxHeight: "56px",
+                  maxWidth: "56px",
+                }}
+              >
                 XP
               </div>
               <div>

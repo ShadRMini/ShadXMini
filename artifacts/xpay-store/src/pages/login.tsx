@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/lib/auth-context";
 import { Lock, User, Eye, EyeOff, LogIn, AlertCircle } from "lucide-react";
@@ -14,8 +14,20 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [brandLogo, setBrandLogo] = useState<string>("");
   const { login } = useAuth();
   const [, setLocation] = useLocation();
+
+  useEffect(() => {
+    const baseUrl = apiBaseUrl();
+    fetch(`${baseUrl}/api/settings/public`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        const logo = data?.brand_logo_url || data?.brandLogoUrl || data?.site_logo || data?.siteLogo || "";
+        if (logo) setBrandLogo(logo);
+      })
+      .catch(() => {});
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -75,10 +87,33 @@ export default function Login() {
         <div className="absolute top-0 right-0 w-40 h-40 bg-[#C8A45C]/10 rounded-full blur-3xl pointer-events-none" />
 
         {/* Header with Logo */}
-        <div className="text-center mb-6 relative z-10">
-          <div className="inline-flex w-16 h-16 rounded-2xl bg-[#1A1A1A] border-2 border-[#C8A45C] text-[#C8A45C] text-2xl font-black items-center justify-center shadow-lg shadow-[#C8A45C]/20 mb-3">
-            XP
-          </div>
+        <div className="text-center mb-6 relative z-10 flex flex-col items-center">
+          {brandLogo ? (
+            <Link href="/" className="mb-4 inline-block hover:opacity-90 transition">
+              <img
+                src={brandLogo}
+                alt="XPay"
+                className="store-brand-logo object-contain rounded-2xl transition-all duration-200"
+                style={{
+                  height: "var(--theme-logo-size, 56px)",
+                  maxHeight: "80px",
+                  maxWidth: "calc(var(--theme-logo-size, 56px) * 3)",
+                }}
+              />
+            </Link>
+          ) : (
+            <Link href="/" className="inline-flex rounded-2xl bg-[#1A1A1A] border-2 border-[#C8A45C] text-[#C8A45C] font-black items-center justify-center shadow-lg shadow-[#C8A45C]/20 mb-3 hover:scale-105 transition"
+              style={{
+                width: "var(--theme-logo-size, 56px)",
+                height: "var(--theme-logo-size, 56px)",
+                maxHeight: "72px",
+                maxWidth: "72px",
+                fontSize: "1.5rem",
+              }}
+            >
+              XP
+            </Link>
+          )}
           <h1 className="text-2xl sm:text-3xl font-black text-[#FDE68A] tracking-wide">
             تسجيل الدخول
           </h1>

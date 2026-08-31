@@ -124,11 +124,24 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   src={brandLogo}
                   alt="XPay"
                   onError={() => setBrandLogo("")}
-                  className="h-8 max-w-[120px] object-contain rounded-lg"
+                  className="store-brand-logo object-contain rounded-lg transition-all duration-200"
+                  style={{
+                    height: "var(--theme-logo-size, 36px)",
+                    maxHeight: "56px",
+                    maxWidth: "calc(var(--theme-logo-size, 36px) * 3.5)",
+                  }}
                 />
               ) : (
                 <>
-                  <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#C8A45C] to-[#B8954A] text-[#1A1A1A] font-black flex items-center justify-center text-sm shadow-xs">
+                  <div
+                    className="rounded-xl bg-gradient-to-br from-[#C8A45C] to-[#B8954A] text-[#1A1A1A] font-black flex items-center justify-center text-sm shadow-xs shrink-0"
+                    style={{
+                      width: "var(--theme-logo-size, 32px)",
+                      height: "var(--theme-logo-size, 32px)",
+                      maxHeight: "44px",
+                      maxWidth: "44px",
+                    }}
+                  >
                     XP
                   </div>
                   <span className="font-extrabold text-base text-[var(--text-primary,#FFFFFF)] tracking-wide">

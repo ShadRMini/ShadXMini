@@ -12,6 +12,7 @@ export interface AdminThemeSettings {
   theme_border_radius: string | number;
   theme_shadow: string;
   theme_default_mode: string;
+  theme_logo_size: string;
   [key: string]: any;
 }
 
@@ -27,6 +28,7 @@ export const DEFAULT_ADMIN_THEME: AdminThemeSettings = {
   theme_border_radius: "16",
   theme_shadow: "medium",
   theme_default_mode: "dark",
+  theme_logo_size: "80px",
 };
 
 /**
@@ -88,6 +90,8 @@ export function applyAdminTheme(theme: Partial<AdminThemeSettings> | null | unde
   const rawRadius = theme.theme_border_radius ?? theme.radius ?? DEFAULT_ADMIN_THEME.theme_border_radius;
   const radiusNum = Number(rawRadius);
   const radiusPx = Number.isFinite(radiusNum) && radiusNum >= 0 ? `${radiusNum}px` : "16px";
+  const rawLogoSize = String(theme.theme_logo_size || theme.logoSize || DEFAULT_ADMIN_THEME.theme_logo_size).trim();
+  const logoSizePx = rawLogoSize.includes("px") || rawLogoSize.includes("%") || rawLogoSize.includes("rem") ? rawLogoSize : `${rawLogoSize}px`;
 
   // 1. Ensure Fonts
   ensureGoogleFontsLoaded(fontArabic, fontEnglish);
@@ -105,6 +109,8 @@ export function applyAdminTheme(theme: Partial<AdminThemeSettings> | null | unde
   root.style.setProperty("--font-family-english", `'${fontEnglish}', sans-serif`);
   root.style.setProperty("--font-family-sans", `'${fontArabic}', '${fontEnglish}', system-ui, sans-serif`);
   root.style.setProperty("--radius", radiusPx);
+  root.style.setProperty("--theme-logo-size", logoSizePx);
+  root.style.setProperty("--logo-size", logoSizePx);
 
   // 3. Inject Dynamic Style Tag
   let styleTag = document.getElementById("xpay-dynamic-admin-theme") as HTMLStyleElement | null;
