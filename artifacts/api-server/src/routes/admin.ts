@@ -4393,6 +4393,125 @@ router.put("/admin/settings/show-featured-offers", requireAdmin, async (req, res
   }
 });
 
+// Product Page Config & Settings Admin Routes
+const ADMIN_DEFAULT_PRODUCT_SECTIONS = [
+  { id: "image", visible: true, order: 1, label: "صورة المنتج والبدائل", title: "صورة المنتج" },
+  { id: "title", visible: true, order: 2, label: "اسم المنتج والتصنيف وحالة التوفر", title: "اسم المنتج" },
+  { id: "price", visible: true, order: 3, label: "السعر المباشر والمجموع الكلي", title: "السعر" },
+  { id: "rating", visible: true, order: 4, label: "شارات التقييم وشارات الخدمة", title: "التقييمات" },
+  { id: "description", visible: true, order: 5, label: "وصف المنتج والملاحظات", title: "تفاصيل وملاحظات المنتج:" },
+  { id: "quantity", visible: true, order: 6, label: "تحديد الكمية وباقات الشحن", title: "حدد الكمية المطلوبة:" },
+  { id: "add_to_cart", visible: true, order: 7, label: "زر الإضافة إلى السلة", title: "إضافة إلى السلة", button_text: "إضافة إلى السلة" },
+  { id: "buy_now", visible: true, order: 8, label: "زر الشراء وتأكيد الطلب", title: "تأكيد الشراء الفوري", button_text: "تأكيد الشراء الفوري" },
+  { id: "guarantees", visible: true, order: 9, label: "شارات الأمان والضمان الفوري", title: "ضمانات وأمان الخدمة في المتجر" },
+  { id: "reviews", visible: true, order: 10, label: "آراء وتقييمات العملاء", title: "تقييمات وآراء العملاء على الخدمة" },
+  { id: "related_products", visible: true, order: 11, label: "منتجات ذات صلة من نفس القسم", title: "منتجات ذات صلة بنفس القسم" },
+  { id: "share_buttons", visible: true, order: 12, label: "أزرار المشاركة والمفضلة", title: "مشاركة والمفضلة" },
+  { id: "specifications", visible: false, order: 13, label: "المواصفات التقنية والشحن", title: "المواصفات والتفاصيل التقنية" }
+];
+
+const ADMIN_DEFAULT_PRODUCT_CUSTOMIZATION = {
+  image_size: "250px",
+  price_color: "#FDE68A",
+  button_color: "#C8A45C",
+  button_text_color: "#1A1A1A",
+  bg_color: "#1A1A1A",
+  text_color: "#FFFFFF",
+  border_color: "#C8A45C",
+  border_radius: "16px",
+  font_family: "Cairo"
+};
+
+router.get(["/admin/product-page-settings", "/admin/product-page-config"], requireAdmin, async (_req, res) => {
+  try {
+    let dbConfig: any = null;
+    try {
+      const configRows = await db.select().from(productPageConfigTable).limit(1);
+      if (Array.isArray(configRows) && configRows.length > 0) {
+        dbConfig = configRows[0];
+      }
+    } catch (e) {
+      // fallback
+    }
+
+    const rows = await db.select().from(settingsTable);
+    const map = new Map<string, any>();
+    if (Array.isArray(rows)) {
+      for (const row of rows) {
+        if (row.key) {
+          let val = row.value;
+          if (typeof val === "string") {
+            try { val = JSON.parse(val); } catch {}
+          }
+          map.set(row.key, val);
+        }
+      }
+    }
+
+    const sections = dbConfig?.sections || map.get("product_page_layout") || ADMIN_DEFAULT_PRODUCT_SECTIONS;
+    const customization = dbConfig?.customization || map.get("product_page_style") || ADMIN_DEFAULT_PRODUCT_CUSTOMIZATION;
+    const useLegacy = map.get("use_legacy_product_page") ?? map.get("product_legacy_mode") ?? false;
+
+    res.json({
+      sections,
+      customization,
+      use_legacy_product_page: Boolean(useLegacy === true || useLegacy === "true"),
+      useLegacy: Boolean(useLegacy === true || useLegacy === "true"),
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err?.message || "فشل جلب إعدادات صفحة المنتج" });
+  }
+});
+
+router.put(["/admin/product-page-settings", "/admin/product-page-config"], requireAdmin, async (req, res) => {
+  try {
+    const { sections, customization, use_legacy_product_page, useLegacy } = req.body;
+    const isLegacy = Boolean(use_legacy_product_page === true || use_legacy_product_page === "true" || useLegacy === true || useLegacy === "true");
+
+    try {
+      const existing = await db.select().from(productPageConfigTable).limit(1);
+      if (existing.length > 0) {
+        await db.update(productPageConfigTable).set({
+          sections: sections || existing[0].sections,
+          customization: customization || existing[0].customization,
+          updatedAt: new Date(),
+        }).where(eq(productPageConfigTable.id, existing[0].id));
+      } else {
+        await db.insert(productPageConfigTable).values({
+          sections: sections || ADMIN_DEFAULT_PRODUCT_SECTIONS,
+          customization: customization || ADMIN_DEFAULT_PRODUCT_CUSTOMIZATION,
+        });
+      }
+    } catch (e) {
+      console.error("Error writing productPageConfigTable:", e);
+    }
+
+    if (sections) {
+      await db.insert(settingsTable).values({ key: "product_page_layout", value: sections })
+        .onConflictDoUpdate({ target: settingsTable.key, set: { value: sections } });
+    }
+    if (customization) {
+      await db.insert(settingsTable).values({ key: "product_page_style", value: customization })
+        .onConflictDoUpdate({ target: settingsTable.key, set: { value: customization } });
+    }
+    await db.insert(settingsTable).values({ key: "use_legacy_product_page", value: isLegacy })
+      .onConflictDoUpdate({ target: settingsTable.key, set: { value: isLegacy } });
+    await db.insert(settingsTable).values({ key: "product_legacy_mode", value: isLegacy })
+      .onConflictDoUpdate({ target: settingsTable.key, set: { value: isLegacy } });
+
+    await logActivity(
+      { id: req.session.adminId, name: req.session.adminUsername },
+      "product_page_config_update",
+      "settings",
+      ["sections", "customization", "use_legacy_product_page"]
+    );
+
+    res.json({ success: true, sections, customization, use_legacy_product_page: isLegacy });
+  } catch (err: any) {
+    res.status(500).json({ error: err?.message || "فشل حفظ إعدادات صفحة المنتج" });
+  }
+});
+
 // Generic Settings Fallback Routes
 router.get("/admin/settings/:key", requireAdmin, async (req, res) => {
   try {

@@ -21,8 +21,26 @@ import {
   Maximize2,
   Share2,
   Heart,
-  ImageIcon
+  ImageIcon,
+  GripVertical,
 } from "lucide-react";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 export interface SectionConfig {
   id: string;
@@ -31,6 +49,8 @@ export interface SectionConfig {
   label: string;
   title?: string;
   button_text?: string;
+  subtitle?: string;
+  placeholder?: string;
 }
 
 export interface CustomizationConfig {
@@ -48,17 +68,17 @@ export interface CustomizationConfig {
 const DEFAULT_SECTIONS: SectionConfig[] = [
   { id: "image", visible: true, order: 1, label: "صورة المنتج والبدائل", title: "صورة المنتج" },
   { id: "title", visible: true, order: 2, label: "اسم المنتج والتصنيف وحالة التوفر", title: "اسم المنتج" },
-  { id: "price", visible: true, order: 3, label: "السعر المباشر والمجموع الكلي", title: "السعر" },
-  { id: "rating", visible: true, order: 4, label: "شارات التقييم وشارات الخدمة", title: "التقييمات" },
-  { id: "description", visible: true, order: 5, label: "وصف المنتج والملاحظات", title: "الوصف" },
-  { id: "quantity", visible: true, order: 6, label: "تحديد الكمية وباقات الشحن", title: "اختيار الكمية" },
+  { id: "price", visible: true, order: 3, label: "السعر المباشر والمجموع الكلي", title: "السعر والمجموع" },
+  { id: "rating", visible: true, order: 4, label: "شارات التقييم وشارات الخدمة", title: "التقييمات والتوفر" },
+  { id: "description", visible: true, order: 5, label: "وصف المنتج والملاحظات", title: "تفاصيل وملاحظات المنتج:" },
+  { id: "quantity", visible: true, order: 6, label: "تحديد الكمية وباقات الشحن", title: "حدد الكمية المطلوبة:" },
   { id: "add_to_cart", visible: true, order: 7, label: "زر الإضافة إلى السلة", title: "إضافة إلى السلة", button_text: "إضافة إلى السلة" },
-  { id: "buy_now", visible: true, order: 8, label: "زر الشراء وتأكيد الطلب", title: "شراء الآن", button_text: "شراء الآن" },
-  { id: "guarantees", visible: true, order: 9, label: "شارات الأمان والضمان الفوري", title: "الضمان والراحة" },
-  { id: "reviews", visible: true, order: 10, label: "آراء وتقييمات العملاء", title: "التقييمات والمراجعات" },
-  { id: "related_products", visible: true, order: 11, label: "منتجات ذات صلة من نفس القسم", title: "منتجات قد تعجبك" },
-  { id: "share_buttons", visible: true, order: 12, label: "أزرار المشاركة والمفضلة", title: "مشاركة والمفضلة" },
-  { id: "specifications", visible: false, order: 13, label: "المواصفات التقنية والشحن", title: "المواصفات والتفاصيل" }
+  { id: "buy_now", visible: true, order: 8, label: "زر الشراء وتأكيد الطلب", title: "تأكيد الشراء الفوري", button_text: "تأكيد الشراء الفوري" },
+  { id: "guarantees", visible: true, order: 9, label: "شارات الأمان والضمان الفوري", title: "ضمانات وأمان الخدمة في المتجر" },
+  { id: "reviews", visible: true, order: 10, label: "آراء وتقييمات العملاء", title: "تقييمات وآراء العملاء على الخدمة" },
+  { id: "related_products", visible: true, order: 11, label: "منتجات ذات صلة من نفس القسم", title: "منتجات ذات صلة بنفس القسم" },
+  { id: "share_buttons", visible: true, order: 12, label: "أزرار المشاركة والمفضلة", title: "مشاركة والمفضلة", button_text: "مشاركة الخدمة" },
+  { id: "specifications", visible: false, order: 13, label: "المواصفات التقنية والشحن", title: "المواصفات والتفاصيل التقنية" }
 ];
 
 const DEFAULT_CUSTOMIZATION: CustomizationConfig = {
@@ -80,13 +100,173 @@ const SECTION_ICONS: Record<string, string> = {
   rating: "⭐",
   description: "📝",
   quantity: "🔢",
-  buy_now: "🛒",
+  add_to_cart: "🛒",
+  buy_now: "⚡",
   guarantees: "🛡️",
   reviews: "💬",
   related_products: "📦",
   share_buttons: "🔗",
   specifications: "⚙️"
 };
+
+function SortableSectionItem({
+  sec,
+  idx,
+  totalCount,
+  onMove,
+  onToggleVisible,
+  onTextChange,
+}: {
+  sec: SectionConfig;
+  idx: number;
+  totalCount: number;
+  onMove: (index: number, direction: -1 | 1) => void;
+  onToggleVisible: (id: string) => void;
+  onTextChange: (id: string, field: string, value: string) => void;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: sec.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 50 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`p-3.5 rounded-xl border transition-all duration-200 space-y-3 ${
+        isDragging
+          ? "bg-[#2D2418] border-[#C8A45C] shadow-2xl scale-[1.01] opacity-90"
+          : sec.visible
+          ? "bg-[#1A1A1A] border-zinc-800 text-white"
+          : "bg-[#1A1A1A]/40 border-zinc-800/60 text-zinc-500"
+      }`}
+    >
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2.5 min-w-0">
+          {/* Drag Handle */}
+          <button
+            type="button"
+            {...attributes}
+            {...listeners}
+            className="p-1.5 text-zinc-500 hover:text-[#C8A45C] hover:bg-[#242424] rounded-lg cursor-grab active:cursor-grabbing touch-none transition shrink-0"
+            title="سحب لإعادة الترتيب"
+          >
+            <GripVertical size={18} />
+          </button>
+
+          <span className="w-6 h-6 rounded-lg bg-[#242424] border border-zinc-700 flex items-center justify-center font-mono text-[10px] text-[#C8A45C] font-bold shrink-0">
+            {idx + 1}
+          </span>
+          <span className="text-sm shrink-0">{SECTION_ICONS[sec.id] || "📌"}</span>
+          <div className="min-w-0">
+            <div className="font-bold text-xs flex items-center gap-2 truncate">
+              <span>{sec.label}</span>
+              {!sec.visible && (
+                <span className="text-[9px] bg-red-950/80 text-red-400 border border-red-800/50 px-1.5 py-0.2 rounded font-normal shrink-0">
+                  مخفي
+                </span>
+              )}
+            </div>
+            <span className="text-[10px] text-zinc-500 font-mono block truncate">ID: {sec.id}</span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 shrink-0">
+          {/* Move Up/Down Controls */}
+          <div className="flex items-center gap-1 bg-[#242424] p-1 rounded-lg border border-zinc-800">
+            <button
+              type="button"
+              disabled={idx === 0}
+              onClick={() => onMove(idx, -1)}
+              className="p-1 text-zinc-400 hover:text-white disabled:opacity-30 rounded hover:bg-zinc-800 cursor-pointer"
+              title="تحريك لأعلى"
+            >
+              <ArrowUp size={14} />
+            </button>
+            <button
+              type="button"
+              disabled={idx === totalCount - 1}
+              onClick={() => onMove(idx, 1)}
+              className="p-1 text-zinc-400 hover:text-white disabled:opacity-30 rounded hover:bg-zinc-800 cursor-pointer"
+              title="تحريك لأسفل"
+            >
+              <ArrowDown size={14} />
+            </button>
+          </div>
+
+          {/* Visibility Toggle Button */}
+          <button
+            type="button"
+            onClick={() => onToggleVisible(sec.id)}
+            className={`p-2 rounded-xl border text-xs font-bold transition flex items-center gap-1 cursor-pointer ${
+              sec.visible
+                ? "bg-[#C8A45C]/20 border-[#C8A45C]/50 text-[#FDE68A]"
+                : "bg-zinc-800/60 border-zinc-700 text-zinc-400 hover:text-white"
+            }`}
+          >
+            {sec.visible ? <Eye size={15} /> : <EyeOff size={15} />}
+          </button>
+        </div>
+      </div>
+
+      {/* Editable Fields Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2.5 border-t border-zinc-800/80 text-xs">
+        <div>
+          <label className="text-[10px] text-zinc-400 block mb-1 font-semibold">
+            عنوان العنصر / القسم (Title):
+          </label>
+          <input
+            type="text"
+            value={sec.title || ""}
+            onChange={(e) => onTextChange(sec.id, "title", e.target.value)}
+            placeholder={sec.label}
+            className="w-full bg-[#242424] border border-zinc-800 text-white rounded-lg px-2.5 py-1.5 text-xs focus:border-[#C8A45C] outline-none transition"
+          />
+        </div>
+
+        {(sec.id === "buy_now" || sec.id === "add_to_cart" || sec.id === "share_buttons") && (
+          <div>
+            <label className="text-[10px] text-zinc-400 block mb-1 font-semibold">
+              نص الزر التفاعلي (Button Text):
+            </label>
+            <input
+              type="text"
+              value={sec.button_text || ""}
+              onChange={(e) => onTextChange(sec.id, "button_text", e.target.value)}
+              placeholder="نص الزر"
+              className="w-full bg-[#242424] border border-zinc-800 text-[#FDE68A] font-bold rounded-lg px-2.5 py-1.5 text-xs focus:border-[#C8A45C] outline-none transition"
+            />
+          </div>
+        )}
+
+        {(sec.id === "guarantees" || sec.id === "description" || sec.id === "quantity" || sec.id === "reviews" || sec.id === "related_products" || sec.id === "specifications") && (
+          <div>
+            <label className="text-[10px] text-zinc-400 block mb-1 font-semibold">
+              الوصف الفرعي / النص التوضيحي (Subtitle):
+            </label>
+            <input
+              type="text"
+              value={sec.subtitle || ""}
+              onChange={(e) => onTextChange(sec.id, "subtitle", e.target.value)}
+              placeholder="نص توضيحي فرعي..."
+              className="w-full bg-[#242424] border border-zinc-800 text-zinc-300 rounded-lg px-2.5 py-1.5 text-xs focus:border-[#C8A45C] outline-none transition"
+            />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
 export default function ProductPageSettings() {
   const [sections, setSections] = useState<SectionConfig[]>(DEFAULT_SECTIONS);
@@ -95,13 +275,17 @@ export default function ProductPageSettings() {
   const [loading, setLoading] = useState<boolean>(true);
   const [saving, setSaving] = useState<boolean>(false);
 
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
   const fetchSettings = async () => {
     setLoading(true);
     try {
       const data = await get("/admin/product-page-settings");
       if (data) {
         if (Array.isArray(data.sections)) {
-          // Merge with DEFAULT_SECTIONS if any new sections added
           const existingIds = new Set(data.sections.map((s: any) => s.id));
           const merged = [...data.sections];
           DEFAULT_SECTIONS.forEach((sec) => {
@@ -117,6 +301,8 @@ export default function ProductPageSettings() {
         }
         if (typeof data.use_legacy_product_page === "boolean") {
           setUseLegacy(data.use_legacy_product_page);
+        } else if (typeof data.useLegacy === "boolean") {
+          setUseLegacy(data.useLegacy);
         }
       }
     } catch (err) {
@@ -129,6 +315,21 @@ export default function ProductPageSettings() {
   useEffect(() => {
     fetchSettings();
   }, []);
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      setSections((prev) => {
+        const oldIndex = prev.findIndex((s) => s.id === active.id);
+        const newIndex = prev.findIndex((s) => s.id === over.id);
+        const reordered = arrayMove(prev, oldIndex, newIndex).map((item, idx) => ({
+          ...item,
+          order: idx + 1,
+        }));
+        return reordered;
+      });
+    }
+  };
 
   const handleToggleVisible = (id: string) => {
     setSections((prev) =>
@@ -145,7 +346,6 @@ export default function ProductPageSettings() {
     updated[index] = updated[targetIdx];
     updated[targetIdx] = temp;
 
-    // Recalculate order values
     const reordered = updated.map((item, idx) => ({ ...item, order: idx + 1 }));
     setSections(reordered);
   };
@@ -154,7 +354,7 @@ export default function ProductPageSettings() {
     setCustomization((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSectionTextChange = (id: string, field: "title" | "button_text", value: string) => {
+  const handleSectionTextChange = (id: string, field: string, value: string) => {
     setSections((prev) =>
       prev.map((sec) => (sec.id === id ? { ...sec, [field]: value } : sec))
     );
@@ -176,7 +376,6 @@ export default function ProductPageSettings() {
         // optional fallback
       }
 
-      // Also sync theme-settings for backward compatibility
       await put("/admin/theme-settings", {
         product_image_size: customization.image_size,
         product_bg_color: customization.bg_color,
@@ -223,11 +422,11 @@ export default function ProductPageSettings() {
             <h1 className="text-lg font-black text-[#FDE68A] flex items-center gap-2">
               تخصيص صفحة تفاصيل المنتج والشراء
               <span className="text-[10px] bg-[#C8A45C]/20 text-[#C8A45C] px-2.5 py-0.5 rounded-full border border-[#C8A45C]/30 font-bold">
-                تحكم كامل
+                سحب وإفلات وتعديل النصوص
               </span>
             </h1>
             <p className="text-xs text-zinc-400 mt-0.5">
-              إظهار أو إخفاء أي عنصر، إعادة الترتيب بالكامل، وتعديل المظهر والألوان للمتجر
+              إعادة الترتيب بسحب وإفلات العناصر، إظهار/إخفاء، وتعديل كافة النصوص والألوان
             </p>
           </div>
         </div>
@@ -283,12 +482,12 @@ export default function ProductPageSettings() {
             </div>
           </div>
 
-          {/* 2. Sections Visibility & Reordering */}
+          {/* 2. Sections Visibility & Drag & Drop Reordering */}
           <div className="bg-[#242424] p-5 rounded-2xl border border-[#C8A45C]/30 shadow-xl space-y-4">
             <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
               <div className="flex items-center gap-2">
                 <Sliders size={18} className="text-[#C8A45C]" />
-                <h2 className="text-xs font-bold text-[#FDE68A]">ترتيب وإظهار عناصر الصفحة (Sections Order)</h2>
+                <h2 className="text-xs font-bold text-[#FDE68A]">ترتيب وتعديل عناصر الصفحة (Sections & Text)</h2>
               </div>
               <span className="text-[10px] text-zinc-400 bg-[#1A1A1A] px-2.5 py-1 rounded-full border border-zinc-800 font-mono">
                 {sections.filter((s) => s.visible).length} / {sections.length} ظاهرة
@@ -296,105 +495,26 @@ export default function ProductPageSettings() {
             </div>
 
             <p className="text-[11px] text-zinc-400 leading-relaxed">
-              يمكنك إخفاء أي عنصر تماماً بالنقر على زر العين، أو إعادة ترتيب الظهور باستخدام أزرار الأسهم:
+              اسحب أي عنصر باستخدام أيقونة المقبض <GripVertical size={13} className="inline text-[#C8A45C]" /> لإعادة الترتيب بالسحب والإفلات، أو عدّل عناوين ونصوص الأزرار فورياً:
             </p>
 
-            <div className="space-y-3">
-              {sections.map((sec, idx) => (
-                <div
-                  key={sec.id}
-                  className={`p-3.5 rounded-xl border transition-all duration-200 space-y-2.5 ${
-                    sec.visible
-                      ? "bg-[#1A1A1A] border-zinc-800 text-white"
-                      : "bg-[#1A1A1A]/40 border-zinc-800/60 text-zinc-500 opacity-60"
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <span className="w-6 h-6 rounded-lg bg-[#242424] border border-zinc-700 flex items-center justify-center font-mono text-[10px] text-[#C8A45C] font-bold">
-                        {idx + 1}
-                      </span>
-                      <span className="text-sm">{SECTION_ICONS[sec.id] || "📌"}</span>
-                      <div>
-                        <div className="font-bold text-xs flex items-center gap-2">
-                          <span>{sec.label}</span>
-                          {!sec.visible && (
-                            <span className="text-[9px] bg-red-950/80 text-red-400 border border-red-800/50 px-1.5 py-0.2 rounded font-normal">
-                              مخفي
-                            </span>
-                          )}
-                        </div>
-                        <span className="text-[10px] text-zinc-500 font-mono">ID: {sec.id}</span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      {/* Move Up/Down Controls */}
-                      <div className="flex items-center gap-1 bg-[#242424] p-1 rounded-lg border border-zinc-800">
-                        <button
-                          type="button"
-                          disabled={idx === 0}
-                          onClick={() => handleMove(idx, -1)}
-                          className="p-1 text-zinc-400 hover:text-white disabled:opacity-30 rounded hover:bg-zinc-800 cursor-pointer"
-                          title="تحريك لأعلى"
-                        >
-                          <ArrowUp size={14} />
-                        </button>
-                        <button
-                          type="button"
-                          disabled={idx === sections.length - 1}
-                          onClick={() => handleMove(idx, 1)}
-                          className="p-1 text-zinc-400 hover:text-white disabled:opacity-30 rounded hover:bg-zinc-800 cursor-pointer"
-                          title="تحريك لأسفل"
-                        >
-                          <ArrowDown size={14} />
-                        </button>
-                      </div>
-
-                      {/* Visibility Toggle Button */}
-                      <button
-                        type="button"
-                        onClick={() => handleToggleVisible(sec.id)}
-                        className={`p-2 rounded-xl border text-xs font-bold transition flex items-center gap-1 cursor-pointer ${
-                          sec.visible
-                            ? "bg-[#C8A45C]/20 border-[#C8A45C]/50 text-[#FDE68A]"
-                            : "bg-zinc-800/60 border-zinc-700 text-zinc-400 hover:text-white"
-                        }`}
-                      >
-                        {sec.visible ? <Eye size={15} /> : <EyeOff size={15} />}
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Section Title & Button Text Inputs */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 border-t border-zinc-800/80 text-xs">
-                    <div>
-                      <label className="text-[10px] text-zinc-400 block mb-1">عنوان القسم المخاطب به العميل:</label>
-                      <input
-                        type="text"
-                        value={sec.title || ""}
-                        onChange={(e) => handleSectionTextChange(sec.id, "title", e.target.value)}
-                        placeholder={sec.label}
-                        className="w-full bg-[#242424] border border-zinc-800 text-white rounded-lg px-2.5 py-1.5 text-xs focus:border-[#C8A45C] outline-none"
-                      />
-                    </div>
-
-                    {(sec.id === "buy_now" || sec.id === "add_to_cart") && (
-                      <div>
-                        <label className="text-[10px] text-zinc-400 block mb-1">نص الزر التفاعلي:</label>
-                        <input
-                          type="text"
-                          value={sec.button_text || ""}
-                          onChange={(e) => handleSectionTextChange(sec.id, "button_text", e.target.value)}
-                          placeholder="نص الزر"
-                          className="w-full bg-[#242424] border border-zinc-800 text-[#FDE68A] font-bold rounded-lg px-2.5 py-1.5 text-xs focus:border-[#C8A45C] outline-none"
-                        />
-                      </div>
-                    )}
-                  </div>
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+              <SortableContext items={sections.map((s) => s.id)} strategy={verticalListSortingStrategy}>
+                <div className="space-y-3">
+                  {sections.map((sec, idx) => (
+                    <SortableSectionItem
+                      key={sec.id}
+                      sec={sec}
+                      idx={idx}
+                      totalCount={sections.length}
+                      onMove={handleMove}
+                      onToggleVisible={handleToggleVisible}
+                      onTextChange={handleSectionTextChange}
+                    />
+                  ))}
                 </div>
-              ))}
-            </div>
+              </SortableContext>
+            </DndContext>
           </div>
 
           {/* 3. Style & Color Customization */}
@@ -599,7 +719,7 @@ export default function ProductPageSettings() {
                           >
                             <ShoppingCart className="w-8 h-8 text-[#C8A45C]" />
                           </div>
-                          <span className="text-[10px] text-zinc-400 mt-1">صورة المنتج الرئيسية</span>
+                          <span className="text-[10px] text-zinc-400 mt-1">{sec.title || "صورة المنتج الرئيسية"}</span>
                         </div>
                       );
 
@@ -609,7 +729,7 @@ export default function ProductPageSettings() {
                           <span className="text-[9px] bg-[#C8A45C]/20 text-[#C8A45C] px-2 py-0.5 rounded-full font-bold">
                             بطاقات العرض المميزة
                           </span>
-                          <div className="font-black text-sm text-white">بطاقة شحن رصيد إلكترونية 100$</div>
+                          <div className="font-black text-sm text-white">{sec.title || "بطاقة شحن رصيد إلكترونية 100$"}</div>
                         </div>
                       );
 
@@ -620,7 +740,7 @@ export default function ProductPageSettings() {
                           className="p-3 rounded-xl border flex items-center justify-between my-1 bg-black/30"
                           style={{ borderColor: `${customization.border_color}40` }}
                         >
-                          <span className="text-zinc-400 text-[10px]">السعر الإجمالي:</span>
+                          <span className="text-zinc-400 text-[10px]">{sec.title || "السعر الإجمالي:"}</span>
                           <span className="font-black font-mono text-base" style={{ color: customization.price_color }}>
                             $99.0000
                           </span>
@@ -631,22 +751,23 @@ export default function ProductPageSettings() {
                       return (
                         <div key={sec.id} className="flex items-center gap-2 text-[10px] my-1">
                           <div className="flex text-[#C8A45C]">★★★★★</div>
-                          <span className="text-zinc-400">(4.9/5 بناءً على 120 تقييم)</span>
+                          <span className="text-zinc-400">{sec.subtitle || "(4.9/5 بناءً على 120 تقييم)"}</span>
                           <span className="bg-emerald-950 text-emerald-400 px-1.5 py-0.5 rounded font-bold">متوفر</span>
                         </div>
                       );
 
                     case "description":
                       return (
-                        <div key={sec.id} className="p-2 bg-black/20 rounded-lg text-[10px] text-zinc-300 leading-relaxed my-1">
-                          شحن فوري ومباشر للحساب بدون انتظار. يتطلب أدخال معرف اللاعب (Player ID).
+                        <div key={sec.id} className="p-2 bg-black/20 rounded-lg text-[10px] text-zinc-300 leading-relaxed my-1 space-y-0.5">
+                          <div className="font-bold text-[#C8A45C]">{sec.title || "تفاصيل وملاحظات المنتج:"}</div>
+                          <p>{sec.subtitle || "شحن فوري ومباشر للحساب بدون انتظار."}</p>
                         </div>
                       );
 
                     case "quantity":
                       return (
                         <div key={sec.id} className="space-y-1 my-1">
-                          <div className="text-[10px] font-bold text-zinc-300">الكمية المطلوبة:</div>
+                          <div className="text-[10px] font-bold text-zinc-300">{sec.title || "حدد الكمية المطلوبة:"}</div>
                           <div className="flex gap-1.5">
                             {["1", "2", "5", "10"].map((q, i) => (
                               <div
@@ -662,6 +783,18 @@ export default function ProductPageSettings() {
                         </div>
                       );
 
+                    case "add_to_cart":
+                      return (
+                        <button
+                          key={sec.id}
+                          type="button"
+                          className="w-full py-2 rounded-xl font-bold text-xs border border-zinc-700 bg-zinc-800 text-white transition my-1 flex items-center justify-center gap-1.5"
+                        >
+                          <ShoppingCart size={14} />
+                          {sec.button_text || sec.title || "إضافة إلى السلة"}
+                        </button>
+                      );
+
                     case "buy_now":
                       return (
                         <button
@@ -674,7 +807,7 @@ export default function ProductPageSettings() {
                           }}
                         >
                           <ShoppingCart size={15} />
-                          تأكيد الشراء المباشر ($99.00)
+                          {sec.button_text || sec.title || "تأكيد الشراء المباشر ($99.00)"}
                         </button>
                       );
 
@@ -686,9 +819,9 @@ export default function ProductPageSettings() {
                           style={{ borderColor: `${customization.border_color}30` }}
                         >
                           <div className="font-bold text-[#FDE68A] flex items-center gap-1">
-                            <ShieldCheck size={12} /> ضمان الشحن الآمن وسرعة التنفيذ
+                            <ShieldCheck size={12} /> {sec.title || "ضمانات وأمان الخدمة في المتجر"}
                           </div>
-                          <div className="text-zinc-400">معالجة أوتوماتيكية ودعم على مدار الساعة</div>
+                          <div className="text-zinc-400">{sec.subtitle || "معالجة أوتوماتيكية ودعم على مدار الساعة"}</div>
                         </div>
                       );
 
@@ -696,7 +829,7 @@ export default function ProductPageSettings() {
                       return (
                         <div key={sec.id} className="p-2 bg-black/20 rounded-xl border border-zinc-800 space-y-1 my-1 text-[10px]">
                           <div className="font-bold text-[#C8A45C] flex items-center justify-between">
-                            <span>آراء المشترين ⭐</span>
+                            <span>{sec.title || "آراء وتقييمات العملاء ⭐"}</span>
                             <span>4.9 / 5</span>
                           </div>
                           <div className="text-zinc-400 italic">"خدمة ممتازة وسريعة جداً"</div>
@@ -706,7 +839,7 @@ export default function ProductPageSettings() {
                     case "related_products":
                       return (
                         <div key={sec.id} className="p-2 bg-black/20 rounded-xl border border-zinc-800 space-y-1.5 my-1">
-                          <div className="font-bold text-xs text-[#FDE68A]">منتجات مشابهة</div>
+                          <div className="font-bold text-xs text-[#FDE68A]">{sec.title || "منتجات ذات صلة بنفس القسم"}</div>
                           <div className="grid grid-cols-2 gap-1.5">
                             <div className="p-1.5 bg-zinc-800/80 rounded text-[9px] text-zinc-300">منتج فرعي 50$</div>
                             <div className="p-1.5 bg-zinc-800/80 rounded text-[9px] text-zinc-300">منتج فرعي 200$</div>
@@ -718,7 +851,7 @@ export default function ProductPageSettings() {
                       return (
                         <div key={sec.id} className="flex justify-end gap-2 text-[10px] text-zinc-400 my-1">
                           <span className="flex items-center gap-1 bg-zinc-800 px-2 py-1 rounded">
-                            <Share2 size={10} /> مشاركة
+                            <Share2 size={10} /> {sec.button_text || sec.title || "مشاركة"}
                           </span>
                           <span className="flex items-center gap-1 bg-zinc-800 px-2 py-1 rounded">
                             <Heart size={10} /> المفضلة
@@ -737,3 +870,4 @@ export default function ProductPageSettings() {
     </div>
   );
 }
+

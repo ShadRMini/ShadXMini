@@ -274,18 +274,19 @@ router.get("/public/settings/show-featured-offers", async (_req, res) => {
 });
 
 const DEFAULT_PRODUCT_SECTIONS = [
-  { id: "image", visible: true, order: 1, label: "صورة المنتج والبدائل" },
-  { id: "title", visible: true, order: 2, label: "اسم المنتج والتصنيف وحالة التوفر" },
-  { id: "price", visible: true, order: 3, label: "السعر المباشر والمجموع الكلي" },
-  { id: "rating", visible: true, order: 4, label: "شارات التقييم وشارات الخدمة" },
-  { id: "description", visible: true, order: 5, label: "وصف المنتج والملاحظات" },
-  { id: "quantity", visible: true, order: 6, label: "تحديد الكمية وباقات الشحن" },
-  { id: "buy_now", visible: true, order: 7, label: "زر الشراء وتأكيد الطلب" },
-  { id: "guarantees", visible: true, order: 8, label: "شارات الأمان والضمان الفوري" },
-  { id: "reviews", visible: true, order: 9, label: "آراء وتقييمات العملاء" },
-  { id: "related_products", visible: true, order: 10, label: "منتجات ذات صلة من نفس القسم" },
-  { id: "share_buttons", visible: true, order: 11, label: "أزرار المشاركة والمفضلة" },
-  { id: "specifications", visible: false, order: 12, label: "المواصفات التقنية والشحن" }
+  { id: "image", visible: true, order: 1, label: "صورة المنتج والبدائل", title: "صورة المنتج" },
+  { id: "title", visible: true, order: 2, label: "اسم المنتج والتصنيف وحالة التوفر", title: "اسم المنتج" },
+  { id: "price", visible: true, order: 3, label: "السعر المباشر والمجموع الكلي", title: "السعر" },
+  { id: "rating", visible: true, order: 4, label: "شارات التقييم وشارات الخدمة", title: "التقييمات" },
+  { id: "description", visible: true, order: 5, label: "وصف المنتج والملاحظات", title: "تفاصيل وملاحظات المنتج:" },
+  { id: "quantity", visible: true, order: 6, label: "تحديد الكمية وباقات الشحن", title: "حدد الكمية المطلوبة:" },
+  { id: "add_to_cart", visible: true, order: 7, label: "زر الإضافة إلى السلة", title: "إضافة إلى السلة", button_text: "إضافة إلى السلة" },
+  { id: "buy_now", visible: true, order: 8, label: "زر الشراء وتأكيد الطلب", title: "تأكيد الشراء الفوري", button_text: "تأكيد الشراء الفوري" },
+  { id: "guarantees", visible: true, order: 9, label: "شارات الأمان والضمان الفوري", title: "ضمانات وأمان الخدمة في المتجر" },
+  { id: "reviews", visible: true, order: 10, label: "آراء وتقييمات العملاء", title: "تقييمات وآراء العملاء على الخدمة" },
+  { id: "related_products", visible: true, order: 11, label: "منتجات ذات صلة من نفس القسم", title: "منتجات ذات صلة بنفس القسم" },
+  { id: "share_buttons", visible: true, order: 12, label: "أزرار المشاركة والمفضلة", title: "مشاركة والمفضلة" },
+  { id: "specifications", visible: false, order: 13, label: "المواصفات التقنية والشحن", title: "المواصفات والتفاصيل التقنية" }
 ];
 
 const DEFAULT_PRODUCT_CUSTOMIZATION = {
