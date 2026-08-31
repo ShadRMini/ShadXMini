@@ -273,4 +273,56 @@ router.get("/public/settings/show-featured-offers", async (_req, res) => {
   }
 });
 
+const handleGetProductPageSettings = async (_req: any, res: any) => {
+  try {
+    const rows = await db.select().from(settingsTable);
+    const result: Record<string, any> = {
+      product_image_size: "250px",
+      product_layout_order: ["image", "title", "price", "description", "quantity", "buttons", "reviews", "related", "guarantees"],
+      product_show_reviews: true,
+      product_show_related: true,
+      product_show_guarantees: true,
+      product_bg_color: "#1A1A1A",
+      product_text_color: "#FFFFFF",
+      product_button_color: "#C8A45C",
+      product_border_color: "#C8A45C",
+      product_legacy_mode: false,
+    };
+
+    if (Array.isArray(rows)) {
+      for (const row of rows) {
+        if (row.key && row.key.startsWith("product_")) {
+          let val = row.value;
+          if (typeof val === "string") {
+            try {
+              val = JSON.parse(val);
+            } catch {
+              // use string val as is
+            }
+          }
+          result[row.key] = val;
+        }
+      }
+    }
+
+    res.json(result);
+  } catch (error) {
+    res.json({
+      product_image_size: "250px",
+      product_layout_order: ["image", "title", "price", "description", "quantity", "buttons", "reviews", "related", "guarantees"],
+      product_show_reviews: true,
+      product_show_related: true,
+      product_show_guarantees: true,
+      product_bg_color: "#1A1A1A",
+      product_text_color: "#FFFFFF",
+      product_button_color: "#C8A45C",
+      product_border_color: "#C8A45C",
+      product_legacy_mode: false,
+    });
+  }
+};
+
+router.get("/public/product-page-settings", handleGetProductPageSettings);
+router.get("/product-page-settings", handleGetProductPageSettings);
+
 export default router;

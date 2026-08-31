@@ -817,6 +817,288 @@ export default function ThemeNew() {
                 </div>
               </div>
             </div>
+
+            {/* Product Page Customization Section */}
+            <div className="bg-[#242424] p-5 rounded-2xl border border-[#C8A45C]/30 shadow-xl space-y-5">
+              <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-[#C8A45C]/15 border border-[#C8A45C]/30 flex items-center justify-center text-[#C8A45C]">
+                    <Sliders size={18} />
+                  </div>
+                  <div>
+                    <h2 className="text-sm font-bold text-[#FDE68A]">إعدادات صفحة المنتج / الشراء (Product Page Settings)</h2>
+                    <p className="text-[10px] text-zinc-400">تخصيص حجم الصورة، ترتيب العناصر، الألوان وإظهار/إخفاء الأقسام</p>
+                  </div>
+                </div>
+                <span className="text-[10px] bg-[#1A1A1A] border border-[#C8A45C]/30 text-[#C8A45C] px-2.5 py-1 rounded-full font-bold">
+                  متجر فريد
+                </span>
+              </div>
+
+              <div className="space-y-4 text-xs">
+                {/* 1. Image Size Selector */}
+                <div className="p-4 bg-[#1A1A1A] rounded-xl border border-zinc-800 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <label className="font-bold text-zinc-200 flex items-center gap-1.5">
+                      <ImageIcon size={15} className="text-[#C8A45C]" />
+                      حجم صورة المنتج في صفحة الشراء:
+                    </label>
+                    <span className="font-mono text-[#FDE68A] font-bold text-xs bg-[#242424] px-2 py-0.5 rounded border border-[#C8A45C]/30">
+                      {theme.product_image_size || "250px"}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { label: "صغير", val: "180px", desc: "مناسب للشاشات الصغيرة" },
+                      { label: "متوسط (افتراضي)", val: "250px", desc: "متوافق وأنيق" },
+                      { label: "كبير", val: "350px", desc: "عرض تفاصيل الصور" },
+                    ].map((sz) => {
+                      const active = (theme.product_image_size || "250px") === sz.val;
+                      return (
+                        <button
+                          key={sz.val}
+                          type="button"
+                          onClick={() => handleFieldChange("product_image_size", sz.val)}
+                          className={`p-2.5 rounded-xl border text-right transition cursor-pointer flex flex-col justify-between ${
+                            active
+                              ? "bg-[#C8A45C]/20 border-[#C8A45C] text-[#FDE68A]"
+                              : "bg-[#242424] border-zinc-800 text-zinc-400 hover:border-zinc-700 hover:text-white"
+                          }`}
+                        >
+                          <span className="font-bold text-xs">{sz.label}</span>
+                          <span className="text-[10px] opacity-75 mt-1 font-mono">{sz.val}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* 2. Section Visibility Toggles */}
+                <div className="p-4 bg-[#1A1A1A] rounded-xl border border-zinc-800 space-y-3">
+                  <label className="font-bold text-zinc-200 flex items-center gap-1.5 mb-2">
+                    <Eye size={15} className="text-[#C8A45C]" />
+                    إظهار / إخفاء الأقسام في صفحة الشراء:
+                  </label>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    {/* Reviews Toggle */}
+                    <label className="flex items-center justify-between p-3 bg-[#242424] rounded-xl border border-zinc-800 cursor-pointer hover:border-zinc-700 transition">
+                      <span className="font-bold text-zinc-200 text-xs">إظهار التقييمات وآراء العملاء</span>
+                      <input
+                        type="checkbox"
+                        checked={theme.product_show_reviews !== false && theme.product_show_reviews !== "false"}
+                        onChange={(e) => handleFieldChange("product_show_reviews", e.target.checked)}
+                        className="w-4 h-4 rounded text-[#C8A45C] accent-[#C8A45C]"
+                      />
+                    </label>
+
+                    {/* Related Products Toggle */}
+                    <label className="flex items-center justify-between p-3 bg-[#242424] rounded-xl border border-zinc-800 cursor-pointer hover:border-zinc-700 transition">
+                      <span className="font-bold text-zinc-200 text-xs">إظهار المنتجات ذات الصلة</span>
+                      <input
+                        type="checkbox"
+                        checked={theme.product_show_related !== false && theme.product_show_related !== "false"}
+                        onChange={(e) => handleFieldChange("product_show_related", e.target.checked)}
+                        className="w-4 h-4 rounded text-[#C8A45C] accent-[#C8A45C]"
+                      />
+                    </label>
+
+                    {/* Guarantees Toggle */}
+                    <label className="flex items-center justify-between p-3 bg-[#242424] rounded-xl border border-zinc-800 cursor-pointer hover:border-zinc-700 transition">
+                      <span className="font-bold text-zinc-200 text-xs">إظهار شارات الأمان والضمان</span>
+                      <input
+                        type="checkbox"
+                        checked={theme.product_show_guarantees !== false && theme.product_show_guarantees !== "false"}
+                        onChange={(e) => handleFieldChange("product_show_guarantees", e.target.checked)}
+                        className="w-4 h-4 rounded text-[#C8A45C] accent-[#C8A45C]"
+                      />
+                    </label>
+
+                    {/* Legacy Mode Toggle */}
+                    <label className="flex items-center justify-between p-3 bg-[#242424] rounded-xl border border-zinc-800 cursor-pointer hover:border-zinc-700 transition">
+                      <div className="flex flex-col">
+                        <span className="font-bold text-zinc-200 text-xs">تفعيل العرض الكلاسيكي (Legacy)</span>
+                        <span className="text-[10px] text-zinc-400">بانر خلفية عريض علوي</span>
+                      </div>
+                      <input
+                        type="checkbox"
+                        checked={theme.product_legacy_mode === true || theme.product_legacy_mode === "true"}
+                        onChange={(e) => handleFieldChange("product_legacy_mode", e.target.checked)}
+                        className="w-4 h-4 rounded text-[#C8A45C] accent-[#C8A45C]"
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                {/* 3. Layout Order Control */}
+                <div className="p-4 bg-[#1A1A1A] rounded-xl border border-zinc-800 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <label className="font-bold text-zinc-200 flex items-center gap-1.5">
+                      <Layers size={15} className="text-[#C8A45C]" />
+                      ترتيب عرض عناصر صفحة المنتج:
+                    </label>
+                    <span className="text-[10px] text-zinc-400">استخدم الأزرار لإعادة الترتيب</span>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    {(() => {
+                      const defaultOrder = ["image", "title", "price", "description", "quantity", "buttons", "guarantees", "reviews", "related"];
+                      const currentOrder: string[] = Array.isArray(theme.product_layout_order)
+                        ? theme.product_layout_order
+                        : defaultOrder;
+
+                      const labelsMap: Record<string, { label: string; icon: string }> = {
+                        image: { label: "صورة المنتج والبدائل", icon: "📷" },
+                        title: { label: "اسم المنتج والقسم وحالة التوفر", icon: "🏷️" },
+                        price: { label: "بطاقة السعر الإجمالي والعملة", icon: "💵" },
+                        description: { label: "وصف المنتج وملاحظات الشحن", icon: "📝" },
+                        quantity: { label: "خيارات تحديد الكميات ومحتوى الباقة", icon: "🔢" },
+                        buttons: { label: "زر تأكيد الشراء والمفضلة", icon: "🛒" },
+                        guarantees: { label: "شارات الأمان والضمان الفوري", icon: "🛡️" },
+                        reviews: { label: "آراء وتقييمات المشترين", icon: "⭐" },
+                        related: { label: "المنتجات المشابهة وذات الصلة", icon: "📦" },
+                      };
+
+                      const moveItem = (index: number, direction: -1 | 1) => {
+                        const newArr = [...currentOrder];
+                        const targetIdx = index + direction;
+                        if (targetIdx < 0 || targetIdx >= newArr.length) return;
+                        const temp = newArr[index];
+                        newArr[index] = newArr[targetIdx];
+                        newArr[targetIdx] = temp;
+                        handleFieldChange("product_layout_order", newArr);
+                      };
+
+                      return currentOrder.map((key, idx) => {
+                        const item = labelsMap[key] || { label: key, icon: "📌" };
+                        return (
+                          <div
+                            key={key}
+                            className="flex items-center justify-between p-2.5 bg-[#242424] rounded-xl border border-zinc-800 text-xs"
+                          >
+                            <div className="flex items-center gap-2">
+                              <span className="w-5 h-5 rounded-md bg-[#1A1A1A] border border-zinc-700 flex items-center justify-center font-mono font-bold text-[10px] text-[#C8A45C]">
+                                {idx + 1}
+                              </span>
+                              <span>{item.icon}</span>
+                              <span className="font-bold text-zinc-200">{item.label}</span>
+                            </div>
+
+                            <div className="flex items-center gap-1">
+                              <button
+                                type="button"
+                                disabled={idx === 0}
+                                onClick={() => moveItem(idx, -1)}
+                                className="p-1 text-zinc-400 hover:text-white disabled:opacity-30 bg-[#1A1A1A] rounded-lg border border-zinc-700 cursor-pointer"
+                                title="تحريك لأعلى"
+                              >
+                                ▲
+                              </button>
+                              <button
+                                type="button"
+                                disabled={idx === currentOrder.length - 1}
+                                onClick={() => moveItem(idx, 1)}
+                                className="p-1 text-zinc-400 hover:text-white disabled:opacity-30 bg-[#1A1A1A] rounded-lg border border-zinc-700 cursor-pointer"
+                                title="تحريك لأسفل"
+                              >
+                                ▼
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      });
+                    })()}
+                  </div>
+                </div>
+
+                {/* 4. Color Customization for Product Page */}
+                <div className="p-4 bg-[#1A1A1A] rounded-xl border border-zinc-800 space-y-3">
+                  <label className="font-bold text-zinc-200 flex items-center gap-1.5 mb-2">
+                    <Palette size={15} className="text-[#C8A45C]" />
+                    ألوان مخصصة لصفحة الشراء:
+                  </label>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {/* Background Color */}
+                    <div className="space-y-1 p-2.5 bg-[#242424] rounded-xl border border-zinc-800">
+                      <label className="block text-[11px] font-semibold text-zinc-300">خلفية الصفحة</label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="color"
+                          value={theme.product_bg_color || "#1A1A1A"}
+                          onChange={(e) => handleFieldChange("product_bg_color", e.target.value)}
+                          className="w-8 h-8 rounded-lg border border-zinc-700 bg-transparent cursor-pointer"
+                        />
+                        <input
+                          type="text"
+                          value={theme.product_bg_color || "#1A1A1A"}
+                          onChange={(e) => handleFieldChange("product_bg_color", e.target.value)}
+                          className="flex-1 bg-[#1A1A1A] border border-zinc-700 text-white font-mono px-2.5 py-1 rounded-lg text-xs"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Text Color */}
+                    <div className="space-y-1 p-2.5 bg-[#242424] rounded-xl border border-zinc-800">
+                      <label className="block text-[11px] font-semibold text-zinc-300">لون النص الرئيسي</label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="color"
+                          value={theme.product_text_color || "#FFFFFF"}
+                          onChange={(e) => handleFieldChange("product_text_color", e.target.value)}
+                          className="w-8 h-8 rounded-lg border border-zinc-700 bg-transparent cursor-pointer"
+                        />
+                        <input
+                          type="text"
+                          value={theme.product_text_color || "#FFFFFF"}
+                          onChange={(e) => handleFieldChange("product_text_color", e.target.value)}
+                          className="flex-1 bg-[#1A1A1A] border border-zinc-700 text-white font-mono px-2.5 py-1 rounded-lg text-xs"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Button Color */}
+                    <div className="space-y-1 p-2.5 bg-[#242424] rounded-xl border border-zinc-800">
+                      <label className="block text-[11px] font-semibold text-zinc-300">لون زر الشراء</label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="color"
+                          value={theme.product_button_color || "#C8A45C"}
+                          onChange={(e) => handleFieldChange("product_button_color", e.target.value)}
+                          className="w-8 h-8 rounded-lg border border-zinc-700 bg-transparent cursor-pointer"
+                        />
+                        <input
+                          type="text"
+                          value={theme.product_button_color || "#C8A45C"}
+                          onChange={(e) => handleFieldChange("product_button_color", e.target.value)}
+                          className="flex-1 bg-[#1A1A1A] border border-zinc-700 text-white font-mono px-2.5 py-1 rounded-lg text-xs"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Border Color */}
+                    <div className="space-y-1 p-2.5 bg-[#242424] rounded-xl border border-zinc-800">
+                      <label className="block text-[11px] font-semibold text-zinc-300">لون الإطار والحدود</label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="color"
+                          value={theme.product_border_color || "#C8A45C"}
+                          onChange={(e) => handleFieldChange("product_border_color", e.target.value)}
+                          className="w-8 h-8 rounded-lg border border-zinc-700 bg-transparent cursor-pointer"
+                        />
+                        <input
+                          type="text"
+                          value={theme.product_border_color || "#C8A45C"}
+                          onChange={(e) => handleFieldChange("product_border_color", e.target.value)}
+                          className="flex-1 bg-[#1A1A1A] border border-zinc-700 text-white font-mono px-2.5 py-1 rounded-lg text-xs"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* RIGHT SIDE: LIVE PREVIEW (lg:col-span-5) */}

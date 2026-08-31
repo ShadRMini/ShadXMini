@@ -346,6 +346,16 @@ export async function ensureDatabaseSchema() {
       { key: "admin_login_title", val: "ShadMini" },
       { key: "admin_login_subtitle", val: "لوحة الإدارة الفاخرة" },
       { key: "admin_dashboard_welcome", val: "مرحبًا بك في لوحة إدارة ShadMini" },
+      { key: "product_image_size", val: "250px" },
+      { key: "product_layout_order", val: ["image", "title", "price", "description", "quantity", "buttons", "reviews", "related", "guarantees"] },
+      { key: "product_show_reviews", val: true },
+      { key: "product_show_related", val: true },
+      { key: "product_show_guarantees", val: true },
+      { key: "product_bg_color", val: "#1A1A1A" },
+      { key: "product_text_color", val: "#FFFFFF" },
+      { key: "product_button_color", val: "#C8A45C" },
+      { key: "product_border_color", val: "#C8A45C" },
+      { key: "product_legacy_mode", val: false },
     ];
     for (const item of maintenanceDefaultKeys) {
       const existing: any = await db.execute(sql`SELECT key FROM settings WHERE key = ${item.key}`);

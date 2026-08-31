@@ -2190,7 +2190,25 @@ router.get("/admin/theme-settings", requireAdmin, async (_req, res) => {
       textPrimary: themeTextPrimary,
       font: themeFontArabic,
       radius: themeBorderRadius,
+      // Default product page settings fallbacks
+      product_image_size: map.get("product_image_size") || "250px",
+      product_layout_order: map.get("product_layout_order") || ["image", "title", "price", "description", "quantity", "buttons", "reviews", "related", "guarantees"],
+      product_show_reviews: map.get("product_show_reviews") !== undefined ? map.get("product_show_reviews") : true,
+      product_show_related: map.get("product_show_related") !== undefined ? map.get("product_show_related") : true,
+      product_show_guarantees: map.get("product_show_guarantees") !== undefined ? map.get("product_show_guarantees") : true,
+      product_bg_color: map.get("product_bg_color") || "#1A1A1A",
+      product_text_color: map.get("product_text_color") || "#FFFFFF",
+      product_button_color: map.get("product_button_color") || "#C8A45C",
+      product_border_color: map.get("product_border_color") || "#C8A45C",
+      product_legacy_mode: map.get("product_legacy_mode") !== undefined ? map.get("product_legacy_mode") : false,
     };
+
+    // Include any other product_ keys
+    for (const [key, val] of map.entries()) {
+      if (key.startsWith("product_") && !(key in out)) {
+        out[key] = val;
+      }
+    }
 
     console.log("[Admin Theme] GET /admin/theme-settings loaded settings:", out);
     res.json(out);
