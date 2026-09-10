@@ -3357,28 +3357,254 @@ for (const r of PUT_RESOURCES) {
   });
 }
 
-// ========== VIP ALIAS ==========
+// Helper to parse VIP membership payload
+function parseVipPayload(body: any) {
+  const name = String(body.name || "").trim();
+  const levelOrder = Number(body.level_order ?? body.levelOrder ?? 1);
+  const requiredAmount = String(body.required_amount ?? body.requiredAmount ?? 0);
+  const discountPercent = String(body.discount_percent ?? body.discountPercent ?? body.profit_pct ?? body.profitPct ?? 0);
+  const badgeColor = body.badge_color || body.badgeColor || body.badge || "#C8A45C";
+  const badge = badgeColor;
+  const description = body.description || "";
+  let benefits = body.benefits || [];
+  if (typeof benefits === "string") {
+    try { benefits = JSON.parse(benefits); } catch (e) { benefits = [benefits]; }
+  }
+  const hidden = Boolean(body.hidden);
+
+  return {
+    name,
+    levelOrder,
+    requiredAmount,
+    discountPercent,
+    profitPct: discountPercent,
+    badgeColor,
+    badge,
+    benefits,
+    description,
+    hidden,
+    updatedAt: new Date(),
+  };
+}
+
+// ========== VIP MEMBERSHIPS APIS ==========
+router.get("/admin/vip-memberships", requireAdmin, async (_req, res) => {
+  try {
+    await ensureDatabaseSchema();
+    const rows = await db
+      .select()
+      .from(vipMembershipsTable)
+      .orderBy(sql`level_order ASC, required_amount ASC`);
+    res.json(rows);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.get("/admin/vip", requireAdmin, async (_req, res) => {
-  const rows = await db.select().from(vipMembershipsTable).orderBy(desc(vipMembershipsTable.id));
-  res.json(rows);
+  try {
+    await ensureDatabaseSchema();
+    const rows = await db
+      .select()
+      .from(vipMembershipsTable)
+      .orderBy(sql`level_order ASC, required_amount ASC`);
+    res.json(rows);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
 });
+
+router.post("/admin/vip-memberships", requireAdmin, async (req, res) => {
+  try {
+    await ensureDatabaseSchema();
+    const data = parseVipPayload(req.body);
+    const [row] = await db.insert(vipMembershipsTable).values(data).returning();
+    await logActivity(
+      { id: req.session.adminId, name: req.session.adminUsername },
+      "create",
+      "vip_memberships",
+      { id: row?.id, name: row?.name }
+    );
+    res.json(row);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.post("/admin/vip", requireAdmin, async (req, res) => {
-  const data = filterFields(req.body, ["name", "requiredAmount", "profitPct", "badge", "hidden"]);
-  const [row] = await db.insert(vipMembershipsTable).values(data).returning();
-  res.json(row);
+  try {
+    await ensureDatabaseSchema();
+    const data = parseVipPayload(req.body);
+    const [row] = await db.insert(vipMembershipsTable).values(data).returning();
+    res.json(row);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
 });
+
+router.put("/admin/vip-memberships/:id", requireAdmin, async (req, res) => {
+  try {
+    await ensureDatabaseSchema();
+    const id = Number(req.params.id);
+    const data = parseVipPayload(req.body);
+    const [row] = await db
+      .update(vipMembershipsTable)
+      .set(data)
+      .where(eq(vipMembershipsTable.id, id))
+      .returning();
+    await logActivity(
+      { id: req.session.adminId, name: req.session.adminUsername },
+      "update",
+      "vip_memberships",
+      { id, name: row?.name }
+    );
+    res.json(row);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.put("/admin/vip/:id", requireAdmin, async (req, res) => {
-  const data = filterFields(req.body, ["name", "requiredAmount", "profitPct", "badge", "hidden"]);
-  const [row] = await db
-    .update(vipMembershipsTable)
-    .set(data)
-    .where(eq(vipMembershipsTable.id, Number(req.params.id)))
-    .returning();
-  res.json(row);
+  try {
+    await ensureDatabaseSchema();
+    const id = Number(req.params.id);
+    const data = parseVipPayload(req.body);
+    const [row] = await db
+      .update(vipMembershipsTable)
+      .set(data)
+      .where(eq(vipMembershipsTable.id, id))
+      .returning();
+    res.json(row);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
 });
+
+router.delete("/admin/vip-memberships/:id", requireAdmin, async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    await db.delete(vipMembershipsTable).where(eq(vipMembershipsTable.id, id));
+    await logActivity(
+      { id: req.session.adminId, name: req.session.adminUsername },
+      "delete",
+      "vip_memberships",
+      { id }
+    );
+    res.json({ success: true, id });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.delete("/admin/vip/:id", requireAdmin, async (req, res) => {
-  await db.delete(vipMembershipsTable).where(eq(vipMembershipsTable.id, Number(req.params.id)));
-  res.json({ ok: true });
+  try {
+    const id = Number(req.params.id);
+    await db.delete(vipMembershipsTable).where(eq(vipMembershipsTable.id, id));
+    res.json({ ok: true, id });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.patch("/admin/vip-memberships/reorder", requireAdmin, async (req, res) => {
+  try {
+    const { items } = req.body || {};
+    if (Array.isArray(items)) {
+      for (const item of items) {
+        const id = Number(item.id);
+        const levelOrder = Number(item.level_order ?? item.levelOrder ?? item.order ?? 1);
+        if (id) {
+          await db
+            .update(vipMembershipsTable)
+            .set({ levelOrder, updatedAt: new Date() })
+            .where(eq(vipMembershipsTable.id, id));
+        }
+      }
+    }
+    res.json({ success: true });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.patch("/admin/users/:id/vip-level", requireAdmin, async (req, res) => {
+  try {
+    const userId = Number(req.params.id);
+    const vipLevel = Number(req.body.vip_level ?? req.body.vipLevel ?? req.body.level_order ?? 1);
+
+    if (!userId) {
+      return res.status(400).json({ error: "معرف المستخدم غير صالح" });
+    }
+
+    const [user] = await db
+      .update(usersTable)
+      .set({ vipLevel })
+      .where(eq(usersTable.id, userId))
+      .returning();
+
+    if (!user) {
+      return res.status(404).json({ error: "المستخدم غير موجود" });
+    }
+
+    const [levelInfo] = await db
+      .select()
+      .from(vipMembershipsTable)
+      .where(eq(vipMembershipsTable.levelOrder, vipLevel))
+      .limit(1);
+
+    const levelName = levelInfo?.name || `VIP ${vipLevel}`;
+
+    try {
+      await createInternalNotification({
+        targetType: "user",
+        targetUserId: userId,
+        title: "⚙️ تم تحديث مستوى حسابك من قبل الإدارة",
+        content: `مرحباً ${user.username}، تم تحديث مستوى حسابك رسمياً إلى ${levelName}.`,
+      });
+    } catch (e) {
+      console.warn("Error sending user VIP update notification:", e);
+    }
+
+    await logActivity(
+      { id: req.session.adminId, name: req.session.adminUsername },
+      "update_vip",
+      "user",
+      { userId, vipLevel, levelName }
+    );
+
+    return res.json({ success: true, user, levelName });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+router.get("/admin/users/:id/vip-details", requireAdmin, async (req, res) => {
+  try {
+    const userId = Number(req.params.id);
+    const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId)).limit(1);
+    if (!user) return res.status(404).json({ error: "المستخدم غير موجود" });
+
+    const totalSpent = Number(user.totalSpent || 0);
+    const levels = await db
+      .select()
+      .from(vipMembershipsTable)
+      .where(eq(vipMembershipsTable.hidden, false))
+      .orderBy(sql`level_order ASC, required_amount ASC`);
+
+    let current = levels.find((l) => l.levelOrder === user.vipLevel || l.id === user.vipLevel) || levels[0];
+    const currentIndex = levels.findIndex((l) => l.id === current?.id);
+    const nextLevel = currentIndex >= 0 && currentIndex < levels.length - 1 ? levels[currentIndex + 1] : null;
+
+    res.json({
+      user: { id: user.id, username: user.username, vipLevel: user.vipLevel, totalSpent },
+      currentLevel: current,
+      nextLevel,
+      amountToNextLevel: nextLevel ? Math.max(0, Number(nextLevel.requiredAmount) - totalSpent) : 0,
+      allLevels: levels,
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // ========== BULK DELETE ==========

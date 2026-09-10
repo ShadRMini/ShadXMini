@@ -1,5 +1,5 @@
 import { Router, type IRouter, type Request, type Response } from "express";
-import { db, usersTable } from "@workspace/db";
+import { db, usersTable, vipMembershipsTable } from "@workspace/db";
 import { eq, and, ne, sql } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import {
@@ -201,61 +201,119 @@ router.get("/me", handleGetProfile);
 router.get("/users/me", handleGetProfile);
 router.get("/profile", handleGetProfile);
 
-const ALL_LEVELS = [
-  { id: 1, name: "برونزي", requiredSpent: 0, discountPercent: 0, badgeColor: "amber", icon: "Award" },
-  { id: 2, name: "فضي", requiredSpent: 300, discountPercent: 5, badgeColor: "slate", icon: "Award" },
-  { id: 3, name: "ذهبي", requiredSpent: 500, discountPercent: 10, badgeColor: "yellow", icon: "Trophy" },
-  { id: 4, name: "الماسي", requiredSpent: 1000, discountPercent: 15, badgeColor: "cyan", icon: "Gem" },
-  { id: 5, name: "VIP", requiredSpent: 2500, discountPercent: 20, badgeColor: "purple", icon: "Crown" },
-];
-
 async function handleGetLoyalty(req: Request, res: Response) {
   try {
     const u = await getOrCreateCurrentUser(req);
     const totalSpent = Number(u.totalSpent || 0);
 
-    let current = ALL_LEVELS[0];
-    for (const lvl of ALL_LEVELS) {
-      if (totalSpent >= lvl.requiredSpent) {
-        current = lvl;
+    const dbLevels = await db
+      .select()
+      .from(vipMembershipsTable)
+      .where(eq(vipMembershipsTable.hidden, false))
+      .orderBy(sql`level_order ASC, required_amount ASC`);
+
+    let formattedLevels = (dbLevels || []).map((lvl) => ({
+      id: lvl.id,
+      name: lvl.name,
+      level_order: lvl.levelOrder || lvl.id,
+      levelOrder: lvl.levelOrder || lvl.id,
+      required_amount: Number(lvl.requiredAmount || 0),
+      requiredAmount: Number(lvl.requiredAmount || 0),
+      discount_percent: Number(lvl.discountPercent || lvl.profitPct || 0),
+      discountPercent: Number(lvl.discountPercent || lvl.profitPct || 0),
+      badge_color: lvl.badgeColor || lvl.badge || "#C8A45C",
+      badgeColor: lvl.badgeColor || lvl.badge || "#C8A45C",
+      benefits: Array.isArray(lvl.benefits) ? lvl.benefits : (typeof lvl.benefits === "string" ? JSON.parse(lvl.benefits || "[]") : []),
+      description: lvl.description || "",
+      hidden: lvl.hidden,
+    }));
+
+    if (formattedLevels.length === 0) {
+      formattedLevels = [
+        { id: 1, name: "بروتو (Pro)", level_order: 1, levelOrder: 1, required_amount: 0, requiredAmount: 0, discount_percent: 0, discountPercent: 0, badge_color: "#9CA3AF", badgeColor: "#9CA3AF", benefits: ["خصم 0%"], description: "المستوى الأساسي", hidden: false },
+        { id: 2, name: "فضي (Silver)", level_order: 2, levelOrder: 2, required_amount: 300, requiredAmount: 300, discount_percent: 5, discountPercent: 5, badge_color: "#C0C0C0", badgeColor: "#C0C0C0", benefits: ["خصم 5%"], description: "مستوى مميز", hidden: false },
+        { id: 3, name: "ذهبي (Gold)", level_order: 3, levelOrder: 3, required_amount: 500, requiredAmount: 500, discount_percent: 10, discountPercent: 10, badge_color: "#C8A45C", badgeColor: "#C8A45C", benefits: ["خصم 10%"], description: "مستوى ذهبي", hidden: false },
+        { id: 4, name: "ماسي (Diamond)", level_order: 4, levelOrder: 4, required_amount: 1000, requiredAmount: 1000, discount_percent: 15, discountPercent: 15, badge_color: "#60A5FA", badgeColor: "#60A5FA", benefits: ["خصم 15%"], description: "عضوية ماسية", hidden: false },
+        { id: 5, name: "VIP", level_order: 5, levelOrder: 5, required_amount: 2500, requiredAmount: 2500, discount_percent: 20, discountPercent: 20, badge_color: "#F43F5E", badgeColor: "#F43F5E", benefits: ["خصم 20%"], description: "أعلى مستوى", hidden: false },
+      ];
+    }
+
+    const userVipLevel = Number(u.vipLevel || 1);
+    let currentLevel = formattedLevels.find((l) => l.level_order === userVipLevel || l.id === userVipLevel);
+
+    if (!currentLevel) {
+      currentLevel = formattedLevels[0];
+      for (const lvl of formattedLevels) {
+        if (totalSpent >= lvl.required_amount) {
+          currentLevel = lvl;
+        }
+      }
+    } else {
+      for (const lvl of formattedLevels) {
+        if (totalSpent >= lvl.required_amount && lvl.level_order > currentLevel.level_order) {
+          currentLevel = lvl;
+        }
       }
     }
 
-    const currentIndex = ALL_LEVELS.findIndex((l) => l.id === current.id);
-    const nextLevel = currentIndex < ALL_LEVELS.length - 1 ? ALL_LEVELS[currentIndex + 1] : null;
+    const currentIndex = formattedLevels.findIndex((l) => l.id === currentLevel!.id);
+    const nextLevel = currentIndex >= 0 && currentIndex < formattedLevels.length - 1 ? formattedLevels[currentIndex + 1] : null;
 
     let progressPercent = 100;
-    let amountRemaining = 0;
+    let amountToNextLevel = 0;
 
     if (nextLevel) {
-      const span = nextLevel.requiredSpent - current.requiredSpent;
-      const spentInLevel = totalSpent - current.requiredSpent;
+      const span = nextLevel.required_amount - currentLevel.required_amount;
+      const spentInLevel = totalSpent - currentLevel.required_amount;
       progressPercent = span > 0 ? Math.min(100, Math.max(0, Math.floor((spentInLevel / span) * 100))) : 100;
-      amountRemaining = Math.max(0, nextLevel.requiredSpent - totalSpent);
+      amountToNextLevel = Math.max(0, nextLevel.required_amount - totalSpent);
     }
 
     return res.json({
-      currentLevel: current,
-      totalSpent,
+      currentLevel,
       nextLevel,
+      discountPercent: currentLevel.discount_percent,
+      totalSpent,
       progressPercent,
-      amountRemaining,
-      levels: ALL_LEVELS,
+      amountToNextLevel,
+      amountRemaining: amountToNextLevel,
+      allLevels: formattedLevels,
+      levels: formattedLevels,
     });
   } catch (error: any) {
-    return res.json({
-      currentLevel: ALL_LEVELS[0],
-      totalSpent: 0,
-      nextLevel: ALL_LEVELS[1],
-      progressPercent: 0,
-      amountRemaining: 300,
-      levels: ALL_LEVELS,
-    });
+    console.error("[Get Loyalty Error]:", error);
+    return res.status(500).json({ error: error?.message || "حدث خطأ أثناء جلب المستويات." });
   }
 }
 
-async function handleGetLevels(_req: Request, res: Response) {
-  return res.json(ALL_LEVELS);
+async function handleGetPublicVipMemberships(_req: Request, res: Response) {
+  try {
+    const dbLevels = await db
+      .select()
+      .from(vipMembershipsTable)
+      .where(eq(vipMembershipsTable.hidden, false))
+      .orderBy(sql`level_order ASC, required_amount ASC`);
+
+    const formatted = (dbLevels || []).map((lvl) => ({
+      id: lvl.id,
+      name: lvl.name,
+      level_order: lvl.levelOrder || lvl.id,
+      levelOrder: lvl.levelOrder || lvl.id,
+      required_amount: Number(lvl.requiredAmount || 0),
+      requiredAmount: Number(lvl.requiredAmount || 0),
+      discount_percent: Number(lvl.discountPercent || lvl.profitPct || 0),
+      discountPercent: Number(lvl.discountPercent || lvl.profitPct || 0),
+      badge_color: lvl.badgeColor || lvl.badge || "#C8A45C",
+      badgeColor: lvl.badgeColor || lvl.badge || "#C8A45C",
+      benefits: Array.isArray(lvl.benefits) ? lvl.benefits : (typeof lvl.benefits === "string" ? JSON.parse(lvl.benefits || "[]") : []),
+      description: lvl.description || "",
+      hidden: lvl.hidden,
+    }));
+
+    return res.json(formatted);
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message });
+  }
 }
 
 async function handleGetIdentityVerification(req: Request, res: Response) {
@@ -345,10 +403,13 @@ async function handleSubmitIdentityVerification(req: Request, res: Response) {
 router.get("/me/identity-verification", handleGetIdentityVerification);
 router.post("/me/identity-verification", handleSubmitIdentityVerification);
 
+router.get("/me/vip-details", handleGetLoyalty);
 router.get("/me/loyalty", handleGetLoyalty);
 router.get("/loyalty/me", handleGetLoyalty);
-router.get("/levels", handleGetLevels);
-router.get("/loyalty/levels", handleGetLevels);
+router.get("/public/vip-memberships", handleGetPublicVipMemberships);
+router.get("/public/levels", handleGetPublicVipMemberships);
+router.get("/levels", handleGetPublicVipMemberships);
+router.get("/loyalty/levels", handleGetPublicVipMemberships);
 
 router.patch("/me", handleUpdateProfile);
 router.patch("/users/me", handleUpdateProfile);

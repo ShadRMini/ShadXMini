@@ -1,17 +1,873 @@
-import Crud from "../components/Crud";
+import React, { useEffect, useState } from "react";
+import {
+  Crown,
+  Trophy,
+  Award,
+  Plus,
+  Edit2,
+  Trash2,
+  ArrowUp,
+  ArrowDown,
+  Eye,
+  EyeOff,
+  UserCheck,
+  Search,
+  CheckCircle2,
+  Sparkles,
+  ShieldAlert,
+  Save,
+  X,
+  Layers,
+  Users,
+  Percent,
+  DollarSign
+} from "lucide-react";
+import { get, post, put, del, patch } from "../lib/api";
+import { useToast } from "../hooks/use-toast";
+
+interface VipLevel {
+  id: number;
+  name: string;
+  levelOrder?: number;
+  level_order?: number;
+  requiredAmount?: string | number;
+  required_amount?: string | number;
+  discountPercent?: string | number;
+  discount_percent?: string | number;
+  profitPct?: string | number;
+  badgeColor?: string;
+  badge_color?: string;
+  badge?: string;
+  benefits?: string[] | string;
+  description?: string;
+  hidden?: boolean;
+}
+
+interface UserItem {
+  id: number;
+  username: string;
+  email?: string;
+  vipLevel?: number;
+  totalSpent?: string | number;
+  balanceUsd?: string | number;
+}
 
 export default function VipMemberships() {
+  const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState<"levels" | "users">("levels");
+
+  // Levels state
+  const [levels, setLevels] = useState<VipLevel[]>([]);
+  const [loadingLevels, setLoadingLevels] = useState(true);
+
+  // Edit/Create Modal state
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingLevel, setEditingLevel] = useState<VipLevel | null>(null);
+
+  // Form Fields
+  const [formData, setFormData] = useState({
+    name: "",
+    level_order: 1,
+    required_amount: "0",
+    discount_percent: "0",
+    badge_color: "#C8A45C",
+    description: "",
+    hidden: false,
+  });
+  const [benefitsList, setBenefitsList] = useState<string[]>([]);
+  const [newBenefitInput, setNewBenefitInput] = useState("");
+
+  // Users management state
+  const [users, setUsers] = useState<UserItem[]>([]);
+  const [userSearch, setUserSearch] = useState("");
+  const [loadingUsers, setLoadingUsers] = useState(false);
+  const [selectedUserForEdit, setSelectedUserForEdit] = useState<UserItem | null>(null);
+  const [targetVipLevel, setTargetVipLevel] = useState<number>(1);
+  const [userModalOpen, setUserModalOpen] = useState(false);
+
+  // Load levels
+  const fetchLevels = async () => {
+    try {
+      setLoadingLevels(true);
+      const res = await get<VipLevel[]>("/vip-memberships");
+      if (Array.isArray(res)) {
+        // Sort by level_order ASC
+        const sorted = [...res].sort((a, b) => {
+          const ordA = Number(a.level_order ?? a.levelOrder ?? a.id);
+          const ordB = Number(b.level_order ?? b.levelOrder ?? b.id);
+          return ordA - ordB;
+        });
+        setLevels(sorted);
+      }
+    } catch (err: any) {
+      toast({
+        title: "خطأ في الجلب",
+        description: err.message || "فشل تحميل مستويات VIP",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingLevels(false);
+    }
+  };
+
+  // Load users
+  const fetchUsers = async () => {
+    try {
+      setLoadingUsers(true);
+      const res = await get<any>("/users?limit=100");
+      const list = res.users || res || [];
+      if (Array.isArray(list)) {
+        setUsers(list);
+      }
+    } catch (err: any) {
+      toast({
+        title: "خطأ في الجلب",
+        description: err.message || "فشل تحميل قائمة المستخدمين",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingUsers(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchLevels();
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === "users" && users.length === 0) {
+      fetchUsers();
+    }
+  }, [activeTab]);
+
+  // Open Create Modal
+  const handleOpenCreate = () => {
+    setEditingLevel(null);
+    const maxOrder = levels.length > 0 ? Math.max(...levels.map((l) => Number(l.level_order ?? l.levelOrder ?? 0))) + 1 : 1;
+    setFormData({
+      name: "",
+      level_order: maxOrder,
+      required_amount: "0",
+      discount_percent: "0",
+      badge_color: "#C8A45C",
+      description: "",
+      hidden: false,
+    });
+    setBenefitsList([]);
+    setModalOpen(true);
+  };
+
+  // Open Edit Modal
+  const handleOpenEdit = (lvl: VipLevel) => {
+    setEditingLevel(lvl);
+    let parsedBenefits: string[] = [];
+    if (Array.isArray(lvl.benefits)) {
+      parsedBenefits = lvl.benefits;
+    } else if (typeof lvl.benefits === "string") {
+      try {
+        parsedBenefits = JSON.parse(lvl.benefits);
+      } catch {
+        parsedBenefits = [lvl.benefits];
+      }
+    }
+
+    setFormData({
+      name: lvl.name || "",
+      level_order: Number(lvl.level_order ?? lvl.levelOrder ?? lvl.id),
+      required_amount: String(lvl.required_amount ?? lvl.requiredAmount ?? 0),
+      discount_percent: String(lvl.discount_percent ?? lvl.discountPercent ?? lvl.profitPct ?? 0),
+      badge_color: lvl.badge_color || lvl.badgeColor || lvl.badge || "#C8A45C",
+      description: lvl.description || "",
+      hidden: Boolean(lvl.hidden),
+    });
+    setBenefitsList(parsedBenefits);
+    setModalOpen(true);
+  };
+
+  // Add Benefit Tag
+  const handleAddBenefit = () => {
+    const val = newBenefitInput.trim();
+    if (val) {
+      setBenefitsList([...benefitsList, val]);
+      setNewBenefitInput("");
+    }
+  };
+
+  const handleRemoveBenefit = (index: number) => {
+    setBenefitsList(benefitsList.filter((_, i) => i !== index));
+  };
+
+  // Save Level (Create or Update)
+  const handleSaveLevel = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const payload = {
+        name: formData.name,
+        level_order: Number(formData.level_order),
+        required_amount: formData.required_amount,
+        discount_percent: formData.discount_percent,
+        badge_color: formData.badge_color,
+        description: formData.description,
+        benefits: benefitsList,
+        hidden: formData.hidden,
+      };
+
+      if (editingLevel) {
+        await put(`/vip-memberships/${editingLevel.id}`, payload);
+        toast({ title: "تم التحديث", description: "تم تحديث المستوى بنجاح" });
+      } else {
+        await post("/vip-memberships", payload);
+        toast({ title: "تم الإضافة", description: "تم إضافة المستوى الجديد بنجاح" });
+      }
+
+      setModalOpen(false);
+      fetchLevels();
+    } catch (err: any) {
+      toast({
+        title: "خطأ بالحفظ",
+        description: err.message || "فشل حفظ بيانات المستوى",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Delete Level
+  const handleDeleteLevel = async (id: number, name: string) => {
+    if (!window.confirm(`هل أنت تأكد من حذف المستوى "${name}"؟`)) return;
+    try {
+      await del(`/vip-memberships/${id}`);
+      toast({ title: "تم الحذف", description: "تم حذف المستوى بنجاح" });
+      fetchLevels();
+    } catch (err: any) {
+      toast({
+        title: "خطأ بالحذف",
+        description: err.message || "فشل حذف المستوى",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Reorder level up/down
+  const handleMoveOrder = async (index: number, direction: "up" | "down") => {
+    const targetIndex = direction === "up" ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= levels.length) return;
+
+    const newLevels = [...levels];
+    const temp = newLevels[index];
+    newLevels[index] = newLevels[targetIndex];
+    newLevels[targetIndex] = temp;
+
+    // Update level_order numbers
+    const itemsToUpdate = newLevels.map((lvl, idx) => ({
+      id: lvl.id,
+      level_order: idx + 1,
+    }));
+
+    setLevels(newLevels.map((l, idx) => ({ ...l, level_order: idx + 1, levelOrder: idx + 1 })));
+
+    try {
+      await patch("/vip-memberships/reorder", { items: itemsToUpdate });
+      toast({ title: "تم الترتيب", description: "تم تحديث ترتيب المستويات بنجاح" });
+    } catch (err: any) {
+      toast({
+        title: "خطأ بالترتيب",
+        description: err.message || "فشل حفظ الترتيب الجديد",
+        variant: "destructive",
+      });
+      fetchLevels();
+    }
+  };
+
+  // User VIP Level Update
+  const handleOpenUserVipModal = (u: UserItem) => {
+    setSelectedUserForEdit(u);
+    setTargetVipLevel(u.vipLevel || 1);
+    setUserModalOpen(true);
+  };
+
+  const handleSaveUserVipLevel = async () => {
+    if (!selectedUserForEdit) return;
+    try {
+      await patch(`/users/${selectedUserForEdit.id}/vip-level`, {
+        vipLevel: targetVipLevel,
+      });
+      toast({
+        title: "تم تحديث مستوى المستخدم",
+        description: `تم تغيير مستوى المستخدم ${selectedUserForEdit.username} إلى المستوى رقم ${targetVipLevel} بنجاح.`,
+      });
+      setUserModalOpen(false);
+      fetchUsers();
+    } catch (err: any) {
+      toast({
+        title: "خطأ بالتحديث",
+        description: err.message || "فشل تحديث مستوى المستخدم",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Filtered users search
+  const filteredUsers = users.filter(
+    (u) =>
+      u.username?.toLowerCase().includes(userSearch.toLowerCase()) ||
+      u.email?.toLowerCase().includes(userSearch.toLowerCase()) ||
+      String(u.id).includes(userSearch)
+  );
+
   return (
-    <Crud
-      resource="vip"
-      title="عضويات VIP"
-      fields={[
-        { name: "name", label: "الاسم", type: "text", required: true },
-        { name: "requiredAmount", label: "المبلغ المطلوب ($)", type: "number", required: true, step: "0.01" },
-        { name: "profitPct", label: "نسبة الخصم %", type: "number", required: true, step: "0.01" },
-        { name: "badge", label: "لون الشارة", type: "text", placeholder: "#fbbf24" },
-        { name: "hidden", label: "مخفي", type: "boolean", default: false },
-      ]}
-    />
+    <div className="p-4 sm:p-8 space-y-8 bg-[#121212] min-h-screen text-white font-sans" dir="rtl">
+      
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-zinc-800 pb-6">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-black text-[#C8A45C] flex items-center gap-3">
+            <Crown className="w-8 h-8 text-[#C8A45C]" />
+            <span>عضويات VIP ومستويات الولاء</span>
+          </h1>
+          <p className="text-zinc-400 text-xs sm:text-sm mt-1">
+            إدارة وتخصيص مستويات العضوية، نسبة الخصم، وشروط ترقية المستخدمين تلقائياً أو يدوياً
+          </p>
+        </div>
+
+        <button
+          onClick={handleOpenCreate}
+          className="bg-gradient-to-r from-[#C8A45C] to-[#E5C178] hover:from-[#b08e46] hover:to-[#C8A45C] text-black font-extrabold px-5 py-2.5 rounded-xl transition-all shadow-lg shadow-[#C8A45C]/20 flex items-center justify-center gap-2"
+        >
+          <Plus className="w-5 h-5" />
+          <span>إضافة مستوى VIP جديد</span>
+        </button>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex border-b border-zinc-800 gap-2">
+        <button
+          onClick={() => setActiveTab("levels")}
+          className={`px-5 py-3 font-bold text-sm sm:text-base border-b-2 transition-all flex items-center gap-2 ${
+            activeTab === "levels"
+              ? "border-[#C8A45C] text-[#C8A45C]"
+              : "border-transparent text-zinc-400 hover:text-zinc-200"
+          }`}
+        >
+          <Layers className="w-4 h-4" />
+          <span>إدارة مستويات العضوية ({levels.length})</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab("users")}
+          className={`px-5 py-3 font-bold text-sm sm:text-base border-b-2 transition-all flex items-center gap-2 ${
+            activeTab === "users"
+              ? "border-[#C8A45C] text-[#C8A45C]"
+              : "border-transparent text-zinc-400 hover:text-zinc-200"
+          }`}
+        >
+          <Users className="w-4 h-4" />
+          <span>تخصيص مستويات المستخدمين</span>
+        </button>
+      </div>
+
+      {/* TAB 1: LEVELS MANAGEMENT */}
+      {activeTab === "levels" && (
+        <div className="space-y-6">
+          {loadingLevels ? (
+            <div className="text-center py-16 text-[#C8A45C] space-y-3">
+              <Crown className="w-10 h-10 animate-spin mx-auto" />
+              <p className="text-sm">جاري تحميل مستويات VIP...</p>
+            </div>
+          ) : levels.length === 0 ? (
+            <div className="text-center py-16 border border-dashed border-zinc-800 rounded-2xl bg-[#1A1A1A]">
+              <Crown className="w-12 h-12 text-zinc-600 mx-auto mb-3" />
+              <h3 className="text-lg font-bold text-zinc-300">لا توجد مستويات معرفة بعد</h3>
+              <p className="text-xs text-zinc-500 mt-1 mb-4">قم بإنشاء مستويات عضوية لمنح الخصومات للعملاء</p>
+              <button
+                onClick={handleOpenCreate}
+                className="bg-[#C8A45C] text-black font-bold px-4 py-2 rounded-xl text-xs hover:bg-[#b08e46]"
+              >
+                إنشاء أول مستوى
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-4">
+              {levels.map((lvl, index) => {
+                const reqAmt = Number(lvl.required_amount ?? lvl.requiredAmount ?? 0);
+                const discPct = Number(lvl.discount_percent ?? lvl.discountPercent ?? lvl.profitPct ?? 0);
+                const color = lvl.badge_color || lvl.badgeColor || lvl.badge || "#C8A45C";
+                const isHidden = Boolean(lvl.hidden);
+
+                let parsedBenefits: string[] = [];
+                if (Array.isArray(lvl.benefits)) parsedBenefits = lvl.benefits;
+                else if (typeof lvl.benefits === "string") {
+                  try {
+                    parsedBenefits = JSON.parse(lvl.benefits);
+                  } catch {
+                    parsedBenefits = [lvl.benefits];
+                  }
+                }
+
+                return (
+                  <div
+                    key={lvl.id}
+                    className={`p-5 rounded-2xl border transition-all bg-[#1A1A1A]/90 flex flex-col md:flex-row md:items-center justify-between gap-4 ${
+                      isHidden ? "border-zinc-800 opacity-60" : "border-zinc-800 hover:border-[#C8A45C]/50"
+                    }`}
+                  >
+                    {/* Level Details */}
+                    <div className="flex items-start md:items-center gap-4">
+                      {/* Reorder Buttons */}
+                      <div className="flex flex-col gap-1 shrink-0">
+                        <button
+                          disabled={index === 0}
+                          onClick={() => handleMoveOrder(index, "up")}
+                          className="p-1 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-400 disabled:opacity-30 disabled:hover:bg-zinc-800"
+                          title="تحريك لأعلى"
+                        >
+                          <ArrowUp className="w-3.5 h-3.5" />
+                        </button>
+                        <span className="text-[11px] font-mono text-center text-zinc-500 font-bold">
+                          #{lvl.level_order ?? lvl.levelOrder ?? index + 1}
+                        </span>
+                        <button
+                          disabled={index === levels.length - 1}
+                          onClick={() => handleMoveOrder(index, "down")}
+                          className="p-1 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-400 disabled:opacity-30 disabled:hover:bg-zinc-800"
+                          title="تحريك لأسفل"
+                        >
+                          <ArrowDown className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+
+                      {/* Badge Circle */}
+                      <div
+                        className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 shadow-md font-bold text-black text-lg border border-white/10"
+                        style={{ backgroundColor: color }}
+                      >
+                        <Crown className="w-6 h-6 text-black" />
+                      </div>
+
+                      {/* Details Text */}
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h3 className="font-extrabold text-lg text-white">{lvl.name}</h3>
+                          <span
+                            className="text-[11px] font-bold px-2.5 py-0.5 rounded-md border"
+                            style={{
+                              borderColor: `${color}60`,
+                              backgroundColor: `${color}20`,
+                              color: color,
+                            }}
+                          >
+                            خصم {discPct}%
+                          </span>
+                          {isHidden ? (
+                            <span className="text-[10px] bg-red-950/80 text-red-400 border border-red-800 px-2 py-0.5 rounded flex items-center gap-1">
+                              <EyeOff className="w-3 h-3" /> مخفي
+                            </span>
+                          ) : (
+                            <span className="text-[10px] bg-emerald-950/80 text-emerald-400 border border-emerald-800 px-2 py-0.5 rounded flex items-center gap-1">
+                              <Eye className="w-3 h-3" /> ظاهر
+                            </span>
+                          )}
+                        </div>
+
+                        <p className="text-xs text-zinc-400">
+                          الإنفاق المطلوب للترقية: <strong className="text-[#C8A45C] font-mono">${reqAmt}</strong>
+                        </p>
+
+                        {lvl.description && (
+                          <p className="text-xs text-zinc-500 italic line-clamp-1">{lvl.description}</p>
+                        )}
+
+                        {/* Benefits Chips */}
+                        {parsedBenefits.length > 0 && (
+                          <div className="flex flex-wrap gap-1.5 pt-1">
+                            {parsedBenefits.map((b, i) => (
+                              <span
+                                key={i}
+                                className="text-[10px] bg-zinc-800/80 border border-zinc-700/80 text-zinc-300 px-2 py-0.5 rounded-md flex items-center gap-1"
+                              >
+                                <CheckCircle2 className="w-2.5 h-2.5 text-[#C8A45C]" />
+                                {b}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex items-center gap-2 self-end md:self-center">
+                      <button
+                        onClick={() => handleOpenEdit(lvl)}
+                        className="px-3.5 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-bold transition-all flex items-center gap-1.5 border border-zinc-700"
+                      >
+                        <Edit2 className="w-3.5 h-3.5 text-[#C8A45C]" />
+                        <span>تعديل</span>
+                      </button>
+
+                      <button
+                        onClick={() => handleDeleteLevel(lvl.id, lvl.name)}
+                        className="px-3 py-2 rounded-xl bg-red-950/50 hover:bg-red-900/80 text-red-400 hover:text-white text-xs font-bold transition-all border border-red-900/60 flex items-center gap-1"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>حذف</span>
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* TAB 2: USER VIP MANAGEMENT */}
+      {activeTab === "users" && (
+        <div className="space-y-6">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-[#1A1A1A] p-4 rounded-2xl border border-zinc-800">
+            <div className="relative w-full sm:w-80">
+              <Search className="w-4 h-4 absolute right-3.5 top-3 text-zinc-500" />
+              <input
+                type="text"
+                placeholder="ابحث باسم المستخدم، البريد، أو المعرف..."
+                value={userSearch}
+                onChange={(e) => setUserSearch(e.target.value)}
+                className="w-full bg-[#121212] border border-zinc-700 rounded-xl pr-10 pl-4 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-[#C8A45C]"
+              />
+            </div>
+            <button
+              onClick={fetchUsers}
+              className="text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold px-4 py-2 rounded-xl border border-zinc-700 transition-all"
+            >
+              تحديث قائمة المستخدمين
+            </button>
+          </div>
+
+          {loadingUsers ? (
+            <div className="text-center py-12 text-[#C8A45C] space-y-2">
+              <Crown className="w-8 h-8 animate-spin mx-auto" />
+              <p className="text-xs">جاري تحميل قائمة المستخدمين...</p>
+            </div>
+          ) : (
+            <div className="bg-[#1A1A1A] border border-zinc-800 rounded-2xl overflow-hidden shadow-xl">
+              <div className="overflow-x-auto">
+                <table className="w-full text-right text-xs">
+                  <thead className="bg-[#121212] text-zinc-400 border-b border-zinc-800">
+                    <tr>
+                      <th className="p-4 font-bold"># ID</th>
+                      <th className="p-4 font-bold">المستخدم</th>
+                      <th className="p-4 font-bold">إجمالي الإنفاق ($)</th>
+                      <th className="p-4 font-bold">المستوى الحالي</th>
+                      <th className="p-4 font-bold text-center">الإجراء</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-zinc-800/60 text-zinc-200">
+                    {filteredUsers.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="p-8 text-center text-zinc-500">
+                          لا يوجد مستخدمين يطابقون خيارات البحث
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredUsers.map((u) => {
+                        const userLevelObj = levels.find((l) => Number(l.level_order ?? l.levelOrder ?? l.id) === u.vipLevel) || levels[0];
+                        const levelName = userLevelObj?.name || `مستوى ${u.vipLevel || 1}`;
+                        const badgeColor = userLevelObj?.badge_color || userLevelObj?.badgeColor || "#C8A45C";
+
+                        return (
+                          <tr key={u.id} className="hover:bg-zinc-800/40 transition-all">
+                            <td className="p-4 font-mono font-bold text-zinc-400">#{u.id}</td>
+                            <td className="p-4 font-bold">
+                              <div>{u.username}</div>
+                              {u.email && <div className="text-[11px] text-zinc-500 font-normal">{u.email}</div>}
+                            </td>
+                            <td className="p-4 font-mono font-bold text-[#C8A45C]">
+                              ${Number(u.totalSpent || 0).toFixed(2)}
+                            </td>
+                            <td className="p-4">
+                              <span
+                                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold border"
+                                style={{
+                                  backgroundColor: `${badgeColor}20`,
+                                  borderColor: `${badgeColor}50`,
+                                  color: badgeColor,
+                                }}
+                              >
+                                <Crown className="w-3.5 h-3.5" />
+                                {levelName}
+                              </span>
+                            </td>
+                            <td className="p-4 text-center">
+                              <button
+                                onClick={() => handleOpenUserVipModal(u)}
+                                className="bg-[#C8A45C]/15 hover:bg-[#C8A45C] text-[#C8A45C] hover:text-black border border-[#C8A45C]/40 px-3 py-1.5 rounded-xl font-bold transition-all text-xs flex items-center gap-1 mx-auto"
+                              >
+                                <UserCheck className="w-3.5 h-3.5" />
+                                <span>تعديل الرتبة</span>
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* CREATE / EDIT VIP LEVEL MODAL */}
+      {modalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in" dir="rtl">
+          <div className="bg-[#1A1A1A] border border-[#C8A45C]/60 rounded-3xl p-6 w-full max-w-xl shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
+            
+            <div className="flex items-center justify-between border-b border-zinc-800 pb-4">
+              <h3 className="text-xl font-black text-[#C8A45C] flex items-center gap-2">
+                <Crown className="w-6 h-6 text-[#C8A45C]" />
+                <span>{editingLevel ? "تعديل مستوى VIP" : "إضافة مستوى VIP جديد"}</span>
+              </h3>
+              <button
+                onClick={() => setModalOpen(false)}
+                className="p-1 rounded-lg hover:bg-zinc-800 text-zinc-400 hover:text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveLevel} className="space-y-4 text-xs">
+              
+              {/* Name & Order */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-zinc-300 font-bold block">اسم المستوى *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="مثال: ذهبي (Gold)"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    className="w-full bg-[#121212] border border-zinc-700 rounded-xl p-3 text-white focus:outline-none focus:border-[#C8A45C]"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-zinc-300 font-bold block">ترتيب المستوى (Level Order) *</label>
+                  <input
+                    type="number"
+                    required
+                    min="1"
+                    value={formData.level_order}
+                    onChange={(e) => setFormData({ ...formData, level_order: Number(e.target.value) })}
+                    className="w-full bg-[#121212] border border-zinc-700 rounded-xl p-3 text-white focus:outline-none focus:border-[#C8A45C]"
+                  />
+                </div>
+              </div>
+
+              {/* Required Spent & Discount Pct */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-zinc-300 font-bold block">إجمالي الإنفاق المطلوب ($) *</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    required
+                    value={formData.required_amount}
+                    onChange={(e) => setFormData({ ...formData, required_amount: e.target.value })}
+                    className="w-full bg-[#121212] border border-zinc-700 rounded-xl p-3 text-white font-mono focus:outline-none focus:border-[#C8A45C]"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-zinc-300 font-bold block">نسبة الخصم (%) *</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    required
+                    value={formData.discount_percent}
+                    onChange={(e) => setFormData({ ...formData, discount_percent: e.target.value })}
+                    className="w-full bg-[#121212] border border-zinc-700 rounded-xl p-3 text-white font-mono focus:outline-none focus:border-[#C8A45C]"
+                  />
+                </div>
+              </div>
+
+              {/* Badge Color Picker */}
+              <div className="space-y-1.5">
+                <label className="text-zinc-300 font-bold block">لون الشارة (Badge Color)</label>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="color"
+                    value={formData.badge_color}
+                    onChange={(e) => setFormData({ ...formData, badge_color: e.target.value })}
+                    className="w-12 h-10 rounded-xl cursor-pointer bg-transparent border-0 p-0"
+                  />
+                  <input
+                    type="text"
+                    value={formData.badge_color}
+                    onChange={(e) => setFormData({ ...formData, badge_color: e.target.value })}
+                    className="flex-1 bg-[#121212] border border-zinc-700 rounded-xl p-3 font-mono text-white focus:outline-none focus:border-[#C8A45C]"
+                    placeholder="#C8A45C"
+                  />
+                </div>
+              </div>
+
+              {/* Description */}
+              <div className="space-y-1.5">
+                <label className="text-zinc-300 font-bold block">وصف المستوى</label>
+                <textarea
+                  rows={2}
+                  placeholder="وصف مختصر للمزايا والخصومات لهذا المستوى..."
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  className="w-full bg-[#121212] border border-zinc-700 rounded-xl p-3 text-white focus:outline-none focus:border-[#C8A45C]"
+                />
+              </div>
+
+              {/* Benefits List Input */}
+              <div className="space-y-2">
+                <label className="text-zinc-300 font-bold block">مزايا المستوى (Benefits)</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="إضافة ميزة (مثال: دعم فني سريع 24/7)"
+                    value={newBenefitInput}
+                    onChange={(e) => setNewBenefitInput(e.target.value)}
+                    className="flex-1 bg-[#121212] border border-zinc-700 rounded-xl p-2.5 text-white focus:outline-none focus:border-[#C8A45C]"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleAddBenefit();
+                      }
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddBenefit}
+                    className="bg-zinc-800 hover:bg-zinc-700 text-[#C8A45C] font-bold px-4 py-2.5 rounded-xl border border-zinc-700 transition-all"
+                  >
+                    إضافة
+                  </button>
+                </div>
+
+                <div className="flex flex-wrap gap-2 pt-2">
+                  {benefitsList.map((benefit, idx) => (
+                    <span
+                      key={idx}
+                      className="bg-zinc-800 text-zinc-200 border border-zinc-700 px-3 py-1 rounded-xl text-xs flex items-center gap-1.5"
+                    >
+                      <span>{benefit}</span>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveBenefit(idx)}
+                        className="text-red-400 hover:text-red-300"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Hidden Toggle */}
+              <div className="pt-2">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.hidden}
+                    onChange={(e) => setFormData({ ...formData, hidden: e.target.checked })}
+                    className="w-4 h-4 rounded accent-[#C8A45C]"
+                  />
+                  <span className="text-zinc-300 font-bold">إخفاء هذا المستوى من المتجر العام</span>
+                </label>
+              </div>
+
+              {/* Submit Buttons */}
+              <div className="flex items-center gap-3 pt-4 border-t border-zinc-800">
+                <button
+                  type="submit"
+                  className="flex-1 bg-gradient-to-r from-[#C8A45C] to-[#E5C178] hover:from-[#b08e46] hover:to-[#C8A45C] text-black font-extrabold py-3 rounded-xl transition-all shadow-lg shadow-[#C8A45C]/20 flex items-center justify-center gap-2"
+                >
+                  <Save className="w-4 h-4" />
+                  <span>{editingLevel ? "حفظ التغيرات" : "إنشاء المستوى"}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setModalOpen(false)}
+                  className="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold py-3 px-5 rounded-xl transition-all"
+                >
+                  إلغاء
+                </button>
+              </div>
+
+            </form>
+
+          </div>
+        </div>
+      )}
+
+      {/* USER VIP LEVEL EDIT MODAL */}
+      {userModalOpen && selectedUserForEdit && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in" dir="rtl">
+          <div className="bg-[#1A1A1A] border border-[#C8A45C]/60 rounded-3xl p-6 w-full max-w-md shadow-2xl space-y-5">
+            <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
+              <h3 className="text-lg font-black text-[#C8A45C] flex items-center gap-2">
+                <UserCheck className="w-5 h-5" />
+                <span>تعديل رتبة المستخدم</span>
+              </h3>
+              <button
+                onClick={() => setUserModalOpen(false)}
+                className="p-1 rounded-lg hover:bg-zinc-800 text-zinc-400 hover:text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div className="bg-[#121212] p-4 rounded-xl border border-zinc-800 space-y-1.5">
+                <div className="text-zinc-400">المستخدم: <strong className="text-white">{selectedUserForEdit.username}</strong></div>
+                <div className="text-zinc-400">إجمالي الإنفاق: <strong className="text-[#C8A45C] font-mono">${Number(selectedUserForEdit.totalSpent || 0).toFixed(2)}</strong></div>
+                <div className="text-zinc-400">المستوى الحالي: <strong className="text-[#FDE68A]">رقم {selectedUserForEdit.vipLevel || 1}</strong></div>
+              </div>
+
+              <div className="space-y-1.5 pt-2">
+                <label className="text-zinc-300 font-bold block">اختر المستوى الجديد للمستخدم:</label>
+                <select
+                  value={targetVipLevel}
+                  onChange={(e) => setTargetVipLevel(Number(e.target.value))}
+                  className="w-full bg-[#121212] border border-zinc-700 rounded-xl p-3 text-white font-bold focus:outline-none focus:border-[#C8A45C]"
+                >
+                  {levels.map((lvl) => {
+                    const orderNum = Number(lvl.level_order ?? lvl.levelOrder ?? lvl.id);
+                    return (
+                      <option key={lvl.id} value={orderNum}>
+                        المستوى #{orderNum}: {lvl.name} (خصم {lvl.discount_percent ?? lvl.discountPercent ?? 0}%)
+                      </option>
+                    );
+                  })}
+                </select>
+              </div>
+
+              <div className="flex items-center gap-3 pt-4 border-t border-zinc-800">
+                <button
+                  type="button"
+                  onClick={handleSaveUserVipLevel}
+                  className="flex-1 bg-[#C8A45C] hover:bg-[#b08e46] text-black font-extrabold py-3 rounded-xl transition-all flex items-center justify-center gap-2"
+                >
+                  <Save className="w-4 h-4" />
+                  <span>تأكيد تغيير المستوى</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setUserModalOpen(false)}
+                  className="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold py-3 px-4 rounded-xl transition-all"
+                >
+                  إلغاء
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+    </div>
   );
 }

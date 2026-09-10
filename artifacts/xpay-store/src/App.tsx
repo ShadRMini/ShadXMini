@@ -204,6 +204,8 @@ function Router() {
             <Route path="/favorites" component={() => <ProtectedRoute component={Favorites} />} />
             <Route path="/notifications" component={() => <ProtectedRoute component={NotificationsPage} />} />
             <Route path="/loyalty" component={() => <ProtectedRoute component={LoyaltyLevels} />} />
+            <Route path="/levels" component={() => <ProtectedRoute component={LoyaltyLevels} />} />
+            <Route path="/vip" component={() => <ProtectedRoute component={LoyaltyLevels} />} />
             <Route path="/identity-verification" component={() => <ProtectedRoute component={IdentityVerification} />} />
             <Route path="/profile" component={() => <ProtectedRoute component={Profile} />} />
             <Route path="/settings" component={() => <ProtectedRoute component={SettingsPage} />} />

@@ -239,10 +239,17 @@ export const couponsTable = pgTable("coupons", {
 export const vipMembershipsTable = pgTable("vip_memberships", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
+  levelOrder: integer("level_order").notNull().default(1),
   requiredAmount: numeric("required_amount", { precision: 12, scale: 2 }).notNull(),
-  profitPct: numeric("profit_pct", { precision: 5, scale: 2 }).notNull(),
+  discountPercent: numeric("discount_percent", { precision: 5, scale: 2 }).notNull().default("0"),
+  profitPct: numeric("profit_pct", { precision: 5, scale: 2 }),
+  badgeColor: text("badge_color"),
   badge: text("badge"),
+  benefits: jsonb("benefits").default([]),
+  description: text("description"),
   hidden: boolean("hidden").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 export const autoCodesTable = pgTable("auto_codes", {
