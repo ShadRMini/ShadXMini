@@ -20,7 +20,8 @@ import {
   Layers,
   Users,
   Percent,
-  DollarSign
+  DollarSign,
+  Loader2
 } from "lucide-react";
 import { get, post, put, del, patch } from "../lib/api";
 import { useToast } from "../hooks/use-toast";
@@ -59,6 +60,9 @@ export default function VipMemberships() {
   // Levels state
   const [levels, setLevels] = useState<VipLevel[]>([]);
   const [loadingLevels, setLoadingLevels] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isDeletingId, setIsDeletingId] = useState<number | null>(null);
+  const [isReordering, setIsReordering] = useState(false);
 
   // Edit/Create Modal state
   const [modalOpen, setModalOpen] = useState(false);
@@ -84,6 +88,7 @@ export default function VipMemberships() {
   const [selectedUserForEdit, setSelectedUserForEdit] = useState<UserItem | null>(null);
   const [targetVipLevel, setTargetVipLevel] = useState<number>(1);
   const [userModalOpen, setUserModalOpen] = useState(false);
+  const [isSavingUserVip, setIsSavingUserVip] = useState(false);
 
   // Load levels
   const fetchLevels = async () => {
@@ -100,6 +105,7 @@ export default function VipMemberships() {
         setLevels(sorted);
       }
     } catch (err: any) {
+      console.error("[fetchLevels Error]:", err);
       toast({
         title: "خطأ في الجلب",
         description: err.message || "فشل تحميل مستويات VIP",
@@ -120,6 +126,7 @@ export default function VipMemberships() {
         setUsers(list);
       }
     } catch (err: any) {
+      console.error("[fetchUsers Error]:", err);
       toast({
         title: "خطأ في الجلب",
         description: err.message || "فشل تحميل قائمة المستخدمين",
@@ -200,50 +207,65 @@ export default function VipMemberships() {
   // Save Level (Create or Update)
   const handleSaveLevel = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSaving) return;
+
     try {
+      setIsSaving(true);
       const payload = {
-        name: formData.name,
-        level_order: Number(formData.level_order),
+        name: formData.name.trim(),
+        level_order: Number(formData.level_order) || 1,
         required_amount: formData.required_amount,
         discount_percent: formData.discount_percent,
-        badge_color: formData.badge_color,
-        description: formData.description,
+        badge_color: formData.badge_color || "#C8A45C",
+        description: formData.description.trim(),
         benefits: benefitsList,
-        hidden: formData.hidden,
+        hidden: Boolean(formData.hidden),
       };
+
+      console.log("[VIP Admin] Saving level:", editingLevel ? editingLevel.id : "new", payload);
 
       if (editingLevel) {
         await put(`/vip-memberships/${editingLevel.id}`, payload);
-        toast({ title: "تم التحديث", description: "تم تحديث المستوى بنجاح" });
+        toast({ title: "تم التحديث", description: "تم تحديث مستوى VIP بنجاح" });
       } else {
         await post("/vip-memberships", payload);
-        toast({ title: "تم الإضافة", description: "تم إضافة المستوى الجديد بنجاح" });
+        toast({ title: "تم الإنشاء", description: "تم إنشاء مستوى VIP الجديد بنجاح" });
       }
 
       setModalOpen(false);
-      fetchLevels();
+      await fetchLevels();
     } catch (err: any) {
+      console.error("[VIP Admin Save Error]:", err);
       toast({
         title: "خطأ بالحفظ",
-        description: err.message || "فشل حفظ بيانات المستوى",
+        description: err.message || "فشل حفظ بيانات المستوى. يرجى المحاولة مرة أخرى.",
         variant: "destructive",
       });
+    } finally {
+      setIsSaving(false);
     }
   };
 
   // Delete Level
   const handleDeleteLevel = async (id: number, name: string) => {
-    if (!window.confirm(`هل أنت تأكد من حذف المستوى "${name}"؟`)) return;
+    if (!window.confirm(`هل أنت متأكد من رغبتك في حذف المستوى "${name}"؟`)) return;
+    if (isDeletingId) return;
+
     try {
+      setIsDeletingId(id);
+      console.log("[VIP Admin] Deleting level ID:", id);
       await del(`/vip-memberships/${id}`);
-      toast({ title: "تم الحذف", description: "تم حذف المستوى بنجاح" });
-      fetchLevels();
+      toast({ title: "تم الحذف", description: `تم حذف مستوى "${name}" بنجاح` });
+      await fetchLevels();
     } catch (err: any) {
+      console.error("[VIP Admin Delete Error]:", err);
       toast({
         title: "خطأ بالحذف",
-        description: err.message || "فشل حذف المستوى",
+        description: err.message || "فشل حذف المستوى. يرجى المحاولة مجدداً.",
         variant: "destructive",
       });
+    } finally {
+      setIsDeletingId(null);
     }
   };
 
@@ -251,6 +273,7 @@ export default function VipMemberships() {
   const handleMoveOrder = async (index: number, direction: "up" | "down") => {
     const targetIndex = direction === "up" ? index - 1 : index + 1;
     if (targetIndex < 0 || targetIndex >= levels.length) return;
+    if (isReordering) return;
 
     const newLevels = [...levels];
     const temp = newLevels[index];
@@ -266,15 +289,20 @@ export default function VipMemberships() {
     setLevels(newLevels.map((l, idx) => ({ ...l, level_order: idx + 1, levelOrder: idx + 1 })));
 
     try {
+      setIsReordering(true);
+      console.log("[VIP Admin] Reordering items:", itemsToUpdate);
       await patch("/vip-memberships/reorder", { items: itemsToUpdate });
-      toast({ title: "تم الترتيب", description: "تم تحديث ترتيب المستويات بنجاح" });
+      toast({ title: "تم الترتيب", description: "تم حفظ ترتيب المستويات الجديد بنجاح" });
     } catch (err: any) {
+      console.error("[VIP Admin Reorder Error]:", err);
       toast({
         title: "خطأ بالترتيب",
         description: err.message || "فشل حفظ الترتيب الجديد",
         variant: "destructive",
       });
-      fetchLevels();
+      await fetchLevels();
+    } finally {
+      setIsReordering(false);
     }
   };
 
@@ -286,23 +314,28 @@ export default function VipMemberships() {
   };
 
   const handleSaveUserVipLevel = async () => {
-    if (!selectedUserForEdit) return;
+    if (!selectedUserForEdit || isSavingUserVip) return;
     try {
+      setIsSavingUserVip(true);
+      console.log("[User VIP] Updating user", selectedUserForEdit.id, "to level", targetVipLevel);
       await patch(`/users/${selectedUserForEdit.id}/vip-level`, {
         vipLevel: targetVipLevel,
       });
       toast({
-        title: "تم تحديث مستوى المستخدم",
-        description: `تم تغيير مستوى المستخدم ${selectedUserForEdit.username} إلى المستوى رقم ${targetVipLevel} بنجاح.`,
+        title: "تم تحديث رتبة المستخدم",
+        description: `تم تغيير رتبة المستخدم ${selectedUserForEdit.username} إلى المستوى رقم ${targetVipLevel} بنجاح.`,
       });
       setUserModalOpen(false);
-      fetchUsers();
+      await fetchUsers();
     } catch (err: any) {
+      console.error("[User VIP Error]:", err);
       toast({
         title: "خطأ بالتحديث",
         description: err.message || "فشل تحديث مستوى المستخدم",
         variant: "destructive",
       });
+    } finally {
+      setIsSavingUserVip(false);
     }
   };
 
@@ -415,9 +448,10 @@ export default function VipMemberships() {
                       {/* Reorder Buttons */}
                       <div className="flex flex-col gap-1 shrink-0">
                         <button
-                          disabled={index === 0}
+                          type="button"
+                          disabled={index === 0 || isReordering}
                           onClick={() => handleMoveOrder(index, "up")}
-                          className="p-1 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-400 disabled:opacity-30 disabled:hover:bg-zinc-800"
+                          className="p-1 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-400 disabled:opacity-30 disabled:hover:bg-zinc-800 cursor-pointer disabled:cursor-not-allowed"
                           title="تحريك لأعلى"
                         >
                           <ArrowUp className="w-3.5 h-3.5" />
@@ -426,9 +460,10 @@ export default function VipMemberships() {
                           #{lvl.level_order ?? lvl.levelOrder ?? index + 1}
                         </span>
                         <button
-                          disabled={index === levels.length - 1}
+                          type="button"
+                          disabled={index === levels.length - 1 || isReordering}
                           onClick={() => handleMoveOrder(index, "down")}
-                          className="p-1 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-400 disabled:opacity-30 disabled:hover:bg-zinc-800"
+                          className="p-1 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-400 disabled:opacity-30 disabled:hover:bg-zinc-800 cursor-pointer disabled:cursor-not-allowed"
                           title="تحريك لأسفل"
                         >
                           <ArrowDown className="w-3.5 h-3.5" />
@@ -496,19 +531,26 @@ export default function VipMemberships() {
                     {/* Action Buttons */}
                     <div className="flex items-center gap-2 self-end md:self-center">
                       <button
+                        type="button"
                         onClick={() => handleOpenEdit(lvl)}
-                        className="px-3.5 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-bold transition-all flex items-center gap-1.5 border border-zinc-700"
+                        className="px-3.5 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-bold transition-all flex items-center gap-1.5 border border-zinc-700 cursor-pointer shadow-sm"
                       >
                         <Edit2 className="w-3.5 h-3.5 text-[#C8A45C]" />
                         <span>تعديل</span>
                       </button>
 
                       <button
+                        type="button"
+                        disabled={isDeletingId === lvl.id}
                         onClick={() => handleDeleteLevel(lvl.id, lvl.name)}
-                        className="px-3 py-2 rounded-xl bg-red-950/50 hover:bg-red-900/80 text-red-400 hover:text-white text-xs font-bold transition-all border border-red-900/60 flex items-center gap-1"
+                        className="px-3 py-2 rounded-xl bg-red-950/50 hover:bg-red-900/80 text-red-400 hover:text-white text-xs font-bold transition-all border border-red-900/60 flex items-center gap-1 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
                       >
-                        <Trash2 className="w-3.5 h-3.5" />
-                        <span>حذف</span>
+                        {isDeletingId === lvl.id ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <Trash2 className="w-3.5 h-3.5" />
+                        )}
+                        <span>{isDeletingId === lvl.id ? "جاري الحذف..." : "حذف"}</span>
                       </button>
                     </div>
                   </div>
@@ -784,15 +826,21 @@ export default function VipMemberships() {
               <div className="flex items-center gap-3 pt-4 border-t border-zinc-800">
                 <button
                   type="submit"
-                  className="flex-1 bg-gradient-to-r from-[#C8A45C] to-[#E5C178] hover:from-[#b08e46] hover:to-[#C8A45C] text-black font-extrabold py-3 rounded-xl transition-all shadow-lg shadow-[#C8A45C]/20 flex items-center justify-center gap-2"
+                  disabled={isSaving}
+                  className="flex-1 bg-gradient-to-r from-[#C8A45C] to-[#E5C178] hover:from-[#b08e46] hover:to-[#C8A45C] text-black font-extrabold py-3 rounded-xl transition-all shadow-lg shadow-[#C8A45C]/20 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  <Save className="w-4 h-4" />
-                  <span>{editingLevel ? "حفظ التغيرات" : "إنشاء المستوى"}</span>
+                  {isSaving ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Save className="w-4 h-4" />
+                  )}
+                  <span>{isSaving ? "جاري الحفظ..." : editingLevel ? "حفظ التغييرات" : "إنشاء المستوى"}</span>
                 </button>
                 <button
                   type="button"
+                  disabled={isSaving}
                   onClick={() => setModalOpen(false)}
-                  className="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold py-3 px-5 rounded-xl transition-all"
+                  className="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold py-3 px-5 rounded-xl transition-all cursor-pointer disabled:opacity-50"
                 >
                   إلغاء
                 </button>
@@ -849,16 +897,22 @@ export default function VipMemberships() {
               <div className="flex items-center gap-3 pt-4 border-t border-zinc-800">
                 <button
                   type="button"
+                  disabled={isSavingUserVip}
                   onClick={handleSaveUserVipLevel}
-                  className="flex-1 bg-[#C8A45C] hover:bg-[#b08e46] text-black font-extrabold py-3 rounded-xl transition-all flex items-center justify-center gap-2"
+                  className="flex-1 bg-[#C8A45C] hover:bg-[#b08e46] text-black font-extrabold py-3 rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  <Save className="w-4 h-4" />
-                  <span>تأكيد تغيير المستوى</span>
+                  {isSavingUserVip ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Save className="w-4 h-4" />
+                  )}
+                  <span>{isSavingUserVip ? "جاري الحفظ..." : "تأكيد تغيير المستوى"}</span>
                 </button>
                 <button
                   type="button"
+                  disabled={isSavingUserVip}
                   onClick={() => setUserModalOpen(false)}
-                  className="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold py-3 px-4 rounded-xl transition-all"
+                  className="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold py-3 px-4 rounded-xl transition-all cursor-pointer disabled:opacity-50"
                 >
                   إلغاء
                 </button>

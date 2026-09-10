@@ -1,7 +1,19 @@
 import React, { useEffect, useState } from "react";
-import { Crown, Trophy, Award, Lock, CheckCircle2, ChevronRight, Star, Gem, Sparkles, Shield, ArrowUpRight } from "lucide-react";
+import {
+  Crown,
+  Trophy,
+  Award,
+  Lock,
+  CheckCircle2,
+  Sparkles,
+  RefreshCw,
+  TrendingUp,
+  ShieldCheck,
+  ChevronLeft
+} from "lucide-react";
 import { getPublicJson } from "@/lib/public-api";
 import { toast } from "sonner";
+import { useLocation } from "wouter";
 
 interface LevelItem {
   id: number;
@@ -32,12 +44,16 @@ interface LoyaltyData {
 }
 
 export default function LoyaltyLevels() {
+  const [, setLocation] = useLocation();
   const [data, setData] = useState<LoyaltyData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-  const fetchLoyaltyData = async () => {
+  const fetchLoyaltyData = async (isManual = false) => {
     try {
-      setLoading(true);
+      if (isManual) setRefreshing(true);
+      else setLoading(true);
+
       const res = await getPublicJson<LoyaltyData>("/me/vip-details");
       if (res) {
         setData(res);
@@ -45,10 +61,15 @@ export default function LoyaltyLevels() {
         const fallback = await getPublicJson<LoyaltyData>("/me/loyalty");
         if (fallback) setData(fallback);
       }
-    } catch {
+      if (isManual) {
+        toast.success("تم تحديث بيانات المستويات");
+      }
+    } catch (err: any) {
+      console.error("[fetchLoyaltyData Error]:", err);
       toast.error("فشل تحميل بيانات مستويات الولاء والعضوية");
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
@@ -58,18 +79,18 @@ export default function LoyaltyLevels() {
 
   if (loading) {
     return (
-      <div className="min-h-[75vh] flex items-center justify-center bg-[#121212] text-[#C8A45C]" dir="rtl">
-        <div className="text-center space-y-3">
-          <Crown className="w-12 h-12 animate-bounce mx-auto text-[#C8A45C]" />
-          <p className="text-sm font-bold text-zinc-400">جاري تحميل مستويات العضوية والخصومات...</p>
+      <div className="min-h-[75vh] flex flex-col items-center justify-center bg-[#1A1A1A] text-[#C8A45C] p-6" dir="rtl">
+        <div className="w-14 h-14 rounded-2xl bg-[#2D2D2D] border border-[#C8A45C]/40 flex items-center justify-center shadow-xl mb-4 animate-pulse">
+          <Crown className="w-7 h-7 text-[#C8A45C]" />
         </div>
+        <p className="text-sm font-bold text-[#9CA3AF]">جاري تحميل مستويات العضوية والخصومات...</p>
       </div>
     );
   }
 
   const currentLvl = data?.currentLevel;
   const currentLevelOrder = currentLvl?.level_order ?? currentLvl?.levelOrder ?? currentLvl?.id ?? 1;
-  const currentLevelName = currentLvl?.name || "بروتو (Pro)";
+  const currentLevelName = currentLvl?.name || "المستوى الأساسي";
   const currentDiscount = currentLvl?.discount_percent ?? currentLvl?.discountPercent ?? 0;
   const badgeColor = currentLvl?.badge_color || currentLvl?.badgeColor || "#C8A45C";
 
@@ -80,37 +101,69 @@ export default function LoyaltyLevels() {
   const amountToNext = data?.amountToNextLevel ?? data?.amountRemaining ?? 0;
 
   return (
-    <div className="min-h-screen bg-[#121212] text-white pb-20 px-4 sm:px-6 pt-6 font-sans" dir="rtl">
+    <div className="min-h-screen bg-[#1A1A1A] text-[#E5E7EB] px-4 sm:px-6 pt-5 pb-24 font-sans animate-in fade-in duration-300" dir="rtl">
       <div className="max-w-3xl mx-auto space-y-6">
-        
-        {/* Header Section */}
-        <div className="text-center space-y-2.5 py-4">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-b from-[#C8A45C]/20 to-[#C8A45C]/5 border border-[#C8A45C]/40 text-[#C8A45C] shadow-xl shadow-[#C8A45C]/10 mb-1">
-            <Crown className="w-8 h-8 animate-pulse" />
+
+        {/* Top Header Card */}
+        <div className="bg-[#2D2D2D] border border-[#C8A45C]/30 rounded-3xl p-5 sm:p-6 shadow-2xl relative overflow-hidden flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="absolute top-0 left-0 w-48 h-48 bg-[#C8A45C]/10 rounded-full blur-3xl pointer-events-none" />
+
+          <div className="flex items-center gap-4 relative z-10">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-[#C8A45C] to-[#8A6D3B] text-black flex items-center justify-center shadow-lg shrink-0">
+              <Crown className="w-6 h-6 sm:w-7 sm:h-7" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl sm:text-2xl font-black text-[#C8A45C] tracking-wide">
+                  المستويات والعضويات
+                </h1>
+                <Sparkles className="w-4 h-4 text-[#C8A45C]" />
+              </div>
+              <p className="text-xs text-[#9CA3AF] mt-1 leading-relaxed">
+                ارتقِ بمستواك مع كل عملية شراء واستمتع بخصومات حصرية لكبار العملاء VIP
+              </p>
+            </div>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-[#C8A45C] tracking-wide flex items-center justify-center gap-2">
-            <span>المستويات والعضويات</span>
-            <Sparkles className="w-5 h-5 text-[#FDE68A]" />
-          </h1>
-          <p className="text-xs sm:text-sm text-zinc-400 max-w-lg mx-auto leading-relaxed">
-            ارتقِ بمستواك في المتجر تلقائياً مع كل عملية شراء واستمتع بخصومات حصرية ومزايا فاخرة لكبار العملاء
-          </p>
+
+          <div className="flex items-center gap-2 self-end sm:self-center relative z-10">
+            <button
+              type="button"
+              onClick={() => fetchLoyaltyData(true)}
+              disabled={refreshing}
+              className="px-3.5 py-2 rounded-xl bg-[#1A1A1A] hover:bg-[#3D3D3D] text-[#9CA3AF] hover:text-[#C8A45C] text-xs font-bold border border-[#3D3D3D] transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+              title="تحديث البيانات"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? "animate-spin text-[#C8A45C]" : ""}`} />
+              <span>تحديث</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setLocation("/profile")}
+              className="px-3.5 py-2 rounded-xl bg-[#1A1A1A] hover:bg-[#3D3D3D] text-[#9CA3AF] hover:text-white text-xs font-bold border border-[#3D3D3D] transition-all flex items-center gap-1 cursor-pointer"
+            >
+              <span>الملف الشخصي</span>
+              <ChevronLeft className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
 
         {/* Current Level Hero Card */}
-        <div className="rounded-3xl border border-[#C8A45C]/60 bg-[#1A1A1A]/95 p-6 sm:p-8 shadow-2xl relative overflow-hidden backdrop-blur-xl">
-          <div className="absolute top-0 right-0 w-48 h-48 bg-[#C8A45C]/10 rounded-full blur-3xl pointer-events-none"></div>
-          <div className="absolute bottom-0 left-0 w-32 h-32 bg-[#FDE68A]/5 rounded-full blur-2xl pointer-events-none"></div>
+        <div className="rounded-3xl border border-[#C8A45C]/50 bg-[#2D2D2D] p-6 sm:p-7 shadow-2xl relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-44 h-44 bg-[#C8A45C]/10 rounded-full blur-3xl pointer-events-none" />
 
           <div className="space-y-6 relative z-10">
-            
-            {/* Top Badge & Level Name */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-800/80 pb-5">
-              <div className="space-y-1">
-                <span className="text-xs font-bold text-zinc-400">مستواك الحالي في المتجر</span>
+            {/* Level Identification & Key Numbers */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#3D3D3D] pb-5">
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-[#9CA3AF]">مستواك الحالي في المتجر</span>
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-[#C8A45C]/20 text-[#C8A45C] border border-[#C8A45C]/40 flex items-center gap-1">
+                    <Sparkles className="w-2.5 h-2.5" /> مفعّل
+                  </span>
+                </div>
                 <div className="flex items-center gap-3">
                   <div
-                    className="w-10 h-10 rounded-xl flex items-center justify-center text-black font-extrabold shadow-md border border-white/20"
+                    className="w-10 h-10 rounded-xl flex items-center justify-center text-black font-extrabold shadow-md border border-white/20 shrink-0"
                     style={{ backgroundColor: badgeColor }}
                   >
                     <Crown className="w-5 h-5" />
@@ -119,31 +172,32 @@ export default function LoyaltyLevels() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-4 bg-[#121212]/80 px-4 py-2.5 rounded-2xl border border-zinc-800 self-start sm:self-center">
+              {/* Badges: Discount & Total Spent */}
+              <div className="flex items-center gap-4 bg-[#1A1A1A] px-4 py-3 rounded-2xl border border-[#3D3D3D] self-start sm:self-center shadow-inner">
                 <div className="text-right">
-                  <span className="text-[11px] text-zinc-400 block font-bold">نسبة الخصم الحالية</span>
-                  <span className="text-xl font-black text-[#FDE68A] font-mono">{currentDiscount}%</span>
+                  <span className="text-[10px] text-[#9CA3AF] block font-bold">نسبة الخصم</span>
+                  <span className="text-xl font-black text-[#C8A45C] font-mono">{currentDiscount}%</span>
                 </div>
-                <div className="h-8 w-[1px] bg-zinc-800"></div>
+                <div className="h-8 w-[1px] bg-[#3D3D3D]" />
                 <div className="text-right">
-                  <span className="text-[11px] text-zinc-400 block font-bold">إجمالي الإنفاق</span>
-                  <span className="text-base font-black text-[#C8A45C] font-mono">${totalSpent.toFixed(2)}</span>
+                  <span className="text-[10px] text-[#9CA3AF] block font-bold">إجمالي الإنفاق</span>
+                  <span className="text-base font-black text-white font-mono">${totalSpent.toFixed(2)}</span>
                 </div>
               </div>
             </div>
 
             {/* Description */}
             {currentLvl?.description && (
-              <p className="text-xs text-zinc-300 leading-relaxed bg-[#121212]/50 p-3 rounded-xl border border-zinc-800/80">
+              <p className="text-xs text-[#9CA3AF] leading-relaxed bg-[#1A1A1A] p-3 rounded-xl border border-[#3D3D3D]">
                 {currentLvl.description}
               </p>
             )}
 
-            {/* Next Level Progress Bar */}
+            {/* Progress to Next Level */}
             {nextLvl ? (
-              <div className="space-y-2.5 pt-1">
+              <div className="space-y-3 pt-1">
                 <div className="flex items-center justify-between text-xs font-bold">
-                  <span className="text-zinc-300 flex items-center gap-1.5">
+                  <span className="text-[#E5E7EB] flex items-center gap-1.5">
                     <Trophy className="w-4 h-4 text-[#C8A45C]" />
                     <span>التقدم نحو المستوى التالي ({nextLvl.name})</span>
                   </span>
@@ -152,14 +206,15 @@ export default function LoyaltyLevels() {
                   </span>
                 </div>
 
-                <div className="w-full bg-zinc-900 h-3.5 rounded-full overflow-hidden p-0.5 border border-zinc-700/80">
+                {/* Progress Track */}
+                <div className="w-full bg-[#3D3D3D] h-3.5 rounded-full overflow-hidden p-0.5 border border-[#4B4B4B] shadow-inner">
                   <div
-                    className="bg-gradient-to-r from-[#C8A45C] via-[#E5C178] to-[#FDE68A] h-full rounded-full transition-all duration-700 shadow-md shadow-[#C8A45C]/30"
+                    className="bg-gradient-to-r from-[#C8A45C] via-[#E5C178] to-[#C8A45C] h-full rounded-full transition-all duration-700 shadow-md shadow-[#C8A45C]/30"
                     style={{ width: `${Math.min(100, Math.max(4, progressPercent))}%` }}
-                  ></div>
+                  />
                 </div>
 
-                <div className="flex items-center justify-between text-[11px] text-zinc-400">
+                <div className="flex items-center justify-between text-[11px] text-[#9CA3AF]">
                   <span>نسبة الإنجاز: <strong className="text-white font-mono">{progressPercent}%</strong></span>
                   <span>
                     متبقي <strong className="text-[#C8A45C] font-mono font-extrabold">${amountToNext.toFixed(2)}</strong> للوصول إلى {nextLvl.name}
@@ -167,26 +222,27 @@ export default function LoyaltyLevels() {
                 </div>
               </div>
             ) : (
-              <div className="p-3 bg-[#C8A45C]/10 border border-[#C8A45C]/30 rounded-2xl text-center text-xs text-[#C8A45C] font-bold flex items-center justify-center gap-2">
+              <div className="p-3.5 bg-[#C8A45C]/10 border border-[#C8A45C]/30 rounded-2xl text-center text-xs text-[#C8A45C] font-bold flex items-center justify-center gap-2 shadow-sm">
                 <Sparkles className="w-4 h-4" />
-                <span>تهانينا! لقد وصلت إلى أعلى مستوى كبار الشخصيات في المنصة.</span>
+                <span>تهانينا! لقد وصلت إلى أعلى مستوى في نظام كبار العملاء VIP في المتجر.</span>
               </div>
             )}
-
           </div>
         </div>
 
-        {/* Levels List Header */}
+        {/* Levels List Section Header */}
         <div className="pt-2 flex items-center justify-between">
           <h2 className="text-lg font-black text-[#C8A45C] flex items-center gap-2">
             <Award className="w-5 h-5" />
             <span>كافة مستويات المنصة والمزايا</span>
           </h2>
-          <span className="text-xs text-zinc-500 font-bold">{levels.length} مستويات متاحة</span>
+          <span className="text-xs text-[#9CA3AF] font-bold bg-[#2D2D2D] px-3 py-1 rounded-xl border border-[#3D3D3D]">
+            {levels.length} مستويات متاحة
+          </span>
         </div>
 
-        {/* All Levels List */}
-        <div className="space-y-4">
+        {/* Levels List Cards */}
+        <div className="space-y-3.5">
           {levels.map((lvl) => {
             const reqAmt = Number(lvl.required_amount ?? lvl.requiredAmount ?? lvl.requiredSpent ?? 0);
             const discPct = Number(lvl.discount_percent ?? lvl.discountPercent ?? 0);
@@ -199,7 +255,11 @@ export default function LoyaltyLevels() {
             let parsedBenefits: string[] = [];
             if (Array.isArray(lvl.benefits)) parsedBenefits = lvl.benefits;
             else if (typeof lvl.benefits === "string") {
-              try { parsedBenefits = JSON.parse(lvl.benefits); } catch { parsedBenefits = [lvl.benefits]; }
+              try {
+                parsedBenefits = JSON.parse(lvl.benefits);
+              } catch {
+                parsedBenefits = [lvl.benefits];
+              }
             }
 
             return (
@@ -207,23 +267,23 @@ export default function LoyaltyLevels() {
                 key={lvl.id}
                 className={`rounded-2xl p-5 sm:p-6 transition-all relative overflow-hidden border ${
                   isCurrent
-                    ? "bg-[#1A1A1A] border-[#C8A45C] shadow-xl shadow-[#C8A45C]/15 ring-1 ring-[#C8A45C]/40"
+                    ? "bg-[#2D2D2D] border-2 border-[#C8A45C] shadow-xl shadow-[#C8A45C]/15 ring-1 ring-[#C8A45C]/40"
                     : isUnlocked
-                    ? "bg-[#1A1A1A]/80 border-emerald-500/40 hover:border-emerald-500/70"
-                    : "bg-[#1A1A1A]/40 border-zinc-800/80 hover:border-zinc-700 opacity-80"
+                    ? "bg-[#2D2D2D] border border-emerald-500/40 hover:border-emerald-500/70"
+                    : "bg-[#2D2D2D] border border-[#3D3D3D] hover:border-[#4B4B4B] opacity-80"
                 }`}
               >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  
-                  {/* Left: Icon & Title */}
-                  <div className="flex items-start gap-4">
+
+                  {/* Left: Icon & Title & Benefits */}
+                  <div className="flex items-start gap-3.5">
                     <div
                       className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border shadow-inner transition-all ${
                         isCurrent
                           ? "bg-[#C8A45C]/20 border-[#C8A45C] text-[#C8A45C]"
                           : isUnlocked
                           ? "bg-emerald-500/15 border-emerald-500/40 text-emerald-400"
-                          : "bg-zinc-800/80 border-zinc-700 text-zinc-500"
+                          : "bg-[#1A1A1A] border-[#3D3D3D] text-[#9CA3AF]"
                       }`}
                     >
                       {isCurrent ? (
@@ -235,7 +295,7 @@ export default function LoyaltyLevels() {
                       )}
                     </div>
 
-                    <div className="space-y-1">
+                    <div className="space-y-1.5">
                       <div className="flex items-center gap-2 flex-wrap">
                         <h3 className={`font-black text-lg ${isCurrent ? "text-[#C8A45C]" : "text-white"}`}>
                           {lvl.name}
@@ -252,22 +312,28 @@ export default function LoyaltyLevels() {
                             مكتمل
                           </span>
                         )}
+
+                        {!isUnlocked && (
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#1A1A1A] text-[#9CA3AF] border border-[#3D3D3D] font-medium">
+                            مستوى مغلق
+                          </span>
+                        )}
                       </div>
 
                       {lvl.description && (
-                        <p className="text-xs text-zinc-400">{lvl.description}</p>
+                        <p className="text-xs text-[#9CA3AF] leading-relaxed">{lvl.description}</p>
                       )}
 
                       {/* Benefits Checklist */}
                       {parsedBenefits.length > 0 && (
-                        <div className="flex flex-wrap gap-2 pt-2">
+                        <div className="flex flex-wrap gap-2 pt-1.5">
                           {parsedBenefits.map((benefit, i) => (
                             <span
                               key={i}
                               className={`text-[11px] px-2.5 py-1 rounded-lg border flex items-center gap-1.5 ${
                                 isCurrent
-                                  ? "bg-[#C8A45C]/10 border-[#C8A45C]/30 text-[#FDE68A]"
-                                  : "bg-zinc-800/70 border-zinc-700 text-zinc-300"
+                                  ? "bg-[#1A1A1A] border-[#C8A45C]/40 text-[#C8A45C]"
+                                  : "bg-[#1A1A1A] border-[#3D3D3D] text-[#9CA3AF]"
                               }`}
                             >
                               <CheckCircle2 className="w-3 h-3 text-[#C8A45C]" />
@@ -280,17 +346,17 @@ export default function LoyaltyLevels() {
                   </div>
 
                   {/* Right: Requirements & Discount */}
-                  <div className="sm:text-left flex sm:flex-col items-center sm:items-end justify-between border-t sm:border-t-0 border-zinc-800/60 pt-3 sm:pt-0 shrink-0">
+                  <div className="sm:text-left flex sm:flex-col items-center sm:items-end justify-between border-t sm:border-t-0 border-[#3D3D3D] pt-3 sm:pt-0 shrink-0">
                     <div className="text-right sm:text-left">
-                      <span className="text-[10px] text-zinc-400 block font-bold">حد الإنفاق المطلوب</span>
-                      <span className={`text-base sm:text-lg font-black font-mono ${isCurrent ? "text-[#C8A45C]" : "text-zinc-200"}`}>
+                      <span className="text-[10px] text-[#9CA3AF] block font-bold">حد الإنفاق المطلوب</span>
+                      <span className={`text-base sm:text-lg font-black font-mono ${isCurrent ? "text-[#C8A45C]" : "text-white"}`}>
                         ${reqAmt.toFixed(0)}
                       </span>
                     </div>
 
                     <div className="text-left sm:mt-2">
-                      <span className="text-[10px] text-zinc-400 block font-bold">نسبة الخصم</span>
-                      <span className="text-sm font-black text-[#FDE68A] bg-[#FDE68A]/10 px-2.5 py-0.5 rounded-md border border-[#FDE68A]/20">
+                      <span className="text-[10px] text-[#9CA3AF] block font-bold">نسبة الخصم</span>
+                      <span className="text-xs sm:text-sm font-black text-[#C8A45C] bg-[#C8A45C]/15 px-2.5 py-0.5 rounded-lg border border-[#C8A45C]/30">
                         {discPct}%
                       </span>
                     </div>

@@ -701,6 +701,15 @@ export async function ensureDatabaseSchema() {
       `);
     }
 
+    // Sync sequence to avoid collision when creating new levels
+    await db.execute(sql`
+      SELECT setval(
+        pg_get_serial_sequence('vip_memberships', 'id'),
+        COALESCE((SELECT MAX(id) FROM vip_memberships), 1),
+        true
+      );
+    `).catch(() => null);
+
     schemaEnsured = true;
     console.log("[DB Schema] Runtime schema verified and synchronized successfully.");
   } catch (error) {

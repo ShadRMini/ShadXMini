@@ -1661,10 +1661,6 @@ makeCrud("coupons", couponsTable, {
   allowedFields: ["code", "discountPct", "maxUses", "active"],
 });
 
-makeCrud("vip-memberships", vipMembershipsTable, {
-  allowedFields: ["name", "requiredAmount", "profitPct", "badge", "hidden"],
-});
-
 makeCrud("auto-codes", autoCodesTable, {
   allowedFields: ["productId", "code", "note", "used"],
 });
@@ -3320,7 +3316,6 @@ const PUT_RESOURCES: Array<{ path: string; table: any; allowed: string[] }> = [
     ]
   },
   { path: "coupons", table: couponsTable, allowed: ["code", "discountPct", "maxUses", "usedCount", "active"] },
-  { path: "vip-memberships", table: vipMembershipsTable, allowed: ["name", "requiredAmount", "profitPct", "badge", "hidden"] },
   { path: "auto-codes", table: autoCodesTable, allowed: ["productId", "code", "note", "used"] },
   { path: "order-messages", table: orderMessagesTable, allowed: ["event", "title", "body"] },
   { path: "api-keys", table: apiKeysTable, allowed: ["name", "keyValue", "active"] },
@@ -3387,62 +3382,76 @@ function parseVipPayload(body: any) {
   };
 }
 
+function formatVipRow(lvl: any) {
+  if (!lvl) return null;
+  return {
+    id: lvl.id,
+    name: lvl.name,
+    level_order: Number(lvl.levelOrder || lvl.level_order || lvl.id),
+    levelOrder: Number(lvl.levelOrder || lvl.level_order || lvl.id),
+    required_amount: Number(lvl.requiredAmount || lvl.required_amount || 0),
+    requiredAmount: Number(lvl.requiredAmount || lvl.required_amount || 0),
+    discount_percent: Number(lvl.discountPercent || lvl.discount_percent || lvl.profitPct || lvl.profit_pct || 0),
+    discountPercent: Number(lvl.discountPercent || lvl.discount_percent || lvl.profitPct || lvl.profit_pct || 0),
+    profit_pct: Number(lvl.profitPct || lvl.discountPercent || 0),
+    profitPct: Number(lvl.profitPct || lvl.discountPercent || 0),
+    badge_color: lvl.badgeColor || lvl.badge_color || lvl.badge || "#C8A45C",
+    badgeColor: lvl.badgeColor || lvl.badge_color || lvl.badge || "#C8A45C",
+    badge: lvl.badge || lvl.badgeColor || "#C8A45C",
+    benefits: Array.isArray(lvl.benefits)
+      ? lvl.benefits
+      : (typeof lvl.benefits === "string" ? (() => { try { return JSON.parse(lvl.benefits); } catch { return [lvl.benefits]; } })() : []),
+    description: lvl.description || "",
+    hidden: Boolean(lvl.hidden),
+    created_at: lvl.createdAt || lvl.created_at,
+    updated_at: lvl.updatedAt || lvl.updated_at,
+  };
+}
+
 // ========== VIP MEMBERSHIPS APIS ==========
-router.get("/admin/vip-memberships", requireAdmin, async (_req, res) => {
+router.get(["/admin/vip-memberships", "/vip-memberships", "/admin/vip", "/vip"], requireAdmin, async (_req, res) => {
   try {
     await ensureDatabaseSchema();
     const rows = await db
       .select()
       .from(vipMembershipsTable)
       .orderBy(sql`level_order ASC, required_amount ASC`);
-    res.json(rows);
+    res.json((rows || []).map(formatVipRow));
   } catch (err: any) {
+    console.error("[VIP GET Error]:", err);
     res.status(500).json({ error: err.message });
   }
 });
 
-router.get("/admin/vip", requireAdmin, async (_req, res) => {
-  try {
-    await ensureDatabaseSchema();
-    const rows = await db
-      .select()
-      .from(vipMembershipsTable)
-      .orderBy(sql`level_order ASC, required_amount ASC`);
-    res.json(rows);
-  } catch (err: any) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-router.post("/admin/vip-memberships", requireAdmin, async (req, res) => {
+router.post(["/admin/vip-memberships", "/vip-memberships", "/admin/vip", "/vip"], requireAdmin, async (req, res) => {
   try {
     await ensureDatabaseSchema();
     const data = parseVipPayload(req.body);
     const [row] = await db.insert(vipMembershipsTable).values(data).returning();
+    
+    // Keep sequence in sync
+    await db.execute(sql`
+      SELECT setval(
+        pg_get_serial_sequence('vip_memberships', 'id'),
+        COALESCE((SELECT MAX(id) FROM vip_memberships), 1),
+        true
+      );
+    `).catch(() => null);
+
     await logActivity(
       { id: req.session.adminId, name: req.session.adminUsername },
       "create",
       "vip_memberships",
       { id: row?.id, name: row?.name }
     );
-    res.json(row);
+    res.json(formatVipRow(row));
   } catch (err: any) {
+    console.error("[VIP POST Error]:", err);
     res.status(500).json({ error: err.message });
   }
 });
 
-router.post("/admin/vip", requireAdmin, async (req, res) => {
-  try {
-    await ensureDatabaseSchema();
-    const data = parseVipPayload(req.body);
-    const [row] = await db.insert(vipMembershipsTable).values(data).returning();
-    res.json(row);
-  } catch (err: any) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-router.put("/admin/vip-memberships/:id", requireAdmin, async (req, res) => {
+router.put(["/admin/vip-memberships/:id", "/vip-memberships/:id", "/admin/vip/:id", "/vip/:id"], requireAdmin, async (req, res) => {
   try {
     await ensureDatabaseSchema();
     const id = Number(req.params.id);
@@ -3458,29 +3467,14 @@ router.put("/admin/vip-memberships/:id", requireAdmin, async (req, res) => {
       "vip_memberships",
       { id, name: row?.name }
     );
-    res.json(row);
+    res.json(formatVipRow(row));
   } catch (err: any) {
+    console.error("[VIP PUT Error]:", err);
     res.status(500).json({ error: err.message });
   }
 });
 
-router.put("/admin/vip/:id", requireAdmin, async (req, res) => {
-  try {
-    await ensureDatabaseSchema();
-    const id = Number(req.params.id);
-    const data = parseVipPayload(req.body);
-    const [row] = await db
-      .update(vipMembershipsTable)
-      .set(data)
-      .where(eq(vipMembershipsTable.id, id))
-      .returning();
-    res.json(row);
-  } catch (err: any) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-router.delete("/admin/vip-memberships/:id", requireAdmin, async (req, res) => {
+router.delete(["/admin/vip-memberships/:id", "/vip-memberships/:id", "/admin/vip/:id", "/vip/:id"], requireAdmin, async (req, res) => {
   try {
     const id = Number(req.params.id);
     await db.delete(vipMembershipsTable).where(eq(vipMembershipsTable.id, id));
@@ -3490,23 +3484,14 @@ router.delete("/admin/vip-memberships/:id", requireAdmin, async (req, res) => {
       "vip_memberships",
       { id }
     );
-    res.json({ success: true, id });
+    res.json({ success: true, ok: true, id });
   } catch (err: any) {
+    console.error("[VIP DELETE Error]:", err);
     res.status(500).json({ error: err.message });
   }
 });
 
-router.delete("/admin/vip/:id", requireAdmin, async (req, res) => {
-  try {
-    const id = Number(req.params.id);
-    await db.delete(vipMembershipsTable).where(eq(vipMembershipsTable.id, id));
-    res.json({ ok: true, id });
-  } catch (err: any) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-router.patch("/admin/vip-memberships/reorder", requireAdmin, async (req, res) => {
+router.patch(["/admin/vip-memberships/reorder", "/vip-memberships/reorder"], requireAdmin, async (req, res) => {
   try {
     const { items } = req.body || {};
     if (Array.isArray(items)) {
@@ -3521,13 +3506,14 @@ router.patch("/admin/vip-memberships/reorder", requireAdmin, async (req, res) =>
         }
       }
     }
-    res.json({ success: true });
+    res.json({ success: true, ok: true });
   } catch (err: any) {
+    console.error("[VIP REORDER Error]:", err);
     res.status(500).json({ error: err.message });
   }
 });
 
-router.patch("/admin/users/:id/vip-level", requireAdmin, async (req, res) => {
+router.patch(["/admin/users/:id/vip-level", "/users/:id/vip-level"], requireAdmin, async (req, res) => {
   try {
     const userId = Number(req.params.id);
     const vipLevel = Number(req.body.vip_level ?? req.body.vipLevel ?? req.body.level_order ?? 1);
