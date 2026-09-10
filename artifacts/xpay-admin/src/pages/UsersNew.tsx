@@ -450,30 +450,35 @@ export default function UsersNew() {
 
   // VIP Badge helper
   const getVipBadge = (level: number) => {
-    switch (level) {
+    switch (Number(level)) {
       case 2:
         return (
-          <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-500/20 text-blue-400 border border-blue-500/30">
-            VIP2
+          <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#C0C0C0]/20 text-[#C0C0C0] border border-[#C0C0C0]/40">
+            فضي (VIP2)
           </span>
         );
       case 3:
         return (
           <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#C8A45C]/20 text-[#FDE68A] border border-[#C8A45C]/40">
-            VIP3
+            ذهبي (VIP3)
           </span>
         );
       case 4:
+        return (
+          <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-500/20 text-blue-300 border border-blue-500/40">
+            ماسي (SVIP)
+          </span>
+        );
       case 5:
         return (
           <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-purple-500/20 text-purple-300 border border-purple-500/40 shadow-sm shadow-purple-900/30">
-            SVIP
+            VIP (VIP)
           </span>
         );
       default:
         return (
           <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-zinc-800 text-zinc-400 border border-zinc-700">
-            VIP1
+            بروتو (VIP1)
           </span>
         );
     }
@@ -610,10 +615,11 @@ export default function UsersNew() {
               className="w-full bg-[#1A1A1A] border border-zinc-700 focus:border-[#C8A45C] text-white text-xs px-3 py-2.5 rounded-xl outline-none transition cursor-pointer"
             >
               <option value="all">مستوى VIP: الكل</option>
-              <option value="1">VIP 1</option>
-              <option value="2">VIP 2</option>
-              <option value="3">VIP 3</option>
-              <option value="4">SVIP</option>
+              <option value="1">بروتو (Pro) - VIP 1</option>
+              <option value="2">فضي (Silver) - VIP 2</option>
+              <option value="3">ذهبي (Gold) - VIP 3</option>
+              <option value="4">ماسي (Diamond) - SVIP</option>
+              <option value="5">VIP (VIP) - كبار الشخصيات</option>
             </select>
           </div>
 
@@ -1059,16 +1065,19 @@ export default function UsersNew() {
                 </div>
 
                 <div>
-                  <label className="block text-zinc-300 font-semibold mb-1">مستوى VIP</label>
+                  <label className="block text-zinc-300 font-semibold mb-1">
+                    مستوى العضوية (VIP Level)
+                  </label>
                   <select
-                    value={userForm.vipLevel}
-                    onChange={(e) => setUserForm({ ...userForm, vipLevel: Number(e.target.value) })}
-                    className="w-full bg-[#1A1A1A] border border-zinc-700 focus:border-[#C8A45C] text-white px-3 py-2.5 rounded-xl outline-none cursor-pointer"
+                    value={userForm.vipLevel ?? 1}
+                    onChange={(e) => setUserForm({ ...userForm, vipLevel: parseInt(e.target.value, 10) })}
+                    className="w-full bg-[#1A1A1A] border border-zinc-700 focus:border-[#C8A45C] text-white px-3.5 py-2.5 rounded-xl outline-none cursor-pointer"
                   >
-                    <option value={1}>VIP 1</option>
-                    <option value={2}>VIP 2</option>
-                    <option value={3}>VIP 3</option>
-                    <option value={4}>SVIP</option>
+                    <option value={1}>بروتو (Pro) - VIP1</option>
+                    <option value={2}>فضي (Silver) - VIP2</option>
+                    <option value={3}>ذهبي (Gold) - VIP3</option>
+                    <option value={4}>ماسي (Diamond) - SVIP</option>
+                    <option value={5}>VIP (VIP) - كبار الشخصيات</option>
                   </select>
                 </div>
               </div>

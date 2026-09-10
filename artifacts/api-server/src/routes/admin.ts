@@ -1785,8 +1785,12 @@ const handleUpdateUser = async (req: any, res: any) => {
       "vipLevel",
     ]);
 
+    if (req.body.vip_level !== undefined && allowed.vipLevel === undefined) {
+      allowed.vipLevel = req.body.vip_level;
+    }
+
     if ("vipLevel" in allowed && allowed.vipLevel != null) {
-      allowed.vipLevel = Number(allowed.vipLevel);
+      allowed.vipLevel = parseInt(String(allowed.vipLevel), 10) || 1;
     }
     if (req.body.password && typeof req.body.password === "string" && req.body.password.trim().length > 0) {
       allowed.passwordHash = await bcrypt.hash(req.body.password.trim(), 10);
@@ -1809,15 +1813,15 @@ const handleUpdateUser = async (req: any, res: any) => {
       allowed,
     );
 
-    res.json(row);
+    res.json({ success: true, user: row, ...row });
   } catch (err: any) {
     console.error("Error updating user:", err);
     res.status(500).json({ error: err.message || "فشل تحديث بيانات المستخدم" });
   }
 };
 
-router.put("/admin/users/:id", requireAdmin, handleUpdateUser);
-router.patch("/admin/users/:id", requireAdmin, handleUpdateUser);
+router.put(["/admin/users/:id", "/users/:id"], requireAdmin, handleUpdateUser);
+router.patch(["/admin/users/:id", "/users/:id"], requireAdmin, handleUpdateUser);
 
 router.delete("/admin/users/:id", requireAdmin, async (req, res) => {
   try {
@@ -3427,6 +3431,21 @@ router.get(["/admin/vip-memberships", "/vip-memberships", "/admin/vip", "/vip"],
   }
 });
 
+router.get(["/public/vip-memberships", "/public/levels", "/public/vip", "/admin/public/vip-memberships"], async (_req, res) => {
+  try {
+    await ensureDatabaseSchema();
+    const rows = await db
+      .select()
+      .from(vipMembershipsTable)
+      .where(eq(vipMembershipsTable.hidden, false))
+      .orderBy(sql`level_order ASC, required_amount ASC`);
+    res.json((rows || []).map(formatVipRow));
+  } catch (err: any) {
+    console.error("[Public VIP GET Error]:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.post(["/admin/vip-memberships", "/vip-memberships", "/admin/vip", "/vip"], requireAdmin, async (req, res) => {
   try {
     await ensureDatabaseSchema();
@@ -3517,7 +3536,7 @@ router.patch(["/admin/vip-memberships/reorder", "/vip-memberships/reorder"], req
   }
 });
 
-router.patch(["/admin/users/:id/vip-level", "/users/:id/vip-level"], requireAdmin, async (req, res) => {
+const handleUserVipLevelUpdate = async (req: any, res: any) => {
   try {
     const userId = Number(req.params.id);
     const vipLevel = Number(req.body.vip_level ?? req.body.vipLevel ?? req.body.level_order ?? 1);
@@ -3566,7 +3585,10 @@ router.patch(["/admin/users/:id/vip-level", "/users/:id/vip-level"], requireAdmi
   } catch (err: any) {
     return res.status(500).json({ error: err.message });
   }
-});
+};
+
+router.patch(["/admin/users/:id/vip-level", "/users/:id/vip-level"], requireAdmin, handleUserVipLevelUpdate);
+router.put(["/admin/users/:id/vip-level", "/users/:id/vip-level"], requireAdmin, handleUserVipLevelUpdate);
 
 router.get("/admin/users/:id/vip-details", requireAdmin, async (req, res) => {
   try {

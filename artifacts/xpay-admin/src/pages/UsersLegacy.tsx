@@ -501,16 +501,19 @@ export default function UsersLegacy() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-slate-300 font-semibold mb-1">مستوى VIP</label>
+                  <label className="block text-slate-300 font-semibold mb-1">
+                    مستوى العضوية (VIP Level)
+                  </label>
                   <select
-                    value={editForm.vipLevel}
-                    onChange={(e) => setEditForm({ ...editForm, vipLevel: Number(e.target.value) })}
-                    className="w-full bg-[#14171f] border border-slate-700 rounded-xl px-3 py-2 text-white focus:border-purple-500 focus:outline-none"
+                    value={editForm.vipLevel ?? 1}
+                    onChange={(e) => setEditForm({ ...editForm, vipLevel: parseInt(e.target.value, 10) })}
+                    className="w-full bg-[#14171f] border border-slate-700 rounded-xl px-3 py-2 text-white focus:border-[#C8A45C] focus:outline-none"
                   >
-                    <option value={1}>VIP1</option>
-                    <option value={2}>VIP2</option>
-                    <option value={3}>VIP3</option>
-                    <option value={4}>SVIP</option>
+                    <option value={1}>بروتو (Pro) - VIP1</option>
+                    <option value={2}>فضي (Silver) - VIP2</option>
+                    <option value={3}>ذهبي (Gold) - VIP3</option>
+                    <option value={4}>ماسي (Diamond) - SVIP</option>
+                    <option value={5}>VIP (VIP) - كبار الشخصيات</option>
                   </select>
                 </div>
               </div>
