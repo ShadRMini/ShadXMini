@@ -95,7 +95,7 @@ export default function Orders() {
             className="text-2xl font-black mb-1"
             style={{ color: "var(--gold-light, #FDE68A)" }}
           >
-            طلباتي
+            مشترياتي
           </h1>
           <p 
             className="text-xs font-medium"

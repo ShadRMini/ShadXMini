@@ -3,10 +3,11 @@ import { Link, useLocation } from "wouter";
 import {
   Menu,
   Home,
-  ListOrdered,
-  Plus,
+  ShoppingCart,
+  Wallet,
   Heart,
   User,
+  Plus,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { getPublicJson } from "@/lib/public-api";
@@ -75,8 +76,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   const bottomNavItems = [
     { href: "/", label: "الرئيسية", icon: Home },
-    { href: "/orders", label: "طلباتي", icon: ListOrdered },
-    { href: "/deposit", label: "شحن", icon: Plus, isFab: true },
+    { href: "/orders", label: "مشترياتي", icon: ShoppingCart },
+    { href: "/deposit", label: "المحفظة", icon: Wallet, isFab: true },
     { href: "/favorites", label: "مفضلتي", icon: Heart },
     { href: "/profile", label: "حسابي", icon: User },
   ];

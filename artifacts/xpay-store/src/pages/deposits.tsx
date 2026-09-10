@@ -36,7 +36,7 @@ export default function DepositsList() {
   return (
     <div className="min-h-screen bg-[#1A1A1A] text-white pb-24 p-4 animate-in fade-in duration-300" dir="rtl">
       <div className="max-w-xl mx-auto">
-        <h1 className="text-xl font-black text-[#FDE68A] mb-4">سجل الإيداعات والمحفظة</h1>
+        <h1 className="text-xl font-black text-[#FDE68A] mb-4">دفعاتي المالية</h1>
 
         {/* Summary Card */}
         <div className="bg-[#2D2D2D] border border-[#C8A45C]/35 rounded-3xl p-5 mb-6 shadow-xl relative overflow-hidden">
