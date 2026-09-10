@@ -46,6 +46,7 @@ import CronJobs from "./pages/CronJobs";
 import ProductPageSettings from "./pages/ProductPageSettings";
 import AboutSettings from "./pages/AboutSettings";
 import DepositSettings from "./pages/DepositSettings";
+import IdentityVerifications from "./pages/IdentityVerifications";
 import { loadAndApplyAdminTheme } from "./lib/theme";
 import { Toaster } from "sonner";
 
@@ -124,6 +125,7 @@ export default function App() {
           <Route path="/orders" element={<Orders />} />
           <Route path="/deposits" element={<Deposits />} />
           <Route path="/users" element={<Users />} />
+          <Route path="/identity-verifications" element={<IdentityVerifications />} />
           <Route path="/categories" element={<Categories />} />
           <Route path="/product-groups" element={<ProductGroups />} />
           <Route path="/products" element={<Products />} />

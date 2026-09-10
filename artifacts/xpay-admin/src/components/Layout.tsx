@@ -4,7 +4,7 @@ import { get, post } from "../lib/api";
 import {
   LayoutDashboard, ShoppingCart, Wallet, Users, FolderTree, Package,
   CreditCard, Image as ImageIcon, Megaphone, Share2, Server, Ticket,
-  Crown, KeyRound, MessageSquare, Code2, Bell, ShieldCheck, Activity,
+  Crown, KeyRound, MessageSquare, Code2, Bell, ShieldCheck, BadgeCheck, Activity,
   Settings as SettingsIcon, Palette, BarChart3, Database, User as UserIcon,
   Lock, Globe, Languages as LangIcon, PowerOff, LogOut, Menu, X, Moon, Sun,
   CheckCircle2, ArrowRight, ExternalLink, Info
@@ -24,6 +24,7 @@ const NAV: { to: string; label: string; icon: any; group: string }[] = [
   { to: "/maintenance", label: "وضع الصيانة", icon: PowerOff, group: "لوحة الإدارة" },
   { to: "/news", label: "الأخبار", icon: Megaphone, group: "لوحة الإدارة" },
   { to: "/users", label: "إدارة المستخدمين (إضافة/حذف)", icon: Users, group: "لوحة الإدارة" },
+  { to: "/identity-verifications", label: "طلبات توثيق الهوية", icon: BadgeCheck, group: "لوحة الإدارة" },
 
   // Group 2
   { to: "/providers", label: "مزود API", icon: Server, group: "إدارة المزودين" },

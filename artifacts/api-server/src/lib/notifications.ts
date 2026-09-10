@@ -109,3 +109,27 @@ export async function notifyUserDepositRejected(deposit: {
     content: `تم رفض عملية الإيداع رقم #${deposit.id}.${reason} يرجى مراجعة الدعم الفني إن كنت بحاجة للمساعدة.`,
   });
 }
+
+export async function notifyUserIdentityApproved(verification: {
+  userId: number;
+}) {
+  return createInternalNotification({
+    targetType: "user",
+    targetUserId: verification.userId,
+    title: `🪪 تم قبول توثيق الهوية`,
+    content: `تهانينا! تم مراجعة وثائق الهوية الخاصة بك وقبول توثيق حسابك بنجاح.`,
+  });
+}
+
+export async function notifyUserIdentityRejected(verification: {
+  userId: number;
+  reason?: string;
+}) {
+  const reasonText = verification.reason ? ` السبب: ${verification.reason}` : "";
+  return createInternalNotification({
+    targetType: "user",
+    targetUserId: verification.userId,
+    title: `⚠️ تم رفض توثيق الهوية`,
+    content: `نأسف، تم رفض طلب توثيق الهوية الخاص بك.${reasonText} يرجى مراجعة البيانات وإعادة الإرسال.`,
+  });
+}

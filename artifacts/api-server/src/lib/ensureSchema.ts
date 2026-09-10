@@ -635,6 +635,23 @@ export async function ensureDatabaseSchema() {
       `);
     }
 
+    // 13. Identity Verifications table
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS identity_verifications (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        full_name TEXT NOT NULL,
+        id_front_image TEXT NOT NULL,
+        id_back_image TEXT NOT NULL,
+        selfie_image TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'pending',
+        rejection_reason TEXT,
+        reviewed_by INTEGER,
+        reviewed_at TIMESTAMP,
+        created_at TIMESTAMP NOT NULL DEFAULT NOW()
+      );
+    `);
+
     schemaEnsured = true;
     console.log("[DB Schema] Runtime schema verified and synchronized successfully.");
   } catch (error) {

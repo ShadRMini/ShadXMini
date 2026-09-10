@@ -1,6 +1,6 @@
 import { Router, type IRouter, type Request, type Response } from "express";
 import { db, usersTable } from "@workspace/db";
-import { eq, and, ne } from "drizzle-orm";
+import { eq, and, ne, sql } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import {
   getOrCreateCurrentUser,
@@ -257,6 +257,93 @@ async function handleGetLoyalty(req: Request, res: Response) {
 async function handleGetLevels(_req: Request, res: Response) {
   return res.json(ALL_LEVELS);
 }
+
+async function handleGetIdentityVerification(req: Request, res: Response) {
+  try {
+    const u = await getOrCreateCurrentUser(req);
+    if (!u || !u.id) {
+      return res.status(401).json({ error: "يرجى تسجيل الدخول لعرض حالة التوثيق." });
+    }
+
+    const rows: any = await db.execute(sql`
+      SELECT * FROM identity_verifications
+      WHERE user_id = ${u.id}
+      ORDER BY created_at DESC
+      LIMIT 1
+    `);
+
+    const verification = rows?.rows?.[0] || null;
+    return res.json({ verification });
+  } catch (error: any) {
+    console.error("[Get Identity Verification Error]:", error);
+    return res.status(500).json({ error: error?.message || "حدث خطأ أثناء جلب حالة التوثيق." });
+  }
+}
+
+async function handleSubmitIdentityVerification(req: Request, res: Response) {
+  try {
+    const u = await getOrCreateCurrentUser(req);
+    if (!u || !u.id) {
+      return res.status(401).json({ error: "يرجى تسجيل الدخول لإرسال طلب التوثيق." });
+    }
+
+    const { fullName, idFrontImage, idBackImage, selfieImage } = req.body || {};
+
+    const cleanFullName = String(fullName || "").trim();
+    const cleanFront = String(idFrontImage || "").trim();
+    const cleanBack = String(idBackImage || "").trim();
+    const cleanSelfie = String(selfieImage || "").trim();
+
+    if (!cleanFullName || cleanFullName.length < 3) {
+      return res.status(400).json({ error: "يرجى إدخال الاسم الكامل كما يظهر في الهوية (3 أحرف على الأقل)." });
+    }
+    if (!cleanFront) {
+      return res.status(400).json({ error: "صورة الوجه الأمامي للهوية مطلوبة." });
+    }
+    if (!cleanBack) {
+      return res.status(400).json({ error: "صورة الوجه الخلفي للهوية مطلوبة." });
+    }
+    if (!cleanSelfie) {
+      return res.status(400).json({ error: "صورة السيلفي مع الهوية مطلوبة." });
+    }
+
+    const existing: any = await db.execute(sql`
+      SELECT * FROM identity_verifications
+      WHERE user_id = ${u.id}
+      ORDER BY created_at DESC
+      LIMIT 1
+    `);
+
+    const currentReq = existing?.rows?.[0];
+    if (currentReq) {
+      if (currentReq.status === "approved") {
+        return res.status(400).json({ error: "حسابك موثق بالفعل ولا يحتاج لإعادة التوثيق." });
+      }
+      if (currentReq.status === "pending") {
+        return res.status(400).json({ error: "لديك طلب توثيق قيد المراجعة حالياً، يرجى انتظار قرار المشرف." });
+      }
+    }
+
+    const inserted: any = await db.execute(sql`
+      INSERT INTO identity_verifications (user_id, full_name, id_front_image, id_back_image, selfie_image, status, created_at)
+      VALUES (${u.id}, ${cleanFullName}, ${cleanFront}, ${cleanBack}, ${cleanSelfie}, 'pending', NOW())
+      RETURNING *
+    `);
+
+    const verification = inserted?.rows?.[0];
+    return res.json({
+      success: true,
+      message: "تم إرسال طلب توثيق الهوية بنجاح وهو قيد المراجعة الآن.",
+      verification,
+    });
+  } catch (error: any) {
+    console.error("[Submit Identity Verification Error]:", error);
+    return res.status(500).json({ error: error?.message || "حدث خطأ أثناء إرسال طلب التوثيق." });
+  }
+}
+
+router.get("/me/identity-verification", handleGetIdentityVerification);
+router.post("/me/identity-verification", handleSubmitIdentityVerification);
 
 router.get("/me/loyalty", handleGetLoyalty);
 router.get("/loyalty/me", handleGetLoyalty);

@@ -25,6 +25,7 @@ import Login from "@/pages/login";
 import Register from "@/pages/register";
 import NotificationsPage from "@/pages/Notifications";
 import LoyaltyLevels from "@/pages/LoyaltyLevels";
+import IdentityVerification from "@/pages/IdentityVerification";
 import AppLayout from "@/components/layout/AppLayout";
 import { PopupNotification } from "@/components/PopupNotification";
 import { loadAndApplyStoreTheme, DEFAULT_STORE_THEME, applyStoreTheme } from "@/lib/theme";
@@ -203,6 +204,7 @@ function Router() {
             <Route path="/favorites" component={() => <ProtectedRoute component={Favorites} />} />
             <Route path="/notifications" component={() => <ProtectedRoute component={NotificationsPage} />} />
             <Route path="/loyalty" component={() => <ProtectedRoute component={LoyaltyLevels} />} />
+            <Route path="/identity-verification" component={() => <ProtectedRoute component={IdentityVerification} />} />
             <Route path="/profile" component={() => <ProtectedRoute component={Profile} />} />
             <Route path="/settings" component={() => <ProtectedRoute component={SettingsPage} />} />
             <Route path="/profile/edit" component={() => <ProtectedRoute component={SettingsPage} />} />

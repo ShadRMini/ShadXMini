@@ -17,6 +17,7 @@ import {
   Bell,
   Moon,
   Sun,
+  ShieldCheck,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { getStoreThemeMode, toggleStoreThemeMode } from "@/lib/theme";
@@ -63,6 +64,7 @@ export default function Sidebar({ brandLogo, onClose }: SidebarProps) {
     { href: "/orders", label: "مشترياتي", icon: ShoppingCart },
     { href: "/deposits", label: "دفعاتي المالية", icon: CreditCard },
     { href: "/deposit", label: "المحفظة", icon: Wallet },
+    { href: "/identity-verification", label: "توثيق الهوية", icon: ShieldCheck },
     { href: "/settings", label: "إعدادات الحساب", icon: Settings },
     { href: "/notifications", label: "الإشعارات والتنبيهات", icon: Bell },
     { href: "/support", label: "تواصل معنا (الدعم)", icon: HeadphonesIcon },

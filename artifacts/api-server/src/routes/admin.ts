@@ -37,7 +37,9 @@ import {
   notifyUserDepositConfirmed as notifyInternalDepositConfirmed, 
   notifyUserDepositRejected as notifyInternalDepositRejected,
   notifyUserOrderAccepted as notifyInternalOrderAccepted,
-  notifyUserOrderRejected as notifyInternalOrderRejected
+  notifyUserOrderRejected as notifyInternalOrderRejected,
+  notifyUserIdentityApproved,
+  notifyUserIdentityRejected
 } from "../lib/notifications.js";
 import { rateLimit } from "../lib/rateLimit.js";
 import { addUnitPrices, decimalToScaled, parseProviderQuantityValues, subtractUnitPrices } from "../lib/pricing.js";
@@ -4859,6 +4861,184 @@ router.put("/admin/settings/:key", requireAdmin, async (req, res) => {
     res.json({ success: true, key, value });
   } catch (err: any) {
     res.status(500).json({ error: err?.message || "فشل حفظ الإعداد" });
+  }
+});
+
+// --- IDENTITY VERIFICATIONS ADMIN ROUTES ---
+
+router.get("/admin/identity-verifications", requireAdmin, async (req, res) => {
+  try {
+    const { status, search } = req.query as { status?: string; search?: string };
+
+    let whereClause = sql`1=1`;
+    if (status && status !== "all") {
+      whereClause = sql`iv.status = ${status}`;
+    }
+
+    let searchClause = sql`1=1`;
+    if (search && search.trim()) {
+      const q = `%${search.trim()}%`;
+      searchClause = sql`(iv.full_name ILIKE ${q} OR u.username ILIKE ${q} OR u.email ILIKE ${q} OR u.display_id ILIKE ${q})`;
+    }
+
+    const rows: any = await db.execute(sql`
+      SELECT 
+        iv.id,
+        iv.user_id,
+        iv.full_name,
+        iv.id_front_image,
+        iv.id_back_image,
+        iv.selfie_image,
+        iv.status,
+        iv.rejection_reason,
+        iv.reviewed_by,
+        iv.reviewed_at,
+        iv.created_at,
+        u.username,
+        u.email,
+        u.display_id,
+        u.avatar_url
+      FROM identity_verifications iv
+      JOIN users u ON iv.user_id = u.id
+      WHERE ${whereClause} AND ${searchClause}
+      ORDER BY iv.created_at DESC
+    `);
+
+    const countsRow: any = await db.execute(sql`
+      SELECT 
+        COUNT(*)::int as total,
+        COUNT(CASE WHEN status = 'pending' THEN 1 END)::int as pending,
+        COUNT(CASE WHEN status = 'approved' THEN 1 END)::int as approved,
+        COUNT(CASE WHEN status = 'rejected' THEN 1 END)::int as rejected
+      FROM identity_verifications
+    `);
+
+    const counts = countsRow?.rows?.[0] || { total: 0, pending: 0, approved: 0, rejected: 0 };
+
+    res.json({
+      verifications: rows?.rows || [],
+      counts,
+    });
+  } catch (err: any) {
+    console.error("[Admin List Identity Verifications Error]:", err);
+    res.status(500).json({ error: err?.message || "فشل جلب طلبات توثيق الهوية" });
+  }
+});
+
+router.get("/admin/identity-verifications/:id", requireAdmin, async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ error: "معرف الطلب غير صحيح" });
+
+    const rows: any = await db.execute(sql`
+      SELECT 
+        iv.id,
+        iv.user_id,
+        iv.full_name,
+        iv.id_front_image,
+        iv.id_back_image,
+        iv.selfie_image,
+        iv.status,
+        iv.rejection_reason,
+        iv.reviewed_by,
+        iv.reviewed_at,
+        iv.created_at,
+        u.username,
+        u.email,
+        u.display_id,
+        u.avatar_url,
+        a.username as reviewer_username
+      FROM identity_verifications iv
+      JOIN users u ON iv.user_id = u.id
+      LEFT JOIN admins a ON iv.reviewed_by = a.id
+      WHERE iv.id = ${id}
+      LIMIT 1
+    `);
+
+    if (!rows?.rows?.length) {
+      return res.status(404).json({ error: "طلب التوثيق غير موجود" });
+    }
+
+    res.json({ verification: rows.rows[0] });
+  } catch (err: any) {
+    console.error("[Admin Get Identity Verification Error]:", err);
+    res.status(500).json({ error: err?.message || "فشل جلب تفاصيل طلب التوثيق" });
+  }
+});
+
+router.patch("/admin/identity-verifications/:id/approve", requireAdmin, async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ error: "معرف الطلب غير صحيح" });
+
+    const adminId = (req.session as any)?.adminId || null;
+
+    const resRows: any = await db.execute(sql`
+      UPDATE identity_verifications
+      SET status = 'approved',
+          rejection_reason = NULL,
+          reviewed_by = ${adminId},
+          reviewed_at = NOW()
+      WHERE id = ${id}
+      RETURNING *
+    `);
+
+    if (!resRows?.rows?.length) {
+      return res.status(404).json({ error: "طلب التوثيق غير موجود" });
+    }
+
+    const updated = resRows.rows[0];
+
+    // Notify user internally
+    await notifyUserIdentityApproved({ userId: updated.user_id });
+
+    res.json({
+      success: true,
+      message: "تم قبول طلب توثيق الهوية بنجاح.",
+      verification: updated,
+    });
+  } catch (err: any) {
+    console.error("[Admin Approve Identity Verification Error]:", err);
+    res.status(500).json({ error: err?.message || "فشل قبول طلب توثيق الهوية" });
+  }
+});
+
+router.patch("/admin/identity-verifications/:id/reject", requireAdmin, async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ error: "معرف الطلب غير صحيح" });
+
+    const { reason } = req.body || {};
+    const cleanReason = String(reason || "").trim() || "تم رفض طلب التوثيق لعدم استيفاء الشروط أو عدم وضوح الصور.";
+    const adminId = (req.session as any)?.adminId || null;
+
+    const resRows: any = await db.execute(sql`
+      UPDATE identity_verifications
+      SET status = 'rejected',
+          rejection_reason = ${cleanReason},
+          reviewed_by = ${adminId},
+          reviewed_at = NOW()
+      WHERE id = ${id}
+      RETURNING *
+    `);
+
+    if (!resRows?.rows?.length) {
+      return res.status(404).json({ error: "طلب التوثيق غير موجود" });
+    }
+
+    const updated = resRows.rows[0];
+
+    // Notify user internally
+    await notifyUserIdentityRejected({ userId: updated.user_id, reason: cleanReason });
+
+    res.json({
+      success: true,
+      message: "تم رفض طلب توثيق الهوية.",
+      verification: updated,
+    });
+  } catch (err: any) {
+    console.error("[Admin Reject Identity Verification Error]:", err);
+    res.status(500).json({ error: err?.message || "فشل رفض طلب توثيق الهوية" });
   }
 });
 
