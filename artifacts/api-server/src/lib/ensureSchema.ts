@@ -650,7 +650,12 @@ export async function ensureDatabaseSchema() {
         reviewed_at TIMESTAMP,
         created_at TIMESTAMP NOT NULL DEFAULT NOW()
       );
-    `);
+      ALTER TABLE identity_verifications ADD COLUMN IF NOT EXISTS rejection_reason TEXT;
+      ALTER TABLE identity_verifications ADD COLUMN IF NOT EXISTS reviewed_by INTEGER;
+      ALTER TABLE identity_verifications ADD COLUMN IF NOT EXISTS reviewed_at TIMESTAMP;
+    `).catch((err: any) => {
+      console.warn("[ensureSchema] identity_verifications alter warning:", err?.message);
+    });
 
     // 14. VIP Memberships table
     await db.execute(sql`

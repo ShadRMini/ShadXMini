@@ -82,7 +82,7 @@ export default function IdentityVerifications() {
       if (res.counts) setCounts(res.counts);
     } catch (err: any) {
       showToast("error", err.message || "فشل جلب طلبات التوثيق.");
-    } fontFinally: {
+    } finally {
       setLoading(false);
     }
   };

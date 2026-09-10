@@ -327,4 +327,18 @@ export const productPageConfigTable = pgTable("product_page_config", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+export const identityVerificationsTable = pgTable("identity_verifications", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => usersTable.id, { onDelete: "cascade" }),
+  fullName: text("full_name").notNull(),
+  idFrontImage: text("id_front_image").notNull(),
+  idBackImage: text("id_back_image").notNull(),
+  selfieImage: text("selfie_image").notNull(),
+  status: text("status").notNull().default("pending"),
+  rejectionReason: text("rejection_reason"),
+  reviewedBy: integer("reviewed_by"),
+  reviewedAt: timestamp("reviewed_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 
