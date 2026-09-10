@@ -699,15 +699,7 @@ export async function ensureDatabaseSchema() {
         (3, 'Gold', 'ذهبي', 3, 500, 10.00, '#C8A45C', '["خصم 10%", "توصيل مجاني", "دعم أولوية"]'::jsonb, 'مستوى ذهبي مع خصومات ومزايا مميزة', false),
         (4, 'Diamond', 'ماسي', 4, 1000, 15.00, '#60A5FA', '["خصم 15%", "توصيل مجاني", "دعم مباشر", "هدايا شهرية"]'::jsonb, 'مستوى ماسي مع خصومات ومزايا حصرية', false),
         (5, 'VIP', 'VIP', 5, 2500, 20.00, '#A855F7', '["خصم 20%", "كل المزايا السابقة", "مدير حساب مخصص", "دخول مبكر للعروض"]'::jsonb, 'مستوى VIP مع كل المزايا الحصرية', false)
-      ON CONFLICT (id) DO UPDATE SET
-        name = EXCLUDED.name,
-        name_ar = EXCLUDED.name_ar,
-        level_order = EXCLUDED.level_order,
-        required_amount = EXCLUDED.required_amount,
-        discount_percent = EXCLUDED.discount_percent,
-        badge_color = EXCLUDED.badge_color,
-        benefits = EXCLUDED.benefits,
-        description = EXCLUDED.description;
+      ON CONFLICT (id) DO NOTHING;
     `);
 
     // Sync sequence to avoid collision when creating new levels

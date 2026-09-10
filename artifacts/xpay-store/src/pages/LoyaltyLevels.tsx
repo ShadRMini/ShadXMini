@@ -352,18 +352,18 @@ export default function LoyaltyLevels() {
                   </div>
 
                   {/* Right: Requirements & Discount */}
-                  <div className="sm:text-left flex sm:flex-col items-center sm:items-end justify-between border-t sm:border-t-0 border-[#3D3D3D] pt-3 sm:pt-0 shrink-0">
+                  <div className="sm:text-left flex sm:flex-col items-center sm:items-end justify-between border-t sm:border-t-0 border-[#3D3D3D] pt-3 sm:pt-0 shrink-0 gap-2">
                     <div className="text-right sm:text-left">
                       <span className="text-[10px] text-[#9CA3AF] block font-bold">حد الإنفاق المطلوب</span>
                       <span className={`text-base sm:text-lg font-black font-mono ${isCurrent ? "text-[#C8A45C]" : "text-white"}`}>
-                        ${reqAmt.toFixed(0)}
+                        ${reqAmt.toFixed(2)}
                       </span>
                     </div>
 
-                    <div className="text-left sm:mt-2">
+                    <div className="text-left sm:mt-1">
                       <span className="text-[10px] text-[#9CA3AF] block font-bold">نسبة الخصم</span>
-                      <span className="text-xs sm:text-sm font-black text-[#C8A45C] bg-[#C8A45C]/15 px-2.5 py-0.5 rounded-lg border border-[#C8A45C]/30">
-                        {discPct}%
+                      <span className="inline-block text-xs sm:text-sm font-black text-[#C8A45C] bg-[#C8A45C]/15 px-2.5 py-0.5 rounded-lg border border-[#C8A45C]/30 font-mono">
+                        {Number(discPct).toFixed(0)}%
                       </span>
                     </div>
                   </div>

@@ -19,13 +19,20 @@ export async function updateUserVipLevel(userId: number) {
     const allLevels = await db
       .select()
       .from(vipMembershipsTable)
-      .where(eq(vipMembershipsTable.hidden, false))
-      .orderBy(desc(vipMembershipsTable.requiredAmount));
+      .where(eq(vipMembershipsTable.hidden, false));
 
     if (!allLevels || allLevels.length === 0) return null;
 
-    // Find the highest level the user qualifies for
-    const suitableLevel = allLevels.find((lvl) => totalSpent >= Number(lvl.requiredAmount || 0));
+    // Numerically sort levels descending by requiredAmount, then by levelOrder descending
+    const sortedLevels = [...allLevels].sort((a, b) => {
+      const amtA = Number(a.requiredAmount || 0);
+      const amtB = Number(b.requiredAmount || 0);
+      if (amtB !== amtA) return amtB - amtA;
+      return Number(b.levelOrder || 0) - Number(a.levelOrder || 0);
+    });
+
+    // Find the highest level the user qualifies for based on dynamic requiredAmount
+    const suitableLevel = sortedLevels.find((lvl) => totalSpent >= Number(lvl.requiredAmount || 0));
 
     if (suitableLevel && Number(suitableLevel.levelOrder) !== Number(user.vipLevel || 1)) {
       const newVipLevel = Number(suitableLevel.levelOrder);
@@ -49,7 +56,7 @@ export async function updateUserVipLevel(userId: number) {
         console.warn("[VIP Notification Warning]:", err);
       }
 
-      console.log(`[VIP Upgrade] User #${userId} upgraded to ${lvlName} (Level ${newVipLevel})`);
+      console.log(`[VIP Upgrade] User #${userId} (Total Spent: $${totalSpent}) upgraded to ${lvlName} (Level ${newVipLevel})`);
       return { upgraded: true, newLevel: suitableLevel };
     }
 
@@ -59,3 +66,6 @@ export async function updateUserVipLevel(userId: number) {
     return null;
   }
 }
+
+// Alias for convenience
+export const checkAndUpgradeVipLevel = updateUserVipLevel;

@@ -75,12 +75,18 @@ export default function VipMemberships() {
   // Form Fields
   const [formData, setFormData] = useState({
     name: "",
+    nameAr: "",
     name_ar: "",
+    levelOrder: 1,
     level_order: 1,
+    requiredAmount: "0",
     required_amount: "0",
+    discountPercent: "0",
     discount_percent: "0",
+    badgeColor: "#C8A45C",
     badge_color: "#C8A45C",
     description: "",
+    benefits: [] as string[],
     hidden: false,
   });
   const [benefitsList, setBenefitsList] = useState<string[]>([]);
@@ -160,12 +166,18 @@ export default function VipMemberships() {
     const maxOrder = levels.length > 0 ? Math.max(...levels.map((l) => Number(l.level_order ?? l.levelOrder ?? 0))) + 1 : 1;
     setFormData({
       name: "",
+      nameAr: "",
       name_ar: "",
+      levelOrder: maxOrder,
       level_order: maxOrder,
+      requiredAmount: "0",
       required_amount: "0",
+      discountPercent: "0",
       discount_percent: "0",
+      badgeColor: "#C8A45C",
       badge_color: "#C8A45C",
       description: "",
+      benefits: [],
       hidden: false,
     });
     setBenefitsList([]);
@@ -186,14 +198,26 @@ export default function VipMemberships() {
       }
     }
 
+    const nameArVal = lvl.name_ar || lvl.nameAr || "";
+    const orderVal = Number(lvl.level_order ?? lvl.levelOrder ?? lvl.id);
+    const reqAmtVal = String(lvl.required_amount ?? lvl.requiredAmount ?? 0);
+    const discVal = String(lvl.discount_percent ?? lvl.discountPercent ?? lvl.profitPct ?? 0);
+    const colorVal = lvl.badge_color || lvl.badgeColor || lvl.badge || "#C8A45C";
+
     setFormData({
       name: lvl.name || "",
-      name_ar: lvl.name_ar || lvl.nameAr || "",
-      level_order: Number(lvl.level_order ?? lvl.levelOrder ?? lvl.id),
-      required_amount: String(lvl.required_amount ?? lvl.requiredAmount ?? 0),
-      discount_percent: String(lvl.discount_percent ?? lvl.discountPercent ?? lvl.profitPct ?? 0),
-      badge_color: lvl.badge_color || lvl.badgeColor || lvl.badge || "#C8A45C",
+      nameAr: nameArVal,
+      name_ar: nameArVal,
+      levelOrder: orderVal,
+      level_order: orderVal,
+      requiredAmount: reqAmtVal,
+      required_amount: reqAmtVal,
+      discountPercent: discVal,
+      discount_percent: discVal,
+      badgeColor: colorVal,
+      badge_color: colorVal,
       description: lvl.description || "",
+      benefits: parsedBenefits,
       hidden: Boolean(lvl.hidden),
     });
     setBenefitsList(parsedBenefits);
@@ -204,31 +228,56 @@ export default function VipMemberships() {
   const handleAddBenefit = () => {
     const val = newBenefitInput.trim();
     if (val) {
-      setBenefitsList([...benefitsList, val]);
+      const updated = [...benefitsList, val];
+      setBenefitsList(updated);
+      setFormData((prev) => ({ ...prev, benefits: updated }));
       setNewBenefitInput("");
     }
   };
 
   const handleRemoveBenefit = (index: number) => {
-    setBenefitsList(benefitsList.filter((_, i) => i !== index));
+    const updated = benefitsList.filter((_, i) => i !== index);
+    setBenefitsList(updated);
+    setFormData((prev) => ({ ...prev, benefits: updated }));
   };
 
   // Save Level (Create or Update)
-  const handleSaveLevel = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSaveLevel = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     if (isSaving) return;
+
+    const name = (formData.name || "").trim();
+    const nameAr = (formData.nameAr || formData.name_ar || "").trim();
+
+    if (!nameAr || !name) {
+      toast({
+        title: "بيانات ناقصة",
+        description: "الرجاء إدخال اسم المستوى بالعربية والإنجليزية",
+        variant: "destructive",
+      });
+      return;
+    }
 
     try {
       setIsSaving(true);
+      const benefits = Array.isArray(formData.benefits) && formData.benefits.length > 0
+        ? formData.benefits
+        : benefitsList;
+
       const payload = {
-        name: formData.name.trim(),
-        name_ar: formData.name_ar.trim() || formData.name.trim(),
-        level_order: Number(formData.level_order) || 1,
-        required_amount: formData.required_amount,
-        discount_percent: formData.discount_percent,
-        badge_color: formData.badge_color || "#C8A45C",
-        description: formData.description.trim(),
-        benefits: benefitsList,
+        name,
+        nameAr,
+        name_ar: nameAr,
+        levelOrder: parseInt(String(formData.levelOrder ?? formData.level_order)) || 1,
+        level_order: parseInt(String(formData.levelOrder ?? formData.level_order)) || 1,
+        requiredAmount: String(formData.requiredAmount ?? formData.required_amount ?? 0),
+        required_amount: String(formData.requiredAmount ?? formData.required_amount ?? 0),
+        discountPercent: String(formData.discountPercent ?? formData.discount_percent ?? 0),
+        discount_percent: String(formData.discountPercent ?? formData.discount_percent ?? 0),
+        badgeColor: formData.badgeColor || formData.badge_color || "#C8A45C",
+        badge_color: formData.badgeColor || formData.badge_color || "#C8A45C",
+        benefits,
+        description: formData.description || "",
         hidden: Boolean(formData.hidden),
       };
 
@@ -236,10 +285,10 @@ export default function VipMemberships() {
 
       if (editingLevel) {
         await put(`/vip-memberships/${editingLevel.id}`, payload);
-        toast({ title: "تم التحديث", description: "تم تحديث مستوى VIP بنجاح" });
+        toast({ title: "تم التحديث", description: "تم تحديث المستوى بنجاح" });
       } else {
         await post("/vip-memberships", payload);
-        toast({ title: "تم الإنشاء", description: "تم إنشاء مستوى VIP الجديد بنجاح" });
+        toast({ title: "تم الإضافة", description: "تم إضافة المستوى بنجاح" });
       }
 
       setModalOpen(false);
@@ -248,7 +297,7 @@ export default function VipMemberships() {
       console.error("[VIP Admin Save Error]:", err);
       toast({
         title: "خطأ بالحفظ",
-        description: err.message || "فشل حفظ بيانات المستوى. يرجى المحاولة مرة أخرى.",
+        description: "فشل الحفظ: " + (err.message || "حدث خطأ غير متوقع"),
         variant: "destructive",
       });
     } finally {
@@ -856,147 +905,137 @@ export default function VipMemberships() {
             </div>
 
             <form onSubmit={handleSaveLevel} className="space-y-4 text-xs">
-              
-              {/* Name (English & Arabic) & Order */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-zinc-300 font-bold block">الاسم بالإنجليزية (Name) *</label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* اسم المستوى بالعربية */}
+                <div>
+                  <label className="block text-zinc-300 font-semibold mb-1">
+                    الاسم بالعربية <span className="text-red-400">*</span>
+                  </label>
                   <input
                     type="text"
                     required
-                    placeholder="مثال: Gold"
-                    value={formData.name}
+                    value={formData.nameAr || formData.name_ar || ""}
+                    onChange={(e) => setFormData({ ...formData, nameAr: e.target.value, name_ar: e.target.value })}
+                    placeholder="مثال: فضي"
+                    className="w-full bg-[#1A1A1A] border border-zinc-700 focus:border-[#C8A45C] text-white px-3.5 py-2.5 rounded-xl outline-none"
+                  />
+                </div>
+
+                {/* الاسم بالإنجليزية */}
+                <div>
+                  <label className="block text-zinc-300 font-semibold mb-1">
+                    الاسم بالإنجليزية <span className="text-red-400">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.name || ""}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full bg-[#121212] border border-zinc-700 rounded-xl p-3 text-white focus:outline-none focus:border-[#C8A45C]"
+                    placeholder="مثال: Silver"
+                    className="w-full bg-[#1A1A1A] border border-zinc-700 focus:border-[#C8A45C] text-white px-3.5 py-2.5 rounded-xl outline-none"
                   />
                 </div>
 
-                <div className="space-y-1.5">
-                  <label className="text-zinc-300 font-bold block">الاسم بالعربية (Arabic Name) *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="مثال: ذهبي"
-                    value={formData.name_ar}
-                    onChange={(e) => setFormData({ ...formData, name_ar: e.target.value })}
-                    className="w-full bg-[#121212] border border-zinc-700 rounded-xl p-3 text-white focus:outline-none focus:border-[#C8A45C]"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-zinc-300 font-bold block">ترتيب المستوى (Order) *</label>
+                {/* ترتيب المستوى */}
+                <div>
+                  <label className="block text-zinc-300 font-semibold mb-1">
+                    ترتيب المستوى <span className="text-red-400">*</span>
+                  </label>
                   <input
                     type="number"
-                    required
                     min="1"
-                    value={formData.level_order}
-                    onChange={(e) => setFormData({ ...formData, level_order: Number(e.target.value) })}
-                    className="w-full bg-[#121212] border border-zinc-700 rounded-xl p-3 text-white focus:outline-none focus:border-[#C8A45C]"
-                  />
-                </div>
-              </div>
-
-              {/* Required Spent & Discount Pct */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-zinc-300 font-bold block">إجمالي الإنفاق المطلوب ($) *</label>
-                  <input
-                    type="number"
-                    step="0.01"
                     required
-                    value={formData.required_amount}
-                    onChange={(e) => setFormData({ ...formData, required_amount: e.target.value })}
-                    className="w-full bg-[#121212] border border-zinc-700 rounded-xl p-3 text-white font-mono focus:outline-none focus:border-[#C8A45C]"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-zinc-300 font-bold block">نسبة الخصم (%) *</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    required
-                    value={formData.discount_percent}
-                    onChange={(e) => setFormData({ ...formData, discount_percent: e.target.value })}
-                    className="w-full bg-[#121212] border border-zinc-700 rounded-xl p-3 text-white font-mono focus:outline-none focus:border-[#C8A45C]"
-                  />
-                </div>
-              </div>
-
-              {/* Badge Color Picker */}
-              <div className="space-y-1.5">
-                <label className="text-zinc-300 font-bold block">لون الشارة (Badge Color)</label>
-                <div className="flex items-center gap-3">
-                  <input
-                    type="color"
-                    value={formData.badge_color}
-                    onChange={(e) => setFormData({ ...formData, badge_color: e.target.value })}
-                    className="w-12 h-10 rounded-xl cursor-pointer bg-transparent border-0 p-0"
-                  />
-                  <input
-                    type="text"
-                    value={formData.badge_color}
-                    onChange={(e) => setFormData({ ...formData, badge_color: e.target.value })}
-                    className="flex-1 bg-[#121212] border border-zinc-700 rounded-xl p-3 font-mono text-white focus:outline-none focus:border-[#C8A45C]"
-                    placeholder="#C8A45C"
-                  />
-                </div>
-              </div>
-
-              {/* Description */}
-              <div className="space-y-1.5">
-                <label className="text-zinc-300 font-bold block">وصف المستوى</label>
-                <textarea
-                  rows={2}
-                  placeholder="وصف مختصر للمزايا والخصومات لهذا المستوى..."
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full bg-[#121212] border border-zinc-700 rounded-xl p-3 text-white focus:outline-none focus:border-[#C8A45C]"
-                />
-              </div>
-
-              {/* Benefits List Input */}
-              <div className="space-y-2">
-                <label className="text-zinc-300 font-bold block">مزايا المستوى (Benefits)</label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    placeholder="إضافة ميزة (مثال: دعم فني سريع 24/7)"
-                    value={newBenefitInput}
-                    onChange={(e) => setNewBenefitInput(e.target.value)}
-                    className="flex-1 bg-[#121212] border border-zinc-700 rounded-xl p-2.5 text-white focus:outline-none focus:border-[#C8A45C]"
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        handleAddBenefit();
-                      }
+                    value={formData.levelOrder ?? formData.level_order ?? 1}
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value) || 1;
+                      setFormData({ ...formData, levelOrder: val, level_order: val });
                     }}
+                    className="w-full bg-[#1A1A1A] border border-zinc-700 focus:border-[#C8A45C] text-white px-3.5 py-2.5 rounded-xl outline-none"
                   />
-                  <button
-                    type="button"
-                    onClick={handleAddBenefit}
-                    className="bg-zinc-800 hover:bg-zinc-700 text-[#C8A45C] font-bold px-4 py-2.5 rounded-xl border border-zinc-700 transition-all"
-                  >
-                    إضافة
-                  </button>
                 </div>
 
-                <div className="flex flex-wrap gap-2 pt-2">
-                  {benefitsList.map((benefit, idx) => (
-                    <span
-                      key={idx}
-                      className="bg-zinc-800 text-zinc-200 border border-zinc-700 px-3 py-1 rounded-xl text-xs flex items-center gap-1.5"
-                    >
-                      <span>{benefit}</span>
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveBenefit(idx)}
-                        className="text-red-400 hover:text-red-300"
-                      >
-                        <X className="w-3.5 h-3.5" />
-                      </button>
-                    </span>
-                  ))}
+                {/* حد الإنفاق - مهم */}
+                <div>
+                  <label className="block text-zinc-300 font-semibold mb-1">
+                    حد الإنفاق (بالدولار) <span className="text-red-400">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    required
+                    value={formData.requiredAmount ?? formData.required_amount ?? 0}
+                    onChange={(e) => setFormData({ ...formData, requiredAmount: e.target.value, required_amount: e.target.value })}
+                    placeholder="مثال: 500"
+                    className="w-full bg-[#1A1A1A] border border-zinc-700 focus:border-[#C8A45C] text-white px-3.5 py-2.5 rounded-xl outline-none font-mono"
+                  />
+                  <p className="text-xs text-zinc-500 mt-1">المبلغ الذي يجب أن ينفقه المستخدم للوصول لهذا المستوى</p>
+                </div>
+
+                {/* نسبة الخصم - مهم */}
+                <div>
+                  <label className="block text-zinc-300 font-semibold mb-1">
+                    نسبة الخصم (%) <span className="text-red-400">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    max="100"
+                    required
+                    value={formData.discountPercent ?? formData.discount_percent ?? 0}
+                    onChange={(e) => setFormData({ ...formData, discountPercent: e.target.value, discount_percent: e.target.value })}
+                    placeholder="مثال: 10"
+                    className="w-full bg-[#1A1A1A] border border-zinc-700 focus:border-[#C8A45C] text-white px-3.5 py-2.5 rounded-xl outline-none font-mono"
+                  />
+                  <p className="text-xs text-zinc-500 mt-1">نسبة الخصم المطبقة على مشتريات المستخدم في هذا المستوى</p>
+                </div>
+
+                {/* لون الشارة */}
+                <div>
+                  <label className="block text-zinc-300 font-semibold mb-1">لون الشارة</label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={formData.badgeColor || formData.badge_color || "#C8A45C"}
+                      onChange={(e) => setFormData({ ...formData, badgeColor: e.target.value, badge_color: e.target.value })}
+                      className="w-12 h-10 bg-[#1A1A1A] border border-zinc-700 rounded-xl cursor-pointer p-0.5"
+                    />
+                    <input
+                      type="text"
+                      value={formData.badgeColor || formData.badge_color || "#C8A45C"}
+                      onChange={(e) => setFormData({ ...formData, badgeColor: e.target.value, badge_color: e.target.value })}
+                      className="flex-1 bg-[#1A1A1A] border border-zinc-700 focus:border-[#C8A45C] text-white px-3.5 py-2 rounded-xl outline-none font-mono"
+                    />
+                  </div>
+                </div>
+
+                {/* الوصف */}
+                <div className="md:col-span-2">
+                  <label className="block text-zinc-300 font-semibold mb-1">الوصف</label>
+                  <textarea
+                    rows={2}
+                    value={formData.description || ""}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    placeholder="وصف مختصر للمزايا والخصومات لهذا المستوى..."
+                    className="w-full bg-[#1A1A1A] border border-zinc-700 focus:border-[#C8A45C] text-white px-3.5 py-2.5 rounded-xl outline-none"
+                  />
+                </div>
+
+                {/* المزايا */}
+                <div className="md:col-span-2">
+                  <label className="block text-zinc-300 font-semibold mb-1">المزايا (كل ميزة في سطر)</label>
+                  <textarea
+                    rows={3}
+                    value={Array.isArray(formData.benefits) ? formData.benefits.join("\n") : ""}
+                    onChange={(e) => {
+                      const lines = e.target.value.split("\n");
+                      setFormData({ ...formData, benefits: lines });
+                      setBenefitsList(lines.filter(Boolean));
+                    }}
+                    placeholder={"خصم 10%\nتوصيل مجاني\nدعم أولوية"}
+                    className="w-full bg-[#1A1A1A] border border-zinc-700 focus:border-[#C8A45C] text-white px-3.5 py-2.5 rounded-xl outline-none"
+                  />
                 </div>
               </div>
 
@@ -1005,7 +1044,7 @@ export default function VipMemberships() {
                 <label className="flex items-center gap-3 cursor-pointer">
                   <input
                     type="checkbox"
-                    checked={formData.hidden}
+                    checked={formData.hidden || false}
                     onChange={(e) => setFormData({ ...formData, hidden: e.target.checked })}
                     className="w-4 h-4 rounded accent-[#C8A45C]"
                   />

@@ -1,7 +1,7 @@
 import { Router, type IRouter } from "express";
 import { randomUUID } from "crypto";
 import { and, desc, eq, sql } from "drizzle-orm";
-import { db, ordersTable, productsTable, providersTable, usersTable } from "@workspace/db";
+import { db, ordersTable, productsTable, providersTable, usersTable, vipMembershipsTable } from "@workspace/db";
 import {
   CreateOrderBody,
   CreateOrderResponse,
@@ -13,6 +13,7 @@ import { getAdapter } from "../lib/adapter-registry";
 import { getOrCreateCurrentUser, getOrCreateCurrentUserStrict } from "../lib/currentUser.js";
 import {
   addUnitPrices,
+  calculateVipDiscountedPrice,
   multiplyUnitPriceByQuantity,
   validateRequestedQuantity,
   type QuantityType,
@@ -440,7 +441,37 @@ router.post("/orders", async (req, res) => {
     const dashboardMarkupUsd = String(product.storeProfitPerUnit ?? product.priceUsd);
     const storedBaseCostUsd = String(product.providerUnitPrice ?? product.basePriceUsd ?? "0");
     const providerUnitPriceUsd = product.providerId ? liveProviderUnitPrice || storedBaseCostUsd : "0";
-    const finalUnitPriceUsd = resolveFinalUnitPrice(product);
+    const baseFinalUnitPriceUsd = resolveFinalUnitPrice(product);
+
+    // Apply VIP Discount according to user's VIP level from vipMembershipsTable
+    let userVipDiscountPercent = 0;
+    const userVipLevelOrder = Number(user.vipLevel || 1);
+    try {
+      const [userLevel] = await db
+        .select()
+        .from(vipMembershipsTable)
+        .where(eq(vipMembershipsTable.levelOrder, userVipLevelOrder))
+        .limit(1);
+
+      if (userLevel) {
+        userVipDiscountPercent = Number(userLevel.discountPercent || userLevel.profitPct || 0);
+      }
+    } catch (vipErr) {
+      console.warn("[VIP Discount Lookup Warning]:", vipErr);
+    }
+
+    const {
+      finalUnitPrice: finalUnitPriceUsd,
+      discountAmount: unitDiscountUsd,
+      discountPercent: appliedDiscountPercent,
+    } = calculateVipDiscountedPrice(baseFinalUnitPriceUsd, userVipDiscountPercent);
+
+    if (appliedDiscountPercent > 0) {
+      console.log(
+        `[Pricing] User #${user.id} (VIP Level ${userVipLevelOrder}): Base $${baseFinalUnitPriceUsd}, Discount ${appliedDiscountPercent}%, Final Unit $${finalUnitPriceUsd}`
+      );
+    }
+
     const totalUsd = multiplyUnitPriceByQuantity(finalUnitPriceUsd, body.quantity);
     const totalSyp = Number(product.priceSyp) * body.quantity;
     const balanceBeforeUsd = String(user.balanceUsd);
@@ -502,7 +533,11 @@ router.post("/orders", async (req, res) => {
       pricing: {
         providerUnitPriceUsd,
         dashboardMarkupUsd,
+        baseFinalUnitPriceUsd,
         finalUnitPriceUsd,
+        unitDiscountUsd,
+        vipLevel: userVipLevelOrder,
+        vipDiscountPercent: appliedDiscountPercent,
       },
     };
 

@@ -3479,6 +3479,7 @@ router.put(["/admin/vip-memberships/:id", "/vip-memberships/:id", "/admin/vip/:i
     await ensureDatabaseSchema();
     const id = Number(req.params.id);
     const data = parseVipPayload(req.body);
+    console.log(`[VIP Admin PUT] Updating level #${id}:`, data);
     const [row] = await db
       .update(vipMembershipsTable)
       .set(data)
@@ -3488,7 +3489,7 @@ router.put(["/admin/vip-memberships/:id", "/vip-memberships/:id", "/admin/vip/:i
       { id: req.session.adminId, name: req.session.adminUsername },
       "update",
       "vip_memberships",
-      { id, name: row?.name }
+      { id, name: row?.name, requiredAmount: data.requiredAmount, discountPercent: data.discountPercent }
     );
     res.json(formatVipRow(row));
   } catch (err: any) {

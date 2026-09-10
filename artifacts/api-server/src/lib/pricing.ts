@@ -43,6 +43,37 @@ export function multiplyUnitPriceByQuantity(finalUnitPrice: unknown, quantity: u
   return scaledToDecimal((decimalToScaled(finalUnitPrice) * qty) / FACTOR);
 }
 
+export function calculateVipDiscountedPrice(
+  originalUnitPrice: unknown,
+  discountPercent: unknown
+): {
+  finalUnitPrice: string;
+  discountAmount: string;
+  discountPercent: number;
+} {
+  const pct = Math.max(0, Math.min(100, Number(discountPercent) || 0));
+  if (pct === 0) {
+    const clean = scaledToDecimal(decimalToScaled(originalUnitPrice));
+    return {
+      finalUnitPrice: clean,
+      discountAmount: "0.00000000",
+      discountPercent: 0,
+    };
+  }
+
+  const baseScaled = decimalToScaled(originalUnitPrice);
+  // Scale discount calculation: discountAmount = (baseScaled * pctScaled) / 100
+  const pctBigInt = BigInt(Math.round(pct * 1000000));
+  const discountScaled = (baseScaled * pctBigInt) / 100000000n;
+  const finalScaled = baseScaled - discountScaled;
+
+  return {
+    finalUnitPrice: scaledToDecimal(finalScaled),
+    discountAmount: scaledToDecimal(discountScaled),
+    discountPercent: pct,
+  };
+}
+
 export function parseProviderQuantityValues(qtyValues: unknown): ProviderQuantityInfo {
   if (qtyValues == null) {
     return { minQuantity: 1, quantityType: "fixed", quantityValues: null };
