@@ -215,6 +215,8 @@ async function handleGetLoyalty(req: Request, res: Response) {
     let formattedLevels = (dbLevels || []).map((lvl) => ({
       id: lvl.id,
       name: lvl.name,
+      name_ar: lvl.nameAr || (lvl as any).name_ar || lvl.name,
+      nameAr: lvl.nameAr || (lvl as any).name_ar || lvl.name,
       level_order: lvl.levelOrder || lvl.id,
       levelOrder: lvl.levelOrder || lvl.id,
       required_amount: Number(lvl.requiredAmount || 0),
@@ -230,11 +232,11 @@ async function handleGetLoyalty(req: Request, res: Response) {
 
     if (formattedLevels.length === 0) {
       formattedLevels = [
-        { id: 1, name: "بروتو (Pro)", level_order: 1, levelOrder: 1, required_amount: 0, requiredAmount: 0, discount_percent: 0, discountPercent: 0, badge_color: "#9CA3AF", badgeColor: "#9CA3AF", benefits: ["خصم 0%"], description: "المستوى الأساسي", hidden: false },
-        { id: 2, name: "فضي (Silver)", level_order: 2, levelOrder: 2, required_amount: 300, requiredAmount: 300, discount_percent: 5, discountPercent: 5, badge_color: "#C0C0C0", badgeColor: "#C0C0C0", benefits: ["خصم 5%"], description: "مستوى مميز", hidden: false },
-        { id: 3, name: "ذهبي (Gold)", level_order: 3, levelOrder: 3, required_amount: 500, requiredAmount: 500, discount_percent: 10, discountPercent: 10, badge_color: "#C8A45C", badgeColor: "#C8A45C", benefits: ["خصم 10%"], description: "مستوى ذهبي", hidden: false },
-        { id: 4, name: "ماسي (Diamond)", level_order: 4, levelOrder: 4, required_amount: 1000, requiredAmount: 1000, discount_percent: 15, discountPercent: 15, badge_color: "#60A5FA", badgeColor: "#60A5FA", benefits: ["خصم 15%"], description: "عضوية ماسية", hidden: false },
-        { id: 5, name: "VIP", level_order: 5, levelOrder: 5, required_amount: 2500, requiredAmount: 2500, discount_percent: 20, discountPercent: 20, badge_color: "#F43F5E", badgeColor: "#F43F5E", benefits: ["خصم 20%"], description: "أعلى مستوى", hidden: false },
+        { id: 1, name: "Pro", name_ar: "بروتو", nameAr: "بروتو", level_order: 1, levelOrder: 1, required_amount: 0, requiredAmount: 0, discount_percent: 0, discountPercent: 0, badge_color: "#9CA3AF", badgeColor: "#9CA3AF", benefits: ["مستوى أساسي", "لا خصومات"], description: "المستوى الأساسي لجميع المستخدمين الجدد", hidden: false },
+        { id: 2, name: "Silver", name_ar: "فضي", nameAr: "فضي", level_order: 2, levelOrder: 2, required_amount: 300, requiredAmount: 300, discount_percent: 5, discountPercent: 5, badge_color: "#C0C0C0", badgeColor: "#C0C0C0", benefits: ["خصم 5%", "دعم أولوية"], description: "مستوى فضي مع خصومات ومزايا إضافية", hidden: false },
+        { id: 3, name: "Gold", name_ar: "ذهبي", nameAr: "ذهبي", level_order: 3, levelOrder: 3, required_amount: 500, requiredAmount: 500, discount_percent: 10, discountPercent: 10, badge_color: "#C8A45C", badgeColor: "#C8A45C", benefits: ["خصم 10%", "توصيل مجاني", "دعم أولوية"], description: "مستوى ذهبي مع خصومات ومزايا مميزة", hidden: false },
+        { id: 4, name: "Diamond", name_ar: "ماسي", nameAr: "ماسي", level_order: 4, levelOrder: 4, required_amount: 1000, requiredAmount: 1000, discount_percent: 15, discountPercent: 15, badge_color: "#60A5FA", badgeColor: "#60A5FA", benefits: ["خصم 15%", "توصيل مجاني", "دعم مباشر", "هدايا شهرية"], description: "مستوى ماسي مع خصومات ومزايا حصرية", hidden: false },
+        { id: 5, name: "VIP", name_ar: "VIP", nameAr: "VIP", level_order: 5, levelOrder: 5, required_amount: 2500, requiredAmount: 2500, discount_percent: 20, discountPercent: 20, badge_color: "#A855F7", badgeColor: "#A855F7", benefits: ["خصم 20%", "كل المزايا السابقة", "مدير حساب مخصص", "دخول مبكر للعروض"], description: "مستوى VIP مع كل المزايا الحصرية", hidden: false },
       ];
     }
 
@@ -297,6 +299,8 @@ async function handleGetPublicVipMemberships(_req: Request, res: Response) {
     const formatted = (dbLevels || []).map((lvl) => ({
       id: lvl.id,
       name: lvl.name,
+      name_ar: lvl.nameAr || (lvl as any).name_ar || lvl.name,
+      nameAr: lvl.nameAr || (lvl as any).name_ar || lvl.name,
       level_order: lvl.levelOrder || lvl.id,
       levelOrder: lvl.levelOrder || lvl.id,
       required_amount: Number(lvl.requiredAmount || 0),

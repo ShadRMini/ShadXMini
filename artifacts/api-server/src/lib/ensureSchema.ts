@@ -137,6 +137,7 @@ export async function ensureDatabaseSchema() {
       ALTER TABLE users ADD COLUMN IF NOT EXISTS referral_code TEXT;
       ALTER TABLE users ADD COLUMN IF NOT EXISTS referred_by INTEGER;
       ALTER TABLE users ADD COLUMN IF NOT EXISTS vip_level INTEGER DEFAULT 1;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS total_spent NUMERIC(24, 12) DEFAULT 0;
     `);
 
     // 5. Settings table
@@ -662,11 +663,12 @@ export async function ensureDatabaseSchema() {
       CREATE TABLE IF NOT EXISTS vip_memberships (
         id SERIAL PRIMARY KEY,
         name TEXT NOT NULL,
+        name_ar TEXT NOT NULL DEFAULT '',
         level_order INTEGER NOT NULL DEFAULT 1,
         required_amount NUMERIC(12, 2) NOT NULL DEFAULT 0,
         discount_percent NUMERIC(5, 2) NOT NULL DEFAULT 0,
         profit_pct NUMERIC(5, 2),
-        badge_color TEXT,
+        badge_color TEXT DEFAULT '#C8A45C',
         badge TEXT,
         benefits JSONB DEFAULT '[]',
         description TEXT,
@@ -675,10 +677,11 @@ export async function ensureDatabaseSchema() {
         updated_at TIMESTAMP NOT NULL DEFAULT NOW()
       );
 
+      ALTER TABLE vip_memberships ADD COLUMN IF NOT EXISTS name_ar TEXT DEFAULT '';
       ALTER TABLE vip_memberships ADD COLUMN IF NOT EXISTS level_order INTEGER DEFAULT 1;
       ALTER TABLE vip_memberships ADD COLUMN IF NOT EXISTS discount_percent NUMERIC(5, 2) DEFAULT 0;
       ALTER TABLE vip_memberships ADD COLUMN IF NOT EXISTS profit_pct NUMERIC(5, 2);
-      ALTER TABLE vip_memberships ADD COLUMN IF NOT EXISTS badge_color TEXT;
+      ALTER TABLE vip_memberships ADD COLUMN IF NOT EXISTS badge_color TEXT DEFAULT '#C8A45C';
       ALTER TABLE vip_memberships ADD COLUMN IF NOT EXISTS badge TEXT;
       ALTER TABLE vip_memberships ADD COLUMN IF NOT EXISTS benefits JSONB DEFAULT '[]';
       ALTER TABLE vip_memberships ADD COLUMN IF NOT EXISTS description TEXT;
@@ -687,25 +690,31 @@ export async function ensureDatabaseSchema() {
       ALTER TABLE vip_memberships ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT NOW();
     `);
 
-    const checkVip: any = await db.execute(sql`SELECT count(*)::int as c FROM vip_memberships`);
-    if (Number(checkVip?.rows?.[0]?.c || 0) === 0) {
-      await db.execute(sql`
-        INSERT INTO vip_memberships (id, name, level_order, required_amount, discount_percent, badge_color, description, benefits, hidden)
-        VALUES 
-          (1, 'بروتو (Pro)', 1, 0, 0.00, '#9CA3AF', 'المستوى الأساسي لجميع الأعضاء والمستخدمين الجدد', '["خصم 0% على جميع المنتجات", "دعم فني عادي"]'::jsonb, false),
-          (2, 'فضي (Silver)', 2, 300, 5.00, '#C0C0C0', 'مستوى مميز للحسابات الفعالة مع خصومات حصرية', '["خصم 5% على كافة المنتجات", "أولوية في تنفيذ الطلبات"]'::jsonb, false),
-          (3, 'ذهبي (Gold)', 3, 500, 10.00, '#C8A45C', 'مستوى ذهبي متقدم لكبار العملاء مع مزايا متعددة', '["خصم 10% على كافة الشحنات والمنتجات", "دعم فني مباشر على مدار الساعة", "أولوية قصوى في معالجة الإيداعات"]'::jsonb, false),
-          (4, 'ماسي (Diamond)', 4, 1000, 15.00, '#60A5FA', 'عضوية ماسية فاخرة للعملاء المميزين جداً', '["خصم 15% شامل على كافة المشتريات", "مدير حساب خاص لمتابعة طلباتك", "هدايا وعروض حصرية موسمية"]'::jsonb, false),
-          (5, 'VIP', 5, 2500, 20.00, '#F43F5E', 'أعلى مستوى في المنصة مع أقصى نسبة خصم وصلاحيات كبار الشخصيات', '["أقصى خصم حصري 20%", "تنفيذ فوري مباشر دون مراجعة", "خط دعم VIP خاص مباشر", "دعوة للفعاليات والمكافآت الخاصة"]'::jsonb, false)
-        ON CONFLICT (id) DO NOTHING
-      `);
-    }
+    // Insert or update the 5 standard ready-made VIP levels
+    await db.execute(sql`
+      INSERT INTO vip_memberships (id, name, name_ar, level_order, required_amount, discount_percent, badge_color, benefits, description, hidden)
+      VALUES 
+        (1, 'Pro', 'بروتو', 1, 0, 0.00, '#9CA3AF', '["مستوى أساسي", "لا خصومات"]'::jsonb, 'المستوى الأساسي لجميع المستخدمين الجدد', false),
+        (2, 'Silver', 'فضي', 2, 300, 5.00, '#C0C0C0', '["خصم 5%", "دعم أولوية"]'::jsonb, 'مستوى فضي مع خصومات ومزايا إضافية', false),
+        (3, 'Gold', 'ذهبي', 3, 500, 10.00, '#C8A45C', '["خصم 10%", "توصيل مجاني", "دعم أولوية"]'::jsonb, 'مستوى ذهبي مع خصومات ومزايا مميزة', false),
+        (4, 'Diamond', 'ماسي', 4, 1000, 15.00, '#60A5FA', '["خصم 15%", "توصيل مجاني", "دعم مباشر", "هدايا شهرية"]'::jsonb, 'مستوى ماسي مع خصومات ومزايا حصرية', false),
+        (5, 'VIP', 'VIP', 5, 2500, 20.00, '#A855F7', '["خصم 20%", "كل المزايا السابقة", "مدير حساب مخصص", "دخول مبكر للعروض"]'::jsonb, 'مستوى VIP مع كل المزايا الحصرية', false)
+      ON CONFLICT (id) DO UPDATE SET
+        name = EXCLUDED.name,
+        name_ar = EXCLUDED.name_ar,
+        level_order = EXCLUDED.level_order,
+        required_amount = EXCLUDED.required_amount,
+        discount_percent = EXCLUDED.discount_percent,
+        badge_color = EXCLUDED.badge_color,
+        benefits = EXCLUDED.benefits,
+        description = EXCLUDED.description;
+    `);
 
     // Sync sequence to avoid collision when creating new levels
     await db.execute(sql`
       SELECT setval(
         pg_get_serial_sequence('vip_memberships', 'id'),
-        COALESCE((SELECT MAX(id) FROM vip_memberships), 1),
+        COALESCE((SELECT MAX(id) FROM vip_memberships), 5),
         true
       );
     `).catch(() => null);

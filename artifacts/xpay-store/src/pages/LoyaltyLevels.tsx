@@ -18,6 +18,8 @@ import { useLocation } from "wouter";
 interface LevelItem {
   id: number;
   name: string;
+  name_ar?: string;
+  nameAr?: string;
   level_order?: number;
   levelOrder?: number;
   required_amount?: number;
@@ -90,7 +92,9 @@ export default function LoyaltyLevels() {
 
   const currentLvl = data?.currentLevel;
   const currentLevelOrder = currentLvl?.level_order ?? currentLvl?.levelOrder ?? currentLvl?.id ?? 1;
-  const currentLevelName = currentLvl?.name || "المستوى الأساسي";
+  const currentLevelName = currentLvl?.name_ar || currentLvl?.nameAr
+    ? (currentLvl.name && currentLvl.name !== (currentLvl.name_ar || currentLvl.nameAr) ? `${currentLvl.name_ar || currentLvl.nameAr} (${currentLvl.name})` : (currentLvl.name_ar || currentLvl.nameAr))
+    : (currentLvl?.name || "المستوى الأساسي");
   const currentDiscount = currentLvl?.discount_percent ?? currentLvl?.discountPercent ?? 0;
   const badgeColor = currentLvl?.badge_color || currentLvl?.badgeColor || "#C8A45C";
 
@@ -298,7 +302,9 @@ export default function LoyaltyLevels() {
                     <div className="space-y-1.5">
                       <div className="flex items-center gap-2 flex-wrap">
                         <h3 className={`font-black text-lg ${isCurrent ? "text-[#C8A45C]" : "text-white"}`}>
-                          {lvl.name}
+                          {lvl.name_ar || lvl.nameAr
+                            ? (lvl.name && lvl.name !== (lvl.name_ar || lvl.nameAr) ? `${lvl.name_ar || lvl.nameAr} (${lvl.name})` : (lvl.name_ar || lvl.nameAr))
+                            : lvl.name}
                         </h3>
 
                         {isCurrent && (

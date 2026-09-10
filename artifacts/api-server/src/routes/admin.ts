@@ -3355,6 +3355,7 @@ for (const r of PUT_RESOURCES) {
 // Helper to parse VIP membership payload
 function parseVipPayload(body: any) {
   const name = String(body.name || "").trim();
+  const nameAr = String(body.name_ar ?? body.nameAr ?? body.name ?? "").trim();
   const levelOrder = Number(body.level_order ?? body.levelOrder ?? 1);
   const requiredAmount = String(body.required_amount ?? body.requiredAmount ?? 0);
   const discountPercent = String(body.discount_percent ?? body.discountPercent ?? body.profit_pct ?? body.profitPct ?? 0);
@@ -3369,6 +3370,7 @@ function parseVipPayload(body: any) {
 
   return {
     name,
+    nameAr: nameAr || name,
     levelOrder,
     requiredAmount,
     discountPercent,
@@ -3387,6 +3389,8 @@ function formatVipRow(lvl: any) {
   return {
     id: lvl.id,
     name: lvl.name,
+    name_ar: lvl.nameAr || lvl.name_ar || lvl.name,
+    nameAr: lvl.nameAr || lvl.name_ar || lvl.name,
     level_order: Number(lvl.levelOrder || lvl.level_order || lvl.id),
     levelOrder: Number(lvl.levelOrder || lvl.level_order || lvl.id),
     required_amount: Number(lvl.requiredAmount || lvl.required_amount || 0),

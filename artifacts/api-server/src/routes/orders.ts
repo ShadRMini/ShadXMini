@@ -22,6 +22,7 @@ import {
   notifyUserOrderAccepted as notifyInternalOrderAccepted,
   notifyUserOrderRejected as notifyInternalOrderRejected,
 } from "../lib/notifications.js";
+import { updateUserVipLevel } from "../lib/vipHelper.js";
 
 const router: IRouter = Router();
 
@@ -168,8 +169,11 @@ async function refundRejectedOrderIfNeeded(args: {
     .update(usersTable)
     .set({
       balanceUsd: sql`${usersTable.balanceUsd} + ${String(args.totalUsd)}`,
+      totalSpent: sql`GREATEST(0, ${usersTable.totalSpent} - ${String(args.totalUsd)})`,
     })
     .where(eq(usersTable.id, args.userId));
+
+  updateUserVipLevel(args.userId).catch((err) => console.warn("[Auto VIP Update Warning]:", err));
 
   const nextMeta = {
     ...args.meta,
@@ -528,6 +532,7 @@ router.post("/orders", async (req, res) => {
         .update(usersTable)
         .set({
           balanceUsd: sql`${usersTable.balanceUsd} - ${String(totalUsd)}`,
+          totalSpent: sql`${usersTable.totalSpent} + ${String(totalUsd)}`,
         })
         .where(and(eq(usersTable.id, user.id), sql`${usersTable.balanceUsd} >= ${String(totalUsd)}`))
         .returning();
@@ -560,6 +565,8 @@ router.post("/orders", async (req, res) => {
         totalUsd,
         meta,
       });
+    } else {
+      updateUserVipLevel(user.id).catch((err) => console.warn("[Auto VIP Update Warning]:", err));
     }
 
     const balanceAfterUsd =

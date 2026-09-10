@@ -21,7 +21,9 @@ import {
   Users,
   Percent,
   DollarSign,
-  Loader2
+  Loader2,
+  ArrowLeft,
+  ExternalLink
 } from "lucide-react";
 import { get, post, put, del, patch } from "../lib/api";
 import { useToast } from "../hooks/use-toast";
@@ -29,6 +31,8 @@ import { useToast } from "../hooks/use-toast";
 interface VipLevel {
   id: number;
   name: string;
+  nameAr?: string;
+  name_ar?: string;
   levelOrder?: number;
   level_order?: number;
   requiredAmount?: string | number;
@@ -71,6 +75,7 @@ export default function VipMemberships() {
   // Form Fields
   const [formData, setFormData] = useState({
     name: "",
+    name_ar: "",
     level_order: 1,
     required_amount: "0",
     discount_percent: "0",
@@ -84,6 +89,7 @@ export default function VipMemberships() {
   // Users management state
   const [users, setUsers] = useState<UserItem[]>([]);
   const [userSearch, setUserSearch] = useState("");
+  const [vipLevelFilter, setVipLevelFilter] = useState<number | "all">("all");
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [selectedUserForEdit, setSelectedUserForEdit] = useState<UserItem | null>(null);
   const [targetVipLevel, setTargetVipLevel] = useState<number>(1);
@@ -139,6 +145,7 @@ export default function VipMemberships() {
 
   useEffect(() => {
     fetchLevels();
+    fetchUsers();
   }, []);
 
   useEffect(() => {
@@ -153,6 +160,7 @@ export default function VipMemberships() {
     const maxOrder = levels.length > 0 ? Math.max(...levels.map((l) => Number(l.level_order ?? l.levelOrder ?? 0))) + 1 : 1;
     setFormData({
       name: "",
+      name_ar: "",
       level_order: maxOrder,
       required_amount: "0",
       discount_percent: "0",
@@ -180,6 +188,7 @@ export default function VipMemberships() {
 
     setFormData({
       name: lvl.name || "",
+      name_ar: lvl.name_ar || lvl.nameAr || "",
       level_order: Number(lvl.level_order ?? lvl.levelOrder ?? lvl.id),
       required_amount: String(lvl.required_amount ?? lvl.requiredAmount ?? 0),
       discount_percent: String(lvl.discount_percent ?? lvl.discountPercent ?? lvl.profitPct ?? 0),
@@ -213,6 +222,7 @@ export default function VipMemberships() {
       setIsSaving(true);
       const payload = {
         name: formData.name.trim(),
+        name_ar: formData.name_ar.trim() || formData.name.trim(),
         level_order: Number(formData.level_order) || 1,
         required_amount: formData.required_amount,
         discount_percent: formData.discount_percent,
@@ -339,13 +349,17 @@ export default function VipMemberships() {
     }
   };
 
-  // Filtered users search
-  const filteredUsers = users.filter(
-    (u) =>
+  // Filtered users search & VIP filter
+  const filteredUsers = users.filter((u) => {
+    const matchesSearch =
+      !userSearch ||
       u.username?.toLowerCase().includes(userSearch.toLowerCase()) ||
       u.email?.toLowerCase().includes(userSearch.toLowerCase()) ||
-      String(u.id).includes(userSearch)
-  );
+      String(u.id).includes(userSearch);
+    const matchesVip =
+      vipLevelFilter === "all" || Number(u.vipLevel || 1) === Number(vipLevelFilter);
+    return matchesSearch && matchesVip;
+  });
 
   return (
     <div className="p-4 sm:p-8 space-y-8 bg-[#121212] min-h-screen text-white font-sans" dir="rtl">
@@ -401,6 +415,96 @@ export default function VipMemberships() {
       {/* TAB 1: LEVELS MANAGEMENT */}
       {activeTab === "levels" && (
         <div className="space-y-6">
+
+          {/* User Distribution Widget */}
+          <div className="bg-[#1A1A1A] border border-[#C8A45C]/30 rounded-3xl p-5 sm:p-6 shadow-2xl relative overflow-hidden space-y-4">
+            <div className="absolute top-0 left-0 w-64 h-64 bg-[#C8A45C]/5 rounded-full blur-3xl pointer-events-none" />
+            
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 relative z-10">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#C8A45C] to-[#8A6D3B] text-black flex items-center justify-center font-bold shadow-md shrink-0">
+                  <Users className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="text-base sm:text-lg font-black text-white flex items-center gap-2">
+                    <span>توزيع المستخدمين على مستويات VIP</span>
+                    <Sparkles className="w-4 h-4 text-[#C8A45C]" />
+                  </h2>
+                  <p className="text-xs text-zinc-400">
+                    إحصائيات فورية لعدد الأعضاء المنتسبين لكل مستوى عضوية في المتجر
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 self-start sm:self-auto">
+                <span className="text-xs bg-[#121212] text-zinc-300 px-3.5 py-1.5 rounded-xl border border-zinc-800 font-bold">
+                  إجمالي الأعضاء: <strong className="text-[#C8A45C] font-mono mr-1">{users.length}</strong>
+                </span>
+              </div>
+            </div>
+
+            {/* Distribution Cards Grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 pt-2 relative z-10">
+              {levels.map((lvl) => {
+                const order = Number(lvl.level_order ?? lvl.levelOrder ?? lvl.id);
+                const count = users.filter((u) => Number(u.vipLevel || 1) === order).length;
+                const color = lvl.badge_color || lvl.badgeColor || "#C8A45C";
+                const lvlDisplayName = lvl.name_ar || lvl.nameAr
+                  ? (lvl.name && lvl.name !== (lvl.name_ar || lvl.nameAr) ? `${lvl.name_ar || lvl.nameAr} (${lvl.name})` : (lvl.name_ar || lvl.nameAr))
+                  : lvl.name;
+                const discPct = Number(lvl.discount_percent ?? lvl.discountPercent ?? lvl.profitPct ?? 0);
+
+                return (
+                  <div
+                    key={lvl.id}
+                    className="bg-[#121212] border border-zinc-800 hover:border-[#C8A45C]/50 rounded-2xl p-3.5 flex flex-col justify-between transition-all group"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div
+                        className="w-8 h-8 rounded-xl flex items-center justify-center text-black font-extrabold text-xs shadow-md shrink-0"
+                        style={{ backgroundColor: color }}
+                      >
+                        <Crown className="w-4 h-4 text-black" />
+                      </div>
+                      <span className="text-[11px] font-mono font-bold text-zinc-500">
+                        #{order}
+                      </span>
+                    </div>
+
+                    <div className="space-y-1 my-1">
+                      <h4 className="text-xs sm:text-sm font-black text-white truncate" title={lvlDisplayName}>
+                        {lvlDisplayName}
+                      </h4>
+                      <div className="flex items-center gap-1 text-[11px] text-[#C8A45C] font-semibold">
+                        <span>خصم {discPct}%</span>
+                      </div>
+                    </div>
+
+                    <div className="mt-3 pt-2.5 border-t border-zinc-800/80 flex items-center justify-between">
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-base sm:text-lg font-black text-white font-mono">{count}</span>
+                        <span className="text-[10px] text-zinc-500">عضو</span>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setVipLevelFilter(order);
+                          setActiveTab("users");
+                        }}
+                        className="px-2.5 py-1 rounded-lg bg-zinc-800 hover:bg-[#C8A45C] text-zinc-300 hover:text-black text-[10px] font-bold transition-all flex items-center gap-1 cursor-pointer"
+                        title="عرض المستخدمين في هذا المستوى"
+                      >
+                        <span>عرض</span>
+                        <ArrowLeft className="w-3 h-3" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
           {loadingLevels ? (
             <div className="text-center py-16 text-[#C8A45C] space-y-3">
               <Crown className="w-10 h-10 animate-spin mx-auto" />
@@ -425,6 +529,11 @@ export default function VipMemberships() {
                 const discPct = Number(lvl.discount_percent ?? lvl.discountPercent ?? lvl.profitPct ?? 0);
                 const color = lvl.badge_color || lvl.badgeColor || lvl.badge || "#C8A45C";
                 const isHidden = Boolean(lvl.hidden);
+                const order = Number(lvl.level_order ?? lvl.levelOrder ?? index + 1);
+                const userCount = users.filter((u) => Number(u.vipLevel || 1) === order).length;
+                const displayName = lvl.name_ar || lvl.nameAr
+                  ? (lvl.name && lvl.name !== (lvl.name_ar || lvl.nameAr) ? `${lvl.name_ar || lvl.nameAr} (${lvl.name})` : (lvl.name_ar || lvl.nameAr))
+                  : lvl.name;
 
                 let parsedBenefits: string[] = [];
                 if (Array.isArray(lvl.benefits)) parsedBenefits = lvl.benefits;
@@ -457,7 +566,7 @@ export default function VipMemberships() {
                           <ArrowUp className="w-3.5 h-3.5" />
                         </button>
                         <span className="text-[11px] font-mono text-center text-zinc-500 font-bold">
-                          #{lvl.level_order ?? lvl.levelOrder ?? index + 1}
+                          #{order}
                         </span>
                         <button
                           type="button"
@@ -481,7 +590,7 @@ export default function VipMemberships() {
                       {/* Details Text */}
                       <div className="space-y-1">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <h3 className="font-extrabold text-lg text-white">{lvl.name}</h3>
+                          <h3 className="font-extrabold text-lg text-white">{displayName}</h3>
                           <span
                             className="text-[11px] font-bold px-2.5 py-0.5 rounded-md border"
                             style={{
@@ -492,6 +601,20 @@ export default function VipMemberships() {
                           >
                             خصم {discPct}%
                           </span>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setVipLevelFilter(order);
+                              setActiveTab("users");
+                            }}
+                            className="text-[10px] bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700 px-2.5 py-0.5 rounded-md flex items-center gap-1 cursor-pointer transition-all"
+                            title="تصفية المستخدمين في هذا المستوى"
+                          >
+                            <Users className="w-3 h-3 text-[#C8A45C]" />
+                            <span>{userCount} مستخدم</span>
+                          </button>
+
                           {isHidden ? (
                             <span className="text-[10px] bg-red-950/80 text-red-400 border border-red-800 px-2 py-0.5 rounded flex items-center gap-1">
                               <EyeOff className="w-3 h-3" /> مخفي
@@ -575,12 +698,66 @@ export default function VipMemberships() {
                 className="w-full bg-[#121212] border border-zinc-700 rounded-xl pr-10 pl-4 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-[#C8A45C]"
               />
             </div>
+
+            <div className="flex items-center gap-2 self-end sm:self-auto">
+              {vipLevelFilter !== "all" && (
+                <button
+                  onClick={() => setVipLevelFilter("all")}
+                  className="text-xs text-[#C8A45C] hover:underline px-2"
+                >
+                  إلغاء التصفية
+                </button>
+              )}
+              <button
+                onClick={fetchUsers}
+                className="text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold px-4 py-2 rounded-xl border border-zinc-700 transition-all cursor-pointer"
+              >
+                تحديث قائمة المستخدمين
+              </button>
+            </div>
+          </div>
+
+          {/* Quick Filter by VIP Level */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-1">
+            <span className="text-xs text-zinc-400 font-bold shrink-0">تصفية حسب المستوى:</span>
             <button
-              onClick={fetchUsers}
-              className="text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold px-4 py-2 rounded-xl border border-zinc-700 transition-all"
+              type="button"
+              onClick={() => setVipLevelFilter("all")}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer ${
+                vipLevelFilter === "all"
+                  ? "bg-[#C8A45C] text-black shadow-md shadow-[#C8A45C]/20"
+                  : "bg-[#1A1A1A] text-zinc-400 hover:text-white border border-zinc-800"
+              }`}
             >
-              تحديث قائمة المستخدمين
+              الكل ({users.length})
             </button>
+            {levels.map((lvl) => {
+              const order = Number(lvl.level_order ?? lvl.levelOrder ?? lvl.id);
+              const count = users.filter((u) => Number(u.vipLevel || 1) === order).length;
+              const isSelected = vipLevelFilter === order;
+              const name = lvl.name_ar || lvl.name;
+              return (
+                <button
+                  key={lvl.id}
+                  type="button"
+                  onClick={() => setVipLevelFilter(isSelected ? "all" : order)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 cursor-pointer border ${
+                    isSelected
+                      ? "bg-[#C8A45C] text-black border-[#C8A45C] shadow-md shadow-[#C8A45C]/20"
+                      : "bg-[#1A1A1A] text-zinc-300 border-zinc-800 hover:border-zinc-700"
+                  }`}
+                >
+                  <span
+                    className="w-2.5 h-2.5 rounded-full shrink-0"
+                    style={{ backgroundColor: lvl.badge_color || lvl.badgeColor || "#C8A45C" }}
+                  />
+                  <span>{name}</span>
+                  <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono font-bold ${isSelected ? "bg-black/20 text-black" : "bg-zinc-800 text-zinc-400"}`}>
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
           </div>
 
           {loadingUsers ? (
@@ -605,13 +782,15 @@ export default function VipMemberships() {
                     {filteredUsers.length === 0 ? (
                       <tr>
                         <td colSpan={5} className="p-8 text-center text-zinc-500">
-                          لا يوجد مستخدمين يطابقون خيارات البحث
+                          لا يوجد مستخدمين يطابقون خيارات البحث والتصفية
                         </td>
                       </tr>
                     ) : (
                       filteredUsers.map((u) => {
                         const userLevelObj = levels.find((l) => Number(l.level_order ?? l.levelOrder ?? l.id) === u.vipLevel) || levels[0];
-                        const levelName = userLevelObj?.name || `مستوى ${u.vipLevel || 1}`;
+                        const levelName = userLevelObj?.name_ar || userLevelObj?.nameAr
+                          ? (userLevelObj.name && userLevelObj.name !== (userLevelObj.name_ar || userLevelObj.nameAr) ? `${userLevelObj.name_ar || userLevelObj.nameAr} (${userLevelObj.name})` : (userLevelObj.name_ar || userLevelObj.nameAr))
+                          : (userLevelObj?.name || `مستوى ${u.vipLevel || 1}`);
                         const badgeColor = userLevelObj?.badge_color || userLevelObj?.badgeColor || "#C8A45C";
 
                         return (
@@ -640,7 +819,7 @@ export default function VipMemberships() {
                             <td className="p-4 text-center">
                               <button
                                 onClick={() => handleOpenUserVipModal(u)}
-                                className="bg-[#C8A45C]/15 hover:bg-[#C8A45C] text-[#C8A45C] hover:text-black border border-[#C8A45C]/40 px-3 py-1.5 rounded-xl font-bold transition-all text-xs flex items-center gap-1 mx-auto"
+                                className="bg-[#C8A45C]/15 hover:bg-[#C8A45C] text-[#C8A45C] hover:text-black border border-[#C8A45C]/40 px-3 py-1.5 rounded-xl font-bold transition-all text-xs flex items-center gap-1 mx-auto cursor-pointer"
                               >
                                 <UserCheck className="w-3.5 h-3.5" />
                                 <span>تعديل الرتبة</span>
@@ -678,14 +857,14 @@ export default function VipMemberships() {
 
             <form onSubmit={handleSaveLevel} className="space-y-4 text-xs">
               
-              {/* Name & Order */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Name (English & Arabic) & Order */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-zinc-300 font-bold block">اسم المستوى *</label>
+                  <label className="text-zinc-300 font-bold block">الاسم بالإنجليزية (Name) *</label>
                   <input
                     type="text"
                     required
-                    placeholder="مثال: ذهبي (Gold)"
+                    placeholder="مثال: Gold"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     className="w-full bg-[#121212] border border-zinc-700 rounded-xl p-3 text-white focus:outline-none focus:border-[#C8A45C]"
@@ -693,7 +872,19 @@ export default function VipMemberships() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-zinc-300 font-bold block">ترتيب المستوى (Level Order) *</label>
+                  <label className="text-zinc-300 font-bold block">الاسم بالعربية (Arabic Name) *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="مثال: ذهبي"
+                    value={formData.name_ar}
+                    onChange={(e) => setFormData({ ...formData, name_ar: e.target.value })}
+                    className="w-full bg-[#121212] border border-zinc-700 rounded-xl p-3 text-white focus:outline-none focus:border-[#C8A45C]"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-zinc-300 font-bold block">ترتيب المستوى (Order) *</label>
                   <input
                     type="number"
                     required
