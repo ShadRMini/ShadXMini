@@ -2098,6 +2098,30 @@ router.put("/admin/settings/use-legacy-settings-page", requireAdmin, async (req,
   }
 });
 
+router.get("/admin/settings/use-legacy-auth-pages", async (_req, res) => {
+  try {
+    const [row] = await db.select().from(settingsTable).where(eq(settingsTable.key, "use_legacy_auth_pages")).limit(1);
+    const value = row?.value;
+    const isLegacy = value === "true" || value === true;
+    res.json({ key: "use_legacy_auth_pages", value: String(isLegacy) });
+  } catch (err: any) {
+    res.json({ key: "use_legacy_auth_pages", value: "false" });
+  }
+});
+
+router.put("/admin/settings/use-legacy-auth-pages", requireAdmin, async (req, res) => {
+  try {
+    const value = String(req.body?.value === true || req.body?.value === "true");
+    await db
+      .insert(settingsTable)
+      .values({ key: "use_legacy_auth_pages", value })
+      .onConflictDoUpdate({ target: settingsTable.key, set: { value } });
+    res.json({ ok: true, value });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.get("/admin/settings/use-legacy-social-links-page", async (_req, res) => {
   try {
     const [row] = await db.select().from(settingsTable).where(eq(settingsTable.key, "use_legacy_social_links_page")).limit(1);

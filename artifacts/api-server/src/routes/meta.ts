@@ -268,6 +268,8 @@ const getPublicSettingsHandler = async (_req: any, res: any) => {
     contact_telegram: supportTelegram,
     contact_email: supportEmail,
     contact_phone: supportPhone,
+    use_legacy_auth_pages: map.get("use_legacy_auth_pages") === "true",
+    useLegacyAuthPages: map.get("use_legacy_auth_pages") === "true",
   });
 };
 
