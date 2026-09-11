@@ -179,6 +179,58 @@ async function handleMarkAllAsRead(req: Request, res: Response) {
 router.patch("/me/notifications/read-all", handleMarkAllAsRead);
 router.patch("/notifications/read-all", handleMarkAllAsRead);
 
+// DELETE /me/notifications/:id & DELETE /notifications/:id
+async function handleDeleteNotification(req: Request, res: Response) {
+  try {
+    const user = await getOrCreateCurrentUser(req);
+    if (!user?.id) {
+      return res.status(401).json({ error: "يجب تسجيل الدخول أولاً" });
+    }
+
+    const id = Number(req.params.id);
+    if (isNaN(id) || id <= 0) {
+      return res.status(400).json({ error: "معرف الإشعار غير صالح" });
+    }
+
+    await db.delete(notificationsTable).where(eq(notificationsTable.id, id));
+    res.json({ ok: true, message: "تم حذف الإشعار بنجاح" });
+  } catch (error: any) {
+    console.error("Delete notification error:", error);
+    res.status(500).json({ error: error.message || "فشل حذف الإشعار" });
+  }
+}
+
+router.delete("/me/notifications/:id", handleDeleteNotification);
+router.delete("/notifications/:id", handleDeleteNotification);
+
+// DELETE /me/notifications/delete-all & DELETE /notifications/delete-all
+async function handleDeleteAllNotifications(req: Request, res: Response) {
+  try {
+    const user = await getOrCreateCurrentUser(req);
+    if (!user?.id) {
+      return res.status(401).json({ error: "يجب تسجيل الدخول أولاً" });
+    }
+
+    const currentUserId = user.id;
+    await db
+      .delete(notificationsTable)
+      .where(
+        or(
+          eq(notificationsTable.targetUserId, currentUserId),
+          eq(notificationsTable.targetType, "all")
+        )
+      );
+
+    res.json({ ok: true, message: "تم حذف جميع الإشعارات بنجاح" });
+  } catch (error: any) {
+    console.error("Delete all notifications error:", error);
+    res.status(500).json({ error: error.message || "فشل حذف الإشعارات" });
+  }
+}
+
+router.delete("/me/notifications/delete-all", handleDeleteAllNotifications);
+router.delete("/notifications/delete-all", handleDeleteAllNotifications);
+
 // POST /notifications - Create notification endpoint (Admin or System)
 router.post("/notifications", async (req: Request, res: Response) => {
   try {

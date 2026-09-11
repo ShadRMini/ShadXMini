@@ -22,6 +22,7 @@ import {
 import { useAuth } from "@/lib/auth-context";
 import { useStoreSettings } from "@/lib/store-settings-context";
 import { getStoreThemeMode, toggleStoreThemeMode } from "@/lib/theme";
+import { getPublicJson } from "@/lib/public-api";
 
 interface SidebarProps {
   brandLogo?: string;
@@ -59,6 +60,27 @@ export default function Sidebar({ brandLogo, onClose }: SidebarProps) {
 
   const isDark = mode === "dark";
 
+  // Unread notifications count
+  const [unreadNotifications, setUnreadNotifications] = useState<number>(0);
+
+  useEffect(() => {
+    if (!user) {
+      setUnreadNotifications(0);
+      return;
+    }
+    const fetchUnread = async () => {
+      try {
+        const res = await getPublicJson<{ count: number }>("/me/notifications/unread-count");
+        setUnreadNotifications(Number(res?.count || 0));
+      } catch {
+        // Ignore
+      }
+    };
+    fetchUnread();
+    const interval = setInterval(fetchUnread, 30000);
+    return () => clearInterval(interval);
+  }, [user]);
+
   const sidebarLinks = [
     { href: "/", label: "الرئيسية", icon: Home },
     { href: "/loyalty", label: "المستويات", icon: Trophy },
@@ -68,7 +90,12 @@ export default function Sidebar({ brandLogo, onClose }: SidebarProps) {
     { href: "/deposit", label: "المحفظة", icon: Wallet },
     { href: "/identity-verification", label: "توثيق الهوية", icon: ShieldCheck },
     { href: "/settings", label: "إعدادات الحساب", icon: Settings },
-    { href: "/notifications", label: "الإشعارات والتنبيهات", icon: Bell },
+    {
+      href: "/notifications",
+      label: "الإشعارات والتنبيهات",
+      icon: Bell,
+      badge: unreadNotifications > 0 ? unreadNotifications : null,
+    },
     { href: "/support", label: "تواصل معنا (الدعم)", icon: HeadphonesIcon },
     { href: "/about", label: "من نحن", icon: Info },
   ];
@@ -250,12 +277,25 @@ export default function Sidebar({ brandLogo, onClose }: SidebarProps) {
                   />
                   <span>{item.label}</span>
                 </div>
-                <ChevronLeft
-                  size={16}
-                  className={`opacity-40 transition-transform ${
-                    isActive ? "opacity-90 -translate-x-1" : ""
-                  }`}
-                />
+                <div className="flex items-center gap-2">
+                  {item.badge && (
+                    <span
+                      className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
+                        isActive
+                          ? "bg-[#1A1A1A] text-[#FDE68A]"
+                          : "bg-[#C8A45C] text-[#1A1A1A] shadow-xs shadow-[#C8A45C]/40 animate-pulse"
+                      }`}
+                    >
+                      {item.badge}
+                    </span>
+                  )}
+                  <ChevronLeft
+                    size={16}
+                    className={`opacity-40 transition-transform ${
+                      isActive ? "opacity-90 -translate-x-1" : ""
+                    }`}
+                  />
+                </div>
               </div>
             </Link>
           );

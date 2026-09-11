@@ -551,6 +551,10 @@ export async function ensureDatabaseSchema() {
           font_family: "Cairo"
         }
       },
+      { key: "support_whatsapp", val: "+963900000000" },
+      { key: "support_telegram", val: "ShadMiniSupport" },
+      { key: "support_email", val: "support@shadmini.com" },
+      { key: "support_phone", val: "+963900000000" },
     ];
     for (const item of maintenanceDefaultKeys) {
       const existing: any = await db.execute(sql`SELECT key FROM settings WHERE key = ${item.key}`);
@@ -563,6 +567,19 @@ export async function ensureDatabaseSchema() {
         `);
       }
     }
+
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS contact_messages (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+        name TEXT NOT NULL,
+        email TEXT NOT NULL,
+        subject TEXT NOT NULL,
+        message TEXT NOT NULL,
+        status TEXT DEFAULT 'new',
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
 
     await db.execute(sql`
       CREATE TABLE IF NOT EXISTS product_page_config (

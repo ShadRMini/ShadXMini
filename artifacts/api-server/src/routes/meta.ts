@@ -1,7 +1,8 @@
 import { Router, type IRouter } from "express";
 import { db, paymentMethodsTable, settingsTable, socialLinksTable } from "@workspace/db";
-import { asc, eq } from "drizzle-orm";
+import { asc, eq, sql } from "drizzle-orm";
 import { ListPaymentMethodsResponse, ListSocialLinksResponse } from "@workspace/api-zod";
+import { getOrCreateCurrentUser } from "../lib/currentUser.js";
 
 const router: IRouter = Router();
 
@@ -218,9 +219,14 @@ router.get("/app-settings", async (_req, res) => {
     // Dynamic About & Contact Info
     aboutTitle: String(map.get("about_us_title") || defaultAboutTitle),
     aboutContent: String(map.get("about_us_content") || defaultAboutContent),
-    contactPhone: String(map.get("contact_support_phone") || defaultContactPhone),
-    contactEmail: String(map.get("contact_support_email") || defaultContactEmail),
-    contactTelegram: String(map.get("contact_support_telegram") || defaultContactTelegram),
+    contactPhone: String(map.get("support_phone") || map.get("contact_support_phone") || defaultContactPhone),
+    contactEmail: String(map.get("support_email") || map.get("contact_support_email") || defaultContactEmail),
+    contactTelegram: String(map.get("support_telegram") || map.get("contact_support_telegram") || defaultContactTelegram),
+    contactWhatsapp: String(map.get("support_whatsapp") || map.get("contact_support_phone") || defaultContactPhone),
+    support_whatsapp: String(map.get("support_whatsapp") || map.get("contact_support_phone") || defaultContactPhone),
+    support_telegram: String(map.get("support_telegram") || map.get("contact_support_telegram") || defaultContactTelegram),
+    support_email: String(map.get("support_email") || map.get("contact_support_email") || defaultContactEmail),
+    support_phone: String(map.get("support_phone") || map.get("contact_support_phone") || defaultContactPhone),
   });
 });
 
@@ -230,6 +236,11 @@ const getPublicSettingsHandler = async (_req: any, res: any) => {
   const logo = String(map.get("brand_logo_url") || map.get("site_logo") || "");
   const siteName = String(map.get("site_name") || "ShadMini");
   const adminLoginImage = String(map.get("admin_login_image") || "");
+
+  const supportWhatsapp = String(map.get("support_whatsapp") || map.get("contact_support_phone") || "+963900000000");
+  const supportTelegram = String(map.get("support_telegram") || map.get("contact_support_telegram") || "ShadMiniSupport");
+  const supportEmail = String(map.get("support_email") || map.get("contact_support_email") || "support@shadmini.com");
+  const supportPhone = String(map.get("support_phone") || map.get("contact_support_phone") || "+963900000000");
 
   res.json({
     brand_logo_url: logo,
@@ -249,11 +260,69 @@ const getPublicSettingsHandler = async (_req: any, res: any) => {
     admin_dashboard_welcome: String(map.get("admin_dashboard_welcome") || "مرحبًا بك في لوحة إدارة ShadMini"),
     adminDashboardWelcome: String(map.get("admin_dashboard_welcome") || "مرحبًا بك في لوحة إدارة ShadMini"),
     news_ticker_speed: Number(map.get("news_ticker_speed") || 15),
+    support_whatsapp: supportWhatsapp,
+    support_telegram: supportTelegram,
+    support_email: supportEmail,
+    support_phone: supportPhone,
+    contact_whatsapp: supportWhatsapp,
+    contact_telegram: supportTelegram,
+    contact_email: supportEmail,
+    contact_phone: supportPhone,
   });
 };
 
 router.get("/settings/public", getPublicSettingsHandler);
 router.get("/public-settings", getPublicSettingsHandler);
+router.get("/public/app-settings", getPublicSettingsHandler);
+router.get("/app-settings", getPublicSettingsHandler);
+
+// POST /api/public/contact-messages & /api/contact-messages
+const handleCreateContactMessage = async (req: any, res: any) => {
+  try {
+    const { name, email, subject, message } = req.body || {};
+
+    if (!name || typeof name !== "string" || !name.trim()) {
+      return res.status(400).json({ error: "الاسم الكامل مطلوب" });
+    }
+    if (!email || typeof email !== "string" || !email.trim()) {
+      return res.status(400).json({ error: "البريد الإلكتروني مطلوب" });
+    }
+    if (!subject || typeof subject !== "string" || !subject.trim()) {
+      return res.status(400).json({ error: "الموضوع مطلوب" });
+    }
+    if (!message || typeof message !== "string" || message.trim().length < 5) {
+      return res.status(400).json({ error: "الرسالة يجب أن تحتوي على 5 أحرف على الأقل" });
+    }
+
+    let userId: number | null = null;
+    try {
+      const user = await getOrCreateCurrentUser(req);
+      if (user?.id) userId = user.id;
+    } catch {
+      // Guest
+    }
+
+    const inserted: any = await db.execute(sql`
+      INSERT INTO contact_messages (user_id, name, email, subject, message, status)
+      VALUES (${userId}, ${name.trim()}, ${email.trim()}, ${subject.trim()}, ${message.trim()}, 'new')
+      RETURNING *
+    `);
+
+    const row = inserted?.rows?.[0] || inserted?.[0] || { id: 1 };
+    res.json({
+      ok: true,
+      message: "تم استلام رسالتك بنجاح! سنقوم بالتواصل معك في أقرب وقت.",
+      data: row,
+    });
+  } catch (error: any) {
+    console.error("Save contact message error:", error);
+    res.status(500).json({ error: error.message || "فشل إرسال الرسالة، يرجى المحاولة لاحقاً" });
+  }
+};
+
+router.post("/public/contact-messages", handleCreateContactMessage);
+router.post("/contact-messages", handleCreateContactMessage);
+router.post("/contact", handleCreateContactMessage);
 
 const getPopupSettingsHandler = async (_req: any, res: any) => {
   const rows = await db.select().from(settingsTable);

@@ -20,6 +20,7 @@ import DepositsList from "@/pages/deposits";
 import Profile from "@/pages/profile";
 import SettingsPage from "@/pages/settings";
 import Support from "@/pages/support";
+import ContactPage from "@/pages/ContactPage";
 import Favorites from "@/pages/favorites";
 import About from "@/pages/about";
 import Login from "@/pages/login";
@@ -211,7 +212,8 @@ function Router() {
             <Route path="/profile" component={() => <ProtectedRoute component={Profile} />} />
             <Route path="/settings" component={() => <ProtectedRoute component={SettingsPage} />} />
             <Route path="/profile/edit" component={() => <ProtectedRoute component={SettingsPage} />} />
-            <Route path="/support" component={() => <ProtectedRoute component={Support} />} />
+            <Route path="/support" component={() => <ProtectedRoute component={ContactPage} />} />
+            <Route path="/contact" component={() => <ProtectedRoute component={ContactPage} />} />
             <Route path="/about" component={() => <ProtectedRoute component={About} />} />
             <Route component={NotFound} />
           </Switch>
