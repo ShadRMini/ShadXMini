@@ -26,6 +26,7 @@ import {
   ticketsTable,
   ticketMessagesTable,
   productPageConfigTable,
+  identityVerificationsTable,
 } from "@workspace/db";
 import { and, desc, eq, gte, sql } from "drizzle-orm";
 import { requireAdmin } from "../lib/adminAuth.js";
@@ -4884,6 +4885,80 @@ router.put("/admin/settings/use-legacy-banners-page", requireAdmin, async (req, 
     res.json({ success: true, value: isLegacy ? "true" : "false", useLegacy: isLegacy });
   } catch (err: any) {
     res.status(500).json({ error: err?.message || "فشل تحديث إعداد واجهة البانرات" });
+  }
+});
+
+// Legacy Sidebar Toggle Settings
+router.get(["/admin/settings/use-legacy-sidebar", "/api/admin/settings/use-legacy-sidebar"], requireAdmin, async (_req, res) => {
+  try {
+    const rows = await db.select().from(settingsTable).where(eq(settingsTable.key, "use_legacy_sidebar"));
+    const val = rows[0]?.value;
+    const isLegacy = val === true || val === "true" || JSON.stringify(val) === "true";
+    res.json({ key: "use_legacy_sidebar", value: isLegacy ? "true" : "false", useLegacy: isLegacy });
+  } catch (err: any) {
+    res.status(500).json({ error: err?.message || "فشل جلب إعداد القائمة الجانبية" });
+  }
+});
+
+router.put(["/admin/settings/use-legacy-sidebar", "/api/admin/settings/use-legacy-sidebar"], requireAdmin, async (req, res) => {
+  try {
+    const { value, useLegacy } = req.body || {};
+    const isLegacy = value === true || value === "true" || useLegacy === true || useLegacy === "true";
+
+    await db
+      .insert(settingsTable)
+      .values({ key: "use_legacy_sidebar", value: isLegacy ? "true" : "false" })
+      .onConflictDoUpdate({ target: settingsTable.key, set: { value: isLegacy ? "true" : "false" } });
+
+    await logActivity(
+      { id: req.session.adminId, name: req.session.adminUsername },
+      "use_legacy_sidebar_update",
+      "settings",
+      ["use_legacy_sidebar"]
+    );
+
+    res.json({ success: true, value: isLegacy ? "true" : "false", useLegacy: isLegacy });
+  } catch (err: any) {
+    res.status(500).json({ error: err?.message || "فشل تحديث إعداد القائمة الجانبية" });
+  }
+});
+
+// Admin Sidebar Badges Counter (Live Counts)
+router.get(["/admin/sidebar-badges", "/api/admin/sidebar-badges"], requireAdmin, async (_req, res) => {
+  try {
+    const [ordersCount] = await db
+      .select({ c: sql<number>`count(*)::int` })
+      .from(ordersTable)
+      .where(eq(ordersTable.status, "pending"));
+
+    const [verificationsCount] = await db
+      .select({ c: sql<number>`count(*)::int` })
+      .from(identityVerificationsTable)
+      .where(eq(identityVerificationsTable.status, "pending"));
+
+    const [ticketsCount] = await db
+      .select({ c: sql<number>`count(*)::int` })
+      .from(ticketsTable)
+      .where(sql`${ticketsTable.status} IN ('pending', 'open')`);
+
+    const [depositsCount] = await db
+      .select({ c: sql<number>`count(*)::int` })
+      .from(depositsTable)
+      .where(eq(depositsTable.status, "pending"));
+
+    res.json({
+      pendingOrders: Number(ordersCount?.c || 0),
+      pendingVerifications: Number(verificationsCount?.c || 0),
+      pendingTickets: Number(ticketsCount?.c || 0),
+      pendingDeposits: Number(depositsCount?.c || 0),
+    });
+  } catch (err: any) {
+    res.json({
+      pendingOrders: 0,
+      pendingVerifications: 0,
+      pendingTickets: 0,
+      pendingDeposits: 0,
+    });
   }
 });
 

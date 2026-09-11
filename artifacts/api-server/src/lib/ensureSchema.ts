@@ -333,6 +333,7 @@ export async function ensureDatabaseSchema() {
       { key: "use_legacy_banners_page", val: false },
       { key: "use_legacy_about_page", val: false },
       { key: "use_legacy_deposit_page", val: false },
+      { key: "use_legacy_sidebar", val: false },
       {
         key: "deposit_page_config",
         val: {
@@ -709,6 +710,12 @@ export async function ensureDatabaseSchema() {
         COALESCE((SELECT MAX(id) FROM vip_memberships), 5),
         true
       );
+    `).catch(() => null);
+
+    // Ensure use_legacy_sidebar setting
+    await db.execute(sql`
+      INSERT INTO settings (key, value) VALUES ('use_legacy_sidebar', 'false')
+      ON CONFLICT (key) DO NOTHING;
     `).catch(() => null);
 
     schemaEnsured = true;

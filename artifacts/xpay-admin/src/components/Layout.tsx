@@ -1,13 +1,11 @@
 import { useEffect, useState, useRef } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { get, post } from "../lib/api";
+import { get, post, put } from "../lib/api";
+import { toast } from "sonner";
+import SidebarLegacy from "./SidebarLegacy";
+import SidebarNew from "./SidebarNew";
 import {
-  LayoutDashboard, ShoppingCart, Wallet, Users, FolderTree, Package,
-  CreditCard, Image as ImageIcon, Megaphone, Share2, Server, Ticket,
-  Crown, KeyRound, MessageSquare, Code2, Bell, ShieldCheck, BadgeCheck, Activity,
-  Settings as SettingsIcon, Palette, BarChart3, Database, User as UserIcon,
-  Lock, Globe, Languages as LangIcon, PowerOff, LogOut, Menu, X, Moon, Sun,
-  CheckCircle2, ArrowRight, ExternalLink, Info
+  Bell, LogOut, Menu, X, Moon, Sun, ArrowRight
 } from "lucide-react";
 
 interface QuickNotification {
@@ -17,58 +15,6 @@ interface QuickNotification {
   targetType: string;
   createdAt: string;
 }
-
-const NAV: { to: string; label: string; icon: any; group: string }[] = [
-  // Group 1
-  { to: "/", label: "عام", icon: LayoutDashboard, group: "لوحة الإدارة" },
-  { to: "/maintenance", label: "وضع الصيانة", icon: PowerOff, group: "لوحة الإدارة" },
-  { to: "/news", label: "الأخبار", icon: Megaphone, group: "لوحة الإدارة" },
-  { to: "/users", label: "إدارة المستخدمين (إضافة/حذف)", icon: Users, group: "لوحة الإدارة" },
-  { to: "/identity-verifications", label: "طلبات توثيق الهوية", icon: BadgeCheck, group: "لوحة الإدارة" },
-
-  // Group 2
-  { to: "/providers", label: "مزود API", icon: Server, group: "إدارة المزودين" },
-  { to: "/api-keys", label: "مفتاح API", icon: Code2, group: "إدارة المزودين" },
-  { to: "/provider-reports", label: "تقارير المزودين", icon: BarChart3, group: "إدارة المزودين" },
-
-  // Group 3
-  { to: "/categories", label: "الأقسام (إضافة/حذف)", icon: FolderTree, group: "الأقسام & المنتجات" },
-  { to: "/product-groups", label: "إدارة المجموعات", icon: FolderTree, group: "الأقسام & المنتجات" },
-  { to: "/products", label: "المنتجات (إضافة/حذف)", icon: Package, group: "الأقسام & المنتجات" },
-  { to: "/banners", label: "البانرات والعروض المميزة", icon: ImageIcon, group: "الأقسام & المنتجات" },
-  { to: "/api-products", label: "منتجات عبر API", icon: Server, group: "الأقسام & المنتجات" },
-  { to: "/auto-codes", label: "كود", icon: KeyRound, group: "الأقسام & المنتجات" },
-
-  // Group 4
-  { to: "/orders", label: "الطلبات", icon: ShoppingCart, group: "الإدارة المالية والتسويق" },
-  { to: "/order-messages", label: "قوالب رسائل الطلبات", icon: MessageSquare, group: "الإدارة المالية والتسويق" },
-  { to: "/payment-methods", label: "طرق الدفع (إضافة)", icon: CreditCard, group: "الإدارة المالية والتسويق" },
-  { to: "/coupons", label: "كوبونات الخصم (إضافة/حذف)", icon: Ticket, group: "الإدارة المالية والتسويق" },
-  { to: "/promotions", label: "العروض الترويجية", icon: Megaphone, group: "الإدارة المالية والتسويق" },
-  { to: "/vip", label: "عضويات VIP", icon: Crown, group: "الإدارة المالية والتسويق" },
-  { to: "/currency", label: "عملة المتجر", icon: Globe, group: "الإدارة المالية والتسويق" },
-
-  // Group 5
-  { to: "/settings", label: "الإعدادات العامة", icon: SettingsIcon, group: "إعدادات النظام" },
-  { to: "/theme", label: "تخصيص التصميم", icon: Palette, group: "إعدادات النظام" },
-  { to: "/product-page-settings", label: "تخصيص صفحة المنتج", icon: Package, group: "إعدادات النظام" },
-  { to: "/about-settings", label: "تخصيص صفحة من نحن", icon: Info, group: "إعدادات النظام" },
-  { to: "/deposit-settings", label: "تخصيص صفحة شحن الرصيد", icon: Wallet, group: "إعدادات النظام" },
-  { to: "/social-links", label: "الروابط الاجتماعية", icon: Share2, group: "إعدادات النظام" },
-  { to: "/notifications", label: "الإشعارات", icon: Bell, group: "إعدادات النظام" },
-  { to: "/cache", label: "الذاكرة المؤقتة (مسح الكاش)", icon: Database, group: "إعدادات النظام" },
-
-  // Group 6
-  { to: "/activity", label: "سجل النشاط", icon: Activity, group: "الإدارة والصلاحيات" },
-  { to: "/reports", label: "التقارير", icon: BarChart3, group: "الإدارة والصلاحيات" },
-  { to: "/backup", label: "النسخ الاحتياطي", icon: Database, group: "الإدارة والصلاحيات" },
-  { to: "/cron-jobs", label: "المهام المجدولة (Cron)", icon: Activity, group: "الإدارة والصلاحيات" },
-  { to: "/permissions", label: "الصلاحيات", icon: Lock, group: "الإدارة والصلاحيات" },
-  { to: "/admins", label: "المشرفون (إضافة/حذف)", icon: ShieldCheck, group: "الإدارة والصلاحيات" },
-  { to: "/profile", label: "الملف الشخصي", icon: UserIcon, group: "الإدارة والصلاحيات" },
-  { to: "/languages", label: "اللغات", icon: LangIcon, group: "الإدارة والصلاحيات" },
-  { to: "/2fa", label: "التحقق الثنائي", icon: ShieldCheck, group: "الإدارة والصلاحيات" },
-];
 
 export default function Layout({
   children,
@@ -90,6 +36,62 @@ export default function Layout({
   const [showNotifMenu, setShowNotifMenu] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+
+  // Sidebar mode state (Legacy vs New Accordion)
+  const [useLegacySidebar, setUseLegacySidebar] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem("admin_use_legacy_sidebar") === "true";
+    } catch {
+      return false;
+    }
+  });
+  const [isTogglingSidebar, setIsTogglingSidebar] = useState(false);
+
+  // Fetch use_legacy_sidebar setting from API
+  useEffect(() => {
+    let active = true;
+    get<any>("/admin/settings/use-legacy-sidebar")
+      .then((res) => {
+        if (active && res && res.value !== undefined) {
+          const isLegacy = res.value === "true" || res.value === true || res.useLegacy === true;
+          setUseLegacySidebar(isLegacy);
+          try {
+            localStorage.setItem("admin_use_legacy_sidebar", String(isLegacy));
+          } catch {}
+        }
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const handleToggleSidebarMode = async () => {
+    const nextMode = !useLegacySidebar;
+    setIsTogglingSidebar(true);
+    try {
+      setUseLegacySidebar(nextMode);
+      try {
+        localStorage.setItem("admin_use_legacy_sidebar", String(nextMode));
+      } catch {}
+
+      await put("/admin/settings/use-legacy-sidebar", {
+        value: nextMode ? "true" : "false",
+        useLegacy: nextMode,
+      });
+
+      toast.success(
+        nextMode
+          ? "تم التبديل إلى القائمة الجانبية القديمة (Legacy)"
+          : "تم تفعيل القائمة الجانبية الجديدة المنظمة (Accordion) بنجاح"
+      );
+    } catch (err: any) {
+      console.error("Failed to toggle sidebar setting:", err);
+      toast.error("فشل حفظ إعداد القائمة الجانبية في الخادم");
+    } finally {
+      setIsTogglingSidebar(false);
+    }
+  };
 
   // Load public brand settings
   useEffect(() => {
@@ -155,67 +157,29 @@ export default function Layout({
     navigate("/");
   };
 
-  const groups = (NAV || []).reduce<Record<string, typeof NAV>>((acc, item) => {
-    (acc[item.group] = acc[item.group] || []).push(item);
-    return acc;
-  }, {});
-
   return (
     <div className="flex h-screen overflow-hidden bg-[#1A1A1A] text-white" dir="rtl">
-      <aside
-        className={`fixed lg:static z-40 inset-y-0 right-0 w-72 flex-shrink-0 h-full bg-[#1A1A1A] border-l border-[#C8A45C]/20 transform transition-transform overflow-y-auto ${
-          open ? "translate-x-0" : "translate-x-full lg:translate-x-0"
-        }`}
-      >
-        <div className="p-5 border-b border-[#C8A45C]/20 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            {brandLogo ? (
-              <img
-                src={brandLogo}
-                alt={loginTitle}
-                onError={() => setBrandLogo("")}
-                className="h-10 max-w-[140px] object-contain rounded-xl"
-              />
-            ) : (
-              <div>
-                <div className="text-xl font-extrabold text-[#FDE68A] tracking-wide">{loginTitle}</div>
-                <div className="text-xs text-zinc-400 mt-0.5 font-medium">{loginSubtitle}</div>
-              </div>
-            )}
-          </div>
-          <button className="lg:hidden text-zinc-400 hover:text-[#C8A45C] cursor-pointer" onClick={() => setOpen(false)}>
-            <X size={20} />
-          </button>
-        </div>
-
-        <nav className="p-3 space-y-4">
-          {Object.entries(groups || {}).map(([group, items]) => (
-            <div key={group}>
-              <div className="text-xs font-bold text-[#C8A45C] px-3 mb-1.5">{group}</div>
-              <div className="space-y-0.5">
-                {items.map((it) => (
-                  <NavLink
-                    key={it.to}
-                    to={it.to}
-                    end={it.to === "/"}
-                    onClick={() => setOpen(false)}
-                    className={({ isActive }) =>
-                      `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                        isActive
-                          ? "bg-[#C8A45C] text-[#1A1A1A] font-black shadow-md shadow-[#C8A45C]/30"
-                          : "text-zinc-300 hover:bg-[#2D2D2D] hover:text-[#FDE68A]"
-                      }`
-                    }
-                  >
-                    <it.icon size={18} className="text-[#C8A45C]" />
-                    <span>{it.label}</span>
-                  </NavLink>
-                ))}
-              </div>
-            </div>
-          ))}
-        </nav>
-      </aside>
+      {useLegacySidebar ? (
+        <SidebarLegacy
+          open={open}
+          setOpen={setOpen}
+          brandLogo={brandLogo}
+          loginTitle={loginTitle}
+          loginSubtitle={loginSubtitle}
+          onToggleSidebarMode={handleToggleSidebarMode}
+          isToggling={isTogglingSidebar}
+        />
+      ) : (
+        <SidebarNew
+          open={open}
+          setOpen={setOpen}
+          brandLogo={brandLogo}
+          loginTitle={loginTitle}
+          loginSubtitle={loginSubtitle}
+          onToggleSidebarMode={handleToggleSidebarMode}
+          isToggling={isTogglingSidebar}
+        />
+      )}
 
       {open && <div className="fixed inset-0 bg-black/70 z-30 lg:hidden" onClick={() => setOpen(false)} />}
 
