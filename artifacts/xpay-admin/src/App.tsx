@@ -47,6 +47,7 @@ import ProductPageSettings from "./pages/ProductPageSettings";
 import AboutSettings from "./pages/AboutSettings";
 import ContactSettings from "./pages/ContactSettings";
 import DepositSettings from "./pages/DepositSettings";
+import AuthPagesSettings from "./pages/AuthPagesSettings";
 import IdentityVerifications from "./pages/IdentityVerifications";
 import { loadAndApplyAdminTheme } from "./lib/theme";
 import { Toaster } from "sonner";
@@ -147,6 +148,8 @@ export default function App() {
           <Route path="/activity" element={<ActivityLog />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/theme" element={<Theme />} />
+          <Route path="/auth-pages-settings" element={<AuthPagesSettings />} />
+          <Route path="/auth-settings" element={<AuthPagesSettings />} />
           <Route path="/product-page-settings" element={<ProductPageSettings />} />
           <Route path="/about-settings" element={<AboutSettings />} />
           <Route path="/contact-settings" element={<ContactSettings />} />

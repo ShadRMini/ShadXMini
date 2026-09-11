@@ -5525,4 +5525,231 @@ router.put("/admin/contact-config", requireAdmin, async (req, res) => {
   }
 });
 
+// ==========================================
+// Auth Pages Config (Login / Register Settings)
+// ==========================================
+const DEFAULT_AUTH_PAGES_CONFIG = {
+  login: {
+    title: "تسجيل الدخول",
+    subtitle: "مرحباً بك مجدداً",
+    branding: {
+      title: "أهلاً بعودتك!",
+      subtitle: "سجل دخولك للوصول إلى حسابك وخدماتك",
+      icon: "LogIn",
+      benefits: [
+        { icon: "Shield", text: "حساب آمن ومحمي" },
+        { icon: "Zap", text: "خدمات سريعة وموثوقة" },
+        { icon: "Headphones", text: "دعم فني على مدار الساعة" },
+      ],
+    },
+    fields: {
+      usernameLabel: "اسم المستخدم أو البريد الإلكتروني",
+      usernamePlaceholder: "أدخل اسم المستخدم أو البريد",
+      passwordLabel: "كلمة المرور",
+      passwordPlaceholder: "أدخل كلمة المرور",
+      showForgotPassword: true,
+      forgotPasswordText: "نسيت كلمة السر؟",
+      submitButtonText: "تسجيل الدخول",
+      switchToRegisterText: "ليس لديك حساب؟",
+      switchToRegisterLink: "إنشاء حساب جديد",
+    },
+    showGoogleButton: true,
+    googleButtonText: "تسجيل الدخول بحساب Google",
+    showDivider: true,
+    dividerText: "أو",
+  },
+  register: {
+    title: "إنشاء حساب جديد",
+    subtitle: "انضم إلينا الآن",
+    branding: {
+      title: "انضم إلينا",
+      subtitle: "أنشئ حسابك الآن وابدأ تجربتك",
+      icon: "UserPlus",
+      benefits: [
+        { icon: "Package", text: "خدمات متنوعة وحصرية" },
+        { icon: "ShieldCheck", text: "حساب آمن ومحمي" },
+        { icon: "Zap", text: "تنفيذ فوري للطلبات" },
+        { icon: "Headphones", text: "دعم فني على مدار الساعة" },
+      ],
+    },
+    fields: {
+      usernameLabel: "اسم المستخدم",
+      usernamePlaceholder: "أدخل اسم المستخدم",
+      usernameHint: "اختر اسم مستخدم فريد",
+      passwordLabel: "كلمة المرور",
+      passwordPlaceholder: "أدخل كلمة المرور",
+      confirmPasswordLabel: "تأكيد كلمة المرور",
+      confirmPasswordPlaceholder: "أعد إدخال كلمة المرور",
+      emailLabel: "البريد الإلكتروني",
+      emailPlaceholder: "example@email.com",
+      submitButtonText: "إنشاء الحساب",
+      switchToLoginText: "لديك حساب بالفعل؟",
+      switchToLoginLink: "تسجيل الدخول",
+    },
+    passwordRequirements: {
+      enabled: true,
+      title: "متطلبات كلمة المرور",
+      showMinLength: true,
+      minLength: 8,
+      showUppercase: true,
+      uppercaseText: "حرف كبير (A-Z)",
+      showLowercase: true,
+      lowercaseText: "حرف صغير (a-z)",
+      showNumber: true,
+      numberText: "رقم واحد (0-9)",
+      showSpecial: true,
+      specialText: "رمز خاص (@#$%)",
+    },
+    emailVerification: {
+      enabled: true,
+      hintText: "سيتم إرسال رمز تحقق لتأكيد البريد الإلكتروني",
+    },
+    showGoogleButton: true,
+    googleButtonText: "التسجيل بحساب Google",
+    showDivider: true,
+    dividerText: "أو",
+  },
+  common: {
+    backToHomeText: "العودة للصفحة الرئيسية",
+    styles: {
+      titleColor: "#C8A45C",
+      subtitleColor: "#9CA3AF",
+      labelColor: "#E5E7EB",
+      inputTextColor: "#FFFFFF",
+      inputBgColor: "#3D3D3D",
+      inputBorderColor: "#4B5563",
+      inputFocusBorderColor: "#C8A45C",
+      buttonBgColor: "#C8A45C",
+      buttonTextColor: "#1A1A1A",
+      buttonHoverColor: "#B8954A",
+      brandingBgColor: "#C8A45C",
+      brandingTextColor: "#FFFFFF",
+      brandingIconColor: "#FFFFFF",
+    },
+  },
+};
+
+router.get(
+  ["/admin/auth-pages-config", "/auth-pages-config", "/api/admin/auth-pages-config"],
+  requireAdmin,
+  async (_req, res) => {
+    try {
+      const rows = await db.select().from(settingsTable);
+      const map = new Map(rows.map((r) => [r.key, r.value]));
+
+      let config = map.get("auth_pages_config");
+      if (typeof config === "string") {
+        try {
+          config = JSON.parse(config);
+        } catch {
+          config = null;
+        }
+      }
+
+      // Merge with defaults
+      const mergedConfig = {
+        login: {
+          ...DEFAULT_AUTH_PAGES_CONFIG.login,
+          ...(config?.login || {}),
+          branding: {
+            ...DEFAULT_AUTH_PAGES_CONFIG.login.branding,
+            ...(config?.login?.branding || {}),
+            benefits: Array.isArray(config?.login?.branding?.benefits)
+              ? config.login.branding.benefits
+              : DEFAULT_AUTH_PAGES_CONFIG.login.branding.benefits,
+          },
+          fields: {
+            ...DEFAULT_AUTH_PAGES_CONFIG.login.fields,
+            ...(config?.login?.fields || {}),
+          },
+        },
+        register: {
+          ...DEFAULT_AUTH_PAGES_CONFIG.register,
+          ...(config?.register || {}),
+          branding: {
+            ...DEFAULT_AUTH_PAGES_CONFIG.register.branding,
+            ...(config?.register?.branding || {}),
+            benefits: Array.isArray(config?.register?.branding?.benefits)
+              ? config.register.branding.benefits
+              : DEFAULT_AUTH_PAGES_CONFIG.register.branding.benefits,
+          },
+          fields: {
+            ...DEFAULT_AUTH_PAGES_CONFIG.register.fields,
+            ...(config?.register?.fields || {}),
+          },
+          passwordRequirements: {
+            ...DEFAULT_AUTH_PAGES_CONFIG.register.passwordRequirements,
+            ...(config?.register?.passwordRequirements || {}),
+          },
+          emailVerification: {
+            ...DEFAULT_AUTH_PAGES_CONFIG.register.emailVerification,
+            ...(config?.register?.emailVerification || {}),
+          },
+        },
+        common: {
+          ...DEFAULT_AUTH_PAGES_CONFIG.common,
+          ...(config?.common || {}),
+          styles: {
+            ...DEFAULT_AUTH_PAGES_CONFIG.common.styles,
+            ...(config?.common?.styles || {}),
+          },
+        },
+      };
+
+      const useLegacy = map.get("use_legacy_auth_pages") === "true" || map.get("use_legacy_auth_pages") === true;
+
+      res.json({
+        success: true,
+        config: mergedConfig,
+        use_legacy_auth_pages: useLegacy,
+      });
+    } catch (err: any) {
+      console.error("[Admin Get Auth Pages Config Error]:", err);
+      res.status(500).json({ error: err?.message || "فشل جلب إعدادات صفحات الدخول والتسجيل" });
+    }
+  }
+);
+
+router.put(
+  ["/admin/auth-pages-config", "/auth-pages-config", "/api/admin/auth-pages-config"],
+  requireAdmin,
+  async (req, res) => {
+    try {
+      const { config, use_legacy_auth_pages } = req.body;
+
+      if (config) {
+        await db
+          .insert(settingsTable)
+          .values({ key: "auth_pages_config", value: config })
+          .onConflictDoUpdate({ target: settingsTable.key, set: { value: config } });
+      }
+
+      if (use_legacy_auth_pages !== undefined) {
+        const legacyVal = String(use_legacy_auth_pages);
+        await db
+          .insert(settingsTable)
+          .values({ key: "use_legacy_auth_pages", value: legacyVal })
+          .onConflictDoUpdate({ target: settingsTable.key, set: { value: legacyVal } });
+      }
+
+      await logActivity(
+        { id: req.session.adminId, name: req.session.adminUsername },
+        "auth_pages_config_update",
+        "settings",
+        ["auth_pages_config", "use_legacy_auth_pages"]
+      );
+
+      res.json({
+        success: true,
+        message: "تم حفظ إعدادات صفحات الدخول والتسجيل بنجاح",
+        config,
+        use_legacy_auth_pages,
+      });
+    } catch (err: any) {
+      console.error("[Admin Put Auth Pages Config Error]:", err);
+      res.status(500).json({ error: err?.message || "فشل حفظ إعدادات صفحات الدخول والتسجيل" });
+    }
+  }
+);
+
 export default router;

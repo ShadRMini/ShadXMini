@@ -809,6 +809,125 @@ export async function ensureDatabaseSchema() {
       ON CONFLICT (key) DO NOTHING;
     `).catch(() => null);
 
+    // Ensure use_legacy_auth_pages setting
+    await db.execute(sql`
+      INSERT INTO settings (key, value) VALUES ('use_legacy_auth_pages', 'false')
+      ON CONFLICT (key) DO NOTHING;
+    `).catch(() => null);
+
+    // Ensure auth_pages_config default setting
+    const defaultAuthConfigJson = JSON.stringify({
+      login: {
+        title: "تسجيل الدخول",
+        subtitle: "مرحباً بك مجدداً",
+        branding: {
+          title: "أهلاً بعودتك!",
+          subtitle: "سجل دخولك للوصول إلى حسابك وخدماتك",
+          icon: "LogIn",
+          benefits: [
+            { icon: "Shield", text: "حساب آمن ومحمي" },
+            { icon: "Zap", text: "خدمات سريعة وموثوقة" },
+            { icon: "Headphones", text: "دعم فني على مدار الساعة" }
+          ]
+        },
+        fields: {
+          usernameLabel: "اسم المستخدم أو البريد الإلكتروني",
+          usernamePlaceholder: "أدخل اسم المستخدم أو البريد",
+          passwordLabel: "كلمة المرور",
+          passwordPlaceholder: "أدخل كلمة المرور",
+          showForgotPassword: true,
+          forgotPasswordText: "نسيت كلمة السر؟",
+          submitButtonText: "تسجيل الدخول",
+          switchToRegisterText: "ليس لديك حساب؟",
+          switchToRegisterLink: "إنشاء حساب جديد"
+        },
+        showGoogleButton: true,
+        googleButtonText: "تسجيل الدخول بحساب Google",
+        showDivider: true,
+        dividerText: "أو"
+      },
+      register: {
+        title: "إنشاء حساب جديد",
+        subtitle: "انضم إلينا الآن",
+        branding: {
+          title: "انضم إلينا",
+          subtitle: "أنشئ حسابك الآن وابدأ تجربتك",
+          icon: "UserPlus",
+          benefits: [
+            { icon: "Package", text: "خدمات متنوعة وحصرية" },
+            { icon: "ShieldCheck", text: "حساب آمن ومحمي" },
+            { icon: "Zap", text: "تنفيذ فوري للطلبات" },
+            { icon: "Headphones", text: "دعم فني على مدار الساعة" }
+          ]
+        },
+        fields: {
+          usernameLabel: "اسم المستخدم",
+          usernamePlaceholder: "أدخل اسم المستخدم",
+          usernameHint: "اختر اسم مستخدم فريد",
+          passwordLabel: "كلمة المرور",
+          passwordPlaceholder: "أدخل كلمة المرور",
+          confirmPasswordLabel: "تأكيد كلمة المرور",
+          confirmPasswordPlaceholder: "أعد إدخال كلمة المرور",
+          emailLabel: "البريد الإلكتروني",
+          emailPlaceholder: "example@email.com",
+          submitButtonText: "إنشاء الحساب",
+          switchToLoginText: "لديك حساب بالفعل؟",
+          switchToLoginLink: "تسجيل الدخول"
+        },
+        passwordRequirements: {
+          enabled: true,
+          title: "متطلبات كلمة المرور",
+          showMinLength: true,
+          minLength: 8,
+          showUppercase: true,
+          uppercaseText: "حرف كبير (A-Z)",
+          showLowercase: true,
+          lowercaseText: "حرف صغير (a-z)",
+          showNumber: true,
+          numberText: "رقم واحد (0-9)",
+          showSpecial: true,
+          specialText: "رمز خاص (@#$%)"
+        },
+        emailVerification: {
+          enabled: true,
+          hintText: "سيتم إرسال رمز تحقق لتأكيد البريد الإلكتروني"
+        },
+        showGoogleButton: true,
+        googleButtonText: "التسجيل بحساب Google",
+        showDivider: true,
+        dividerText: "أو"
+      },
+      common: {
+        backToHomeText: "العودة للصفحة الرئيسية",
+        styles: {
+          titleColor: "#C8A45C",
+          subtitleColor: "#9CA3AF",
+          labelColor: "#E5E7EB",
+          inputTextColor: "#FFFFFF",
+          inputBgColor: "#3D3D3D",
+          inputBorderColor: "#4B5563",
+          inputFocusBorderColor: "#C8A45C",
+          buttonBgColor: "#C8A45C",
+          buttonTextColor: "#1A1A1A",
+          buttonHoverColor: "#B8954A",
+          brandingBgColor: "#C8A45C",
+          brandingTextColor: "#FFFFFF",
+          brandingIconColor: "#FFFFFF"
+        }
+      }
+    });
+
+    await db.execute(sql`
+      INSERT INTO settings (key, value) VALUES ('auth_pages_config', ${defaultAuthConfigJson}::jsonb)
+      ON CONFLICT (key) DO NOTHING;
+    `).catch(async () => {
+      // Fallback if column is text or json
+      await db.execute(sql`
+        INSERT INTO settings (key, value) VALUES ('auth_pages_config', ${defaultAuthConfigJson})
+        ON CONFLICT (key) DO NOTHING;
+      `).catch(() => null);
+    });
+
     schemaEnsured = true;
     console.log("[DB Schema] Runtime schema verified and synchronized successfully.");
   } catch (error) {

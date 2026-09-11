@@ -18,6 +18,12 @@ import {
   Circle,
 } from "lucide-react";
 import { toast } from "sonner";
+import {
+  AuthPagesConfig,
+  DEFAULT_AUTH_PAGES_CONFIG,
+  fetchAuthPagesConfig,
+  renderAuthIcon,
+} from "@/lib/authPagesConfig";
 
 function apiBaseUrl() {
   return (import.meta.env.VITE_API_URL || "").replace(/\/+$/, "");
@@ -57,11 +63,13 @@ export default function Register() {
   const [error, setError] = useState<string | null>(null);
   const [brandLogo, setBrandLogo] = useState<string>("");
   const [useLegacyLayout, setUseLegacyLayout] = useState<boolean>(false);
+  const [authConfig, setAuthConfig] = useState<AuthPagesConfig>(DEFAULT_AUTH_PAGES_CONFIG);
   const { login } = useAuth();
   const [, setLocation] = useLocation();
 
-  // Real-time password criteria
-  const hasMinLength = password.length >= 8;
+  // Dynamic real-time password criteria
+  const minRequiredLength = authConfig.register?.passwordRequirements?.minLength ?? 8;
+  const hasMinLength = password.length >= minRequiredLength;
   const hasUpperCase = /[A-Z]/.test(password);
   const hasLowerCase = /[a-z]/.test(password);
   const hasNumber = /[0-9]/.test(password);
@@ -69,6 +77,12 @@ export default function Register() {
 
   useEffect(() => {
     const baseUrl = apiBaseUrl();
+    // Fetch auth pages configuration
+    fetchAuthPagesConfig(baseUrl).then(({ config, useLegacy }) => {
+      if (config) setAuthConfig(config);
+      if (useLegacy) setUseLegacyLayout(true);
+    });
+
     fetch(`${baseUrl}/api/settings/public`)
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
@@ -314,8 +328,8 @@ export default function Register() {
           id="register-branding-panel"
           className="w-full lg:w-1/2 p-6 sm:p-8 lg:p-12 flex flex-col justify-between items-center text-center relative overflow-hidden transition-colors duration-200"
           style={{
-            backgroundColor: "var(--theme-primary, #C8A45C)",
-            color: "#FFFFFF",
+            backgroundColor: authConfig.common.styles.brandingBgColor || "var(--theme-primary, #C8A45C)",
+            color: authConfig.common.styles.brandingTextColor || "#FFFFFF",
           }}
         >
           {/* Ambient circles */}
@@ -329,47 +343,30 @@ export default function Register() {
               id="register-brand-icon-box"
               className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 rounded-2xl sm:rounded-3xl bg-white/20 dark:bg-black/15 backdrop-blur-md flex items-center justify-center shadow-lg border border-white/25 mb-4 sm:mb-6 transition-transform hover:scale-105 duration-300"
             >
-              <UserPlus className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 text-white drop-shadow-sm" strokeWidth={2.2} />
+              {renderAuthIcon(authConfig.register.branding.icon || "UserPlus", "w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 text-white drop-shadow-sm")}
             </div>
 
             {/* Title & Subtitle */}
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-white mb-2 drop-shadow-xs">
-              انضم إلينا
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight mb-2 drop-shadow-xs" style={{ color: authConfig.common.styles.brandingTextColor || "#FFFFFF" }}>
+              {authConfig.register.branding.title}
             </h2>
-            <p className="text-xs sm:text-sm lg:text-base text-white/90 font-medium max-w-xs leading-relaxed">
-              أنشئ حسابك الآن وابدأ تجربتك
+            <p className="text-xs sm:text-sm lg:text-base opacity-90 font-medium max-w-xs leading-relaxed">
+              {authConfig.register.branding.subtitle}
             </p>
 
-            {/* Feature List (4 items matching Screenshot 2) */}
-            <div className="hidden sm:flex flex-col gap-3 mt-6 sm:mt-8 w-full max-w-xs text-right">
-              <div className="flex items-center gap-3 bg-black/10 dark:bg-black/20 backdrop-blur-xs px-4 py-2.5 rounded-xl border border-white/10">
-                <div className="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
-                  <Package className="w-4 h-4 text-white" />
-                </div>
-                <span className="text-xs sm:text-sm font-semibold text-white">خدمات متنوعة وحصرية</span>
+            {/* Feature List */}
+            {authConfig.register.branding.benefits && authConfig.register.branding.benefits.length > 0 && (
+              <div className="hidden sm:flex flex-col gap-3 mt-6 sm:mt-8 w-full max-w-xs text-right">
+                {authConfig.register.branding.benefits.map((b, idx) => (
+                  <div key={idx} className="flex items-center gap-3 bg-black/10 dark:bg-black/20 backdrop-blur-xs px-4 py-2.5 rounded-xl border border-white/10">
+                    <div className="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
+                      {renderAuthIcon(b.icon, "w-4 h-4 text-white")}
+                    </div>
+                    <span className="text-xs sm:text-sm font-semibold text-white">{b.text}</span>
+                  </div>
+                ))}
               </div>
-
-              <div className="flex items-center gap-3 bg-black/10 dark:bg-black/20 backdrop-blur-xs px-4 py-2.5 rounded-xl border border-white/10">
-                <div className="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
-                  <ShieldCheck className="w-4 h-4 text-white" />
-                </div>
-                <span className="text-xs sm:text-sm font-semibold text-white">حساب آمن ومحمي</span>
-              </div>
-
-              <div className="flex items-center gap-3 bg-black/10 dark:bg-black/20 backdrop-blur-xs px-4 py-2.5 rounded-xl border border-white/10">
-                <div className="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
-                  <Zap className="w-4 h-4 text-white" />
-                </div>
-                <span className="text-xs sm:text-sm font-semibold text-white">تنفيذ سريع للطلبات</span>
-              </div>
-
-              <div className="flex items-center gap-3 bg-black/10 dark:bg-black/20 backdrop-blur-xs px-4 py-2.5 rounded-xl border border-white/10">
-                <div className="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
-                  <Headphones className="w-4 h-4 text-white" />
-                </div>
-                <span className="text-xs sm:text-sm font-semibold text-white">دعم فني على مدار الساعة</span>
-              </div>
-            </div>
+            )}
           </div>
         </div>
 
@@ -382,11 +379,11 @@ export default function Register() {
           <div className="w-full max-w-md mx-auto">
             {/* Header */}
             <div className="mb-6 sm:mb-7 text-right">
-              <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-zinc-900 dark:text-white">
-                إنشاء حساب جديد
+              <h1 className="text-2xl sm:text-3xl font-black tracking-tight" style={{ color: authConfig.common.styles.titleColor }}>
+                {authConfig.register.title}
               </h1>
-              <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mt-1 font-medium">
-                انضم إلينا الآن!
+              <p className="text-xs sm:text-sm mt-1 font-medium" style={{ color: authConfig.common.styles.subtitleColor }}>
+                {authConfig.register.subtitle}
               </p>
             </div>
 
@@ -405,8 +402,8 @@ export default function Register() {
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* Username Field */}
               <div id="register-field-username">
-                <label className="block text-xs sm:text-sm font-bold text-zinc-700 dark:text-zinc-300 mb-1 text-right">
-                  اسم المستخدم
+                <label className="block text-xs sm:text-sm font-bold mb-1 text-right" style={{ color: authConfig.common.styles.labelColor }}>
+                  {authConfig.register.fields.usernameLabel}
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-zinc-400 dark:text-zinc-500">
@@ -420,20 +417,27 @@ export default function Register() {
                       setUsername(e.target.value);
                       if (error) setError(null);
                     }}
-                    placeholder="اختر اسم مستخدم فريد"
+                    placeholder={authConfig.register.fields.usernamePlaceholder}
                     disabled={loading}
-                    className="w-full bg-zinc-50 dark:bg-zinc-800/80 border-2 border-zinc-200 dark:border-zinc-700/80 rounded-xl sm:rounded-2xl pr-11 pl-4 py-3 text-sm text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:border-[var(--theme-primary,#C8A45C)] focus:bg-white dark:focus:bg-zinc-800 transition duration-150"
+                    className="w-full rounded-xl sm:rounded-2xl pr-11 pl-4 py-3 text-sm transition duration-150 border-2"
+                    style={{
+                      backgroundColor: authConfig.common.styles.inputBgColor,
+                      color: authConfig.common.styles.inputTextColor,
+                      borderColor: authConfig.common.styles.inputBorderColor,
+                    }}
                   />
                 </div>
-                <p className="text-[11px] text-zinc-400 dark:text-zinc-500 mt-1 text-right">
-                  اختر اسم مستخدم فريد
-                </p>
+                {authConfig.register.fields.usernameHint && (
+                  <p className="text-[11px] text-zinc-400 dark:text-zinc-500 mt-1 text-right">
+                    {authConfig.register.fields.usernameHint}
+                  </p>
+                )}
               </div>
 
               {/* Password Field */}
               <div id="register-field-password">
-                <label className="block text-xs sm:text-sm font-bold text-zinc-700 dark:text-zinc-300 mb-1 text-right">
-                  كلمة المرور
+                <label className="block text-xs sm:text-sm font-bold mb-1 text-right" style={{ color: authConfig.common.styles.labelColor }}>
+                  {authConfig.register.fields.passwordLabel}
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-zinc-400 dark:text-zinc-500">
@@ -447,9 +451,14 @@ export default function Register() {
                       setPassword(e.target.value);
                       if (error) setError(null);
                     }}
-                    placeholder="••••••••"
+                    placeholder={authConfig.register.fields.passwordPlaceholder}
                     disabled={loading}
-                    className="w-full bg-zinc-50 dark:bg-zinc-800/80 border-2 border-zinc-200 dark:border-zinc-700/80 rounded-xl sm:rounded-2xl pr-11 pl-11 py-3 text-sm text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:border-[var(--theme-primary,#C8A45C)] focus:bg-white dark:focus:bg-zinc-800 transition duration-150"
+                    className="w-full rounded-xl sm:rounded-2xl pr-11 pl-11 py-3 text-sm transition duration-150 border-2"
+                    style={{
+                      backgroundColor: authConfig.common.styles.inputBgColor,
+                      color: authConfig.common.styles.inputTextColor,
+                      borderColor: authConfig.common.styles.inputBorderColor,
+                    }}
                   />
                   <button
                     type="button"
@@ -463,93 +472,105 @@ export default function Register() {
                 </div>
               </div>
 
-              {/* Password Requirements Box (Exact match with Screenshot 2) */}
-              <div
-                id="register-password-requirements-card"
-                className="p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700/70 text-right"
-              >
-                <div className="flex items-center gap-2 mb-2.5 text-zinc-700 dark:text-zinc-300 font-bold text-xs">
-                  <ShieldCheck size={16} className="text-zinc-500 dark:text-zinc-400" />
-                  <span>متطلبات كلمة المرور</span>
+              {/* Password Requirements Box */}
+              {authConfig.register.passwordRequirements.enabled !== false && (
+                <div
+                  id="register-password-requirements-card"
+                  className="p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700/70 text-right"
+                >
+                  <div className="flex items-center gap-2 mb-2.5 text-zinc-700 dark:text-zinc-300 font-bold text-xs">
+                    <ShieldCheck size={16} className="text-zinc-500 dark:text-zinc-400" />
+                    <span>{authConfig.register.passwordRequirements.title}</span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-y-2 gap-x-3 text-[11px]">
+                    {/* Condition 1: min length */}
+                    {authConfig.register.passwordRequirements.showMinLength !== false && (
+                      <div className="flex items-center gap-1.5">
+                        <span
+                          className={`w-2 h-2 rounded-full shrink-0 transition-colors ${
+                            hasMinLength
+                              ? "bg-emerald-500 shadow-xs shadow-emerald-500/50"
+                              : "bg-amber-400 dark:bg-zinc-600"
+                          }`}
+                        />
+                        <span className={hasMinLength ? "text-emerald-600 dark:text-emerald-400 font-medium" : "text-zinc-500 dark:text-zinc-400"}>
+                          {authConfig.register.passwordRequirements.minLength || 8} أحرف على الأقل
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Condition 2: uppercase */}
+                    {authConfig.register.passwordRequirements.showUppercase !== false && (
+                      <div className="flex items-center gap-1.5">
+                        <span
+                          className={`w-2 h-2 rounded-full shrink-0 transition-colors ${
+                            hasUpperCase
+                              ? "bg-emerald-500 shadow-xs shadow-emerald-500/50"
+                              : "bg-amber-400 dark:bg-zinc-600"
+                          }`}
+                        />
+                        <span className={hasUpperCase ? "text-emerald-600 dark:text-emerald-400 font-medium" : "text-zinc-500 dark:text-zinc-400"}>
+                          حرف كبير (A-Z)
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Condition 3: lowercase */}
+                    {authConfig.register.passwordRequirements.showLowercase !== false && (
+                      <div className="flex items-center gap-1.5">
+                        <span
+                          className={`w-2 h-2 rounded-full shrink-0 transition-colors ${
+                            hasLowerCase
+                              ? "bg-emerald-500 shadow-xs shadow-emerald-500/50"
+                              : "bg-amber-400 dark:bg-zinc-600"
+                          }`}
+                        />
+                        <span className={hasLowerCase ? "text-emerald-600 dark:text-emerald-400 font-medium" : "text-zinc-500 dark:text-zinc-400"}>
+                          حرف صغير (a-z)
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Condition 4: number */}
+                    {authConfig.register.passwordRequirements.showNumber !== false && (
+                      <div className="flex items-center gap-1.5">
+                        <span
+                          className={`w-2 h-2 rounded-full shrink-0 transition-colors ${
+                            hasNumber
+                              ? "bg-emerald-500 shadow-xs shadow-emerald-500/50"
+                              : "bg-amber-400 dark:bg-zinc-600"
+                          }`}
+                        />
+                        <span className={hasNumber ? "text-emerald-600 dark:text-emerald-400 font-medium" : "text-zinc-500 dark:text-zinc-400"}>
+                          رقم واحد (0-9)
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Condition 5: special char */}
+                    {authConfig.register.passwordRequirements.showSpecial !== false && (
+                      <div className="flex items-center gap-1.5 col-span-2">
+                        <span
+                          className={`w-2 h-2 rounded-full shrink-0 transition-colors ${
+                            hasSpecialChar
+                              ? "bg-emerald-500 shadow-xs shadow-emerald-500/50"
+                              : "bg-amber-400 dark:bg-zinc-600"
+                          }`}
+                        />
+                        <span className={hasSpecialChar ? "text-emerald-600 dark:text-emerald-400 font-medium" : "text-zinc-500 dark:text-zinc-400"}>
+                          رمز خاص (@#$%)
+                        </span>
+                      </div>
+                    )}
+                  </div>
                 </div>
-
-                <div className="grid grid-cols-2 gap-y-2 gap-x-3 text-[11px]">
-                  {/* Condition 1 */}
-                  <div className="flex items-center gap-1.5">
-                    <span
-                      className={`w-2 h-2 rounded-full shrink-0 transition-colors ${
-                        hasMinLength
-                          ? "bg-emerald-500 shadow-xs shadow-emerald-500/50"
-                          : "bg-amber-400 dark:bg-zinc-600"
-                      }`}
-                    />
-                    <span className={hasMinLength ? "text-emerald-600 dark:text-emerald-400 font-medium" : "text-zinc-500 dark:text-zinc-400"}>
-                      8 أحرف على الأقل
-                    </span>
-                  </div>
-
-                  {/* Condition 2 */}
-                  <div className="flex items-center gap-1.5">
-                    <span
-                      className={`w-2 h-2 rounded-full shrink-0 transition-colors ${
-                        hasUpperCase
-                          ? "bg-emerald-500 shadow-xs shadow-emerald-500/50"
-                          : "bg-amber-400 dark:bg-zinc-600"
-                      }`}
-                    />
-                    <span className={hasUpperCase ? "text-emerald-600 dark:text-emerald-400 font-medium" : "text-zinc-500 dark:text-zinc-400"}>
-                      حرف كبير (A-Z)
-                    </span>
-                  </div>
-
-                  {/* Condition 3 */}
-                  <div className="flex items-center gap-1.5">
-                    <span
-                      className={`w-2 h-2 rounded-full shrink-0 transition-colors ${
-                        hasLowerCase
-                          ? "bg-emerald-500 shadow-xs shadow-emerald-500/50"
-                          : "bg-amber-400 dark:bg-zinc-600"
-                      }`}
-                    />
-                    <span className={hasLowerCase ? "text-emerald-600 dark:text-emerald-400 font-medium" : "text-zinc-500 dark:text-zinc-400"}>
-                      حرف صغير (a-z)
-                    </span>
-                  </div>
-
-                  {/* Condition 4 */}
-                  <div className="flex items-center gap-1.5">
-                    <span
-                      className={`w-2 h-2 rounded-full shrink-0 transition-colors ${
-                        hasNumber
-                          ? "bg-emerald-500 shadow-xs shadow-emerald-500/50"
-                          : "bg-amber-400 dark:bg-zinc-600"
-                      }`}
-                    />
-                    <span className={hasNumber ? "text-emerald-600 dark:text-emerald-400 font-medium" : "text-zinc-500 dark:text-zinc-400"}>
-                      رقم واحد (0-9)
-                    </span>
-                  </div>
-
-                  {/* Condition 5 */}
-                  <div className="flex items-center gap-1.5 col-span-2">
-                    <span
-                      className={`w-2 h-2 rounded-full shrink-0 transition-colors ${
-                        hasSpecialChar
-                          ? "bg-emerald-500 shadow-xs shadow-emerald-500/50"
-                          : "bg-amber-400 dark:bg-zinc-600"
-                      }`}
-                    />
-                    <span className={hasSpecialChar ? "text-emerald-600 dark:text-emerald-400 font-medium" : "text-zinc-500 dark:text-zinc-400"}>
-                      رمز خاص (@#$%)
-                    </span>
-                  </div>
-                </div>
-              </div>
+              )}
 
               {/* Confirm Password Field */}
               <div id="register-field-confirm-password">
-                <label className="block text-xs sm:text-sm font-bold text-zinc-700 dark:text-zinc-300 mb-1 text-right">
-                  تأكيد كلمة المرور
+                <label className="block text-xs sm:text-sm font-bold mb-1 text-right" style={{ color: authConfig.common.styles.labelColor }}>
+                  {authConfig.register.fields.confirmPasswordLabel}
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-zinc-400 dark:text-zinc-500">
@@ -563,9 +584,14 @@ export default function Register() {
                       setConfirmPassword(e.target.value);
                       if (error) setError(null);
                     }}
-                    placeholder="••••••••"
+                    placeholder={authConfig.register.fields.confirmPasswordPlaceholder}
                     disabled={loading}
-                    className="w-full bg-zinc-50 dark:bg-zinc-800/80 border-2 border-zinc-200 dark:border-zinc-700/80 rounded-xl sm:rounded-2xl pr-11 pl-11 py-3 text-sm text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:border-[var(--theme-primary,#C8A45C)] focus:bg-white dark:focus:bg-zinc-800 transition duration-150"
+                    className="w-full rounded-xl sm:rounded-2xl pr-11 pl-11 py-3 text-sm transition duration-150 border-2"
+                    style={{
+                      backgroundColor: authConfig.common.styles.inputBgColor,
+                      color: authConfig.common.styles.inputTextColor,
+                      borderColor: authConfig.common.styles.inputBorderColor,
+                    }}
                   />
                   <button
                     type="button"
@@ -581,8 +607,8 @@ export default function Register() {
 
               {/* Email Field */}
               <div id="register-field-email">
-                <label className="block text-xs sm:text-sm font-bold text-zinc-700 dark:text-zinc-300 mb-1 text-right">
-                  البريد الإلكتروني
+                <label className="block text-xs sm:text-sm font-bold mb-1 text-right" style={{ color: authConfig.common.styles.labelColor }}>
+                  {authConfig.register.fields.emailLabel}
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-zinc-400 dark:text-zinc-500">
@@ -596,14 +622,21 @@ export default function Register() {
                       setEmail(e.target.value);
                       if (error) setError(null);
                     }}
-                    placeholder="example@email.com"
+                    placeholder={authConfig.register.fields.emailPlaceholder}
                     disabled={loading}
-                    className="w-full bg-zinc-50 dark:bg-zinc-800/80 border-2 border-zinc-200 dark:border-zinc-700/80 rounded-xl sm:rounded-2xl pr-11 pl-4 py-3 text-sm text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:border-[var(--theme-primary,#C8A45C)] focus:bg-white dark:focus:bg-zinc-800 transition duration-150 text-right"
+                    className="w-full rounded-xl sm:rounded-2xl pr-11 pl-4 py-3 text-sm transition duration-150 border-2 text-right"
+                    style={{
+                      backgroundColor: authConfig.common.styles.inputBgColor,
+                      color: authConfig.common.styles.inputTextColor,
+                      borderColor: authConfig.common.styles.inputBorderColor,
+                    }}
                   />
                 </div>
-                <p className="text-[11px] text-zinc-400 dark:text-zinc-500 mt-1 text-right">
-                  سيتم إرسال رمز تحقق لتأكيد البريد الإلكتروني
-                </p>
+                {authConfig.register.emailVerification?.enabled !== false && (
+                  <p className="text-[11px] text-zinc-400 dark:text-zinc-500 mt-1 text-right">
+                    {authConfig.register.emailVerification?.hintText}
+                  </p>
+                )}
               </div>
 
               {/* Submit Button */}
@@ -611,47 +644,54 @@ export default function Register() {
                 type="submit"
                 id="register-submit-button"
                 disabled={loading}
-                className="w-full min-h-[48px] sm:min-h-[52px] text-zinc-950 font-black py-3 px-5 rounded-xl sm:rounded-2xl shadow-lg flex items-center justify-center gap-2 text-sm sm:text-base transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:brightness-95 active:scale-[0.99] mt-3"
+                className="w-full min-h-[48px] sm:min-h-[52px] font-black py-3 px-5 rounded-xl sm:rounded-2xl shadow-lg flex items-center justify-center gap-2 text-sm sm:text-base transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:brightness-95 active:scale-[0.99] mt-3"
                 style={{
-                  backgroundColor: "var(--theme-primary, #C8A45C)",
+                  backgroundColor: authConfig.common.styles.buttonBgColor || "var(--theme-primary, #C8A45C)",
+                  color: authConfig.common.styles.buttonTextColor || "#1A1A1A",
                   boxShadow: "0 10px 20px -5px rgba(200, 164, 92, 0.35)",
                 }}
               >
                 {loading ? (
-                  <div className="w-5 h-5 border-2 border-zinc-950 border-t-transparent rounded-full animate-spin" />
+                  <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
                 ) : (
-                  <span>إنشاء الحساب</span>
+                  <span>{authConfig.register.fields.submitButtonText}</span>
                 )}
               </button>
 
-              {/* Divider "أو" */}
-              <div className="relative flex items-center justify-center my-4">
-                <div className="grow border-t border-zinc-200 dark:border-zinc-700/80" />
-                <span className="shrink-0 px-3 text-xs text-zinc-400 dark:text-zinc-500 font-medium">أو</span>
-                <div className="grow border-t border-zinc-200 dark:border-zinc-700/80" />
-              </div>
+              {/* Divider */}
+              {authConfig.register.showDivider !== false && (
+                <div className="relative flex items-center justify-center my-4">
+                  <div className="grow border-t border-zinc-200 dark:border-zinc-700/80" />
+                  <span className="shrink-0 px-3 text-xs text-zinc-400 dark:text-zinc-500 font-medium">
+                    {authConfig.register.dividerText}
+                  </span>
+                  <div className="grow border-t border-zinc-200 dark:border-zinc-700/80" />
+                </div>
+              )}
 
               {/* Google Sign-Up Button */}
-              <button
-                type="button"
-                id="register-google-button"
-                onClick={handleGoogleRegister}
-                className="w-full min-h-[48px] bg-white dark:bg-zinc-800/80 hover:bg-zinc-50 dark:hover:bg-zinc-700/80 border border-zinc-200 dark:border-zinc-700 rounded-xl sm:rounded-2xl py-3 px-4 flex items-center justify-center gap-3 text-xs sm:text-sm font-bold text-zinc-700 dark:text-zinc-200 transition-all duration-150 cursor-pointer shadow-xs active:scale-[0.99]"
-              >
-                <GoogleIcon className="w-5 h-5 shrink-0" />
-                <span>التسجيل بحساب Google</span>
-              </button>
+              {authConfig.register.showGoogleButton !== false && (
+                <button
+                  type="button"
+                  id="register-google-button"
+                  onClick={handleGoogleRegister}
+                  className="w-full min-h-[48px] bg-white dark:bg-zinc-800/80 hover:bg-zinc-50 dark:hover:bg-zinc-700/80 border border-zinc-200 dark:border-zinc-700 rounded-xl sm:rounded-2xl py-3 px-4 flex items-center justify-center gap-3 text-xs sm:text-sm font-bold text-zinc-700 dark:text-zinc-200 transition-all duration-150 cursor-pointer shadow-xs active:scale-[0.99]"
+                >
+                  <GoogleIcon className="w-5 h-5 shrink-0" />
+                  <span>{authConfig.register.googleButtonText}</span>
+                </button>
+              )}
 
               {/* Login Link */}
               <div className="pt-3 text-center text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 font-medium">
-                لديك حساب بالفعل؟{" "}
+                {authConfig.register.fields.switchToLoginText}{" "}
                 <Link
                   href="/login"
                   id="register-to-login-link"
                   className="font-bold underline-offset-4 hover:underline transition"
-                  style={{ color: "var(--theme-primary, #C8A45C)" }}
+                  style={{ color: authConfig.common.styles.titleColor }}
                 >
-                  تسجيل الدخول
+                  {authConfig.register.fields.switchToLoginLink}
                 </Link>
               </div>
 
@@ -662,7 +702,7 @@ export default function Register() {
                   id="register-back-to-home"
                   className="inline-flex items-center gap-2 text-xs sm:text-sm text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 transition font-semibold"
                 >
-                  <span>العودة للصفحة الرئيسية</span>
+                  <span>{authConfig.common.backToHomeText}</span>
                   <ArrowRight size={15} />
                 </Link>
               </div>

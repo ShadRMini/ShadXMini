@@ -16,6 +16,12 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { toast } from "sonner";
+import {
+  AuthPagesConfig,
+  DEFAULT_AUTH_PAGES_CONFIG,
+  fetchAuthPagesConfig,
+  renderAuthIcon,
+} from "@/lib/authPagesConfig";
 
 function apiBaseUrl() {
   return (import.meta.env.VITE_API_URL || "").replace(/\/+$/, "");
@@ -52,11 +58,18 @@ export default function Login() {
   const [error, setError] = useState<string | null>(null);
   const [brandLogo, setBrandLogo] = useState<string>("");
   const [useLegacyLayout, setUseLegacyLayout] = useState<boolean>(false);
+  const [authConfig, setAuthConfig] = useState<AuthPagesConfig>(DEFAULT_AUTH_PAGES_CONFIG);
   const { login } = useAuth();
   const [, setLocation] = useLocation();
 
   useEffect(() => {
     const baseUrl = apiBaseUrl();
+    // Fetch auth pages configuration
+    fetchAuthPagesConfig(baseUrl).then(({ config, useLegacy }) => {
+      if (config) setAuthConfig(config);
+      if (useLegacy) setUseLegacyLayout(true);
+    });
+
     fetch(`${baseUrl}/api/settings/public`)
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
@@ -258,8 +271,8 @@ export default function Login() {
           id="login-branding-panel"
           className="w-full lg:w-1/2 p-6 sm:p-8 lg:p-12 flex flex-col justify-between items-center text-center relative overflow-hidden transition-colors duration-200"
           style={{
-            backgroundColor: "var(--theme-primary, #C8A45C)",
-            color: "#FFFFFF",
+            backgroundColor: authConfig.common.styles.brandingBgColor || "var(--theme-primary, #C8A45C)",
+            color: authConfig.common.styles.brandingTextColor || "#FFFFFF",
           }}
         >
           {/* Subtle background ambient circles */}
@@ -273,40 +286,30 @@ export default function Login() {
               id="login-brand-icon-box"
               className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 rounded-2xl sm:rounded-3xl bg-white/20 dark:bg-black/15 backdrop-blur-md flex items-center justify-center shadow-lg border border-white/25 mb-4 sm:mb-6 transition-transform hover:scale-105 duration-300"
             >
-              <LogIn className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 text-white drop-shadow-sm" strokeWidth={2.2} />
+              {renderAuthIcon(authConfig.login.branding.icon || "LogIn", "w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 text-white drop-shadow-sm")}
             </div>
 
             {/* Title & Subtitle */}
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-white mb-2 drop-shadow-xs">
-              أهلاً بعودتك!
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight mb-2 drop-shadow-xs" style={{ color: authConfig.common.styles.brandingTextColor || "#FFFFFF" }}>
+              {authConfig.login.branding.title}
             </h2>
-            <p className="text-xs sm:text-sm lg:text-base text-white/90 font-medium max-w-xs leading-relaxed">
-              سجّل دخولك للوصول إلى حسابك وخدماتك
+            <p className="text-xs sm:text-sm lg:text-base opacity-90 font-medium max-w-xs leading-relaxed">
+              {authConfig.login.branding.subtitle}
             </p>
 
             {/* Features List (Visible on desktop & tablet, hidden on compact mobile) */}
-            <div className="hidden sm:flex flex-col gap-3.5 mt-6 sm:mt-8 w-full max-w-xs text-right">
-              <div className="flex items-center gap-3 bg-black/10 dark:bg-black/20 backdrop-blur-xs px-4 py-2.5 rounded-xl border border-white/10">
-                <div className="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
-                  <ShieldCheck className="w-4 h-4 text-white" />
-                </div>
-                <span className="text-xs sm:text-sm font-semibold text-white">حساب آمن ومحمي</span>
+            {authConfig.login.branding.benefits && authConfig.login.branding.benefits.length > 0 && (
+              <div className="hidden sm:flex flex-col gap-3.5 mt-6 sm:mt-8 w-full max-w-xs text-right">
+                {authConfig.login.branding.benefits.map((b, idx) => (
+                  <div key={idx} className="flex items-center gap-3 bg-black/10 dark:bg-black/20 backdrop-blur-xs px-4 py-2.5 rounded-xl border border-white/10">
+                    <div className="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
+                      {renderAuthIcon(b.icon, "w-4 h-4 text-white")}
+                    </div>
+                    <span className="text-xs sm:text-sm font-semibold text-white">{b.text}</span>
+                  </div>
+                ))}
               </div>
-
-              <div className="flex items-center gap-3 bg-black/10 dark:bg-black/20 backdrop-blur-xs px-4 py-2.5 rounded-xl border border-white/10">
-                <div className="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
-                  <Zap className="w-4 h-4 text-white" />
-                </div>
-                <span className="text-xs sm:text-sm font-semibold text-white">خدمات سريعة وموثوقة</span>
-              </div>
-
-              <div className="flex items-center gap-3 bg-black/10 dark:bg-black/20 backdrop-blur-xs px-4 py-2.5 rounded-xl border border-white/10">
-                <div className="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
-                  <Headphones className="w-4 h-4 text-white" />
-                </div>
-                <span className="text-xs sm:text-sm font-semibold text-white">دعم فني متاح دائماً</span>
-              </div>
-            </div>
+            )}
           </div>
         </div>
 
@@ -319,11 +322,11 @@ export default function Login() {
           <div className="w-full max-w-md mx-auto">
             {/* Header */}
             <div className="mb-6 sm:mb-8 text-right">
-              <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-zinc-900 dark:text-white">
-                تسجيل الدخول
+              <h1 className="text-2xl sm:text-3xl font-black tracking-tight" style={{ color: authConfig.common.styles.titleColor }}>
+                {authConfig.login.title}
               </h1>
-              <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mt-1 font-medium">
-                مرحباً بك مجدداً!
+              <p className="text-xs sm:text-sm mt-1 font-medium" style={{ color: authConfig.common.styles.subtitleColor }}>
+                {authConfig.login.subtitle}
               </p>
             </div>
 
@@ -342,8 +345,8 @@ export default function Login() {
             <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
               {/* Username / Email Field */}
               <div id="login-field-identifier">
-                <label className="block text-xs sm:text-sm font-bold text-zinc-700 dark:text-zinc-300 mb-1.5 text-right">
-                  اسم المستخدم
+                <label className="block text-xs sm:text-sm font-bold mb-1.5 text-right" style={{ color: authConfig.common.styles.labelColor }}>
+                  {authConfig.login.fields.usernameLabel}
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-zinc-400 dark:text-zinc-500">
@@ -357,17 +360,22 @@ export default function Login() {
                       setIdentifier(e.target.value);
                       if (error) setError(null);
                     }}
-                    placeholder="اسم المستخدم أو البريد الإلكتروني"
+                    placeholder={authConfig.login.fields.usernamePlaceholder}
                     disabled={loading}
-                    className="w-full bg-zinc-50 dark:bg-zinc-800/80 border-2 border-zinc-200 dark:border-zinc-700/80 rounded-xl sm:rounded-2xl pr-11 pl-4 py-3 sm:py-3.5 text-sm text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:border-[var(--theme-primary,#C8A45C)] focus:bg-white dark:focus:bg-zinc-800 transition duration-150"
+                    className="w-full rounded-xl sm:rounded-2xl pr-11 pl-4 py-3 sm:py-3.5 text-sm transition duration-150 border-2"
+                    style={{
+                      backgroundColor: authConfig.common.styles.inputBgColor,
+                      color: authConfig.common.styles.inputTextColor,
+                      borderColor: authConfig.common.styles.inputBorderColor,
+                    }}
                   />
                 </div>
               </div>
 
               {/* Password Field */}
               <div id="login-field-password">
-                <label className="block text-xs sm:text-sm font-bold text-zinc-700 dark:text-zinc-300 mb-1.5 text-right">
-                  كلمة المرور
+                <label className="block text-xs sm:text-sm font-bold mb-1.5 text-right" style={{ color: authConfig.common.styles.labelColor }}>
+                  {authConfig.login.fields.passwordLabel}
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-zinc-400 dark:text-zinc-500">
@@ -381,9 +389,14 @@ export default function Login() {
                       setPassword(e.target.value);
                       if (error) setError(null);
                     }}
-                    placeholder="••••••••"
+                    placeholder={authConfig.login.fields.passwordPlaceholder}
                     disabled={loading}
-                    className="w-full bg-zinc-50 dark:bg-zinc-800/80 border-2 border-zinc-200 dark:border-zinc-700/80 rounded-xl sm:rounded-2xl pr-11 pl-11 py-3 sm:py-3.5 text-sm text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:border-[var(--theme-primary,#C8A45C)] focus:bg-white dark:focus:bg-zinc-800 transition duration-150"
+                    className="w-full rounded-xl sm:rounded-2xl pr-11 pl-11 py-3 sm:py-3.5 text-sm transition duration-150 border-2"
+                    style={{
+                      backgroundColor: authConfig.common.styles.inputBgColor,
+                      color: authConfig.common.styles.inputTextColor,
+                      borderColor: authConfig.common.styles.inputBorderColor,
+                    }}
                   />
                   <button
                     type="button"
@@ -402,59 +415,69 @@ export default function Login() {
                 type="submit"
                 id="login-submit-button"
                 disabled={loading}
-                className="w-full min-h-[48px] sm:min-h-[52px] text-zinc-950 font-black py-3 px-5 rounded-xl sm:rounded-2xl shadow-lg flex items-center justify-center gap-2 text-sm sm:text-base transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:brightness-95 active:scale-[0.99] mt-2"
+                className="w-full min-h-[48px] sm:min-h-[52px] font-black py-3 px-5 rounded-xl sm:rounded-2xl shadow-lg flex items-center justify-center gap-2 text-sm sm:text-base transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:brightness-95 active:scale-[0.99] mt-2"
                 style={{
-                  backgroundColor: "var(--theme-primary, #C8A45C)",
+                  backgroundColor: authConfig.common.styles.buttonBgColor || "var(--theme-primary, #C8A45C)",
+                  color: authConfig.common.styles.buttonTextColor || "#1A1A1A",
                   boxShadow: "0 10px 20px -5px rgba(200, 164, 92, 0.35)",
                 }}
               >
                 {loading ? (
-                  <div className="w-5 h-5 border-2 border-zinc-950 border-t-transparent rounded-full animate-spin" />
+                  <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
                 ) : (
-                  <span>تسجيل الدخول</span>
+                  <span>{authConfig.login.fields.submitButtonText}</span>
                 )}
               </button>
 
               {/* Forgot Password Link */}
-              <div className="text-center pt-1">
-                <button
-                  type="button"
-                  id="login-forgot-password"
-                  onClick={handleForgotPassword}
-                  className="text-xs sm:text-sm text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 transition font-medium cursor-pointer"
-                >
-                  نسيت كلمة السر؟
-                </button>
-              </div>
+              {authConfig.login.fields.showForgotPassword && (
+                <div className="text-center pt-1">
+                  <button
+                    type="button"
+                    id="login-forgot-password"
+                    onClick={handleForgotPassword}
+                    className="text-xs sm:text-sm hover:underline transition font-medium cursor-pointer"
+                    style={{ color: authConfig.common.styles.titleColor }}
+                  >
+                    {authConfig.login.fields.forgotPasswordText}
+                  </button>
+                </div>
+              )}
 
-              {/* Divider "أو" */}
-              <div className="relative flex items-center justify-center my-4 sm:my-5">
-                <div className="grow border-t border-zinc-200 dark:border-zinc-700/80" />
-                <span className="shrink-0 px-3 text-xs text-zinc-400 dark:text-zinc-500 font-medium">أو</span>
-                <div className="grow border-t border-zinc-200 dark:border-zinc-700/80" />
-              </div>
+              {/* Divider */}
+              {authConfig.login.showDivider && (
+                <div className="relative flex items-center justify-center my-4 sm:my-5">
+                  <div className="grow border-t border-zinc-200 dark:border-zinc-700/80" />
+                  <span className="shrink-0 px-3 text-xs text-zinc-400 dark:text-zinc-500 font-medium">
+                    {authConfig.login.dividerText}
+                  </span>
+                  <div className="grow border-t border-zinc-200 dark:border-zinc-700/80" />
+                </div>
+              )}
 
               {/* Google Sign-In Button */}
-              <button
-                type="button"
-                id="login-google-button"
-                onClick={handleGoogleLogin}
-                className="w-full min-h-[48px] bg-white dark:bg-zinc-800/80 hover:bg-zinc-50 dark:hover:bg-zinc-700/80 border border-zinc-200 dark:border-zinc-700 rounded-xl sm:rounded-2xl py-3 px-4 flex items-center justify-center gap-3 text-xs sm:text-sm font-bold text-zinc-700 dark:text-zinc-200 transition-all duration-150 cursor-pointer shadow-xs active:scale-[0.99]"
-              >
-                <GoogleIcon className="w-5 h-5 shrink-0" />
-                <span>تسجيل الدخول بحساب Google</span>
-              </button>
+              {authConfig.login.showGoogleButton && (
+                <button
+                  type="button"
+                  id="login-google-button"
+                  onClick={handleGoogleLogin}
+                  className="w-full min-h-[48px] bg-white dark:bg-zinc-800/80 hover:bg-zinc-50 dark:hover:bg-zinc-700/80 border border-zinc-200 dark:border-zinc-700 rounded-xl sm:rounded-2xl py-3 px-4 flex items-center justify-center gap-3 text-xs sm:text-sm font-bold text-zinc-700 dark:text-zinc-200 transition-all duration-150 cursor-pointer shadow-xs active:scale-[0.99]"
+                >
+                  <GoogleIcon className="w-5 h-5 shrink-0" />
+                  <span>{authConfig.login.googleButtonText}</span>
+                </button>
+              )}
 
               {/* Register Link */}
               <div className="pt-3 text-center text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 font-medium">
-                ليس لديك حساب؟{" "}
+                {authConfig.login.fields.switchToRegisterText}{" "}
                 <Link
                   href="/register"
                   id="login-to-register-link"
                   className="font-bold underline-offset-4 hover:underline transition"
-                  style={{ color: "var(--theme-primary, #C8A45C)" }}
+                  style={{ color: authConfig.common.styles.titleColor }}
                 >
-                  إنشاء حساب جديد
+                  {authConfig.login.fields.switchToRegisterLink}
                 </Link>
               </div>
 
@@ -465,7 +488,7 @@ export default function Login() {
                   id="login-back-to-home"
                   className="inline-flex items-center gap-2 text-xs sm:text-sm text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 transition font-semibold"
                 >
-                  <span>العودة للصفحة الرئيسية</span>
+                  <span>{authConfig.common.backToHomeText}</span>
                   <ArrowRight size={15} />
                 </Link>
               </div>

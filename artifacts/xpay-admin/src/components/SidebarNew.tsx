@@ -8,7 +8,7 @@ import {
   Coins, Users, ShieldCheck, Lock, Activity, User, ShieldAlert,
   Settings as SettingsIcon, Palette, Info, Share2, Bell, Languages as LangIcon,
   PowerOff, Database, Clock, HardDrive, ChevronDown, Search, X, History,
-  RefreshCw, CheckCircle2, Headphones
+  RefreshCw, CheckCircle2, Headphones, LogIn
 } from "lucide-react";
 import type { SidebarProps } from "./SidebarLegacy";
 
@@ -91,6 +91,7 @@ const NEW_NAV_GROUPS: NavGroup[] = [
     items: [
       { to: "/settings", label: "الإعدادات العامة", icon: SettingsIcon },
       { to: "/theme", label: "تخصيص التصميم", icon: Palette },
+      { to: "/auth-pages-settings", label: "تخصيص صفحات الدخول والتسجيل", icon: LogIn },
       { to: "/product-page-settings", label: "تخصيص صفحة المنتج", icon: Package },
       { to: "/about-settings", label: "تخصيص صفحة من نحن", icon: Info },
       { to: "/contact-settings", label: "تخصيص صفحة تواصل معنا", icon: Headphones },

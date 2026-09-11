@@ -480,4 +480,187 @@ const getPublicMaintenanceHandler = async (_req: any, res: any) => {
 router.get("/public/maintenance-settings", getPublicMaintenanceHandler);
 router.get("/maintenance-settings", getPublicMaintenanceHandler);
 
+// Public Auth Pages (Login / Register) Config Endpoints
+const DEFAULT_STORE_AUTH_CONFIG = {
+  login: {
+    title: "تسجيل الدخول",
+    subtitle: "مرحباً بك مجدداً",
+    branding: {
+      title: "أهلاً بعودتك!",
+      subtitle: "سجل دخولك للوصول إلى حسابك وخدماتك",
+      icon: "LogIn",
+      benefits: [
+        { icon: "Shield", text: "حساب آمن ومحمي" },
+        { icon: "Zap", text: "خدمات سريعة وموثوقة" },
+        { icon: "Headphones", text: "دعم فني على مدار الساعة" },
+      ],
+    },
+    fields: {
+      usernameLabel: "اسم المستخدم أو البريد الإلكتروني",
+      usernamePlaceholder: "أدخل اسم المستخدم أو البريد",
+      passwordLabel: "كلمة المرور",
+      passwordPlaceholder: "أدخل كلمة المرور",
+      showForgotPassword: true,
+      forgotPasswordText: "نسيت كلمة السر؟",
+      submitButtonText: "تسجيل الدخول",
+      switchToRegisterText: "ليس لديك حساب؟",
+      switchToRegisterLink: "إنشاء حساب جديد",
+    },
+    showGoogleButton: true,
+    googleButtonText: "تسجيل الدخول بحساب Google",
+    showDivider: true,
+    dividerText: "أو",
+  },
+  register: {
+    title: "إنشاء حساب جديد",
+    subtitle: "انضم إلينا الآن",
+    branding: {
+      title: "انضم إلينا",
+      subtitle: "أنشئ حسابك الآن وابدأ تجربتك",
+      icon: "UserPlus",
+      benefits: [
+        { icon: "Package", text: "خدمات متنوعة وحصرية" },
+        { icon: "ShieldCheck", text: "حساب آمن ومحمي" },
+        { icon: "Zap", text: "تنفيذ فوري للطلبات" },
+        { icon: "Headphones", text: "دعم فني على مدار الساعة" },
+      ],
+    },
+    fields: {
+      usernameLabel: "اسم المستخدم",
+      usernamePlaceholder: "أدخل اسم المستخدم",
+      usernameHint: "اختر اسم مستخدم فريد",
+      passwordLabel: "كلمة المرور",
+      passwordPlaceholder: "أدخل كلمة المرور",
+      confirmPasswordLabel: "تأكيد كلمة المرور",
+      confirmPasswordPlaceholder: "أعد إدخال كلمة المرور",
+      emailLabel: "البريد الإلكتروني",
+      emailPlaceholder: "example@email.com",
+      submitButtonText: "إنشاء الحساب",
+      switchToLoginText: "لديك حساب بالفعل؟",
+      switchToLoginLink: "تسجيل الدخول",
+    },
+    passwordRequirements: {
+      enabled: true,
+      title: "متطلبات كلمة المرور",
+      showMinLength: true,
+      minLength: 8,
+      showUppercase: true,
+      uppercaseText: "حرف كبير (A-Z)",
+      showLowercase: true,
+      lowercaseText: "حرف صغير (a-z)",
+      showNumber: true,
+      numberText: "رقم واحد (0-9)",
+      showSpecial: true,
+      specialText: "رمز خاص (@#$%)",
+    },
+    emailVerification: {
+      enabled: true,
+      hintText: "سيتم إرسال رمز تحقق لتأكيد البريد الإلكتروني",
+    },
+    showGoogleButton: true,
+    googleButtonText: "التسجيل بحساب Google",
+    showDivider: true,
+    dividerText: "أو",
+  },
+  common: {
+    backToHomeText: "العودة للصفحة الرئيسية",
+    styles: {
+      titleColor: "#C8A45C",
+      subtitleColor: "#9CA3AF",
+      labelColor: "#E5E7EB",
+      inputTextColor: "#FFFFFF",
+      inputBgColor: "#3D3D3D",
+      inputBorderColor: "#4B5563",
+      inputFocusBorderColor: "#C8A45C",
+      buttonBgColor: "#C8A45C",
+      buttonTextColor: "#1A1A1A",
+      buttonHoverColor: "#B8954A",
+      brandingBgColor: "#C8A45C",
+      brandingTextColor: "#FFFFFF",
+      brandingIconColor: "#FFFFFF",
+    },
+  },
+};
+
+const getPublicAuthPagesConfigHandler = async (_req: any, res: any) => {
+  try {
+    const rows = await db.select().from(settingsTable);
+    const map = new Map(rows.map((r) => [r.key, r.value]));
+
+    let config = map.get("auth_pages_config");
+    if (typeof config === "string") {
+      try {
+        config = JSON.parse(config);
+      } catch {
+        config = null;
+      }
+    }
+
+    const mergedConfig = {
+      login: {
+        ...DEFAULT_STORE_AUTH_CONFIG.login,
+        ...(config?.login || {}),
+        branding: {
+          ...DEFAULT_STORE_AUTH_CONFIG.login.branding,
+          ...(config?.login?.branding || {}),
+          benefits: Array.isArray(config?.login?.branding?.benefits)
+            ? config.login.branding.benefits
+            : DEFAULT_STORE_AUTH_CONFIG.login.branding.benefits,
+        },
+        fields: {
+          ...DEFAULT_STORE_AUTH_CONFIG.login.fields,
+          ...(config?.login?.fields || {}),
+        },
+      },
+      register: {
+        ...DEFAULT_STORE_AUTH_CONFIG.register,
+        ...(config?.register || {}),
+        branding: {
+          ...DEFAULT_STORE_AUTH_CONFIG.register.branding,
+          ...(config?.register?.branding || {}),
+          benefits: Array.isArray(config?.register?.branding?.benefits)
+            ? config.register.branding.benefits
+            : DEFAULT_STORE_AUTH_CONFIG.register.branding.benefits,
+        },
+        fields: {
+          ...DEFAULT_STORE_AUTH_CONFIG.register.fields,
+          ...(config?.register?.fields || {}),
+        },
+        passwordRequirements: {
+          ...DEFAULT_STORE_AUTH_CONFIG.register.passwordRequirements,
+          ...(config?.register?.passwordRequirements || {}),
+        },
+        emailVerification: {
+          ...DEFAULT_STORE_AUTH_CONFIG.register.emailVerification,
+          ...(config?.register?.emailVerification || {}),
+        },
+      },
+      common: {
+        ...DEFAULT_STORE_AUTH_CONFIG.common,
+        ...(config?.common || {}),
+        styles: {
+          ...DEFAULT_STORE_AUTH_CONFIG.common.styles,
+          ...(config?.common?.styles || {}),
+        },
+      },
+    };
+
+    const useLegacy = map.get("use_legacy_auth_pages") === "true" || map.get("use_legacy_auth_pages") === true;
+
+    res.json({
+      success: true,
+      config: mergedConfig,
+      use_legacy_auth_pages: useLegacy,
+      useLegacyAuthPages: useLegacy,
+    });
+  } catch (err: any) {
+    console.error("[Get Public Auth Pages Config Error]:", err);
+    res.status(500).json({ error: "فشل جلب إعدادات صفحات الدخول والتسجيل" });
+  }
+};
+
+router.get("/public/auth-pages-config", getPublicAuthPagesConfigHandler);
+router.get("/auth-pages-config", getPublicAuthPagesConfigHandler);
+router.get("/api/public/auth-pages-config", getPublicAuthPagesConfigHandler);
+
 export default router;
