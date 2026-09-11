@@ -13,13 +13,21 @@ export default function Login({ onSuccess }: { onSuccess: (u: any) => void }) {
 
   useEffect(() => {
     const baseUrl = (import.meta.env.VITE_API_URL || "").replace(/\/+$/, "");
-    fetch(`${baseUrl}/api/app-settings`)
+    fetch(`${baseUrl}/api/settings/public`)
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (data) {
-          setLoginImage(String(data?.adminLoginImage || ""));
-          if (data?.adminLoginTitle) setLoginTitle(String(data.adminLoginTitle));
-          if (data?.adminLoginSubtitle) setLoginSubtitle(String(data.adminLoginSubtitle));
+          if (data?.adminLoginImage || data?.admin_login_image) {
+            setLoginImage(String(data.adminLoginImage || data.admin_login_image));
+          }
+          const title = String(data?.adminLoginTitle || data?.admin_login_title || data?.siteName || data?.site_name || "ShadMini");
+          if (title) {
+            setLoginTitle(title);
+            document.title = `تسجيل الدخول - ${title}`;
+          }
+          if (data?.adminLoginSubtitle || data?.admin_login_subtitle) {
+            setLoginSubtitle(String(data.adminLoginSubtitle || data.admin_login_subtitle));
+          }
         }
       })
       .catch(() => {});
@@ -50,7 +58,7 @@ export default function Login({ onSuccess }: { onSuccess: (u: any) => void }) {
         <div className="text-center mb-7 relative z-10">
           {loginImage ? (
             <div className="mx-auto w-24 h-24 rounded-2xl overflow-hidden shadow-lg border border-[#C8A45C]/40 bg-[#1A1A1A]">
-              <img src={loginImage} alt="ShadMini" className="w-full h-full object-cover" />
+              <img src={loginImage} alt={loginTitle} className="w-full h-full object-cover" />
             </div>
           ) : (
             <div className="inline-flex w-16 h-16 rounded-2xl bg-[#1A1A1A] border-2 border-[#C8A45C] text-[#C8A45C] text-2xl font-black items-center justify-center shadow-lg shadow-[#C8A45C]/30">

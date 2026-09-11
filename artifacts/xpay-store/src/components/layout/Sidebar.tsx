@@ -20,6 +20,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
+import { useStoreSettings } from "@/lib/store-settings-context";
 import { getStoreThemeMode, toggleStoreThemeMode } from "@/lib/theme";
 
 interface SidebarProps {
@@ -30,6 +31,7 @@ interface SidebarProps {
 export default function Sidebar({ brandLogo, onClose }: SidebarProps) {
   const [location] = useLocation();
   const { user, logout } = useAuth();
+  const storeSettings = useStoreSettings();
   const [mode, setMode] = useState<"dark" | "light">(() => getStoreThemeMode());
 
   useEffect(() => {
@@ -95,7 +97,7 @@ export default function Sidebar({ brandLogo, onClose }: SidebarProps) {
           {brandLogo ? (
             <img
               src={brandLogo}
-              alt="ShadMini"
+              alt={storeSettings.siteName || "ShadMini"}
               className="store-brand-logo object-contain rounded-xl transition-all duration-200"
               style={{
                 height: "var(--theme-logo-size, 80px)",
@@ -104,7 +106,11 @@ export default function Sidebar({ brandLogo, onClose }: SidebarProps) {
                 width: "auto",
               }}
             />
-          ) : null}
+          ) : (
+            <span className="text-xl font-black text-[#FDE68A] tracking-wide">
+              {storeSettings.siteName || "ShadMini"}
+            </span>
+          )}
         </Link>
         {onClose && (
           <button

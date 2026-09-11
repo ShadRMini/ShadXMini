@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/lib/auth-context";
+import { StoreSettingsProvider } from "@/lib/store-settings-context";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
@@ -272,16 +273,18 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <TooltipProvider>
-          <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-            <Router />
-          </WouterRouter>
-          {settings && <StorePopup settings={settings} />}
-          <PopupNotification />
-          <Toaster theme="dark" position="top-center" dir="rtl" />
-        </TooltipProvider>
-      </AuthProvider>
+      <StoreSettingsProvider>
+        <AuthProvider>
+          <TooltipProvider>
+            <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+              <Router />
+            </WouterRouter>
+            {settings && <StorePopup settings={settings} />}
+            <PopupNotification />
+            <Toaster theme="dark" position="top-center" dir="rtl" />
+          </TooltipProvider>
+        </AuthProvider>
+      </StoreSettingsProvider>
     </QueryClientProvider>
   );
 }

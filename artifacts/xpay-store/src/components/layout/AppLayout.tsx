@@ -10,52 +10,22 @@ import {
   Plus,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
-import { getPublicJson } from "@/lib/public-api";
+import { useStoreSettings } from "@/lib/store-settings-context";
 import NotificationBellDropdown from "./NotificationBellDropdown";
 import Sidebar from "./Sidebar";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const storeSettings = useStoreSettings();
   const [brandLogo, setBrandLogo] = useState<string>("");
   const { user } = useAuth();
 
   useEffect(() => {
-    let active = true;
-
-    getPublicJson<{
-      brandLogoUrl?: string;
-      brand_logo_url?: string;
-      siteLogo?: string;
-      site_logo?: string;
-    }>("/settings/public")
-      .then((data) => {
-        if (active) {
-          const logo = (data?.brandLogoUrl || data?.brand_logo_url || data?.siteLogo || data?.site_logo || "").trim();
-          if (logo) setBrandLogo(logo);
-        }
-      })
-      .catch(() => {
-        // Fallback to app-settings
-        getPublicJson<{
-          brandLogoUrl?: string;
-          brand_logo_url?: string;
-          siteLogo?: string;
-          site_logo?: string;
-        }>("/app-settings")
-          .then((data) => {
-            if (active) {
-              const logo = (data?.brandLogoUrl || data?.brand_logo_url || data?.siteLogo || data?.site_logo || "").trim();
-              if (logo) setBrandLogo(logo);
-            }
-          })
-          .catch(() => {});
-      });
-
-    return () => {
-      active = false;
-    };
-  }, []);
+    if (storeSettings.brandLogoUrl) {
+      setBrandLogo(storeSettings.brandLogoUrl);
+    }
+  }, [storeSettings.brandLogoUrl]);
 
   // Close drawer on route change
   useEffect(() => {
@@ -123,7 +93,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               {brandLogo ? (
                 <img
                   src={brandLogo}
-                  alt="ShadMini"
+                  alt={storeSettings.siteName || "ShadMini"}
                   onError={() => setBrandLogo("")}
                   className="store-brand-logo object-contain rounded-lg transition-all duration-200"
                   style={{
@@ -133,7 +103,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     width: "auto",
                   }}
                 />
-              ) : null}
+              ) : (
+                <span className="text-lg font-black text-[#FDE68A] tracking-wide">
+                  {storeSettings.siteName || "ShadMini"}
+                </span>
+              )}
             </Link>
           </div>
 
@@ -167,6 +141,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <main className="flex-1 w-full max-w-7xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6">
           {children}
         </main>
+
+        {/* Global Store Footer */}
+        <footer className="w-full max-w-7xl mx-auto px-4 py-6 border-t border-[var(--border-color,rgba(200,164,92,0.15))] text-center text-xs text-zinc-400">
+          <p className="font-medium">
+            جميع الحقوق محفوظة © {new Date().getFullYear()} {storeSettings.siteName || "ShadMini"}
+          </p>
+        </footer>
       </div>
 
       {/* Bottom Floating Navigation Bar (Mobile / Tablet Only) */}

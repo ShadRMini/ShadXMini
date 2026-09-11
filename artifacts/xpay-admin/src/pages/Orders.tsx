@@ -323,7 +323,7 @@ export default function Orders() {
 
       {/* Footer */}
       <footer className="text-center text-xs text-slate-500 py-4 border-t border-slate-800/80 mt-10">
-        © 2026 جميع الحقوق محفوظة - Media Booster
+        © {new Date().getFullYear()} جميع الحقوق محفوظة
       </footer>
 
       {/* View Order Modal */}
