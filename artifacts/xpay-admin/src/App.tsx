@@ -45,6 +45,7 @@ import CacheManagement from "./pages/CacheManagement";
 import CronJobs from "./pages/CronJobs";
 import ProductPageSettings from "./pages/ProductPageSettings";
 import AboutSettings from "./pages/AboutSettings";
+import ContactSettings from "./pages/ContactSettings";
 import DepositSettings from "./pages/DepositSettings";
 import IdentityVerifications from "./pages/IdentityVerifications";
 import { loadAndApplyAdminTheme } from "./lib/theme";
@@ -148,6 +149,7 @@ export default function App() {
           <Route path="/theme" element={<Theme />} />
           <Route path="/product-page-settings" element={<ProductPageSettings />} />
           <Route path="/about-settings" element={<AboutSettings />} />
+          <Route path="/contact-settings" element={<ContactSettings />} />
           <Route path="/deposit-settings" element={<DepositSettings />} />
           <Route path="/reports" element={<Reports />} />
           <Route path="/tickets" element={<Tickets />} />

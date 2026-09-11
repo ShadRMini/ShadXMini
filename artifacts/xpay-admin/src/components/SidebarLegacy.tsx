@@ -5,7 +5,7 @@ import {
   CreditCard, Image as ImageIcon, Megaphone, Share2, Server, Ticket,
   Crown, KeyRound, MessageSquare, Code2, Bell, ShieldCheck, BadgeCheck, Activity,
   Settings as SettingsIcon, Palette, BarChart3, Database, User as UserIcon,
-  Lock, Globe, Languages as LangIcon, PowerOff, X, Sparkles, RefreshCw
+  Lock, Globe, Languages as LangIcon, PowerOff, X, Sparkles, RefreshCw, Headphones
 } from "lucide-react";
 
 export interface SidebarProps {
@@ -54,6 +54,7 @@ const LEGACY_NAV: { to: string; label: string; icon: any; group: string }[] = [
   { to: "/theme", label: "تخصيص التصميم", icon: Palette, group: "إعدادات النظام" },
   { to: "/product-page-settings", label: "تخصيص صفحة المنتج", icon: Package, group: "إعدادات النظام" },
   { to: "/about-settings", label: "تخصيص صفحة من نحن", icon: Activity, group: "إعدادات النظام" },
+  { to: "/contact-settings", label: "تخصيص صفحة تواصل معنا", icon: Headphones, group: "إعدادات النظام" },
   { to: "/deposit-settings", label: "تخصيص صفحة شحن الرصيد", icon: Wallet, group: "إعدادات النظام" },
   { to: "/social-links", label: "الروابط الاجتماعية", icon: Share2, group: "إعدادات النظام" },
   { to: "/notifications", label: "الإشعارات", icon: Bell, group: "إعدادات النظام" },

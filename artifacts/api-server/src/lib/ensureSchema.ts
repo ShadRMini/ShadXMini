@@ -555,6 +555,80 @@ export async function ensureDatabaseSchema() {
       { key: "support_telegram", val: "ShadMiniSupport" },
       { key: "support_email", val: "support@shadmini.com" },
       { key: "support_phone", val: "+963900000000" },
+      {
+        key: "contact_page_config",
+        val: {
+          title: "تواصل معنا",
+          subtitle: "نحن هنا لمساعدتك. تواصل معنا عبر أي من القنوات التالية",
+          channels: [
+            {
+              id: "whatsapp",
+              name: "واتساب",
+              icon: "MessageCircle",
+              value: "+963900000000",
+              link: "https://wa.me/963900000000",
+              color: "#25D366",
+              active: true,
+              order: 1
+            },
+            {
+              id: "telegram",
+              name: "تليجرام",
+              icon: "Send",
+              value: "@ShadXMiniSupport",
+              link: "https://t.me/ShadXMiniSupport",
+              color: "#0088CC",
+              active: true,
+              order: 2
+            },
+            {
+              id: "email",
+              name: "البريد الإلكتروني",
+              icon: "Mail",
+              value: "support@shadxmini.com",
+              link: "mailto:support@shadxmini.com",
+              color: "#C8A45C",
+              active: true,
+              order: 3
+            },
+            {
+              id: "phone",
+              name: "الهاتف",
+              icon: "Phone",
+              value: "+963 900 000 000",
+              link: "tel:+963900000000",
+              color: "#3B82F6",
+              active: true,
+              order: 4
+            }
+          ],
+          sections: {
+            channels: { visible: true, title: "قنوات التواصل" },
+            form: { visible: true, title: "أرسل لنا رسالة", subtitle: "أو أرسل لنا رسالة مباشرة" },
+            faq: { visible: true, title: "الأسئلة الشائعة" },
+            map: { visible: false, title: "موقعنا", embed_url: "" }
+          },
+          form_fields: {
+            name: { visible: true, label: "الاسم الكامل", placeholder: "أدخل اسمك الكامل", required: true },
+            email: { visible: true, label: "البريد الإلكتروني", placeholder: "أدخل بريدك الإلكتروني", required: true },
+            subject: { visible: true, label: "الموضوع", placeholder: "اختر الموضوع", required: true, options: ["استفسار عام", "مشكلة تقنية", "اقتراح", "شكوى", "أخرى"] },
+            message: { visible: true, label: "الرسالة", placeholder: "اكتب رسالتك هنا...", required: true }
+          },
+          faq: [
+            { id: "faq1", question: "كيف يمكنني شحن رصيدي؟", answer: "يمكنك شحن رصيدك من خلال صفحة المحفظة باستخدام طرق الدفع المتاحة.", order: 1 },
+            { id: "faq2", question: "ما هي مدة معالجة الطلبات؟", answer: "يتم معالجة الطلبات عادة خلال دقائق، وقد تستغرق بعض الطلبات حتى 24 ساعة.", order: 2 },
+            { id: "faq3", question: "كيف أتوثيق حسابي؟", answer: "يمكنك توثيق حسابك من خلال صفحة توثيق الهوية في القائمة الجانبية.", order: 3 }
+          ],
+          styles: {
+            bg_color: "#1A1A1A",
+            card_bg: "#2D2D2D",
+            title_color: "#C8A45C",
+            text_color: "#E5E7EB",
+            border_color: "#C8A45C"
+          }
+        }
+      },
+      { key: "use_legacy_contact_page", val: false },
     ];
     for (const item of maintenanceDefaultKeys) {
       const existing: any = await db.execute(sql`SELECT key FROM settings WHERE key = ${item.key}`);

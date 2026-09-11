@@ -276,6 +276,108 @@ router.get("/public-settings", getPublicSettingsHandler);
 router.get("/public/app-settings", getPublicSettingsHandler);
 router.get("/app-settings", getPublicSettingsHandler);
 
+// Public Contact Page Config Endpoints
+const DEFAULT_PUBLIC_CONTACT_CONFIG = {
+  title: "تواصل معنا",
+  subtitle: "نحن هنا لمساعدتك. تواصل معنا عبر أي من القنوات التالية",
+  channels: [
+    {
+      id: "whatsapp",
+      name: "واتساب",
+      icon: "MessageCircle",
+      value: "+963900000000",
+      link: "https://wa.me/963900000000",
+      color: "#25D366",
+      active: true,
+      order: 1
+    },
+    {
+      id: "telegram",
+      name: "تليجرام",
+      icon: "Send",
+      value: "@ShadXMiniSupport",
+      link: "https://t.me/ShadXMiniSupport",
+      color: "#0088CC",
+      active: true,
+      order: 2
+    },
+    {
+      id: "email",
+      name: "البريد الإلكتروني",
+      icon: "Mail",
+      value: "support@shadxmini.com",
+      link: "mailto:support@shadxmini.com",
+      color: "#C8A45C",
+      active: true,
+      order: 3
+    },
+    {
+      id: "phone",
+      name: "الهاتف",
+      icon: "Phone",
+      value: "+963 900 000 000",
+      link: "tel:+963900000000",
+      color: "#3B82F6",
+      active: true,
+      order: 4
+    }
+  ],
+  sections: {
+    channels: { visible: true, title: "قنوات التواصل" },
+    form: { visible: true, title: "أرسل لنا رسالة", subtitle: "أو أرسل لنا رسالة مباشرة" },
+    faq: { visible: true, title: "الأسئلة الشائعة" },
+    map: { visible: false, title: "موقعنا", embed_url: "" }
+  },
+  form_fields: {
+    name: { visible: true, label: "الاسم الكامل", placeholder: "أدخل اسمك الكامل", required: true },
+    email: { visible: true, label: "البريد الإلكتروني", placeholder: "أدخل بريدك الإلكتروني", required: true },
+    subject: { visible: true, label: "الموضوع", placeholder: "اختر الموضوع", required: true, options: ["استفسار عام", "مشكلة تقنية", "اقتراح", "شكوى", "أخرى"] },
+    message: { visible: true, label: "الرسالة", placeholder: "اكتب رسالتك هنا...", required: true }
+  },
+  faq: [
+    { id: "faq1", question: "كيف يمكنني شحن رصيدي؟", answer: "يمكنك شحن رصيدك من خلال صفحة المحفظة باستخدام طرق الدفع المتاحة.", order: 1 },
+    { id: "faq2", question: "ما هي مدة معالجة الطلبات؟", answer: "يتم معالجة الطلبات عادة خلال دقائق، وقد تستغرق بعض الطلبات حتى 24 ساعة.", order: 2 },
+    { id: "faq3", question: "كيف أتوثيق حسابي؟", answer: "يمكنك توثيق حسابك من خلال صفحة توثيق الهوية في القائمة الجانبية.", order: 3 }
+  ],
+  styles: {
+    bg_color: "#1A1A1A",
+    card_bg: "#2D2D2D",
+    title_color: "#C8A45C",
+    text_color: "#E5E7EB",
+    border_color: "#C8A45C"
+  }
+};
+
+const getPublicContactConfigHandler = async (_req: any, res: any) => {
+  try {
+    const rows = await db.select().from(settingsTable);
+    const map = new Map(rows.map((row) => [row.key, row.value]));
+
+    let config = map.get("contact_page_config");
+    if (!config) {
+      config = DEFAULT_PUBLIC_CONTACT_CONFIG;
+    } else if (typeof config === "string") {
+      try { config = JSON.parse(config); } catch { config = DEFAULT_PUBLIC_CONTACT_CONFIG; }
+    }
+
+    const legacyRaw = map.get("use_legacy_contact_page");
+    const useLegacy = legacyRaw === true || legacyRaw === "true";
+
+    res.json({
+      success: true,
+      use_legacy_contact_page: useLegacy,
+      useLegacy,
+      ...config,
+      config,
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err?.message || "فشل جلب إعدادات صفحة التواصل" });
+  }
+};
+
+router.get("/public/contact-config", getPublicContactConfigHandler);
+router.get("/contact-config", getPublicContactConfigHandler);
+
 // POST /api/public/contact-messages & /api/contact-messages
 const handleCreateContactMessage = async (req: any, res: any) => {
   try {
