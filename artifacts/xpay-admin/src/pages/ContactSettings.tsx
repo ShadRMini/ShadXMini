@@ -828,6 +828,34 @@ export default function ContactSettings() {
     }));
   };
 
+  // Section updater
+  const updateSection = (sectionKey: string, field: string, value: any) => {
+    setConfig((prev) => ({
+      ...prev,
+      sections: {
+        ...prev.sections,
+        [sectionKey]: {
+          ...(prev.sections as any)[sectionKey],
+          [field]: value,
+        },
+      },
+    }));
+  };
+
+  // Form field updater
+  const updateFormField = (fieldKey: string, prop: string, value: any) => {
+    setConfig((prev) => ({
+      ...prev,
+      form_fields: {
+        ...prev.form_fields,
+        [fieldKey]: {
+          ...(prev.form_fields as any)[fieldKey],
+          [prop]: value,
+        },
+      },
+    }));
+  };
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3 text-zinc-400">
@@ -1139,65 +1167,36 @@ export default function ContactSettings() {
               <div className="bg-[#1A1A1A] border border-zinc-800 rounded-xl p-4 space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="font-bold text-sm text-zinc-200 flex items-center gap-2">
-                    <FileText size={16} className="text-[#C8A45C]" />
-                    <span>قسم نموذج المراسلة المباشرة</span>
+                    <Send size={16} className="text-[#C8A45C]" />
+                    <span>قسم "أرسل لنا رسالة"</span>
                   </span>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setConfig({
-                        ...config,
-                        sections: {
-                          ...config.sections,
-                          form: {
-                            ...config.sections.form,
-                            visible: !config.sections.form.visible,
-                          },
-                        },
-                      })
-                    }
-                    className={`px-2.5 py-1 rounded-lg text-xs font-bold border transition-colors ${
-                      config.sections.form.visible
-                        ? "bg-emerald-500/15 text-emerald-300 border-emerald-500/30"
-                        : "bg-zinc-800 text-zinc-500 border-zinc-700"
-                    }`}
-                  >
-                    {config.sections.form.visible ? "ظاهر" : "مخفي"}
-                  </button>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={config.sections.form.visible}
+                      onChange={(e) => updateSection("form", "visible", e.target.checked)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-zinc-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:right-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#C8A45C]"></div>
+                  </label>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="block text-xs text-zinc-400 mb-1">عنوان النموذج</label>
+                    <label className="block text-xs text-zinc-400 mb-1">عنوان القسم</label>
                     <input
                       type="text"
                       value={config.sections.form.title}
-                      onChange={(e) =>
-                        setConfig({
-                          ...config,
-                          sections: {
-                            ...config.sections,
-                            form: { ...config.sections.form, title: e.target.value },
-                          },
-                        })
-                      }
+                      onChange={(e) => updateSection("form", "title", e.target.value)}
                       placeholder="أرسل لنا رسالة"
                       className="w-full bg-[#252525] border border-zinc-700 text-xs text-zinc-200 rounded-lg px-3 py-2 outline-none"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs text-zinc-400 mb-1">النص الفرعي للنموذج</label>
+                    <label className="block text-xs text-zinc-400 mb-1">النص الفرعي للقسم</label>
                     <input
                       type="text"
                       value={config.sections.form.subtitle || ""}
-                      onChange={(e) =>
-                        setConfig({
-                          ...config,
-                          sections: {
-                            ...config.sections,
-                            form: { ...config.sections.form, subtitle: e.target.value },
-                          },
-                        })
-                      }
+                      onChange={(e) => updateSection("form", "subtitle", e.target.value)}
                       placeholder="أو أرسل لنا رسالة مباشرة"
                       className="w-full bg-[#252525] border border-zinc-700 text-xs text-zinc-200 rounded-lg px-3 py-2 outline-none"
                     />
@@ -1331,388 +1330,190 @@ export default function ContactSettings() {
 
       {/* TAB 3: FORM FIELDS */}
       {activeTab === "form" && (
-        <div className="space-y-4">
-          <div className="bg-[#1A1A1A] border border-[#C8A45C]/20 rounded-2xl p-5 shadow-lg">
-            <h2 className="text-base font-bold text-[#FDE68A] flex items-center gap-2">
-              <FileText size={18} className="text-[#C8A45C]" />
-              <span>إدارة حقول نموذج التواصل والمراسلة</span>
-            </h2>
-            <p className="text-xs text-zinc-400 mt-0.5">
-              حدد الحقول التي تود إظهارها في نموذج الاتصال، التسميات، النصوص التوضيحية، وشروط الإلزامية.
-            </p>
-          </div>
+        <div className="space-y-6">
+          {/* قسم أرسل لنا رسالة */}
+          <div className="space-y-5 bg-[#2D2D2D] p-5 sm:p-6 rounded-2xl border border-[#C8A45C]/20 shadow-xl">
+            <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
+              <h3 className="text-base font-bold text-[#FDE68A] flex items-center gap-2">
+                <Send size={18} className="text-[#C8A45C]" />
+                <span>قسم "أرسل لنا رسالة"</span>
+              </h3>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Field: Name */}
-            <div className="bg-[#222] border border-zinc-800 rounded-xl p-4 space-y-3">
-              <div className="flex items-center justify-between border-b border-zinc-800 pb-2">
-                <span className="font-bold text-sm text-zinc-200">حقل الاسم الكامل</span>
-                <div className="flex items-center gap-2">
-                  <label className="text-xs text-zinc-400 flex items-center gap-1 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={config.form_fields.name.required}
-                      onChange={(e) =>
-                        setConfig({
-                          ...config,
-                          form_fields: {
-                            ...config.form_fields,
-                            name: { ...config.form_fields.name, required: e.target.checked },
-                          },
-                        })
-                      }
-                      className="rounded accent-[#C8A45C]"
-                    />
-                    <span>إلزامي</span>
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setConfig({
-                        ...config,
-                        form_fields: {
-                          ...config.form_fields,
-                          name: { ...config.form_fields.name, visible: !config.form_fields.name.visible },
-                        },
-                      })
-                    }
-                    className={`px-2 py-0.5 rounded text-xs border ${
-                      config.form_fields.name.visible
-                        ? "bg-emerald-500/15 text-emerald-300 border-emerald-500/30"
-                        : "bg-zinc-800 text-zinc-500 border-zinc-700"
-                    }`}
-                  >
-                    {config.form_fields.name.visible ? "مفعّل" : "مخفي"}
-                  </button>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <div>
-                  <label className="block text-xs text-zinc-400 mb-1">تسمية الحقل</label>
+              {/* مفتاح تبديل إظهار/إخفاء القسم */}
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-zinc-400">
+                  {config.sections.form.visible ? "القسم ظاهر في المتجر" : "القسم مخفي من المتجر"}
+                </span>
+                <label className="relative inline-flex items-center cursor-pointer">
                   <input
-                    type="text"
-                    value={config.form_fields.name.label}
-                    onChange={(e) =>
-                      setConfig({
-                        ...config,
-                        form_fields: {
-                          ...config.form_fields,
-                          name: { ...config.form_fields.name, label: e.target.value },
-                        },
-                      })
-                    }
-                    className="w-full bg-[#1A1A1A] border border-zinc-700 text-xs text-zinc-200 rounded-lg px-3 py-1.5"
+                    type="checkbox"
+                    checked={config.sections.form.visible}
+                    onChange={(e) => updateSection("form", "visible", e.target.checked)}
+                    className="sr-only peer"
                   />
-                </div>
-                <div>
-                  <label className="block text-xs text-zinc-400 mb-1">نص العنصر النائب (Placeholder)</label>
-                  <input
-                    type="text"
-                    value={config.form_fields.name.placeholder}
-                    onChange={(e) =>
-                      setConfig({
-                        ...config,
-                        form_fields: {
-                          ...config.form_fields,
-                          name: { ...config.form_fields.name, placeholder: e.target.value },
-                        },
-                      })
-                    }
-                    className="w-full bg-[#1A1A1A] border border-zinc-700 text-xs text-zinc-200 rounded-lg px-3 py-1.5"
-                  />
-                </div>
+                  <div className="w-11 h-6 bg-zinc-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:right-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#C8A45C]"></div>
+                </label>
               </div>
             </div>
 
-            {/* Field: Email */}
-            <div className="bg-[#222] border border-zinc-800 rounded-xl p-4 space-y-3">
-              <div className="flex items-center justify-between border-b border-zinc-800 pb-2">
-                <span className="font-bold text-sm text-zinc-200">حقل البريد الإلكتروني</span>
-                <div className="flex items-center gap-2">
-                  <label className="text-xs text-zinc-400 flex items-center gap-1 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={config.form_fields.email.required}
-                      onChange={(e) =>
-                        setConfig({
-                          ...config,
-                          form_fields: {
-                            ...config.form_fields,
-                            email: { ...config.form_fields.email, required: e.target.checked },
-                          },
-                        })
-                      }
-                      className="rounded accent-[#C8A45C]"
-                    />
-                    <span>إلزامي</span>
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setConfig({
-                        ...config,
-                        form_fields: {
-                          ...config.form_fields,
-                          email: { ...config.form_fields.email, visible: !config.form_fields.email.visible },
-                        },
-                      })
-                    }
-                    className={`px-2 py-0.5 rounded text-xs border ${
-                      config.form_fields.email.visible
-                        ? "bg-emerald-500/15 text-emerald-300 border-emerald-500/30"
-                        : "bg-zinc-800 text-zinc-500 border-zinc-700"
-                    }`}
-                  >
-                    {config.form_fields.email.visible ? "مفعّل" : "مخفي"}
-                  </button>
-                </div>
+            {/* حقول التعديل */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-zinc-300 text-xs font-semibold mb-1">
+                  عنوان القسم (في المتجر)
+                </label>
+                <input
+                  type="text"
+                  value={config.sections.form.title}
+                  onChange={(e) => updateSection("form", "title", e.target.value)}
+                  className="w-full bg-[#1A1A1A] border border-zinc-700 focus:border-[#C8A45C] text-white px-3.5 py-2.5 rounded-xl outline-none font-bold text-sm"
+                  placeholder="أرسل لنا رسالة"
+                />
               </div>
-              <div className="space-y-2">
-                <div>
-                  <label className="block text-xs text-zinc-400 mb-1">تسمية الحقل</label>
-                  <input
-                    type="text"
-                    value={config.form_fields.email.label}
-                    onChange={(e) =>
-                      setConfig({
-                        ...config,
-                        form_fields: {
-                          ...config.form_fields,
-                          email: { ...config.form_fields.email, label: e.target.value },
-                        },
-                      })
-                    }
-                    className="w-full bg-[#1A1A1A] border border-zinc-700 text-xs text-zinc-200 rounded-lg px-3 py-1.5"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-zinc-400 mb-1">نص العنصر النائب (Placeholder)</label>
-                  <input
-                    type="text"
-                    value={config.form_fields.email.placeholder}
-                    onChange={(e) =>
-                      setConfig({
-                        ...config,
-                        form_fields: {
-                          ...config.form_fields,
-                          email: { ...config.form_fields.email, placeholder: e.target.value },
-                        },
-                      })
-                    }
-                    className="w-full bg-[#1A1A1A] border border-zinc-700 text-xs text-zinc-200 rounded-lg px-3 py-1.5"
-                  />
-                </div>
+
+              <div>
+                <label className="block text-zinc-300 text-xs font-semibold mb-1">
+                  النص الفرعي / الوصف
+                </label>
+                <input
+                  type="text"
+                  value={config.sections.form.subtitle || ""}
+                  onChange={(e) => updateSection("form", "subtitle", e.target.value)}
+                  className="w-full bg-[#1A1A1A] border border-zinc-700 focus:border-[#C8A45C] text-white px-3.5 py-2.5 rounded-xl outline-none text-sm"
+                  placeholder="أو أرسل لنا رسالة مباشرة"
+                />
               </div>
             </div>
 
-            {/* Field: Subject */}
-            <div className="bg-[#222] border border-zinc-800 rounded-xl p-4 space-y-3 md:col-span-2">
+            {/* إدارة حقول النموذج */}
+            <div className="space-y-3 pt-2">
               <div className="flex items-center justify-between border-b border-zinc-800 pb-2">
-                <span className="font-bold text-sm text-zinc-200">حقل الموضوع (مع خيارات القائمة المنسدلة)</span>
-                <div className="flex items-center gap-2">
-                  <label className="text-xs text-zinc-400 flex items-center gap-1 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={config.form_fields.subject.required}
-                      onChange={(e) =>
-                        setConfig({
-                          ...config,
-                          form_fields: {
-                            ...config.form_fields,
-                            subject: { ...config.form_fields.subject, required: e.target.checked },
-                          },
-                        })
-                      }
-                      className="rounded accent-[#C8A45C]"
-                    />
-                    <span>إلزامي</span>
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setConfig({
-                        ...config,
-                        form_fields: {
-                          ...config.form_fields,
-                          subject: { ...config.form_fields.subject, visible: !config.form_fields.subject.visible },
-                        },
-                      })
-                    }
-                    className={`px-2 py-0.5 rounded text-xs border ${
-                      config.form_fields.subject.visible
-                        ? "bg-emerald-500/15 text-emerald-300 border-emerald-500/30"
-                        : "bg-zinc-800 text-zinc-500 border-zinc-700"
-                    }`}
-                  >
-                    {config.form_fields.subject.visible ? "مفعّل" : "مخفي"}
-                  </button>
-                </div>
+                <h4 className="text-sm font-bold text-[#C8A45C] flex items-center gap-2">
+                  <FileText size={16} />
+                  <span>تخصيص حقول النموذج</span>
+                </h4>
+                <span className="text-[11px] text-zinc-400">
+                  يمكنك تفعيل/إلغاء تفعيل كل حقل بشكل منفصل وتحديد إذا كان إجبارياً
+                </span>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs text-zinc-400 mb-1">تسمية الحقل</label>
-                  <input
-                    type="text"
-                    value={config.form_fields.subject.label}
-                    onChange={(e) =>
-                      setConfig({
-                        ...config,
-                        form_fields: {
-                          ...config.form_fields,
-                          subject: { ...config.form_fields.subject, label: e.target.value },
-                        },
-                      })
-                    }
-                    className="w-full bg-[#1A1A1A] border border-zinc-700 text-xs text-zinc-200 rounded-lg px-3 py-1.5"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-zinc-400 mb-1">نص الخيار الافتراضي</label>
-                  <input
-                    type="text"
-                    value={config.form_fields.subject.placeholder}
-                    onChange={(e) =>
-                      setConfig({
-                        ...config,
-                        form_fields: {
-                          ...config.form_fields,
-                          subject: { ...config.form_fields.subject, placeholder: e.target.value },
-                        },
-                      })
-                    }
-                    className="w-full bg-[#1A1A1A] border border-zinc-700 text-xs text-zinc-200 rounded-lg px-3 py-1.5"
-                  />
-                </div>
-              </div>
-
-              {/* Subject Options Tags */}
-              <div className="pt-2 border-t border-zinc-800/80">
-                <label className="block text-xs text-zinc-400 mb-2">خيارات مواضيع الرسالة:</label>
-                <div className="flex flex-wrap items-center gap-2 mb-3">
-                  {(config.form_fields.subject.options || []).map((opt) => (
-                    <span
-                      key={opt}
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[#2b2b2b] border border-[#C8A45C]/30 text-xs text-zinc-200 rounded-lg"
-                    >
-                      <span>{opt}</span>
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteSubjectOption(opt)}
-                        className="text-zinc-500 hover:text-red-400 transition-colors"
-                        title="حذف هذا الخيار"
-                      >
-                        ×
-                      </button>
+              {Object.entries(config.form_fields).map(([key, field]) => (
+                <div key={key} className="bg-[#1A1A1A] p-4 rounded-xl border border-zinc-800">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="font-bold text-white text-xs flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-[#C8A45C]"></span>
+                      حقل:{" "}
+                      {key === "name"
+                        ? "الاسم الكامل (name)"
+                        : key === "email"
+                        ? "البريد الإلكتروني (email)"
+                        : key === "subject"
+                        ? "الموضوع (subject)"
+                        : "نص الرسالة (message)"}
                     </span>
-                  ))}
-                </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[11px] text-zinc-400">
+                        {field.visible ? "مفعّل" : "معطّل"}
+                      </span>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={field.visible}
+                          onChange={(e) => updateFormField(key, "visible", e.target.checked)}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-zinc-700 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:right-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#C8A45C]"></div>
+                      </label>
+                    </div>
+                  </div>
 
-                {/* Add new option */}
-                <div className="flex items-center gap-2 max-w-md">
-                  <input
-                    type="text"
-                    value={newSubjectOption}
-                    onChange={(e) => setNewSubjectOption(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        handleAddSubjectOption();
-                      }
-                    }}
-                    placeholder="أدخل خياراً جديداً..."
-                    className="flex-1 bg-[#1A1A1A] border border-zinc-700 text-xs text-zinc-200 rounded-lg px-3 py-1.5 outline-none"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleAddSubjectOption}
-                    className="px-3 py-1.5 bg-[#C8A45C]/20 hover:bg-[#C8A45C]/30 text-[#FDE68A] border border-[#C8A45C]/40 rounded-lg text-xs font-bold"
-                  >
-                    إضافة
-                  </button>
-                </div>
-              </div>
-            </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div>
+                      <label className="block text-zinc-400 text-[11px] mb-1 font-medium">
+                        التسمية (Label)
+                      </label>
+                      <input
+                        type="text"
+                        value={field.label}
+                        onChange={(e) => updateFormField(key, "label", e.target.value)}
+                        className="w-full bg-[#242424] border border-zinc-700 focus:border-[#C8A45C] text-white px-3 py-2 rounded-lg text-xs outline-none"
+                      />
+                    </div>
 
-            {/* Field: Message */}
-            <div className="bg-[#222] border border-zinc-800 rounded-xl p-4 space-y-3 md:col-span-2">
-              <div className="flex items-center justify-between border-b border-zinc-800 pb-2">
-                <span className="font-bold text-sm text-zinc-200">حقل نص الرسالة</span>
-                <div className="flex items-center gap-2">
-                  <label className="text-xs text-zinc-400 flex items-center gap-1 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={config.form_fields.message.required}
-                      onChange={(e) =>
-                        setConfig({
-                          ...config,
-                          form_fields: {
-                            ...config.form_fields,
-                            message: { ...config.form_fields.message, required: e.target.checked },
-                          },
-                        })
-                      }
-                      className="rounded accent-[#C8A45C]"
-                    />
-                    <span>إلزامي</span>
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setConfig({
-                        ...config,
-                        form_fields: {
-                          ...config.form_fields,
-                          message: { ...config.form_fields.message, visible: !config.form_fields.message.visible },
-                        },
-                      })
-                    }
-                    className={`px-2 py-0.5 rounded text-xs border ${
-                      config.form_fields.message.visible
-                        ? "bg-emerald-500/15 text-emerald-300 border-emerald-500/30"
-                        : "bg-zinc-800 text-zinc-500 border-zinc-700"
-                    }`}
-                  >
-                    {config.form_fields.message.visible ? "مفعّل" : "مخفي"}
-                  </button>
+                    <div>
+                      <label className="block text-zinc-400 text-[11px] mb-1 font-medium">
+                        النص التوضيحي (Placeholder)
+                      </label>
+                      <input
+                        type="text"
+                        value={field.placeholder}
+                        onChange={(e) => updateFormField(key, "placeholder", e.target.value)}
+                        className="w-full bg-[#242424] border border-zinc-700 focus:border-[#C8A45C] text-white px-3 py-2 rounded-lg text-xs outline-none"
+                      />
+                    </div>
+
+                    <div className="flex items-end">
+                      <label className="flex items-center gap-2 text-xs text-zinc-300 cursor-pointer pb-2">
+                        <input
+                          type="checkbox"
+                          checked={field.required}
+                          onChange={(e) => updateFormField(key, "required", e.target.checked)}
+                          className="w-4 h-4 accent-[#C8A45C] rounded"
+                        />
+                        <span>مطلوب (إلزامي)</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  {key === "subject" && (
+                    <div className="mt-3 pt-3 border-t border-zinc-800">
+                      <label className="block text-zinc-400 text-[11px] mb-1.5 font-semibold">
+                        خيارات القائمة المنسدلة لموضوع الرسالة:
+                      </label>
+                      <div className="flex flex-wrap gap-1.5 mb-2.5">
+                        {(field.options || []).map((opt) => (
+                          <span
+                            key={opt}
+                            className="inline-flex items-center gap-1.5 bg-[#2A2A2A] text-zinc-200 text-xs px-2.5 py-1 rounded-lg border border-zinc-700"
+                          >
+                            <span>{opt}</span>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteSubjectOption(opt)}
+                              className="text-zinc-400 hover:text-red-400 font-bold ml-1 cursor-pointer"
+                              title="حذف الخيار"
+                            >
+                              ×
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                      <div className="flex gap-2 max-w-sm">
+                        <input
+                          type="text"
+                          value={newSubjectOption}
+                          onChange={(e) => setNewSubjectOption(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              handleAddSubjectOption();
+                            }
+                          }}
+                          placeholder="أضف خياراً جديداً..."
+                          className="bg-[#242424] border border-zinc-700 focus:border-[#C8A45C] text-white px-3 py-1.5 rounded-lg text-xs outline-none flex-1"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleAddSubjectOption}
+                          className="bg-[#C8A45C] text-black font-bold text-xs px-3 py-1.5 rounded-lg hover:bg-[#DEB86D] transition cursor-pointer"
+                        >
+                          إضافة
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs text-zinc-400 mb-1">تسمية الحقل</label>
-                  <input
-                    type="text"
-                    value={config.form_fields.message.label}
-                    onChange={(e) =>
-                      setConfig({
-                        ...config,
-                        form_fields: {
-                          ...config.form_fields,
-                          message: { ...config.form_fields.message, label: e.target.value },
-                        },
-                      })
-                    }
-                    className="w-full bg-[#1A1A1A] border border-zinc-700 text-xs text-zinc-200 rounded-lg px-3 py-1.5"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-zinc-400 mb-1">نص العنصر النائب (Placeholder)</label>
-                  <input
-                    type="text"
-                    value={config.form_fields.message.placeholder}
-                    onChange={(e) =>
-                      setConfig({
-                        ...config,
-                        form_fields: {
-                          ...config.form_fields,
-                          message: { ...config.form_fields.message, placeholder: e.target.value },
-                        },
-                      })
-                    }
-                    className="w-full bg-[#1A1A1A] border border-zinc-700 text-xs text-zinc-200 rounded-lg px-3 py-1.5"
-                  />
-                </div>
-              </div>
+              ))}
             </div>
           </div>
         </div>

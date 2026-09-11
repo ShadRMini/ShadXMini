@@ -506,7 +506,7 @@ export default function ContactPage() {
         </div>
 
         {/* Legacy Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="flex flex-wrap items-center justify-center gap-4">
           {legacyCards.map((card) => {
             const Icon = card.icon;
             const isCopied = copiedId === card.key;
@@ -515,28 +515,28 @@ export default function ContactPage() {
                 key={card.key}
                 whileHover={{ y: -4 }}
                 transition={{ duration: 0.2 }}
-                className="bg-[#2D2D2D] border border-[#C8A45C]/20 hover:border-[#C8A45C]/60 rounded-3xl p-5 flex flex-col justify-between shadow-xl relative overflow-hidden group"
+                className="w-full max-w-[280px] sm:w-[calc(50%-0.75rem)] sm:max-w-[320px] lg:w-[calc(25%-0.75rem)] bg-[#2D2D2D] border border-[#C8A45C]/20 hover:border-[#C8A45C]/60 rounded-3xl p-6 flex flex-col items-center text-center justify-between shadow-xl relative overflow-hidden group"
               >
                 <div
                   className={`absolute -top-12 -left-12 w-28 h-28 rounded-full blur-2xl pointer-events-none opacity-40 group-hover:opacity-100 transition-opacity ${card.bgGlow}`}
                 />
-                <div>
+                <div className="flex flex-col items-center w-full">
                   <div
-                    className={`w-12 h-12 rounded-2xl bg-[#1A1A1A] border ${card.borderColor} flex items-center justify-center mb-4 shadow-md group-hover:scale-105 transition-transform`}
+                    className={`w-14 h-14 rounded-2xl bg-[#1A1A1A] border ${card.borderColor} flex items-center justify-center mb-4 shadow-md group-hover:scale-105 transition-transform`}
                   >
-                    <Icon size={24} className={card.iconColor} />
+                    <Icon size={26} className={card.iconColor} />
                   </div>
-                  <h3 className="text-base font-bold text-white mb-1 group-hover:text-[#FDE68A] transition-colors">
+                  <h3 className="text-base font-bold text-white mb-1 group-hover:text-[#FDE68A] transition-colors text-center">
                     {card.title}
                   </h3>
-                  <p className="text-xs text-zinc-400 mb-3">{card.subtitle}</p>
-                  <div className="flex items-center justify-between bg-[#1A1A1A] px-3 py-2 rounded-xl border border-zinc-800 text-xs font-mono text-zinc-300 mb-4">
-                    <span className="truncate" dir="ltr">
+                  <p className="text-xs text-zinc-400 mb-3 text-center">{card.subtitle}</p>
+                  <div className="flex items-center justify-center gap-2 bg-[#1A1A1A] px-3 py-1.5 rounded-xl border border-zinc-800 text-xs font-mono text-zinc-300 mb-4 w-full max-w-[220px]">
+                    <span className="truncate text-center" dir="ltr">
                       {card.value}
                     </span>
                     <button
                       onClick={() => handleCopy(card.value, card.key)}
-                      className="text-zinc-500 hover:text-[#C8A45C] transition p-1 cursor-pointer"
+                      className="text-zinc-500 hover:text-[#C8A45C] transition p-1 cursor-pointer shrink-0"
                       title="نسخ"
                     >
                       {isCopied ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
@@ -801,7 +801,7 @@ export default function ContactPage() {
               </div>
             )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="flex flex-wrap items-center justify-center gap-4">
               {activeChannels.map((channel) => {
                 const IconComponent = getChannelIconComponent(channel.icon);
                 const isCopied = copiedId === channel.id;
@@ -812,7 +812,7 @@ export default function ContactPage() {
                     key={channel.id}
                     whileHover={{ y: -4 }}
                     transition={{ duration: 0.2 }}
-                    className="rounded-3xl p-5 flex flex-col justify-between shadow-xl relative overflow-hidden group border"
+                    className="w-full max-w-[280px] sm:w-[calc(50%-0.75rem)] sm:max-w-[320px] lg:w-[calc(25%-0.75rem)] rounded-3xl p-6 flex flex-col items-center text-center justify-between shadow-xl relative overflow-hidden group border"
                     style={{
                       backgroundColor: styles.card_bg || "#2D2D2D",
                       borderColor: `${channelColor}40`,
@@ -824,19 +824,19 @@ export default function ContactPage() {
                       style={{ backgroundColor: channelColor }}
                     />
 
-                    <div>
+                    <div className="flex flex-col items-center w-full">
                       {/* Channel Icon Badge */}
                       <div
-                        className="w-12 h-12 rounded-2xl flex items-center justify-center mb-4 shadow-md group-hover:scale-105 transition-transform text-white"
+                        className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4 shadow-md group-hover:scale-105 transition-transform text-white"
                         style={{
                           backgroundColor: channelColor,
                         }}
                       >
-                        <IconComponent size={24} />
+                        <IconComponent size={26} />
                       </div>
 
                       <h3
-                        className="text-base font-bold mb-1 group-hover:brightness-125 transition-all"
+                        className="text-base font-bold mb-1 group-hover:brightness-125 transition-all text-center"
                         style={{ color: styles.text_color || "#FFFFFF" }}
                       >
                         {channel.name}
@@ -844,20 +844,20 @@ export default function ContactPage() {
 
                       {/* Display Value with Copy */}
                       <div
-                        className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-mono mb-4 border"
+                        className="flex items-center justify-center gap-2 px-3 py-1.5 rounded-xl text-xs font-mono mb-4 border w-full max-w-[220px]"
                         style={{
                           backgroundColor: `${styles.bg_color || "#1A1A1A"}CC`,
                           borderColor: `${styles.border_color || "#C8A45C"}25`,
                           color: styles.text_color || "#E5E7EB",
                         }}
                       >
-                        <span className="truncate" dir="ltr">
+                        <span className="truncate text-center" dir="ltr">
                           {channel.value}
                         </span>
                         <button
                           type="button"
                           onClick={() => handleCopy(channel.value, channel.id)}
-                          className="text-zinc-400 hover:text-white transition p-1 cursor-pointer"
+                          className="text-zinc-400 hover:text-white transition p-1 cursor-pointer shrink-0"
                           title="نسخ النص"
                           aria-label="نسخ"
                         >
@@ -893,12 +893,18 @@ export default function ContactPage() {
 
         {/* 3️⃣ Contact Form & (FAQ or Map) Section */}
         {(sections.form.visible || sections.map.visible) && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+          <div
+            className={
+              sections.form.visible && sections.map.visible
+                ? "grid grid-cols-1 lg:grid-cols-3 gap-6 items-start"
+                : "max-w-2xl mx-auto w-full"
+            }
+          >
             {/* Form Column */}
             {sections.form.visible && (
               <div
                 className={`${
-                  sections.map.visible ? "lg:col-span-2" : "lg:col-span-3"
+                  sections.map.visible ? "lg:col-span-2" : "w-full"
                 } rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden border`}
                 style={{
                   backgroundColor: styles.card_bg || "#2D2D2D",
