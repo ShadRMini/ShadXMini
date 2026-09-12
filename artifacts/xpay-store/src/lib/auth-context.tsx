@@ -142,20 +142,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = useCallback(async () => {
     try {
+      // 1. إرسال طلب تسجيل الخروج للخادم
       const baseUrl = apiBaseUrl();
       await fetch(`${baseUrl}/api/auth/logout`, { method: "POST", credentials: "include" }).catch(() => {});
-    } catch {
-      // ignore
+    } catch (err) {
+      console.error("Logout API error:", err);
+    } finally {
+      // 2. حذف جميع بيانات المستخدم والتوكن من التخزين المحلي والجلسة
+      try {
+        localStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem(USER_KEY);
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        localStorage.removeItem("auth");
+        sessionStorage.clear();
+      } catch (e) {
+        console.error("Storage delete error", e);
+      }
+
+      // 3. حذف الكوكيز إن وجدت
+      try {
+        if (typeof document !== "undefined" && document.cookie) {
+          document.cookie.split(";").forEach((c) => {
+            document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+          });
+        }
+      } catch {
+        // ignore
+      }
+
+      // 4. تحديث حالة AuthContext
+      setToken(null);
+      setUser(null);
+
+      // 5. إعادة توجيه إلى الصفحة الرئيسية مع إعادة تحميل كاملة
+      window.location.href = "/";
     }
-    try {
-      localStorage.removeItem(TOKEN_KEY);
-      localStorage.removeItem(USER_KEY);
-    } catch (e) {
-      console.error("Storage delete error", e);
-    }
-    setToken(null);
-    setUser(null);
-    window.location.href = "/login";
   }, []);
 
   const updateUser = useCallback((updatedUser: UserProfile, newToken?: string) => {

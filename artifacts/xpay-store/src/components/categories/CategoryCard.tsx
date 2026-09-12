@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { Link, useLocation } from "wouter";
+import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { FolderTree, Sparkles, Lock } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useStoreSettings } from "@/lib/store-settings-context";
-import { toast } from "sonner";
+import LoginRequiredModal from "@/components/LoginRequiredModal";
 
 interface CategoryCardProps {
   id: string;
@@ -48,7 +48,7 @@ export default function CategoryCard({
   index = 0,
 }: CategoryCardProps) {
   const [imgError, setImgError] = useState(false);
-  const [, setLocation] = useLocation();
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const { user, token } = useAuth();
   const storeSettings = useStoreSettings();
 
@@ -60,78 +60,84 @@ export default function CategoryCard({
 
   const resolvedImage = getBrandedCategoryImage(name, image);
   const finalImageUrl = resolvedImage ? withImageVersion(resolvedImage, imageVersion || `${id}-${image || ""}`) : "";
+  const targetCategoryUrl = `/categories/${id}`;
 
   const handleClick = (e: React.MouseEvent) => {
     if (isGuest) {
       e.preventDefault();
-      try {
-        sessionStorage.setItem("redirect_after_login", `/categories/${id}`);
-      } catch {
-        // Ignore
-      }
-      toast.info("يرجى تسجيل الدخول أو إنشاء حساب للاستمرار");
-      setLocation("/login");
+      e.stopPropagation();
+      setShowLoginPrompt(true);
+      return;
     }
   };
 
   return (
-    <Link href={`/categories/${id}`} onClick={handleClick}>
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: index * 0.04 }}
-        className="flex flex-col items-center gap-2 cursor-pointer group select-none relative"
-      >
-        {/* Category Image Container */}
-        <div className="w-full aspect-square rounded-2xl bg-[#1A1A1A] border border-[#C8A45C]/20 shadow-md group-hover:border-[#C8A45C] group-hover:shadow-lg group-hover:shadow-[#C8A45C]/15 transition-all duration-300 overflow-hidden relative flex items-center justify-center">
-          {!imgError && finalImageUrl ? (
-            <img
-              src={finalImageUrl}
-              alt={name}
-              loading="lazy"
-              onError={() => setImgError(true)}
-              className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-500 will-change-transform"
-            />
-          ) : (
-            /* Elegant Dark & Gold Placeholder when image is missing or failed */
-            <div className="w-full h-full bg-gradient-to-br from-[#241D12] via-[#1A1A1A] to-[#12100C] border border-[#C8A45C]/30 flex flex-col items-center justify-center p-2.5 text-center relative overflow-hidden group-hover:scale-105 transition-transform duration-300">
-              <div className="absolute -top-3 -right-3 w-12 h-12 bg-[#C8A45C]/15 rounded-full blur-lg pointer-events-none" />
-              <div className="w-9 h-9 rounded-xl bg-[#C8A45C]/20 border border-[#C8A45C]/40 flex items-center justify-center text-[#C8A45C] mb-1.5 shadow-xs">
-                <FolderTree size={18} />
+    <>
+      <Link href={targetCategoryUrl} onClick={handleClick}>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: index * 0.04 }}
+          className="flex flex-col items-center gap-2 cursor-pointer group select-none relative"
+        >
+          {/* Category Image Container */}
+          <div className="w-full aspect-square rounded-2xl bg-[#1A1A1A] border border-[#C8A45C]/20 shadow-md group-hover:border-[#C8A45C] group-hover:shadow-lg group-hover:shadow-[#C8A45C]/15 transition-all duration-300 overflow-hidden relative flex items-center justify-center">
+            {!imgError && finalImageUrl ? (
+              <img
+                src={finalImageUrl}
+                alt={name}
+                loading="lazy"
+                onError={() => setImgError(true)}
+                className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-500 will-change-transform"
+              />
+            ) : (
+              /* Elegant Dark & Gold Placeholder when image is missing or failed */
+              <div className="w-full h-full bg-gradient-to-br from-[#241D12] via-[#1A1A1A] to-[#12100C] border border-[#C8A45C]/30 flex flex-col items-center justify-center p-2.5 text-center relative overflow-hidden group-hover:scale-105 transition-transform duration-300">
+                <div className="absolute -top-3 -right-3 w-12 h-12 bg-[#C8A45C]/15 rounded-full blur-lg pointer-events-none" />
+                <div className="w-9 h-9 rounded-xl bg-[#C8A45C]/20 border border-[#C8A45C]/40 flex items-center justify-center text-[#C8A45C] mb-1.5 shadow-xs">
+                  <FolderTree size={18} />
+                </div>
+                <span className="text-[10px] font-bold text-[#FDE68A] line-clamp-1 leading-tight px-1">
+                  {name}
+                </span>
               </div>
-              <span className="text-[10px] font-bold text-[#FDE68A] line-clamp-1 leading-tight px-1">
-                {name}
-              </span>
-            </div>
-          )}
+            )}
 
-          {/* Subtle bottom gradient glow for depth */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity pointer-events-none" />
+            {/* Subtle bottom gradient glow for depth */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity pointer-events-none" />
 
-          {/* Guest Lock Overlay on Hover */}
-          {isGuest && (
-            <div className="absolute inset-0 bg-[#1A1A1A]/80 backdrop-blur-xs flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 p-2 text-center">
-              <div className="w-8 h-8 rounded-full bg-[#C8A45C]/20 border border-[#C8A45C] flex items-center justify-center text-[#C8A45C] mb-1 shadow-sm">
-                <Lock size={15} />
+            {/* Guest Lock Overlay on Hover */}
+            {isGuest && (
+              <div className="absolute inset-0 bg-[#1A1A1A]/80 backdrop-blur-xs flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 p-2 text-center">
+                <div className="w-8 h-8 rounded-full bg-[#C8A45C]/20 border border-[#C8A45C] flex items-center justify-center text-[#C8A45C] mb-1 shadow-sm">
+                  <Lock size={15} />
+                </div>
+                <span className="text-[10px] font-bold text-[#FDE68A] line-clamp-1">
+                  سجّل دخولك للعرض
+                </span>
               </div>
-              <span className="text-[10px] font-bold text-[#FDE68A] line-clamp-1">
-                سجّل دخولك للعرض
+            )}
+            
+            {productCount !== undefined && productCount > 0 && (
+              <span className="absolute bottom-1.5 left-1.5 text-[9px] font-bold bg-[#1A1A1A]/85 text-[#FDE68A] px-1.5 py-0.5 rounded-md border border-[#C8A45C]/30 shadow-xs pointer-events-none z-10">
+                {productCount}
               </span>
-            </div>
-          )}
-          
-          {productCount !== undefined && productCount > 0 && (
-            <span className="absolute bottom-1.5 left-1.5 text-[9px] font-bold bg-[#1A1A1A]/85 text-[#FDE68A] px-1.5 py-0.5 rounded-md border border-[#C8A45C]/30 shadow-xs pointer-events-none z-10">
-              {productCount}
-            </span>
-          )}
-        </div>
+            )}
+          </div>
 
-        {/* Category Label */}
-        <span className="text-xs font-bold text-center text-zinc-200 group-hover:text-[#FDE68A] transition-colors leading-tight line-clamp-1 px-1">
-          {name}
-        </span>
-      </motion.div>
-    </Link>
+          {/* Category Label */}
+          <span className="text-xs font-bold text-center text-zinc-200 group-hover:text-[#FDE68A] transition-colors leading-tight line-clamp-1 px-1">
+            {name}
+          </span>
+        </motion.div>
+      </Link>
+
+      {/* Login Required Modal for Guests */}
+      <LoginRequiredModal
+        isOpen={showLoginPrompt}
+        onClose={() => setShowLoginPrompt(false)}
+        redirectUrl={targetCategoryUrl}
+      />
+    </>
   );
 }

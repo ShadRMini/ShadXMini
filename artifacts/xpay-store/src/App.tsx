@@ -212,9 +212,9 @@ function Router() {
             <Route path="/profile" component={() => <ProtectedRoute component={Profile} />} />
             <Route path="/settings" component={() => <ProtectedRoute component={SettingsPage} />} />
             <Route path="/profile/edit" component={() => <ProtectedRoute component={SettingsPage} />} />
-            <Route path="/support" component={() => <ProtectedRoute component={ContactPage} />} />
-            <Route path="/contact" component={() => <ProtectedRoute component={ContactPage} />} />
-            <Route path="/about" component={() => <ProtectedRoute component={About} />} />
+            <Route path="/support" component={() => <ProtectedRoute component={ContactPage} allowGuest={true} />} />
+            <Route path="/contact" component={() => <ProtectedRoute component={ContactPage} allowGuest={true} />} />
+            <Route path="/about" component={() => <ProtectedRoute component={About} allowGuest={true} />} />
             <Route component={NotFound} />
           </Switch>
         </AppLayout>

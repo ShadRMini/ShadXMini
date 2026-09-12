@@ -629,6 +629,13 @@ export async function ensureDatabaseSchema() {
         }
       },
       { key: "use_legacy_contact_page", val: false },
+      { key: "guest_preview_enabled", val: true },
+      { key: "guest_preview_message", val: "أنت الآن في وضع الاستعراض كزائر. يرجى تسجيل الدخول أو إنشاء حساب جديد للوصول إلى كافة الميزات وإتمام عمليات الشراء والشحن." },
+      { key: "guest_preview_banner_text", val: "وضع استعراض الزائر مفعّل — سجل الدخول للتمتع بكافة الخدمات" },
+      { key: "guest_preview_login_button", val: "تسجيل الدخول" },
+      { key: "guest_preview_register_button", val: "إنشاء حساب" },
+      { key: "guest_preview_allow_contact", val: true },
+      { key: "guest_preview_allow_about", val: true },
     ];
     for (const item of maintenanceDefaultKeys) {
       const existing: any = await db.execute(sql`SELECT key FROM settings WHERE key = ${item.key}`);

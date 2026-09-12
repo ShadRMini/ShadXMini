@@ -103,24 +103,30 @@ export default function Sidebar({ brandLogo, onClose }: SidebarProps) {
     return () => clearInterval(interval);
   }, [user]);
 
-  const sidebarLinks = [
-    { href: "/", label: "الرئيسية", icon: Home },
-    { href: "/loyalty", label: "المستويات", icon: Trophy },
-    { href: "/favorites", label: "مفضلتي", icon: Heart },
-    { href: "/orders", label: "مشترياتي", icon: ShoppingCart },
-    { href: "/deposits", label: "دفعاتي المالية", icon: CreditCard },
-    { href: "/deposit", label: "المحفظة", icon: Wallet },
-    { href: "/identity-verification", label: "توثيق الهوية", icon: ShieldCheck },
-    { href: "/settings", label: "إعدادات الحساب", icon: Settings },
+  const allSidebarLinks = [
+    { href: "/", label: "الرئيسية", icon: Home, guestAllowed: true },
+    { href: "/loyalty", label: "المستويات", icon: Trophy, guestAllowed: false },
+    { href: "/favorites", label: "مفضلتي", icon: Heart, guestAllowed: false },
+    { href: "/orders", label: "مشترياتي", icon: ShoppingCart, guestAllowed: false },
+    { href: "/deposits", label: "دفعاتي المالية", icon: CreditCard, guestAllowed: false },
+    { href: "/deposit", label: "المحفظة", icon: Wallet, guestAllowed: false },
+    { href: "/identity-verification", label: "توثيق الهوية", icon: ShieldCheck, guestAllowed: false },
+    { href: "/settings", label: "إعدادات الحساب", icon: Settings, guestAllowed: false },
     {
       href: "/notifications",
       label: "الإشعارات والتنبيهات",
       icon: Bell,
+      guestAllowed: false,
       badge: unreadNotifications > 0 ? unreadNotifications : null,
     },
-    { href: "/support", label: "تواصل معنا (الدعم)", icon: HeadphonesIcon },
-    { href: "/about", label: "من نحن", icon: Info },
+    { href: "/support", label: "تواصل معنا (الدعم)", icon: HeadphonesIcon, guestAllowed: true },
+    { href: "/about", label: "من نحن", icon: Info, guestAllowed: true },
   ];
+
+  // For unauthenticated guest preview mode, only show allowed links (Home, Support, About)
+  const sidebarLinks = isGuest
+    ? allSidebarLinks.filter((link) => link.guestAllowed)
+    : allSidebarLinks;
 
   const vipLevel = user?.vipLevel || 1;
   const isVip = vipLevel > 1;
