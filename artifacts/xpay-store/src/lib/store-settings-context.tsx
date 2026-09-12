@@ -40,8 +40,8 @@ const defaultStoreSettings: StoreSettings = {
   contactPhone: "",
   contactEmail: "",
   contactTelegram: "",
-  guestPreviewEnabled: false,
-  guest_preview_enabled: false,
+  guestPreviewEnabled: true,
+  guest_preview_enabled: true,
   guestPreviewTitle: "مرحباً بك في ShadMini",
   guest_preview_title: "مرحباً بك في ShadMini",
   guestPreviewSubtitle: "استعرض الأقسام الآن، وسجّل دخولك للاستفادة من كل المزايا",
@@ -67,12 +67,21 @@ export function StoreSettingsProvider({ children }: { children: React.ReactNode 
           const bLogo = String(data.brandLogoUrl || data.brand_logo_url || data.siteLogo || data.site_logo || "").trim();
           const lSize = String(data.theme_logo_size || data.logoSize || "80px").trim();
 
+          const guestEnabled =
+            data.guestPreviewEnabled !== undefined
+              ? Boolean(data.guestPreviewEnabled)
+              : data.guest_preview_enabled !== undefined
+              ? Boolean(data.guest_preview_enabled)
+              : true;
+
           setSettings((prev) => ({
             ...prev,
             ...data,
             siteName: sName || "ShadMini",
             brandLogoUrl: bLogo,
             themeLogoSize: lSize,
+            guestPreviewEnabled: guestEnabled,
+            guest_preview_enabled: guestEnabled,
           }));
 
           // Synchronize document title with dynamic store name
@@ -90,12 +99,21 @@ export function StoreSettingsProvider({ children }: { children: React.ReactNode 
               const bLogo = String(data.brandLogoUrl || data.brand_logo_url || data.siteLogo || data.site_logo || "").trim();
               const lSize = String(data.theme_logo_size || data.logoSize || "80px").trim();
 
+              const guestEnabled =
+                data.guestPreviewEnabled !== undefined
+                  ? Boolean(data.guestPreviewEnabled)
+                  : data.guest_preview_enabled !== undefined
+                  ? Boolean(data.guest_preview_enabled)
+                  : true;
+
               setSettings((prev) => ({
                 ...prev,
                 ...data,
                 siteName: sName || "ShadMini",
                 brandLogoUrl: bLogo,
                 themeLogoSize: lSize,
+                guestPreviewEnabled: guestEnabled,
+                guest_preview_enabled: guestEnabled,
               }));
 
               if (sName) {

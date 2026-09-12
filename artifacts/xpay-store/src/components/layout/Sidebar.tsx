@@ -37,7 +37,7 @@ export default function Sidebar({ brandLogo, onClose }: SidebarProps) {
   const [mode, setMode] = useState<"dark" | "light">(() => getStoreThemeMode());
 
   const isGuestModeEnabled = Boolean(
-    storeSettings.guestPreviewEnabled ?? storeSettings.guest_preview_enabled
+    storeSettings.guestPreviewEnabled ?? storeSettings.guest_preview_enabled ?? true
   );
   const isGuest = !user && !token && isGuestModeEnabled;
 

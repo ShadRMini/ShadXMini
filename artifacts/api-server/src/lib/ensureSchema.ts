@@ -938,7 +938,7 @@ export async function ensureDatabaseSchema() {
     // Ensure Guest Preview (استطلاع الزائر الجديد) default settings
     await db.execute(sql`
       INSERT INTO settings (key, value) VALUES 
-        ('guest_preview_enabled', 'false'),
+        ('guest_preview_enabled', 'true'),
         ('guest_preview_title', '"مرحباً بك في ShadMini"'),
         ('guest_preview_subtitle', '"استعرض الأقسام الآن، وسجّل دخولك للاستفادة من كل المزايا"'),
         ('guest_preview_login_button', '"تسجيل الدخول"'),
@@ -947,7 +947,7 @@ export async function ensureDatabaseSchema() {
       ON CONFLICT (key) DO NOTHING;
     `).catch(async () => {
       const guestDefaults = [
-        { key: "guest_preview_enabled", val: "false" },
+        { key: "guest_preview_enabled", val: "true" },
         { key: "guest_preview_title", val: "مرحباً بك في ShadMini" },
         { key: "guest_preview_subtitle", val: "استعرض الأقسام الآن، وسجّل دخولك للاستفادة من كل المزايا" },
         { key: "guest_preview_login_button", val: "تسجيل الدخول" },

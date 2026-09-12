@@ -22,6 +22,7 @@ export type UserProfile = {
 interface AuthContextType {
   user: UserProfile | null;
   token: string | null;
+  isAuthenticated: boolean;
   loading: boolean;
   login: (token: string, user: UserProfile) => void;
   logout: () => void;
@@ -231,8 +232,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(updatedUser);
   }, []);
 
+  const isAuthenticated = Boolean(user || token);
+
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, logout, updateUser, refreshUser }}>
+    <AuthContext.Provider value={{ user, token, isAuthenticated, loading, login, logout, updateUser, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

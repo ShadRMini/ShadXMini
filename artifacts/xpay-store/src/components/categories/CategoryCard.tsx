@@ -53,7 +53,7 @@ export default function CategoryCard({
   const storeSettings = useStoreSettings();
 
   const isGuestModeEnabled = Boolean(
-    storeSettings.guestPreviewEnabled ?? storeSettings.guest_preview_enabled
+    storeSettings.guestPreviewEnabled ?? storeSettings.guest_preview_enabled ?? true
   );
   const isAuthenticated = Boolean(user || token);
   const isGuest = !isAuthenticated && isGuestModeEnabled;

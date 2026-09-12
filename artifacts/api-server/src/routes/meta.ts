@@ -229,8 +229,8 @@ router.get("/app-settings", async (_req, res) => {
     support_phone: String(map.get("support_phone") || map.get("contact_support_phone") || defaultContactPhone),
 
     // Guest Preview Mode Settings
-    guestPreviewEnabled: getBool("guest_preview_enabled", false),
-    guest_preview_enabled: getBool("guest_preview_enabled", false),
+    guestPreviewEnabled: getBool("guest_preview_enabled", true),
+    guest_preview_enabled: getBool("guest_preview_enabled", true),
     guestPreviewTitle: String(map.get("guest_preview_title") || "مرحباً بك في ShadMini"),
     guest_preview_title: String(map.get("guest_preview_title") || "مرحباً بك في ShadMini"),
     guestPreviewSubtitle: String(map.get("guest_preview_subtitle") || "استعرض الأقسام الآن، وسجّل دخولك للاستفادة من كل المزايا"),
@@ -293,8 +293,8 @@ const getPublicSettingsHandler = async (_req: any, res: any) => {
     useLegacyAuthPages: map.get("use_legacy_auth_pages") === "true",
 
     // Guest Preview Mode Settings
-    guestPreviewEnabled: getBool("guest_preview_enabled", false),
-    guest_preview_enabled: getBool("guest_preview_enabled", false),
+    guestPreviewEnabled: getBool("guest_preview_enabled", true),
+    guest_preview_enabled: getBool("guest_preview_enabled", true),
     guestPreviewTitle: String(map.get("guest_preview_title") || "مرحباً بك في ShadMini"),
     guest_preview_title: String(map.get("guest_preview_title") || "مرحباً بك في ShadMini"),
     guestPreviewSubtitle: String(map.get("guest_preview_subtitle") || "استعرض الأقسام الآن، وسجّل دخولك للاستفادة من كل المزايا"),

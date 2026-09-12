@@ -9,15 +9,14 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ component: Component, allowGuest = false }: ProtectedRouteProps) {
-  const { user, token, loading } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
   const [location, setLocation] = useLocation();
   const storeSettings = useStoreSettings();
 
-  const isGuestModeEnabled = Boolean(
-    storeSettings.guestPreviewEnabled ?? storeSettings.guest_preview_enabled
+  const guestPreviewEnabled = Boolean(
+    storeSettings.guestPreviewEnabled ?? storeSettings.guest_preview_enabled ?? true
   );
-  const isGuestAllowed = allowGuest && isGuestModeEnabled;
-  const isAuthenticated = Boolean(user || token);
+  const isGuestAllowed = allowGuest && guestPreviewEnabled;
 
   useEffect(() => {
     if (!loading && !isAuthenticated && !isGuestAllowed) {
@@ -36,14 +35,21 @@ export function ProtectedRoute({ component: Component, allowGuest = false }: Pro
     return (
       <div className="min-h-[80vh] flex flex-col items-center justify-center gap-3 p-6 text-center" dir="rtl">
         <div className="w-10 h-10 border-3 border-[#C8A45C] border-t-transparent rounded-full animate-spin" />
-        <p className="text-sm font-semibold text-slate-700">جاري التحقق من الحساب...</p>
+        <p className="text-sm font-semibold text-slate-300">جاري التحميل...</p>
       </div>
     );
   }
 
-  if (!isAuthenticated && !isGuestAllowed) {
-    return null;
+  // إذا كان المستخدم مسجلاً، اعرض الصفحة
+  if (isAuthenticated) {
+    return <Component />;
   }
 
-  return <Component />;
+  // إذا كان زائراً والسماح بالزوار مفعل، اعرض الصفحة
+  if (isGuestAllowed) {
+    return <Component />;
+  }
+
+  // خلاف ذلك، لا تعرض المحتوى المحمي (سيتم إعادة التوجيه إلى /login)
+  return null;
 }

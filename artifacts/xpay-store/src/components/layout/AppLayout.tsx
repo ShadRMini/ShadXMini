@@ -23,7 +23,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, token } = useAuth();
 
   const isGuestModeEnabled = Boolean(
-    storeSettings.guestPreviewEnabled ?? storeSettings.guest_preview_enabled
+    storeSettings.guestPreviewEnabled ?? storeSettings.guest_preview_enabled ?? true
   );
   const isGuest = !user && !token && isGuestModeEnabled;
 
