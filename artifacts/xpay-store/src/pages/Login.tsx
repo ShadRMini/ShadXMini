@@ -123,6 +123,16 @@ export default function Login() {
       if (data.token && data.user) {
         login(data.token, data.user);
         toast.success("تم تسجيل الدخول بنجاح! أهلاً بك.");
+        try {
+          const redirectPath = sessionStorage.getItem("redirect_after_login");
+          if (redirectPath) {
+            sessionStorage.removeItem("redirect_after_login");
+            setLocation(redirectPath);
+            return;
+          }
+        } catch {
+          // Ignore
+        }
         setLocation("/");
       } else {
         throw new Error("استجابة غير صالحة من الخادم.");

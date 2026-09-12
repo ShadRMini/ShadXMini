@@ -147,6 +147,16 @@ export default function Register() {
       if (data.token && data.user) {
         login(data.token, data.user);
         toast.success("تم إنشاء الحساب بنجاح! مرحباً بك.");
+        try {
+          const redirectPath = sessionStorage.getItem("redirect_after_login");
+          if (redirectPath) {
+            sessionStorage.removeItem("redirect_after_login");
+            setLocation(redirectPath);
+            return;
+          }
+        } catch {
+          // Ignore
+        }
         setLocation("/");
       } else {
         throw new Error("استجابة غير صالحة من الخادم.");

@@ -193,7 +193,7 @@ function Router() {
       <Route>
         <AppLayout>
           <Switch>
-            <Route path="/" component={() => <ProtectedRoute component={Home} />} />
+            <Route path="/" component={() => <ProtectedRoute component={Home} allowGuest={true} />} />
             <Route path="/categories/:id" component={() => <ProtectedRoute component={Categories} />} />
             <Route path="/groups/:id" component={() => <ProtectedRoute component={ProductGroupProducts} />} />
             <Route path="/products/:id" component={() => <ProtectedRoute component={ProductDetail} />} />

@@ -23,7 +23,9 @@ import {
   MapPin,
   Clock,
   Coins,
-  Sparkles
+  Sparkles,
+  Compass,
+  Lock
 } from "lucide-react";
 
 export default function SettingsNew() {
@@ -493,6 +495,113 @@ export default function SettingsNew() {
                         placeholder="مرحباً بك في متجرنا! خصومات مميزة بمناسبة الافتتاح..."
                         className="w-full bg-[#1A1A1A] border border-zinc-700 focus:border-[#C8A45C] text-white px-3.5 py-2.5 rounded-xl outline-none"
                       />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Guest Preview Mode Settings (استطلاع الزائر الجديد) */}
+                <div className="pt-5 border-t border-zinc-800 space-y-4">
+                  <div className="bg-[#2D2D2D] p-5 sm:p-6 rounded-2xl border border-[#C8A45C]/20 shadow-lg space-y-5">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-zinc-700/60">
+                      <div>
+                        <h3 className="font-bold text-[#FDE68A] text-sm flex items-center gap-2">
+                          <Compass size={18} className="text-[#C8A45C]" />
+                          استطلاع الزائر الجديد (Guest Preview Mode)
+                        </h3>
+                        <p className="text-zinc-400 text-[11px] mt-1 leading-relaxed">
+                          السماح للزوار غير المسجلين باستعراض الصفحة الرئيسية والأقسام فقط، وتوجيههم لتسجيل الدخول فور النقر على أي قسم أو منتج.
+                        </p>
+                      </div>
+
+                      {/* Main Switch */}
+                      <div className="flex items-center gap-3 bg-[#1A1A1A] px-4 py-2.5 rounded-xl border border-zinc-800 shrink-0 self-start sm:self-auto">
+                        <span className="font-semibold text-xs text-zinc-300">
+                          {settings.guest_preview_enabled === "true" || settings.guest_preview_enabled === true
+                            ? "مفعّل"
+                            : "معطّل"}
+                        </span>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={settings.guest_preview_enabled === "true" || settings.guest_preview_enabled === true}
+                            onChange={(e) => handleValueChange("guest_preview_enabled", String(e.target.checked))}
+                            className="sr-only peer"
+                          />
+                          <div className="w-11 h-6 bg-zinc-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:right-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#C8A45C]"></div>
+                        </label>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Welcome Title */}
+                      <div>
+                        <label className="block text-zinc-300 font-semibold mb-1">
+                          عنوان الترحيب
+                        </label>
+                        <input
+                          type="text"
+                          value={settings.guest_preview_title ?? "مرحباً بك في ShadMini"}
+                          onChange={(e) => handleValueChange("guest_preview_title", e.target.value)}
+                          placeholder="مرحباً بك في ShadMini"
+                          className="w-full bg-[#1A1A1A] border border-zinc-700 focus:border-[#C8A45C] text-white px-3.5 py-2.5 rounded-xl outline-none"
+                        />
+                      </div>
+
+                      {/* Subtitle */}
+                      <div>
+                        <label className="block text-zinc-300 font-semibold mb-1">
+                          النص الفرعي
+                        </label>
+                        <input
+                          type="text"
+                          value={settings.guest_preview_subtitle ?? "استعرض الأقسام الآن، وسجّل دخولك للاستفادة من كل المزايا"}
+                          onChange={(e) => handleValueChange("guest_preview_subtitle", e.target.value)}
+                          placeholder="استعرض الأقسام الآن، وسجّل دخولك للاستفادة من كل المزايا"
+                          className="w-full bg-[#1A1A1A] border border-zinc-700 focus:border-[#C8A45C] text-white px-3.5 py-2.5 rounded-xl outline-none"
+                        />
+                      </div>
+
+                      {/* Login Button Text */}
+                      <div>
+                        <label className="block text-zinc-300 font-semibold mb-1">
+                          نص زر تسجيل الدخول
+                        </label>
+                        <input
+                          type="text"
+                          value={settings.guest_preview_login_button ?? "تسجيل الدخول"}
+                          onChange={(e) => handleValueChange("guest_preview_login_button", e.target.value)}
+                          placeholder="تسجيل الدخول"
+                          className="w-full bg-[#1A1A1A] border border-zinc-700 focus:border-[#C8A45C] text-white px-3.5 py-2.5 rounded-xl outline-none"
+                        />
+                      </div>
+
+                      {/* Register Button Text */}
+                      <div>
+                        <label className="block text-zinc-300 font-semibold mb-1">
+                          نص زر إنشاء حساب
+                        </label>
+                        <input
+                          type="text"
+                          value={settings.guest_preview_register_button ?? "إنشاء حساب جديد"}
+                          onChange={(e) => handleValueChange("guest_preview_register_button", e.target.value)}
+                          placeholder="إنشاء حساب جديد"
+                          className="w-full bg-[#1A1A1A] border border-zinc-700 focus:border-[#C8A45C] text-white px-3.5 py-2.5 rounded-xl outline-none"
+                        />
+                      </div>
+
+                      {/* Warning Note */}
+                      <div className="md:col-span-2">
+                        <label className="block text-zinc-300 font-semibold mb-1">
+                          الملاحظة التحذيرية (أسفل البانر الترحيبي)
+                        </label>
+                        <textarea
+                          rows={2}
+                          value={settings.guest_preview_note ?? "لا يمكنك الشراء أو استخدام المتجر بدون حساب. اضغط على أي قسم أو منتج للتسجيل."}
+                          onChange={(e) => handleValueChange("guest_preview_note", e.target.value)}
+                          placeholder="لا يمكنك الشراء أو استخدام المتجر بدون حساب. اضغط على أي قسم أو منتج للتسجيل."
+                          className="w-full bg-[#1A1A1A] border border-zinc-700 focus:border-[#C8A45C] text-white px-3.5 py-2.5 rounded-xl outline-none resize-none"
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>

@@ -13,6 +13,18 @@ export interface StoreSettings {
   contactPhone: string;
   contactEmail: string;
   contactTelegram: string;
+  guestPreviewEnabled: boolean;
+  guest_preview_enabled: boolean;
+  guestPreviewTitle: string;
+  guest_preview_title: string;
+  guestPreviewSubtitle: string;
+  guest_preview_subtitle: string;
+  guestPreviewLoginButton: string;
+  guest_preview_login_button: string;
+  guestPreviewRegisterButton: string;
+  guest_preview_register_button: string;
+  guestPreviewNote: string;
+  guest_preview_note: string;
   [key: string]: any;
 }
 
@@ -28,6 +40,18 @@ const defaultStoreSettings: StoreSettings = {
   contactPhone: "",
   contactEmail: "",
   contactTelegram: "",
+  guestPreviewEnabled: false,
+  guest_preview_enabled: false,
+  guestPreviewTitle: "مرحباً بك في ShadMini",
+  guest_preview_title: "مرحباً بك في ShadMini",
+  guestPreviewSubtitle: "استعرض الأقسام الآن، وسجّل دخولك للاستفادة من كل المزايا",
+  guest_preview_subtitle: "استعرض الأقسام الآن، وسجّل دخولك للاستفادة من كل المزايا",
+  guestPreviewLoginButton: "تسجيل الدخول",
+  guest_preview_login_button: "تسجيل الدخول",
+  guestPreviewRegisterButton: "إنشاء حساب جديد",
+  guest_preview_register_button: "إنشاء حساب جديد",
+  guestPreviewNote: "لا يمكنك الشراء أو استخدام المتجر بدون حساب. اضغط على أي قسم أو منتج للتسجيل.",
+  guest_preview_note: "لا يمكنك الشراء أو استخدام المتجر بدون حساب. اضغط على أي قسم أو منتج للتسجيل.",
 };
 
 const StoreSettingsContext = createContext<StoreSettings>(defaultStoreSettings);

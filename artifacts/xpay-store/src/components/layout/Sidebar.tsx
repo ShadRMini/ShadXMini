@@ -23,6 +23,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useStoreSettings } from "@/lib/store-settings-context";
 import { getStoreThemeMode, toggleStoreThemeMode } from "@/lib/theme";
 import { getPublicJson } from "@/lib/public-api";
+import { toast } from "sonner";
 
 interface SidebarProps {
   brandLogo?: string;
@@ -30,10 +31,31 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ brandLogo, onClose }: SidebarProps) {
-  const [location] = useLocation();
-  const { user, logout } = useAuth();
+  const [location, setLocation] = useLocation();
+  const { user, token, logout } = useAuth();
   const storeSettings = useStoreSettings();
   const [mode, setMode] = useState<"dark" | "light">(() => getStoreThemeMode());
+
+  const isGuestModeEnabled = Boolean(
+    storeSettings.guestPreviewEnabled ?? storeSettings.guest_preview_enabled
+  );
+  const isGuest = !user && !token && isGuestModeEnabled;
+
+  const handleLinkClick = (e: React.MouseEvent, href: string) => {
+    if (isGuest && href !== "/") {
+      e.preventDefault();
+      if (onClose) onClose();
+      try {
+        sessionStorage.setItem("redirect_after_login", href);
+      } catch {
+        // Ignore
+      }
+      toast.info("يرجى تسجيل الدخول أو إنشاء حساب للاستمرار");
+      setLocation("/login");
+    } else {
+      if (onClose) onClose();
+    }
+  };
 
   useEffect(() => {
     const handleModeChange = (e: Event) => {
@@ -231,12 +253,12 @@ export default function Sidebar({ brandLogo, onClose }: SidebarProps) {
         >
           <p className="text-xs text-zinc-400 mb-3">سجل الدخول للوصول لكافة الميزات</p>
           <div className="flex gap-2">
-            <Link href="/login" className="flex-1">
+            <Link href="/login" className="flex-1" onClick={() => onClose && onClose()}>
               <button className="w-full bg-[#C8A45C] hover:bg-[#B8954A] text-[#1A1A1A] font-bold text-xs py-2 rounded-xl transition cursor-pointer">
-                دخول
+                {storeSettings.guestPreviewLoginButton || "تسجيل الدخول"}
               </button>
             </Link>
-            <Link href="/register" className="flex-1">
+            <Link href="/register" className="flex-1" onClick={() => onClose && onClose()}>
               <button
                 className={`w-full font-bold text-xs py-2 rounded-xl border transition cursor-pointer ${
                   isDark
@@ -244,7 +266,7 @@ export default function Sidebar({ brandLogo, onClose }: SidebarProps) {
                     : "bg-zinc-100 text-zinc-800 border-zinc-300 hover:bg-zinc-200"
                 }`}
               >
-                تسجيل
+                {storeSettings.guestPreviewRegisterButton || "إنشاء حساب"}
               </button>
             </Link>
           </div>
@@ -260,7 +282,7 @@ export default function Sidebar({ brandLogo, onClose }: SidebarProps) {
             (item.href === "/deposit" && (location === "/deposit" || location.startsWith("/deposit/")));
 
           return (
-            <Link key={item.href} href={item.href}>
+            <Link key={item.href} href={item.href} onClick={(e) => handleLinkClick(e, item.href)}>
               <div
                 className={`flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-semibold transition-all cursor-pointer select-none ${
                   isActive

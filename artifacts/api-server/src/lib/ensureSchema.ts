@@ -928,6 +928,33 @@ export async function ensureDatabaseSchema() {
       `).catch(() => null);
     });
 
+    // Ensure Guest Preview (استطلاع الزائر الجديد) default settings
+    await db.execute(sql`
+      INSERT INTO settings (key, value) VALUES 
+        ('guest_preview_enabled', 'false'),
+        ('guest_preview_title', '"مرحباً بك في ShadMini"'),
+        ('guest_preview_subtitle', '"استعرض الأقسام الآن، وسجّل دخولك للاستفادة من كل المزايا"'),
+        ('guest_preview_login_button', '"تسجيل الدخول"'),
+        ('guest_preview_register_button', '"إنشاء حساب جديد"'),
+        ('guest_preview_note', '"لا يمكنك الشراء أو استخدام المتجر بدون حساب. اضغط على أي قسم أو منتج للتسجيل."')
+      ON CONFLICT (key) DO NOTHING;
+    `).catch(async () => {
+      const guestDefaults = [
+        { key: "guest_preview_enabled", val: "false" },
+        { key: "guest_preview_title", val: "مرحباً بك في ShadMini" },
+        { key: "guest_preview_subtitle", val: "استعرض الأقسام الآن، وسجّل دخولك للاستفادة من كل المزايا" },
+        { key: "guest_preview_login_button", val: "تسجيل الدخول" },
+        { key: "guest_preview_register_button", val: "إنشاء حساب جديد" },
+        { key: "guest_preview_note", val: "لا يمكنك الشراء أو استخدام المتجر بدون حساب. اضغط على أي قسم أو منتج للتسجيل." }
+      ];
+      for (const item of guestDefaults) {
+        await db.execute(sql`
+          INSERT INTO settings (key, value) VALUES (${item.key}, ${JSON.stringify(item.val)}::jsonb)
+          ON CONFLICT (key) DO NOTHING;
+        `).catch(() => null);
+      }
+    });
+
     schemaEnsured = true;
     console.log("[DB Schema] Runtime schema verified and synchronized successfully.");
   } catch (error) {

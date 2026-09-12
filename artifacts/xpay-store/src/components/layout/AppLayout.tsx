@@ -13,13 +13,32 @@ import { useAuth } from "@/lib/auth-context";
 import { useStoreSettings } from "@/lib/store-settings-context";
 import NotificationBellDropdown from "./NotificationBellDropdown";
 import Sidebar from "./Sidebar";
+import { toast } from "sonner";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const storeSettings = useStoreSettings();
   const [brandLogo, setBrandLogo] = useState<string>("");
-  const { user } = useAuth();
+  const { user, token } = useAuth();
+
+  const isGuestModeEnabled = Boolean(
+    storeSettings.guestPreviewEnabled ?? storeSettings.guest_preview_enabled
+  );
+  const isGuest = !user && !token && isGuestModeEnabled;
+
+  const handleNavClick = (e: React.MouseEvent, href: string) => {
+    if (isGuest && href !== "/") {
+      e.preventDefault();
+      try {
+        sessionStorage.setItem("redirect_after_login", href);
+      } catch {
+        // Ignore
+      }
+      toast.info("يرجى تسجيل الدخول أو إنشاء حساب للاستمرار");
+      setLocation("/login");
+    }
+  };
 
   useEffect(() => {
     if (storeSettings.brandLogoUrl) {
@@ -128,11 +147,18 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 </Link>
               </>
             ) : (
-              <Link href="/login">
-                <button className="bg-[#C8A45C] hover:bg-[#B8954A] text-[#1A1A1A] font-black text-xs px-3.5 py-1.5 rounded-full shadow-sm cursor-pointer transition">
-                  دخول
-                </button>
-              </Link>
+              <div className="flex items-center gap-2">
+                <Link href="/login">
+                  <button className="bg-[#C8A45C] hover:bg-[#B8954A] text-[#1A1A1A] font-black text-xs px-3.5 py-1.5 rounded-full shadow-sm cursor-pointer transition">
+                    {storeSettings.guestPreviewLoginButton || "تسجيل الدخول"}
+                  </button>
+                </Link>
+                <Link href="/register">
+                  <button className="hidden sm:inline-flex bg-[#2D2D2D] hover:bg-[#383838] border border-[#C8A45C]/40 text-[#FDE68A] font-bold text-xs px-3.5 py-1.5 rounded-full shadow-sm cursor-pointer transition">
+                    {storeSettings.guestPreviewRegisterButton || "إنشاء حساب"}
+                  </button>
+                </Link>
+              </div>
             )}
           </div>
         </header>
@@ -159,7 +185,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
             if (item.isFab) {
               return (
-                <Link key={item.href} href={item.href}>
+                <Link key={item.href} href={item.href} onClick={(e) => handleNavClick(e, item.href)}>
                   <div className="relative -top-5 flex flex-col items-center justify-center cursor-pointer group">
                     <div
                       className={`w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-transform active:scale-95 ${
@@ -177,7 +203,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             }
 
             return (
-              <Link key={item.href} href={item.href}>
+              <Link key={item.href} href={item.href} onClick={(e) => handleNavClick(e, item.href)}>
                 <div className="flex flex-col items-center justify-center w-14 h-full cursor-pointer group">
                   <div
                     className={`p-1.5 rounded-xl transition-all duration-300 ${

@@ -1,10 +1,13 @@
 import { useState, useEffect, useCallback } from "react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { ChevronRight, ChevronLeft, Sparkles, ExternalLink, ArrowLeft, ShieldCheck, Zap } from "lucide-react";
 import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getPublicJson } from "@/lib/public-api";
+import { useAuth } from "@/lib/auth-context";
+import { useStoreSettings } from "@/lib/store-settings-context";
+import { toast } from "sonner";
 
 export interface BannerItem {
   id: string;
@@ -44,8 +47,17 @@ const DEFAULT_BANNER: BannerItem = {
 
 export default function BannerCarousel({ banners: propBanners, isLoading }: BannerCarouselProps) {
   const [banners, setBanners] = useState<BannerItem[]>(propBanners || []);
+  const [, setLocation] = useLocation();
+  const { user, token } = useAuth();
+  const storeSettings = useStoreSettings();
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [scrollSnaps, setScrollSnaps] = useState<number[]>([]);
+
+  const isGuestModeEnabled = Boolean(
+    storeSettings.guestPreviewEnabled ?? storeSettings.guest_preview_enabled
+  );
+  const isAuthenticated = Boolean(user || token);
+  const isGuest = !isAuthenticated && isGuestModeEnabled;
 
   const [emblaRef, emblaApi] = useEmblaCarousel(
     {
@@ -131,6 +143,19 @@ export default function BannerCarousel({ banners: propBanners, isLoading }: Bann
             const bannerLink = banner.link && banner.link.trim().length > 0 ? banner.link.trim() : "/deposit";
             const isExternal = bannerLink.startsWith("http://") || bannerLink.startsWith("https://");
 
+            const handleBannerClick = (e: React.MouseEvent) => {
+              if (isGuest && !isExternal) {
+                e.preventDefault();
+                try {
+                  sessionStorage.setItem("redirect_after_login", bannerLink);
+                } catch {
+                  // Ignore
+                }
+                toast.info("يرجى تسجيل الدخول أو إنشاء حساب للاستمرار ومتابعة الشراء");
+                setLocation("/login");
+              }
+            };
+
             const BannerWrapper = ({ children }: { children: React.ReactNode }) => {
               if (isExternal) {
                 return (
@@ -139,13 +164,14 @@ export default function BannerCarousel({ banners: propBanners, isLoading }: Bann
                     target="_blank"
                     rel="noopener noreferrer"
                     className="block w-full h-full cursor-pointer"
+                    onClick={handleBannerClick}
                   >
                     {children}
                   </a>
                 );
               }
               return (
-                <Link href={bannerLink}>
+                <Link href={bannerLink} onClick={handleBannerClick}>
                   <div className="block w-full h-full cursor-pointer">{children}</div>
                 </Link>
               );

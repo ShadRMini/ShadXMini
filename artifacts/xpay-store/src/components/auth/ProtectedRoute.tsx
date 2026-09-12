@@ -1,16 +1,36 @@
 import { useEffect } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/lib/auth-context";
+import { useStoreSettings } from "@/lib/store-settings-context";
 
-export function ProtectedRoute({ component: Component }: { component: React.ComponentType<any> }) {
+interface ProtectedRouteProps {
+  component: React.ComponentType<any>;
+  allowGuest?: boolean;
+}
+
+export function ProtectedRoute({ component: Component, allowGuest = false }: ProtectedRouteProps) {
   const { user, token, loading } = useAuth();
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
+  const storeSettings = useStoreSettings();
+
+  const isGuestModeEnabled = Boolean(
+    storeSettings.guestPreviewEnabled ?? storeSettings.guest_preview_enabled
+  );
+  const isGuestAllowed = allowGuest && isGuestModeEnabled;
+  const isAuthenticated = Boolean(user || token);
 
   useEffect(() => {
-    if (!loading && !user && !token) {
+    if (!loading && !isAuthenticated && !isGuestAllowed) {
+      if (location && location !== "/login" && location !== "/register") {
+        try {
+          sessionStorage.setItem("redirect_after_login", location);
+        } catch {
+          // Ignore
+        }
+      }
       setLocation("/login");
     }
-  }, [loading, user, token, setLocation]);
+  }, [loading, isAuthenticated, isGuestAllowed, location, setLocation]);
 
   if (loading) {
     return (
@@ -21,7 +41,7 @@ export function ProtectedRoute({ component: Component }: { component: React.Comp
     );
   }
 
-  if (!user && !token) {
+  if (!isAuthenticated && !isGuestAllowed) {
     return null;
   }
 

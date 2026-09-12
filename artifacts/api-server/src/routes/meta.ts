@@ -227,6 +227,20 @@ router.get("/app-settings", async (_req, res) => {
     support_telegram: String(map.get("support_telegram") || map.get("contact_support_telegram") || defaultContactTelegram),
     support_email: String(map.get("support_email") || map.get("contact_support_email") || defaultContactEmail),
     support_phone: String(map.get("support_phone") || map.get("contact_support_phone") || defaultContactPhone),
+
+    // Guest Preview Mode Settings
+    guestPreviewEnabled: getBool("guest_preview_enabled", false),
+    guest_preview_enabled: getBool("guest_preview_enabled", false),
+    guestPreviewTitle: String(map.get("guest_preview_title") || "مرحباً بك في ShadMini"),
+    guest_preview_title: String(map.get("guest_preview_title") || "مرحباً بك في ShadMini"),
+    guestPreviewSubtitle: String(map.get("guest_preview_subtitle") || "استعرض الأقسام الآن، وسجّل دخولك للاستفادة من كل المزايا"),
+    guest_preview_subtitle: String(map.get("guest_preview_subtitle") || "استعرض الأقسام الآن، وسجّل دخولك للاستفادة من كل المزايا"),
+    guestPreviewLoginButton: String(map.get("guest_preview_login_button") || "تسجيل الدخول"),
+    guest_preview_login_button: String(map.get("guest_preview_login_button") || "تسجيل الدخول"),
+    guestPreviewRegisterButton: String(map.get("guest_preview_register_button") || "إنشاء حساب جديد"),
+    guest_preview_register_button: String(map.get("guest_preview_register_button") || "إنشاء حساب جديد"),
+    guestPreviewNote: String(map.get("guest_preview_note") || "لا يمكنك الشراء أو استخدام المتجر بدون حساب. اضغط على أي قسم أو منتج للتسجيل."),
+    guest_preview_note: String(map.get("guest_preview_note") || "لا يمكنك الشراء أو استخدام المتجر بدون حساب. اضغط على أي قسم أو منتج للتسجيل."),
   });
 });
 
@@ -236,6 +250,13 @@ const getPublicSettingsHandler = async (_req: any, res: any) => {
   const logo = String(map.get("brand_logo_url") || map.get("site_logo") || "");
   const siteName = String(map.get("site_name") || "ShadMini");
   const adminLoginImage = String(map.get("admin_login_image") || "");
+
+  const getBool = (key: string, fallback = false) => {
+    const value = map.get(key);
+    if (typeof value === "boolean") return value;
+    if (typeof value === "string") return value === "true";
+    return fallback;
+  };
 
   const supportWhatsapp = String(map.get("support_whatsapp") || map.get("contact_support_phone") || "+963900000000");
   const supportTelegram = String(map.get("support_telegram") || map.get("contact_support_telegram") || "ShadMiniSupport");
@@ -270,6 +291,20 @@ const getPublicSettingsHandler = async (_req: any, res: any) => {
     contact_phone: supportPhone,
     use_legacy_auth_pages: map.get("use_legacy_auth_pages") === "true",
     useLegacyAuthPages: map.get("use_legacy_auth_pages") === "true",
+
+    // Guest Preview Mode Settings
+    guestPreviewEnabled: getBool("guest_preview_enabled", false),
+    guest_preview_enabled: getBool("guest_preview_enabled", false),
+    guestPreviewTitle: String(map.get("guest_preview_title") || "مرحباً بك في ShadMini"),
+    guest_preview_title: String(map.get("guest_preview_title") || "مرحباً بك في ShadMini"),
+    guestPreviewSubtitle: String(map.get("guest_preview_subtitle") || "استعرض الأقسام الآن، وسجّل دخولك للاستفادة من كل المزايا"),
+    guest_preview_subtitle: String(map.get("guest_preview_subtitle") || "استعرض الأقسام الآن، وسجّل دخولك للاستفادة من كل المزايا"),
+    guestPreviewLoginButton: String(map.get("guest_preview_login_button") || "تسجيل الدخول"),
+    guest_preview_login_button: String(map.get("guest_preview_login_button") || "تسجيل الدخول"),
+    guestPreviewRegisterButton: String(map.get("guest_preview_register_button") || "إنشاء حساب جديد"),
+    guest_preview_register_button: String(map.get("guest_preview_register_button") || "إنشاء حساب جديد"),
+    guestPreviewNote: String(map.get("guest_preview_note") || "لا يمكنك الشراء أو استخدام المتجر بدون حساب. اضغط على أي قسم أو منتج للتسجيل."),
+    guest_preview_note: String(map.get("guest_preview_note") || "لا يمكنك الشراء أو استخدام المتجر بدون حساب. اضغط على أي قسم أو منتج للتسجيل."),
   });
 };
 

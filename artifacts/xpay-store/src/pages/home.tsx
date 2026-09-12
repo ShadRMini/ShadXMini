@@ -1,14 +1,16 @@
 import { useGetProfile, useListBanners, useListCategories } from "@workspace/api-client-react";
 import { useEffect, useState } from "react";
-import { Link } from "wouter";
-import { Wallet, Plus, Layers, Hash, Sparkles } from "lucide-react";
+import { Link, useLocation } from "wouter";
+import { Wallet, Plus, Layers, Hash, Sparkles, LogIn, UserPlus, Info } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getPublicJson } from "@/lib/public-api";
 import { useAuth } from "@/lib/auth-context";
+import { useStoreSettings } from "@/lib/store-settings-context";
 import CategoryCard from "@/components/categories/CategoryCard";
 import BannerCarousel, { BannerItem } from "@/components/home/BannerCarousel";
 import AnnouncementBar from "@/components/layout/AnnouncementBar";
 import { PRODUCT_GRID_COLS, getProductGridClass } from "@/lib/grid-config";
+import { toast } from "sonner";
 
 type CategoryItem = {
   id: string;
@@ -38,7 +40,9 @@ function readLocalTelegramUser() {
 }
 
 export default function Home() {
-  const { user } = useAuth();
+  const [, setLocation] = useLocation();
+  const { user, token } = useAuth();
+  const storeSettings = useStoreSettings();
   const { data: profile, isLoading: profileLoading, isError: profileError } = useGetProfile();
   const { data: banners, isLoading: bannersLoading } = useListBanners();
   const { data: categories, isLoading: categoriesLoading } = useListCategories();
@@ -46,6 +50,22 @@ export default function Home() {
 
   const [showFeaturedOffers, setShowFeaturedOffers] = useState<boolean>(true);
   const [featuredBanners, setFeaturedBanners] = useState<any[]>([]);
+
+  const isGuestModeEnabled = Boolean(
+    storeSettings.guestPreviewEnabled ?? storeSettings.guest_preview_enabled
+  );
+  const isAuthenticated = Boolean(user || token);
+  const isGuest = !isAuthenticated && isGuestModeEnabled;
+
+  useEffect(() => {
+    if (isGuest) {
+      try {
+        localStorage.setItem("guest_visited", "true");
+      } catch {
+        // Ignore
+      }
+    }
+  }, [isGuest]);
 
   useEffect(() => {
     let cancelled = false;
@@ -123,85 +143,138 @@ export default function Home() {
       </div>
 
       <div className="relative z-10 max-w-5xl mx-auto space-y-6">
-        {/* Top User & Balance Section */}
-        <div className="px-2 sm:px-4">
-          {/* User Welcome Row */}
-          <div className="flex justify-between items-center mb-4">
-            <div className="flex items-center gap-3">
-              <Link href="/profile">
-                <div className="relative cursor-pointer group">
-                  {effectiveAvatar ? (
-                    <img
-                      src={effectiveAvatar}
-                      alt={displayName}
-                      className="w-12 h-12 rounded-2xl object-cover border-2 border-[#C8A45C]/50 shadow-md group-hover:border-[#C8A45C] transition"
-                    />
-                  ) : (
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#2D2D2D] to-[#1A1A1A] flex items-center justify-center border-2 border-[#C8A45C]/40 shadow-md group-hover:border-[#C8A45C] transition">
-                      <span className="text-[#C8A45C] font-black text-xl">
-                        {displayName ? displayName.charAt(0).toUpperCase() : "X"}
-                      </span>
-                    </div>
-                  )}
+        {/* Top Section: Guest Preview Banner or User & Balance Section */}
+        {isGuest ? (
+          <div className="px-2 sm:px-4">
+            <div className="rounded-3xl bg-gradient-to-br from-[#2D2D2D] via-[#222222] to-[#171717] border-2 border-[#C8A45C]/50 shadow-2xl overflow-hidden relative p-6 sm:p-8 text-white">
+              {/* Decorative Gold Glow Orbs */}
+              <div className="absolute top-0 right-0 w-64 h-64 bg-[#C8A45C]/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+              <div className="absolute bottom-0 left-0 w-48 h-48 bg-[#FDE68A]/10 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2 pointer-events-none" />
+
+              <div className="relative z-10 flex flex-col items-center text-center space-y-4 max-w-2xl mx-auto">
+                {/* Badge */}
+                <div className="inline-flex items-center gap-2 bg-[#C8A45C]/20 border border-[#C8A45C]/40 px-3.5 py-1.5 rounded-full text-xs font-bold text-[#FDE68A] shadow-xs">
+                  <Sparkles size={14} className="text-[#C8A45C]" />
+                  <span>استطلاع المتجر (وضع الزائر)</span>
                 </div>
-              </Link>
-              <div>
-                <p className="text-[11px] text-zinc-400 font-bold">أهلاً بك يا</p>
-                <p className="text-sm sm:text-base font-black text-white">
-                  {profileLoading && !displayName ? <Skeleton className="h-4 w-20" /> : displayName}
+
+                {/* Title */}
+                <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-white tracking-tight leading-tight">
+                  {storeSettings.guestPreviewTitle || "مرحباً بك في متجرنا! استطلع الأقسام والمنتجات المتاحة"}
+                </h1>
+
+                {/* Subtitle */}
+                <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed max-w-xl">
+                  {storeSettings.guestPreviewSubtitle || "تصفح تشكيلتنا الواسعة من الألعاب، البطاقات الرقمية، والاشتراكات. لبدء الشراء والاستمتاع بخدماتنا، سجل دخولك أو أنشئ حسابك الآن."}
                 </p>
+
+                {/* Action Buttons */}
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-3 w-full pt-2">
+                  <Link href="/login" className="w-full sm:w-auto">
+                    <button className="w-full sm:w-auto min-w-[160px] bg-[#C8A45C] hover:bg-[#B8954A] text-[#1A1A1A] font-black text-sm px-6 py-3.5 rounded-2xl shadow-lg shadow-[#C8A45C]/30 flex items-center justify-center gap-2.5 transition active:scale-95 cursor-pointer">
+                      <LogIn size={18} className="stroke-[2.5]" />
+                      <span>{storeSettings.guestPreviewLoginButton || "تسجيل الدخول"}</span>
+                    </button>
+                  </Link>
+
+                  <Link href="/register" className="w-full sm:w-auto">
+                    <button className="w-full sm:w-auto min-w-[160px] bg-[#1A1A1A]/80 hover:bg-[#252525] border border-[#C8A45C]/60 text-[#FDE68A] font-black text-sm px-6 py-3.5 rounded-2xl shadow-md flex items-center justify-center gap-2.5 transition active:scale-95 cursor-pointer">
+                      <UserPlus size={18} className="stroke-[2.5] text-[#C8A45C]" />
+                      <span>{storeSettings.guestPreviewRegisterButton || "إنشاء حساب جديد"}</span>
+                    </button>
+                  </Link>
+                </div>
+
+                {/* Guest Note */}
+                <div className="pt-2 border-t border-[#C8A45C]/20 w-full flex items-center justify-center gap-2 text-zinc-400 text-xs font-semibold">
+                  <Info size={15} className="text-[#C8A45C] shrink-0" />
+                  <span>
+                    {storeSettings.guestPreviewNote || "لا يمكنك الشراء أو استخدام المتجر بدون حساب. اضغط على أي قسم أو منتج للتسجيل."}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="px-2 sm:px-4">
+            {/* User Welcome Row */}
+            <div className="flex justify-between items-center mb-4">
+              <div className="flex items-center gap-3">
+                <Link href="/profile">
+                  <div className="relative cursor-pointer group">
+                    {effectiveAvatar ? (
+                      <img
+                        src={effectiveAvatar}
+                        alt={displayName}
+                        className="w-12 h-12 rounded-2xl object-cover border-2 border-[#C8A45C]/50 shadow-md group-hover:border-[#C8A45C] transition"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#2D2D2D] to-[#1A1A1A] flex items-center justify-center border-2 border-[#C8A45C]/40 shadow-md group-hover:border-[#C8A45C] transition">
+                        <span className="text-[#C8A45C] font-black text-xl">
+                          {displayName ? displayName.charAt(0).toUpperCase() : "X"}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </Link>
+                <div>
+                  <p className="text-[11px] text-zinc-400 font-bold">أهلاً بك يا</p>
+                  <p className="text-sm sm:text-base font-black text-white">
+                    {profileLoading && !displayName ? <Skeleton className="h-4 w-20" /> : displayName}
+                  </p>
+                </div>
+              </div>
+
+              {/* Display ID Badge */}
+              {effectiveDisplayId && (
+                <div className="flex items-center gap-1.5 bg-[#2D2D2D] border border-[#C8A45C]/40 px-3.5 py-1.5 rounded-2xl shadow-md">
+                  <Hash size={15} className="text-[#C8A45C]" />
+                  <span className="text-xs text-zinc-400 font-bold hidden sm:inline">المعرف:</span>
+                  <span className="text-xs sm:text-sm font-mono font-black text-[#FDE68A]">
+                    #{effectiveDisplayId}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Balance Card */}
+            <div className="rounded-3xl bg-gradient-to-br from-[#2D2D2D] via-[#222222] to-[#1A1A1A] border border-[#C8A45C]/40 shadow-xl overflow-hidden relative p-5 sm:p-6 text-white">
+              <div className="absolute top-0 right-0 w-48 h-48 bg-[#C8A45C]/15 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+              <div className="absolute bottom-0 left-0 w-32 h-32 bg-[#C8A45C]/10 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2 pointer-events-none" />
+
+              <div className="flex justify-between items-center relative z-10">
+                <div>
+                  <div className="flex items-center gap-2 text-zinc-400 mb-1">
+                    <Wallet className="w-4 h-4 text-[#C8A45C]" />
+                    <span className="text-xs sm:text-sm font-bold">الرصيد المتاح في المحفظة</span>
+                  </div>
+                  <div className="text-2xl sm:text-4xl font-black text-white flex items-baseline gap-1.5 tracking-tight">
+                    <span className="text-[#C8A45C] font-bold">$</span>
+                    {profileLoading ? (
+                      <Skeleton className="h-9 w-28 bg-zinc-700" />
+                    ) : (
+                      Number(profile?.balanceUsd ?? user?.balanceUsd ?? 0).toFixed(2)
+                    )}
+                    <span className="text-xs text-zinc-400 font-normal mr-2">USD</span>
+                  </div>
+                </div>
+
+                <Link href="/deposit">
+                  <div className="bg-[#C8A45C] hover:bg-[#B8954A] text-[#1A1A1A] shadow-lg shadow-[#C8A45C]/25 rounded-2xl px-5 py-3 flex items-center gap-2 text-sm font-black transition-all active:scale-95 cursor-pointer">
+                    <Plus className="w-4 h-4 stroke-[3]" />
+                    <span>شحن الرصيد</span>
+                  </div>
+                </Link>
               </div>
             </div>
 
-            {/* Display ID Badge */}
-            {effectiveDisplayId && (
-              <div className="flex items-center gap-1.5 bg-[#2D2D2D] border border-[#C8A45C]/40 px-3.5 py-1.5 rounded-2xl shadow-md">
-                <Hash size={15} className="text-[#C8A45C]" />
-                <span className="text-xs text-zinc-400 font-bold hidden sm:inline">المعرف:</span>
-                <span className="text-xs sm:text-sm font-mono font-black text-[#FDE68A]">
-                  #{effectiveDisplayId}
-                </span>
+            {profileError && !localTelegramUser && (
+              <div className="mt-4 rounded-2xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+                لم تصل بيانات تيليجرام إلى المتجر. اضغط /start ثم افتح المتجر من زر البوت.
               </div>
             )}
           </div>
-
-          {/* Balance Card */}
-          <div className="rounded-3xl bg-gradient-to-br from-[#2D2D2D] via-[#222222] to-[#1A1A1A] border border-[#C8A45C]/40 shadow-xl overflow-hidden relative p-5 sm:p-6 text-white">
-            <div className="absolute top-0 right-0 w-48 h-48 bg-[#C8A45C]/15 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-            <div className="absolute bottom-0 left-0 w-32 h-32 bg-[#C8A45C]/10 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2 pointer-events-none" />
-
-            <div className="flex justify-between items-center relative z-10">
-              <div>
-                <div className="flex items-center gap-2 text-zinc-400 mb-1">
-                  <Wallet className="w-4 h-4 text-[#C8A45C]" />
-                  <span className="text-xs sm:text-sm font-bold">الرصيد المتاح في المحفظة</span>
-                </div>
-                <div className="text-2xl sm:text-4xl font-black text-white flex items-baseline gap-1.5 tracking-tight">
-                  <span className="text-[#C8A45C] font-bold">$</span>
-                  {profileLoading ? (
-                    <Skeleton className="h-9 w-28 bg-zinc-700" />
-                  ) : (
-                    Number(profile?.balanceUsd ?? user?.balanceUsd ?? 0).toFixed(2)
-                  )}
-                  <span className="text-xs text-zinc-400 font-normal mr-2">USD</span>
-                </div>
-              </div>
-
-              <Link href="/deposit">
-                <div className="bg-[#C8A45C] hover:bg-[#B8954A] text-[#1A1A1A] shadow-lg shadow-[#C8A45C]/25 rounded-2xl px-5 py-3 flex items-center gap-2 text-sm font-black transition-all active:scale-95 cursor-pointer">
-                  <Plus className="w-4 h-4 stroke-[3]" />
-                  <span>شحن الرصيد</span>
-                </div>
-              </Link>
-            </div>
-          </div>
-
-          {profileError && !localTelegramUser && (
-            <div className="mt-4 rounded-2xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-              لم تصل بيانات تيليجرام إلى المتجر. اضغط /start ثم افتح المتجر من زر البوت.
-            </div>
-          )}
-        </div>
+        )}
 
         {/* Banner Carousel Component */}
         <BannerCarousel banners={mappedBanners} isLoading={bannersLoading} />
@@ -229,6 +302,19 @@ export default function Home() {
                 const offerLink = offer.link && offer.link.trim().length > 0 ? offer.link.trim() : "/deposit";
                 const isExternal = offerLink.startsWith("http://") || offerLink.startsWith("https://");
 
+                const handleOfferClick = (e: React.MouseEvent) => {
+                  if (isGuest) {
+                    e.preventDefault();
+                    try {
+                      sessionStorage.setItem("redirect_after_login", offerLink);
+                    } catch {
+                      // Ignore
+                    }
+                    toast.info("يرجى تسجيل الدخول أو إنشاء حساب للاستمرار ومتابعة الشراء");
+                    setLocation("/login");
+                  }
+                };
+
                 const cardContent = (
                   <div className="group relative rounded-2xl border border-amber-500/30 bg-gradient-to-br from-[#1c1913] via-[#181510] to-zinc-950 p-4 shadow-xl hover:border-amber-500/60 transition-all flex items-center gap-4 overflow-hidden">
                     <div className="relative w-24 h-24 rounded-xl overflow-hidden shrink-0 border border-amber-500/20 bg-black/40">
@@ -252,11 +338,11 @@ export default function Home() {
                 );
 
                 return isExternal ? (
-                  <a key={offer.id} href={offerLink} target="_blank" rel="noopener noreferrer">
+                  <a key={offer.id} href={offerLink} target="_blank" rel="noopener noreferrer" onClick={handleOfferClick}>
                     {cardContent}
                   </a>
                 ) : (
-                  <Link key={offer.id} href={offerLink}>
+                  <Link key={offer.id} href={offerLink} onClick={handleOfferClick}>
                     {cardContent}
                   </Link>
                 );

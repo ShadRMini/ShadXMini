@@ -1,7 +1,10 @@
 import { useState } from "react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { PackageOpen, Sparkles, ShoppingBag } from "lucide-react";
+import { PackageOpen, Sparkles, ShoppingBag, Lock } from "lucide-react";
+import { useAuth } from "@/lib/auth-context";
+import { useStoreSettings } from "@/lib/store-settings-context";
+import { toast } from "sonner";
 
 export interface ProductCardProps {
   id: string | number;
@@ -48,12 +51,35 @@ export default function ProductCard({
   href,
 }: ProductCardProps) {
   const [imgError, setImgError] = useState(false);
+  const [, setLocation] = useLocation();
+  const { user, token } = useAuth();
+  const storeSettings = useStoreSettings();
+
+  const isGuestModeEnabled = Boolean(
+    storeSettings.guestPreviewEnabled ?? storeSettings.guest_preview_enabled
+  );
+  const isAuthenticated = Boolean(user || token);
+  const isGuest = !isAuthenticated && isGuestModeEnabled;
+
   const targetLink = href || `/products/${id}`;
   const finalImageUrl = image ? withImageVersion(image, imageVersion || `${id}-${image}`) : "";
   const formattedPrice = formatPrice(priceUsd, minTotalUsd, minQty);
 
+  const handleClick = (e: React.MouseEvent) => {
+    if (isGuest) {
+      e.preventDefault();
+      try {
+        sessionStorage.setItem("redirect_after_login", targetLink);
+      } catch {
+        // Ignore
+      }
+      toast.info("يرجى تسجيل الدخول أو إنشاء حساب للاستمرار ومتابعة الشراء");
+      setLocation("/login");
+    }
+  };
+
   return (
-    <Link href={targetLink}>
+    <Link href={targetLink} onClick={handleClick}>
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -85,23 +111,35 @@ export default function ProductCard({
           {/* Depth Gradient Overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent opacity-60 group-hover:opacity-40 transition-opacity pointer-events-none" />
 
+          {/* Guest Lock Overlay on Hover */}
+          {isGuest && (
+            <div className="absolute inset-0 bg-[#1A1A1A]/80 backdrop-blur-xs flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 p-2 text-center">
+              <div className="w-8 h-8 rounded-full bg-[#C8A45C]/20 border border-[#C8A45C] flex items-center justify-center text-[#C8A45C] mb-1 shadow-sm">
+                <Lock size={15} />
+              </div>
+              <span className="text-[10px] font-bold text-[#FDE68A] line-clamp-1">
+                سجّل دخولك للعرض
+              </span>
+            </div>
+          )}
+
           {/* Category Tag Badge */}
           {categoryName && (
-            <span className="absolute top-2 right-2 text-[9px] font-bold bg-[#1A1A1A]/85 text-[#C8A45C] px-2 py-0.5 rounded-lg border border-[#C8A45C]/30 shadow-xs pointer-events-none backdrop-blur-xs">
+            <span className="absolute top-2 right-2 text-[9px] font-bold bg-[#1A1A1A]/85 text-[#C8A45C] px-2 py-0.5 rounded-lg border border-[#C8A45C]/30 shadow-xs pointer-events-none backdrop-blur-xs z-10">
               {categoryName}
             </span>
           )}
 
           {/* Product Count Badge (for groups) */}
           {productCount !== undefined && productCount > 0 && (
-            <span className="absolute top-2 left-2 text-[9px] font-bold bg-[#1A1A1A]/85 text-[#FDE68A] px-2 py-0.5 rounded-lg border border-[#C8A45C]/30 shadow-xs pointer-events-none">
+            <span className="absolute top-2 left-2 text-[9px] font-bold bg-[#1A1A1A]/85 text-[#FDE68A] px-2 py-0.5 rounded-lg border border-[#C8A45C]/30 shadow-xs pointer-events-none z-10">
               {productCount} منتج
             </span>
           )}
 
           {/* Bottom Floating Price Badge if price provided */}
           {priceUsd !== undefined && (
-            <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between pointer-events-none">
+            <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between pointer-events-none z-10">
               <span className="text-[10px] sm:text-xs font-black text-[#FDE68A] bg-[#1A1A1A]/90 px-2 py-0.5 rounded-lg border border-[#C8A45C]/40 shadow-xs">
                 {formattedPrice}
               </span>
