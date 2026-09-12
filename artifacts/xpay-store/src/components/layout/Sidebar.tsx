@@ -406,7 +406,12 @@ export default function Sidebar({ brandLogo, onClose }: SidebarProps) {
           }`}
         >
           <button
-            onClick={logout}
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              logout();
+            }}
             className="w-full flex items-center justify-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-bold text-red-400 hover:bg-red-950/40 hover:text-red-300 border border-red-900/30 transition cursor-pointer"
           >
             <LogOut size={17} />

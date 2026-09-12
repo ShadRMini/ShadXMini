@@ -49,6 +49,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const [user, setUser] = useState<UserProfile | null>(() => {
     try {
+      const storedToken = localStorage.getItem(TOKEN_KEY);
+      if (!storedToken) return null;
       const cached = localStorage.getItem(USER_KEY);
       return cached ? JSON.parse(cached) : null;
     } catch {
@@ -69,28 +71,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  const refreshUser = useCallback(async (): Promise<UserProfile | null> => {
+  const refreshUser = useCallback(async (signal?: AbortSignal): Promise<UserProfile | null> => {
     try {
       const storedToken = localStorage.getItem(TOKEN_KEY);
+      if (!storedToken) {
+        setUser(null);
+        setToken(null);
+        return null;
+      }
+
       const baseUrl = apiBaseUrl();
       const headers: Record<string, string> = {
         "Accept": "application/json",
+        "Authorization": `Bearer ${storedToken}`,
       };
-
-      if (storedToken) {
-        headers["Authorization"] = `Bearer ${storedToken}`;
-      }
 
       const res = await fetch(`${baseUrl}/api/me?_=${Date.now()}`, {
         headers,
         credentials: "include",
+        signal,
       });
 
       if (!res.ok) {
-        if (res.status === 401) {
+        if (res.status === 401 || res.status === 403) {
           // Token expired or invalid
           localStorage.removeItem(TOKEN_KEY);
           localStorage.removeItem(USER_KEY);
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          localStorage.removeItem("auth");
           setToken(null);
           setUser(null);
         }
@@ -103,29 +112,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         localStorage.setItem(USER_KEY, JSON.stringify(data));
         return data;
       } else {
-        // Identity missing
-        if (!storedToken) {
-          setUser(null);
-          localStorage.removeItem(USER_KEY);
-        }
+        setUser(null);
+        localStorage.removeItem(USER_KEY);
         return null;
       }
-    } catch (err) {
+    } catch (err: any) {
+      if (err?.name === "AbortError") {
+        return null;
+      }
       console.error("Failed to refresh user:", err);
       return null;
     }
   }, []);
 
   useEffect(() => {
-    let mounted = true;
+    const controller = new AbortController();
+    const storedToken = localStorage.getItem(TOKEN_KEY);
+
+    if (!storedToken) {
+      setUser(null);
+      setToken(null);
+      setLoading(false);
+      return;
+    }
+
     const init = async () => {
       setLoading(true);
-      await refreshUser();
-      if (mounted) setLoading(false);
+      await refreshUser(controller.signal);
+      if (!controller.signal.aborted) {
+        setLoading(false);
+      }
     };
+
     init();
+
     return () => {
-      mounted = false;
+      controller.abort();
     };
   }, [refreshUser]);
 
@@ -133,6 +155,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       localStorage.setItem(TOKEN_KEY, newToken);
       localStorage.setItem(USER_KEY, JSON.stringify(newUser));
+      localStorage.setItem("token", newToken);
     } catch (e) {
       console.error("Storage write error", e);
     }
@@ -141,44 +164,61 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const logout = useCallback(async () => {
+    const currentToken = localStorage.getItem(TOKEN_KEY) || token;
+    const baseUrl = apiBaseUrl();
+
+    // 1. Notify server
     try {
-      // 1. إرسال طلب تسجيل الخروج للخادم
-      const baseUrl = apiBaseUrl();
-      await fetch(`${baseUrl}/api/auth/logout`, { method: "POST", credentials: "include" }).catch(() => {});
+      await fetch(`${baseUrl}/api/auth/logout`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(currentToken ? { "Authorization": `Bearer ${currentToken}` } : {}),
+        },
+        credentials: "include",
+      }).catch(() => {});
     } catch (err) {
-      console.error("Logout API error:", err);
-    } finally {
-      // 2. حذف جميع بيانات المستخدم والتوكن من التخزين المحلي والجلسة
-      try {
-        localStorage.removeItem(TOKEN_KEY);
-        localStorage.removeItem(USER_KEY);
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        localStorage.removeItem("auth");
-        sessionStorage.clear();
-      } catch (e) {
-        console.error("Storage delete error", e);
-      }
-
-      // 3. حذف الكوكيز إن وجدت
-      try {
-        if (typeof document !== "undefined" && document.cookie) {
-          document.cookie.split(";").forEach((c) => {
-            document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-          });
-        }
-      } catch {
-        // ignore
-      }
-
-      // 4. تحديث حالة AuthContext
-      setToken(null);
-      setUser(null);
-
-      // 5. إعادة توجيه إلى الصفحة الرئيسية مع إعادة تحميل كاملة
-      window.location.href = "/";
+      console.warn("Logout API failed (ignored):", err);
     }
-  }, []);
+
+    // 2. Clear all authentication keys from localStorage & sessionStorage
+    try {
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(USER_KEY);
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      localStorage.removeItem("auth");
+      localStorage.removeItem("xpay_auth_token");
+      localStorage.removeItem("xpay_auth_user");
+      sessionStorage.clear();
+    } catch (e) {
+      console.error("Storage clear error", e);
+    }
+
+    // 3. Clear all cookies across all paths and domain combinations
+    try {
+      if (typeof document !== "undefined" && document.cookie) {
+        const hostname = window.location.hostname;
+        document.cookie.split(";").forEach((c) => {
+          const name = c.trim().split("=")[0];
+          if (name) {
+            document.cookie = `${name}=;expires=${new Date(0).toUTCString()};path=/`;
+            document.cookie = `${name}=;expires=${new Date(0).toUTCString()};path=/;domain=${hostname}`;
+            document.cookie = `${name}=;expires=${new Date(0).toUTCString()};path=/;domain=.${hostname}`;
+          }
+        });
+      }
+    } catch {
+      // Ignore
+    }
+
+    // 4. Reset React Auth state
+    setToken(null);
+    setUser(null);
+
+    // 5. Force hard redirect to home
+    window.location.replace("/");
+  }, [token]);
 
   const updateUser = useCallback((updatedUser: UserProfile, newToken?: string) => {
     try {
