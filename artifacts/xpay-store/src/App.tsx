@@ -17,6 +17,9 @@ import Deposit from "@/pages/deposit";
 import DepositPayPage from "@/pages/DepositPayPage";
 import DepositMethod from "@/pages/deposit-method";
 import ShamCashInvoiceVerify from "@/pages/shamcash-invoice-verify";
+import WalletPage from "@/pages/WalletPage";
+import DepositShamCash from "@/pages/DepositShamCash";
+import DepositInvoicePay from "@/pages/DepositInvoicePay";
 import DepositsList from "@/pages/deposits";
 import Profile from "@/pages/profile";
 import SettingsPage from "@/pages/settings";
@@ -200,8 +203,11 @@ function Router() {
             <Route path="/products/:id" component={() => <ProtectedRoute component={ProductDetail} />} />
             <Route path="/orders" component={() => <ProtectedRoute component={Orders} />} />
             <Route path="/orders/:id" component={() => <ProtectedRoute component={OrderDetail} />} />
-            <Route path="/deposit" component={() => <ProtectedRoute component={Deposit} />} />
-            <Route path="/deposit/pay/:invoiceId" component={() => <ProtectedRoute component={DepositPayPage} />} />
+            <Route path="/wallet" component={() => <ProtectedRoute component={WalletPage} />} />
+            <Route path="/deposit" component={() => <ProtectedRoute component={WalletPage} />} />
+            <Route path="/deposit/shamcash" component={() => <ProtectedRoute component={DepositShamCash} />} />
+            <Route path="/deposit/pay/:invoiceId" component={() => <ProtectedRoute component={DepositInvoicePay} />} />
+            <Route path="/deposit-legacy" component={() => <ProtectedRoute component={Deposit} />} />
             <Route path="/deposit/:method/invoice" component={() => <ProtectedRoute component={ShamCashInvoiceVerify} />} />
             <Route path="/deposit/:method" component={() => <ProtectedRoute component={DepositMethod} />} />
             <Route path="/deposits" component={() => <ProtectedRoute component={DepositsList} />} />

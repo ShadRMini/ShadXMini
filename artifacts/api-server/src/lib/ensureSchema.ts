@@ -970,6 +970,50 @@ export async function ensureDatabaseSchema() {
       }
     });
 
+    // 15. Ensure payment_methods table and seed default methods
+    try {
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS payment_methods (
+          id SERIAL PRIMARY KEY,
+          code TEXT NOT NULL UNIQUE,
+          name TEXT NOT NULL,
+          subtitle TEXT NOT NULL,
+          instructions TEXT,
+          wallet_address TEXT,
+          logo_image TEXT,
+          qr_image TEXT,
+          min_amount NUMERIC(12, 2) NOT NULL DEFAULT 1,
+          active BOOLEAN NOT NULL DEFAULT true
+        );
+      `);
+
+      const checkPaymentMethods: any = await db.execute(sql`SELECT count(*)::int as c FROM payment_methods`);
+      const count = Number(checkPaymentMethods?.rows?.[0]?.c ?? checkPaymentMethods?.[0]?.c ?? 0);
+      if (count === 0) {
+        await db.execute(sql`
+          INSERT INTO payment_methods (id, code, name, subtitle, instructions, wallet_address, logo_image, qr_image, min_amount, active)
+          VALUES
+            (1, 'sham_cash', 'شام كاش', 'تتطلب توثيق الحساب', 'يرجى التحويل إلى عنوان المحفظة ثم إدخال رقم العملية للتأكيد الفوري.', '35147b5811bdc0bf07fdb11b85c8a5d', '', '', 1, true),
+            (2, 'syriatel_cash', 'سيرياتيل كاش', 'شحن فوري', 'يرجى التحويل إلى الرقم المعتمد وإرفاق إشعار الدفع.', '0991234567', '', '', 1, true),
+            (3, 'binance_pay', 'Binance Pay', 'شحن فوري', 'الدفع عبر معرف بينانس مع التأكيد السريع.', 'xpay_binance@pay', '', '', 1, true),
+            (4, 'usdt_auto', 'USDT تلقائي', 'شحن فوري', 'تحويل شبكة TRC20 مع المعالجة التلقائية.', 'TQn9Y2khEsLJW1ChVWFMSMeSTow5KaxnSE', '', '', 5, true),
+            (5, 'mtn_cash', 'MTN Cash', 'مراجعة يدوية', 'يرجى التحويل عبر MTN كاش ورفع إشعار العملية للمراجعة.', '0941234567', '', '', 1, true)
+          ON CONFLICT (code) DO NOTHING;
+        `);
+
+        await db.execute(sql`
+          SELECT setval(
+            pg_get_serial_sequence('payment_methods', 'id'),
+            COALESCE((SELECT MAX(id) FROM payment_methods), 5),
+            true
+          );
+        `).catch(() => null);
+        console.log("[DB Schema] Seeded 5 payment methods successfully.");
+      }
+    } catch (pmErr) {
+      console.warn("[DB Schema] Error seeding payment_methods:", pmErr);
+    }
+
     schemaEnsured = true;
     console.log("[DB Schema] Runtime schema verified and synchronized successfully.");
   } catch (error) {

@@ -285,7 +285,7 @@ export default function Sidebar({ brandLogo, onClose }: SidebarProps) {
           const isActive =
             location === item.href ||
             (item.href !== "/" && item.href !== "/deposit" && location.startsWith(item.href + "/")) ||
-            (item.href === "/deposit" && (location === "/deposit" || location.startsWith("/deposit/")));
+            (item.href === "/deposit" && (location === "/deposit" || location === "/wallet" || location.startsWith("/deposit/") || location.startsWith("/wallet/")));
 
           return (
             <Link key={item.href} href={item.href} onClick={(e) => handleLinkClick(e, item.href)}>
