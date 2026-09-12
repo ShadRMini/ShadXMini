@@ -164,24 +164,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const logout = useCallback(async () => {
-    const currentToken = localStorage.getItem(TOKEN_KEY) || token;
-    const baseUrl = apiBaseUrl();
-
-    // 1. Notify server
-    try {
-      await fetch(`${baseUrl}/api/auth/logout`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(currentToken ? { "Authorization": `Bearer ${currentToken}` } : {}),
-        },
-        credentials: "include",
-      }).catch(() => {});
-    } catch (err) {
-      console.warn("Logout API failed (ignored):", err);
-    }
-
-    // 2. Clear all authentication keys from localStorage & sessionStorage
+    // 1. امسح كل شيء محلياً أولاً (قبل أي انتظار) لضمان عدم استرجاع الجلسة
     try {
       localStorage.removeItem(TOKEN_KEY);
       localStorage.removeItem(USER_KEY);
@@ -192,33 +175,48 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.removeItem("xpay_auth_user");
       sessionStorage.clear();
     } catch (e) {
-      console.error("Storage clear error", e);
+      console.error("Storage clear error:", e);
     }
 
-    // 3. Clear all cookies across all paths and domain combinations
+    // 2. حذف الكوكيز
     try {
-      if (typeof document !== "undefined" && document.cookie) {
+      if (typeof document !== "undefined") {
         const hostname = window.location.hostname;
         document.cookie.split(";").forEach((c) => {
           const name = c.trim().split("=")[0];
           if (name) {
             document.cookie = `${name}=;expires=${new Date(0).toUTCString()};path=/`;
             document.cookie = `${name}=;expires=${new Date(0).toUTCString()};path=/;domain=${hostname}`;
-            document.cookie = `${name}=;expires=${new Date(0).toUTCString()};path=/;domain=.${hostname}`;
           }
         });
       }
-    } catch {
-      // Ignore
-    }
+    } catch {}
 
-    // 4. Reset React Auth state
+    // 3. تحديث الحالة فوراً (قبل أي شبكة)
     setToken(null);
     setUser(null);
 
-    // 5. Force hard redirect to home
-    window.location.replace("/");
-  }, [token]);
+    // 4. محاولة إبلاغ الخادم مع مهلة قصوى (2 ثانية)
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 2000);
+    try {
+      const baseUrl = (import.meta.env.VITE_API_URL || "").replace(/\/+$/, "");
+      if (baseUrl) {
+        await fetch(`${baseUrl}/api/auth/logout`, {
+          method: "POST",
+          credentials: "include",
+          signal: controller.signal,
+        }).catch(() => {});
+      }
+    } catch (err) {
+      console.warn("Logout API error (ignored):", err);
+    } finally {
+      clearTimeout(timeoutId);
+    }
+
+    // 5. إعادة التوجيه بالقوة
+    window.location.href = "/";
+  }, []);
 
   const updateUser = useCallback((updatedUser: UserProfile, newToken?: string) => {
     try {
