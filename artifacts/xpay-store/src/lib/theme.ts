@@ -242,7 +242,10 @@ export function applyStoreTheme(theme?: Partial<StoreThemeSettings> | null | und
   root.style.setProperty("--theme-secondary", secondary);
   root.style.setProperty("--theme-accent", accent);
   root.style.setProperty("--theme-background", bgPrimary);
+  root.style.setProperty("--theme-card", bgCard);
+  root.style.setProperty("--theme-input", bgInput);
   root.style.setProperty("--theme-text-primary", textPrimary);
+  root.style.setProperty("--theme-text-muted", textMuted);
   root.style.setProperty("--theme-font-arabic", `'${fontArabic}', sans-serif`);
   root.style.setProperty("--theme-font-english", `'${fontEnglish}', sans-serif`);
   root.style.setProperty("--theme-border-radius", radiusPx);
@@ -285,7 +288,10 @@ export function applyStoreTheme(theme?: Partial<StoreThemeSettings> | null | und
       --theme-secondary: ${secondary} !important;
       --theme-accent: ${accent} !important;
       --theme-background: ${bgPrimary} !important;
+      --theme-card: ${bgCard} !important;
+      --theme-input: ${bgInput} !important;
       --theme-text-primary: ${textPrimary} !important;
+      --theme-text-muted: ${textMuted} !important;
       --theme-font-arabic: '${fontArabic}', sans-serif !important;
       --theme-font-english: '${fontEnglish}', sans-serif !important;
       --theme-border-radius: ${radiusPx} !important;
