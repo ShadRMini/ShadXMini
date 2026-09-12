@@ -27,6 +27,8 @@ export interface PaymentMethodItem {
   qrImage?: string;
   minAmount?: number;
   active?: boolean;
+  order?: number;
+  category?: string;
 }
 
 const DEFAULT_METHODS: PaymentMethodItem[] = [
@@ -133,15 +135,15 @@ function getMethodIcon(code: string) {
   }
 }
 
-function getBadgeProps(subtitle: string, code: string) {
-  if (code.includes("sham") || subtitle.includes("توثيق")) {
+function getBadgeProps(subtitle: string, code: string, category?: string) {
+  if (category === "تلقائي" || code.includes("sham") || subtitle.includes("توثيق")) {
     return {
       icon: <Lock className="w-3 h-3 shrink-0" />,
       className: "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20",
       text: subtitle || "تتطلب توثيق الحساب",
     };
   }
-  if (subtitle.includes("يدوية") || subtitle.includes("مراجعة")) {
+  if (category === "يدوي" || category === "مراجعة يدوية" || subtitle.includes("يدوية") || subtitle.includes("مراجعة")) {
     return {
       icon: <Clock className="w-3 h-3 shrink-0" />,
       className: "bg-slate-500/10 text-slate-700 dark:text-slate-400 border-slate-500/20",
@@ -294,7 +296,7 @@ export function WalletPage() {
           <div className="space-y-3">
             {methods.map((method) => {
               const isSelected = selectedCode === method.code;
-              const badge = getBadgeProps(method.subtitle, method.code);
+              const badge = getBadgeProps(method.subtitle, method.code, method.category);
 
               return (
                 <div
@@ -310,8 +312,15 @@ export function WalletPage() {
                   {/* Right side: Icon + Name & Subtitle */}
                   <div className="flex items-center gap-3.5">
                     {method.logoImage ? (
-                      <div className="w-12 h-12 rounded-2xl border border-border/60 overflow-hidden flex items-center justify-center bg-background shrink-0">
-                        <img src={method.logoImage} alt={method.name} className="w-10 h-10 object-contain" />
+                      <div className="w-12 h-12 rounded-2xl border border-border/60 overflow-hidden flex items-center justify-center bg-background shrink-0 p-1">
+                        <img
+                          src={method.logoImage}
+                          alt={method.name}
+                          className="w-full h-full object-contain"
+                          onError={(e) => {
+                            (e.target as HTMLElement).style.display = "none";
+                          }}
+                        />
                       </div>
                     ) : (
                       getMethodIcon(method.code)

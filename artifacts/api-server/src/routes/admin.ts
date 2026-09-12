@@ -28,7 +28,7 @@ import {
   productPageConfigTable,
   identityVerificationsTable,
 } from "@workspace/db";
-import { and, desc, eq, gte, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gte, sql } from "drizzle-orm";
 import { requireAdmin } from "../lib/adminAuth.js";
 import { getAdapter } from "../lib/adapter-registry"; 
 import { MersalAdapter } from "../lib/mersal-adapter";
@@ -1593,6 +1593,7 @@ router.patch("/admin/banners/:id/toggle-active", requireAdmin, async (req, res) 
 });
 
 makeCrud("payment-methods", paymentMethodsTable, {
+  orderBy: asc(paymentMethodsTable.order),
   allowedFields: [
     "code",
     "name",
@@ -1603,7 +1604,50 @@ makeCrud("payment-methods", paymentMethodsTable, {
     "qrImage",
     "minAmount",
     "active",
+    "order",
+    "category",
   ],
+});
+
+router.patch("/admin/payment-methods/:id/toggle", requireAdmin, async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const [existing] = await db
+      .select()
+      .from(paymentMethodsTable)
+      .where(eq(paymentMethodsTable.id, id))
+      .limit(1);
+    if (!existing) {
+      return res.status(404).json({ error: "طريقة الدفع غير موجودة" });
+    }
+    const newActive = typeof req.body?.active === "boolean" ? req.body.active : !existing.active;
+    await db
+      .update(paymentMethodsTable)
+      .set({ active: newActive, updatedAt: new Date() } as any)
+      .where(eq(paymentMethodsTable.id, id));
+    res.json({ ok: true, active: newActive });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.patch("/admin/payment-methods/reorder", requireAdmin, async (req, res) => {
+  try {
+    const items = req.body?.items; // Array of { id: number, order: number }
+    if (Array.isArray(items)) {
+      for (const item of items) {
+        if (item.id !== undefined && item.order !== undefined) {
+          await db
+            .update(paymentMethodsTable)
+            .set({ order: Number(item.order), updatedAt: new Date() } as any)
+            .where(eq(paymentMethodsTable.id, Number(item.id)));
+        }
+      }
+    }
+    res.json({ ok: true });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 makeCrud("social-links", socialLinksTable, {

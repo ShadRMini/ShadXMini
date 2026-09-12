@@ -126,6 +126,10 @@ export const paymentMethodsTable = pgTable("payment_methods", {
   qrImage: text("qr_image"),
   minAmount: numeric("min_amount", { precision: 12, scale: 2 }).notNull().default("1"),
   active: boolean("active").notNull().default(true),
+  order: integer("order").notNull().default(0),
+  category: text("category"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 export const socialLinksTable = pgTable("social_links", {

@@ -8,15 +8,20 @@ const router: IRouter = Router();
 
 router.get("/payment-methods", async (_req, res) => {
   try {
-    let rows = await db.select().from(paymentMethodsTable).where(eq(paymentMethodsTable.active, true)).catch(() => []);
+    let rows = await db
+      .select()
+      .from(paymentMethodsTable)
+      .where(eq(paymentMethodsTable.active, true))
+      .orderBy(asc(paymentMethodsTable.order))
+      .catch(() => []);
     
     if (!rows || rows.length === 0) {
       const defaultMethods = [
-        { id: "1", code: "sham_cash", name: "شام كاش", subtitle: "تتطلب توثيق الحساب", instructions: "يرجى التحويل إلى عنوان المحفظة ثم إدخال رقم العملية للتأكيد الفوري.", walletAddress: "35147b5811bdc0bf07fdb11b85c8a5d", minAmount: 1, active: true },
-        { id: "2", code: "syriatel_cash", name: "سيرياتيل كاش", subtitle: "شحن فوري", instructions: "يرجى التحويل إلى الرقم المعتمد وإرفاق إشعار الدفع.", walletAddress: "0991234567", minAmount: 1, active: true },
-        { id: "3", code: "binance_pay", name: "Binance Pay", subtitle: "شحن فوري", instructions: "الدفع عبر معرف بينانس مع التأكيد السريع.", walletAddress: "xpay_binance@pay", minAmount: 1, active: true },
-        { id: "4", code: "usdt_auto", name: "USDT تلقائي", subtitle: "شحن فوري", instructions: "تحويل شبكة TRC20 مع المعالجة التلقائية.", walletAddress: "TQn9Y2khEsLJW1ChVWFMSMeSTow5KaxnSE", minAmount: 5, active: true },
-        { id: "5", code: "mtn_cash", name: "MTN Cash", subtitle: "مراجعة يدوية", instructions: "يرجى التحويل عبر MTN كاش ورفع إشعار العملية للمراجعة.", walletAddress: "0941234567", minAmount: 1, active: true },
+        { id: "1", code: "sham_cash", name: "شام كاش", subtitle: "تتطلب توثيق الحساب", instructions: "يرجى التحويل إلى عنوان المحفظة ثم إدخال رقم العملية للتأكيد الفوري.", walletAddress: "35147b5811bdc0bf07fdb11b85c8a5d", minAmount: 1, active: true, order: 1, category: "تلقائي" },
+        { id: "2", code: "syriatel_cash", name: "سيرياتيل كاش", subtitle: "شحن فوري", instructions: "يرجى التحويل إلى الرقم المعتمد وإرفاق إشعار الدفع.", walletAddress: "0991234567", minAmount: 1, active: true, order: 2, category: "فوري" },
+        { id: "3", code: "binance_pay", name: "Binance Pay", subtitle: "شحن فوري", instructions: "الدفع عبر معرف بينانس مع التأكيد السريع.", walletAddress: "xpay_binance@pay", minAmount: 1, active: true, order: 3, category: "فوري" },
+        { id: "4", code: "usdt_auto", name: "USDT تلقائي", subtitle: "شحن فوري", instructions: "تحويل شبكة TRC20 مع المعالجة التلقائية.", walletAddress: "TQn9Y2khEsLJW1ChVWFMSMeSTow5KaxnSE", minAmount: 5, active: true, order: 4, category: "فوري" },
+        { id: "5", code: "mtn_cash", name: "MTN Cash", subtitle: "مراجعة يدوية", instructions: "يرجى التحويل عبر MTN كاش ورفع إشعار العملية للمراجعة.", walletAddress: "0941234567", minAmount: 1, active: true, order: 5, category: "يدوي" },
       ];
       return res.json(ListPaymentMethodsResponse.parse(defaultMethods));
     }
@@ -25,7 +30,7 @@ router.get("/payment-methods", async (_req, res) => {
       ListPaymentMethodsResponse.parse(
         rows.map((m) => ({
           id: String(m.id),
-          code: m.code as "sham_cash" | "sham_cash_auto" | "binance_pay" | "syriatel_cash" | "mtn_cash" | "usdt_auto",
+          code: String(m.code),
           name: m.name,
           subtitle: m.subtitle,
           instructions: m.instructions ?? undefined,
@@ -34,6 +39,8 @@ router.get("/payment-methods", async (_req, res) => {
           qrImage: m.qrImage ?? undefined,
           minAmount: Number(m.minAmount),
           active: m.active,
+          order: m.order !== undefined ? Number(m.order) : 0,
+          category: m.category ?? undefined,
         })),
       ),
     );

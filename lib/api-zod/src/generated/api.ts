@@ -144,14 +144,7 @@ export const ListBannersResponse = zod.array(ListBannersResponseItem);
  */
 export const ListPaymentMethodsResponseItem = zod.object({
   id: zod.string(),
-  code: zod.enum([
-    "sham_cash",
-    "sham_cash_auto",
-    "binance_pay",
-    "syriatel_cash",
-    "mtn_cash",
-    "usdt_auto",
-  ]),
+  code: zod.string(),
   name: zod.string(),
   subtitle: zod.string(),
   instructions: zod.string().optional(),
@@ -159,6 +152,8 @@ export const ListPaymentMethodsResponseItem = zod.object({
   logoImage: zod.string().optional(),
   qrImage: zod.string().optional(),
   minAmount: zod.number(),
+  order: zod.number().optional(),
+  category: zod.string().optional(),
   active: zod.boolean(),
 });
 export const ListPaymentMethodsResponse = zod.array(
