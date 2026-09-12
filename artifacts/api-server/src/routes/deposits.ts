@@ -352,6 +352,55 @@ router.get("/deposits/summary", async (_req, res) => {
   );
 });
 
+router.get("/deposits/shamcash/invoice/:invoiceId", async (req, res) => {
+  try {
+    const user = await getOrCreateCurrentUserStrict(req);
+    await ensureDepositsTelegramMessageColumn();
+    const invoiceId = String(req.params.invoiceId || "").trim();
+    if (!invoiceId) {
+      res.status(400).json({ error: "invoiceId is required" });
+      return;
+    }
+
+    const [dep] = await db
+      .select()
+      .from(depositsTable)
+      .where(and(eq(depositsTable.userId, user.id), eq(depositsTable.transactionId, invoiceId)))
+      .limit(1);
+
+    if (!dep) {
+      res.status(404).json({ error: "deposit_not_found_for_invoice" });
+      return;
+    }
+
+    const syncRes = await syncShamCashInvoiceStatus(invoiceId);
+
+    // Refresh dep from DB in case status changed during sync
+    const [refreshedDep] = await db
+      .select()
+      .from(depositsTable)
+      .where(eq(depositsTable.id, dep.id))
+      .limit(1);
+
+    const currentDep = refreshedDep || dep;
+
+    res.json({
+      ok: true,
+      invoiceId,
+      depositId: currentDep.id,
+      status: currentDep.status, // "pending" | "approved" | "rejected"
+      amountUsd: Number(currentDep.amountUsd),
+      amountSyp: currentDep.amountSyp != null ? Number(currentDep.amountSyp) : null,
+      currency: currentDep.currency,
+      createdAt: currentDep.createdAt,
+      syncedStatus: syncRes.status,
+    });
+  } catch (error: any) {
+    console.error("ShamCash invoice query failed:", error);
+    res.status(500).json({ error: error?.message || "invoice_query_failed" });
+  }
+});
+
 router.post("/deposits/shamcash/:invoiceId/sync", async (req, res) => {
   try {
     const user = await getOrCreateCurrentUserStrict(req);

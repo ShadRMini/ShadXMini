@@ -14,6 +14,7 @@ import ProductDetail from "@/pages/product-detail";
 import Orders from "@/pages/orders";
 import OrderDetail from "@/pages/order-detail";
 import Deposit from "@/pages/deposit";
+import DepositPayPage from "@/pages/DepositPayPage";
 import DepositMethod from "@/pages/deposit-method";
 import ShamCashInvoiceVerify from "@/pages/shamcash-invoice-verify";
 import DepositsList from "@/pages/deposits";
@@ -200,6 +201,7 @@ function Router() {
             <Route path="/orders" component={() => <ProtectedRoute component={Orders} />} />
             <Route path="/orders/:id" component={() => <ProtectedRoute component={OrderDetail} />} />
             <Route path="/deposit" component={() => <ProtectedRoute component={Deposit} />} />
+            <Route path="/deposit/pay/:invoiceId" component={() => <ProtectedRoute component={DepositPayPage} />} />
             <Route path="/deposit/:method/invoice" component={() => <ProtectedRoute component={ShamCashInvoiceVerify} />} />
             <Route path="/deposit/:method" component={() => <ProtectedRoute component={DepositMethod} />} />
             <Route path="/deposits" component={() => <ProtectedRoute component={DepositsList} />} />

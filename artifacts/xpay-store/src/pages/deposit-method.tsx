@@ -280,7 +280,7 @@ export default function DepositMethod() {
           toast.success("تم تأكيد الإيداع. أدخل رقم العملية في صفحة التحقق.");
           queryClient.invalidateQueries({ queryKey: ["/api/deposits"] });
           setLocation(
-            `/deposit/sham_cash_auto/invoice?invoiceId=${encodeURIComponent(invoiceId)}&depositId=${encodeURIComponent(String(payload.depositId || ""))}&expiresAt=${encodeURIComponent(String(payload.expiresAt || ""))}&amount=${encodeURIComponent(String(values.amount || ""))}&currency=${encodeURIComponent(String(values.currency || ""))}`,
+            `/deposit/pay/${encodeURIComponent(invoiceId)}?depositId=${encodeURIComponent(String(payload.depositId || ""))}&expiresAt=${encodeURIComponent(String(payload.expiresAt || ""))}&amount=${encodeURIComponent(String(values.amount || ""))}&currency=${encodeURIComponent(String(values.currency || ""))}`,
           );
         })
         .catch((err: any) => {
