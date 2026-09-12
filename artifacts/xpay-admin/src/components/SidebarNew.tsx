@@ -89,6 +89,7 @@ const NEW_NAV_GROUPS: NavGroup[] = [
     id: "system_settings",
     title: "إعدادات النظام",
     items: [
+      { to: "/interface-switcher", label: "تبديل الواجهات", icon: Layers },
       { to: "/settings", label: "الإعدادات العامة", icon: SettingsIcon },
       { to: "/theme", label: "تخصيص التصميم", icon: Palette },
       { to: "/auth-pages-settings", label: "تخصيص صفحات الدخول والتسجيل", icon: LogIn },
@@ -422,28 +423,6 @@ export default function SidebarNew({
           })
         )}
       </nav>
-
-      {/* Bottom Switcher: Revert to Legacy Sidebar */}
-      <div className="p-3 border-t border-[#C8A45C]/20 bg-[#141414] flex-shrink-0">
-        <button
-          onClick={onToggleSidebarMode}
-          disabled={isToggling}
-          type="button"
-          className="w-full py-2.5 px-3 rounded-xl bg-[#202020] hover:bg-[#2A2A2A] border border-[#C8A45C]/35 hover:border-[#C8A45C]/60 text-zinc-300 hover:text-[#FDE68A] text-xs font-bold flex items-center justify-center gap-2 transition cursor-pointer disabled:opacity-50 shadow-sm"
-          title="الرجوع إلى القائمة الجانبية بالترتيب الكلاسيكي"
-        >
-          {isToggling ? (
-            <RefreshCw size={15} className="animate-spin text-[#C8A45C]" />
-          ) : (
-            <History size={15} className="text-[#C8A45C]" />
-          )}
-          <span>{isToggling ? "جاري التبديل..." : "الرجوع للقائمة القديمة (Legacy)"}</span>
-        </button>
-        <div className="text-[10px] text-[#C8A45C] text-center mt-1.5 font-medium flex items-center justify-center gap-1">
-          <CheckCircle2 size={11} />
-          <span>الترتيب الجديد (Accordion) مفعّل</span>
-        </div>
-      </div>
     </aside>
   );
 }

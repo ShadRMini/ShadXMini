@@ -49,6 +49,7 @@ import ContactSettings from "./pages/ContactSettings";
 import DepositSettings from "./pages/DepositSettings";
 import AuthPagesSettings from "./pages/AuthPagesSettings";
 import IdentityVerifications from "./pages/IdentityVerifications";
+import InterfaceSwitcher from "./pages/InterfaceSwitcher";
 import { loadAndApplyAdminTheme } from "./lib/theme";
 import { Toaster } from "sonner";
 
@@ -146,6 +147,7 @@ export default function App() {
           <Route path="/admins" element={<Admins />} />
           <Route path="/admin/admins" element={<Navigate to="/admins" replace />} />
           <Route path="/activity" element={<ActivityLog />} />
+          <Route path="/interface-switcher" element={<InterfaceSwitcher />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/theme" element={<Theme />} />
           <Route path="/auth-pages-settings" element={<AuthPagesSettings />} />

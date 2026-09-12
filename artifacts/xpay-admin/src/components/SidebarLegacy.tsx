@@ -5,7 +5,7 @@ import {
   CreditCard, Image as ImageIcon, Megaphone, Share2, Server, Ticket,
   Crown, KeyRound, MessageSquare, Code2, Bell, ShieldCheck, BadgeCheck, Activity,
   Settings as SettingsIcon, Palette, BarChart3, Database, User as UserIcon,
-  Lock, Globe, Languages as LangIcon, PowerOff, X, Sparkles, RefreshCw, Headphones, LogIn
+  Lock, Globe, Languages as LangIcon, PowerOff, X, Sparkles, RefreshCw, Headphones, LogIn, Layers
 } from "lucide-react";
 
 export interface SidebarProps {
@@ -50,6 +50,7 @@ const LEGACY_NAV: { to: string; label: string; icon: any; group: string }[] = [
   { to: "/currency", label: "عملة المتجر", icon: Globe, group: "الإدارة المالية والتسويق" },
 
   // Group 5
+  { to: "/interface-switcher", label: "تبديل الواجهات", icon: Layers, group: "إعدادات النظام" },
   { to: "/settings", label: "الإعدادات العامة", icon: SettingsIcon, group: "إعدادات النظام" },
   { to: "/theme", label: "تخصيص التصميم", icon: Palette, group: "إعدادات النظام" },
   { to: "/auth-pages-settings", label: "تخصيص صفحات الدخول والتسجيل", icon: LogIn, group: "إعدادات النظام" },
@@ -149,27 +150,6 @@ export default function SidebarLegacy({
           </div>
         ))}
       </nav>
-
-      {/* Bottom Switcher: Switch to New Accordion Sidebar */}
-      <div className="p-3 border-t border-[#C8A45C]/20 bg-[#141414] flex-shrink-0">
-        <button
-          onClick={onToggleSidebarMode}
-          disabled={isToggling}
-          type="button"
-          className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-[#C8A45C]/25 to-[#C8A45C]/10 hover:from-[#C8A45C]/35 hover:to-[#C8A45C]/20 border border-[#C8A45C]/50 text-[#FDE68A] text-xs font-bold flex items-center justify-center gap-2 transition cursor-pointer disabled:opacity-50 shadow-sm"
-          title="الانتقال إلى القائمة الجانبية الحديثة المنظمة بنظام الأكورديون"
-        >
-          {isToggling ? (
-            <RefreshCw size={15} className="animate-spin text-[#C8A45C]" />
-          ) : (
-            <Sparkles size={15} className="text-[#C8A45C]" />
-          )}
-          <span>{isToggling ? "جاري التبديل..." : "تجربة القائمة الجديدة (Accordion)"}</span>
-        </button>
-        <div className="text-[10px] text-zinc-400 text-center mt-1.5 font-medium">
-          الترتيب الكلاسيكي مفعّل حالياً
-        </div>
-      </div>
     </aside>
   );
 }

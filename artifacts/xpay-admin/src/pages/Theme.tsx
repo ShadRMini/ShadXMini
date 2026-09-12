@@ -68,44 +68,5 @@ export default function ThemeWrapper() {
     );
   }
 
-  return (
-    <div className="space-y-4">
-      {/* Quick Switch Toggle Bar */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3" dir="rtl">
-        {/* Theme Customizer Mode */}
-        <div className="flex items-center justify-between px-4 py-2.5 bg-[#1A1A1A] border border-[#C8A45C]/20 rounded-2xl text-xs text-zinc-400 shadow-md">
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#C8A45C] animate-pulse" />
-            <span>
-              واجهة التخصيص: <strong className="text-[#FDE68A]">{useLegacy ? "القديمة (Legacy)" : "الحديثة التفاعلية ✨"}</strong>
-            </span>
-          </div>
-          <button
-            onClick={toggleLegacyMode}
-            className="px-3 py-1.5 bg-[#242424] hover:bg-zinc-800 text-[#FDE68A] border border-[#C8A45C]/30 rounded-xl font-bold text-[11px] transition cursor-pointer shadow-xs"
-          >
-            {useLegacy ? "الحديثة ✨" : "القديمة 🔄"}
-          </button>
-        </div>
-
-        {/* Store Auth Pages (Login / Register) Style */}
-        <div className="flex items-center justify-between px-4 py-2.5 bg-[#1A1A1A] border border-[#C8A45C]/20 rounded-2xl text-xs text-zinc-400 shadow-md">
-          <div className="flex items-center gap-2">
-            <span className={`w-2.5 h-2.5 rounded-full ${useLegacyAuth ? "bg-amber-500" : "bg-emerald-500"} animate-pulse`} />
-            <span>
-              صفحات الدخول والتسجيل: <strong className="text-[#FDE68A]">{useLegacyAuth ? "التصميم الكلاسيكي السابق" : "التصميم المقسوم الجديد (Split-Screen) 🌟"}</strong>
-            </span>
-          </div>
-          <button
-            onClick={toggleLegacyAuthMode}
-            className="px-3 py-1.5 bg-[#242424] hover:bg-zinc-800 text-[#FDE68A] border border-[#C8A45C]/30 rounded-xl font-bold text-[11px] transition cursor-pointer shadow-xs"
-          >
-            {useLegacyAuth ? "تفعيل الجديد (Split) ✨" : "الرجوع للتصميم السابق 🔄"}
-          </button>
-        </div>
-      </div>
-
-      {useLegacy ? <ThemeLegacy /> : <ThemeNew />}
-    </div>
-  );
+  return useLegacy ? <ThemeLegacy /> : <ThemeNew />;
 }

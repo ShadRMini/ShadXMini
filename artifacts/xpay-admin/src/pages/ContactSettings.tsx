@@ -890,27 +890,6 @@ export default function ContactSettings() {
 
           {/* Top Controls */}
           <div className="flex flex-wrap items-center gap-2.5 w-full lg:w-auto">
-            {/* Legacy Mode Toggle */}
-            <button
-              type="button"
-              onClick={handleToggleLegacy}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all border ${
-                useLegacy
-                  ? "bg-amber-500/20 text-amber-300 border-amber-500/50 hover:bg-amber-500/30"
-                  : "bg-emerald-500/15 text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/25"
-              }`}
-              title="التبديل بين التصميم الحديث والتصميم القديم"
-            >
-              <div
-                className={`w-2 h-2 rounded-full ${
-                  useLegacy ? "bg-amber-400 animate-pulse" : "bg-emerald-400"
-                }`}
-              />
-              <span>
-                {useLegacy ? "التصميم القديم (Legacy)" : "التصميم الجديد المخصص"}
-              </span>
-            </button>
-
             {/* Preview link */}
             <a
               href="/contact"

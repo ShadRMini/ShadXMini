@@ -47,25 +47,5 @@ export default function BannersWrapper() {
     );
   }
 
-  return (
-    <div className="space-y-4">
-      {/* Quick Switch Toggle Bar */}
-      <div className="flex items-center justify-between px-4 py-2.5 bg-[#1A1A1A] border border-[#C8A45C]/20 rounded-2xl text-xs text-zinc-400 shadow-md" dir="rtl">
-        <div className="flex items-center gap-2">
-          <span className="w-2.5 h-2.5 rounded-full bg-[#C8A45C] animate-pulse" />
-          <span>
-            الواجهة الحالية لإدارة البانرات: <strong className="text-[#FDE68A]">{useLegacy ? "القديمة (Legacy Mode)" : "الحديثة الفاخرة (Dark & Gold)"}</strong>
-          </span>
-        </div>
-        <button
-          onClick={toggleLegacyMode}
-          className="px-3.5 py-1.5 bg-[#242424] hover:bg-zinc-800 text-[#FDE68A] border border-[#C8A45C]/30 rounded-xl font-bold text-[11px] transition cursor-pointer shadow-xs"
-        >
-          {useLegacy ? "التبديل إلى الواجهة الجديدة ✨" : "الرجوع إلى الواجهة القديمة 🔄"}
-        </button>
-      </div>
-
-      {useLegacy ? <BannersLegacy /> : <BannersNew />}
-    </div>
-  );
+  return useLegacy ? <BannersLegacy /> : <BannersNew />;
 }

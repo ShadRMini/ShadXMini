@@ -507,32 +507,7 @@ export default function ProductPageSettings() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* LEFT COLUMN: CONTROLS & SECTIONS (lg:col-span-7) */}
         <div className="lg:col-span-7 space-y-6">
-          {/* 1. Legacy Mode Switch Box */}
-          <div className="bg-[#242424] p-5 rounded-2xl border border-[#C8A45C]/30 shadow-xl space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-[#C8A45C]/15 border border-[#C8A45C]/30 flex items-center justify-center text-[#C8A45C]">
-                  <LayoutGrid size={18} />
-                </div>
-                <div>
-                  <h2 className="text-xs font-bold text-[#FDE68A]">الوضع الكلاسيكي (Legacy Mode)</h2>
-                  <p className="text-[10px] text-zinc-400">استخدام الواجهة القديمة (بانر خلفية علوي عريض)</p>
-                </div>
-              </div>
-
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={useLegacy}
-                  onChange={(e) => setUseLegacy(e.target.checked)}
-                  className="sr-only peer"
-                />
-                <div className="w-11 h-6 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#C8A45C]" />
-              </label>
-            </div>
-          </div>
-
-          {/* 2. Sections Visibility & Drag & Drop Reordering */}
+          {/* 1. Sections Visibility & Drag & Drop Reordering */}
           <div className="bg-[#242424] p-5 rounded-2xl border border-[#C8A45C]/30 shadow-xl space-y-4">
             <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
               <div className="flex items-center gap-2">

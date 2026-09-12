@@ -810,15 +810,23 @@ export async function ensureDatabaseSchema() {
       );
     `).catch(() => null);
 
-    // Ensure use_legacy_sidebar setting
+    // Ensure legacy interface settings defaults
     await db.execute(sql`
-      INSERT INTO settings (key, value) VALUES ('use_legacy_sidebar', 'false')
-      ON CONFLICT (key) DO NOTHING;
-    `).catch(() => null);
-
-    // Ensure use_legacy_auth_pages setting
-    await db.execute(sql`
-      INSERT INTO settings (key, value) VALUES ('use_legacy_auth_pages', 'false')
+      INSERT INTO settings (key, value) VALUES 
+        ('use_legacy_sidebar', 'false'),
+        ('use_legacy_auth_pages', 'false'),
+        ('use_legacy_product_form', 'false'),
+        ('use_legacy_dashboard', 'false'),
+        ('use_legacy_api_products', 'false'),
+        ('use_legacy_users_page', 'false'),
+        ('use_legacy_settings_page', 'false'),
+        ('use_legacy_theme_page', 'false'),
+        ('use_legacy_social_links_page', 'false'),
+        ('use_legacy_banners_page', 'false'),
+        ('use_legacy_contact_page', 'false'),
+        ('use_legacy_about_page', 'false'),
+        ('use_legacy_deposit_page', 'false'),
+        ('use_legacy_product_page', 'false')
       ON CONFLICT (key) DO NOTHING;
     `).catch(() => null);
 

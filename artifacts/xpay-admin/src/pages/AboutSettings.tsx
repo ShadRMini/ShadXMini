@@ -743,24 +743,6 @@ export default function AboutSettings() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
-          {/* Legacy Mode Toggle */}
-          <div className="flex items-center gap-2 bg-[#1A1A1A] px-3 py-2 rounded-2xl border border-zinc-700">
-            <span className="text-xs font-bold text-zinc-300">الواجهة القديمة:</span>
-            <button
-              type="button"
-              onClick={() => setUseLegacy(!useLegacy)}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer ${
-                useLegacy ? "bg-amber-500" : "bg-zinc-700"
-              }`}
-            >
-              <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                  useLegacy ? "-translate-x-6" : "-translate-x-1"
-                }`}
-              />
-            </button>
-          </div>
-
           <a
             href="/about"
             target="_blank"

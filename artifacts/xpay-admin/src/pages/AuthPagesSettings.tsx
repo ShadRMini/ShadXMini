@@ -624,22 +624,6 @@ export default function AuthPagesSettings() {
 
         {/* Global Controls & Actions */}
         <div className="flex flex-wrap items-center gap-2.5 w-full lg:w-auto">
-          {/* Legacy Mode Toggle */}
-          <div className="flex items-center gap-2 bg-[#1E1E1E] px-3.5 py-2 rounded-xl border border-zinc-700/80">
-            <span className="text-xs font-semibold text-zinc-300">الوضع الكلاسيكي:</span>
-            <button
-              type="button"
-              onClick={() => setUseLegacy(!useLegacy)}
-              className={`text-xs px-2.5 py-1 rounded-lg font-bold transition flex items-center gap-1.5 ${
-                useLegacy
-                  ? "bg-amber-500/20 text-amber-300 border border-amber-500/40"
-                  : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
-              }`}
-            >
-              {useLegacy ? "مفعل (قديم)" : "معطل (الحديث)"}
-            </button>
-          </div>
-
           <a
             href="/login"
             target="_blank"
