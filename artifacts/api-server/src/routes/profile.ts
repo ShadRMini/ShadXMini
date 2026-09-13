@@ -17,6 +17,20 @@ async function handleGetProfile(req: Request, res: Response) {
     const dynamicVip = calculateVipLevel(Number(u.totalSpent || 0), u.vipLevel ?? 1);
     const vipBadge = getVipBadge(dynamicVip);
 
+    // Check if user has an approved identity verification record
+    let identityVerified = false;
+    try {
+      const vRows: any = await db.execute(sql`
+        SELECT id FROM identity_verifications
+        WHERE user_id = ${u.id} AND status = 'approved'
+        LIMIT 1
+      `).catch(() => null);
+      const vList = Array.isArray(vRows) ? vRows : (vRows?.rows || []);
+      identityVerified = vList.length > 0;
+    } catch {
+      identityVerified = false;
+    }
+
     return res.json({
       id: String(u.id),
       displayId: u.displayId || String(u.id),
@@ -32,6 +46,8 @@ async function handleGetProfile(req: Request, res: Response) {
       avatarUrl: u.avatarUrl || null,
       hasPassword: Boolean(u.passwordHash),
       identityMissing: false,
+      identityVerified,
+      isVerified: identityVerified,
     });
   } catch (error: any) {
     return res.status(200).json({
@@ -49,6 +65,8 @@ async function handleGetProfile(req: Request, res: Response) {
       avatarUrl: null,
       hasPassword: false,
       identityMissing: true,
+      identityVerified: false,
+      isVerified: false,
       error: error?.message || "identity_missing",
     });
   }

@@ -23,6 +23,10 @@ export function DepositInvoicePay() {
   const [, setLocation] = useLocation();
   const { refreshUser } = useAuth();
 
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }, []);
+
   const invoiceId = params?.invoiceId ? decodeURIComponent(params.invoiceId) : "";
 
   // Query parameters parsing
@@ -297,7 +301,7 @@ export function DepositInvoicePay() {
           </div>
 
           {/* Action Buttons */}
-          <div className="space-y-2.5 pt-1">
+          <div className="pt-1">
             <Button
               type="submit"
               disabled={verifying || !transactionRef.trim() || isExpired || status === "approved"}
@@ -315,16 +319,6 @@ export function DepositInvoicePay() {
                 </>
               )}
             </Button>
-
-            <Link href="/deposit">
-              <button
-                type="button"
-                className="w-full h-11 rounded-2xl bg-muted/60 hover:bg-muted border border-border/70 text-foreground font-semibold text-xs sm:text-sm transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
-              >
-                <span>إلغاء والرجوع لصفحة الإيداع</span>
-                <span className="text-base leading-none">←</span>
-              </button>
-            </Link>
           </div>
 
           <p className="text-[11px] text-muted-foreground text-center leading-relaxed">

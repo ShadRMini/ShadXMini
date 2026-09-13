@@ -12,6 +12,7 @@ import {
   AlertCircle,
   Coins
 } from "lucide-react";
+import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
 import { getPublicJson } from "@/lib/public-api";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -196,7 +197,33 @@ export function WalletPage() {
     };
   }, [refreshUser]);
 
+  const isVerified = Boolean(user?.identityVerified || user?.isVerified);
+
   const handleSelectMethod = (method: PaymentMethodItem) => {
+    const subtitle = method.subtitle || "";
+    const requiresVerification =
+      subtitle.includes("تتطلب توثيق الحساب") ||
+      subtitle.includes("توثيق") ||
+      method.code.includes("sham");
+
+    const isLocked = requiresVerification && !isVerified;
+
+    if (isLocked) {
+      toast.error("يجب توثيق حسابك أولاً لاستخدام هذه الطريقة");
+      setLocation("/identity-verification");
+      return;
+    }
+
+    const isManualReview =
+      subtitle.includes("مراجعة يدوية") ||
+      subtitle.includes("يدوية") ||
+      method.category === "يدوي" ||
+      method.category === "مراجعة يدوية";
+
+    if (isManualReview) {
+      toast.info("⚠️ هذه الطريقة تتطلب مراجعة يدوية. سيتم مراجعة طلبك خلال 24 ساعة.");
+    }
+
     setSelectedCode(method.code);
     // Slight delay for smooth visual feedback on radio click
     setTimeout(() => {
@@ -296,61 +323,112 @@ export function WalletPage() {
               const isSelected = selectedCode === method.code;
               const badge = getBadgeProps(method.subtitle, method.code, method.category);
 
+              const subtitle = method.subtitle || "";
+              const requiresVerification =
+                subtitle.includes("تتطلب توثيق الحساب") ||
+                subtitle.includes("توثيق") ||
+                method.code.includes("sham");
+              const isLocked = requiresVerification && !isVerified;
+
               return (
                 <div
                   key={method.code}
                   id={`method-card-${method.code}`}
                   onClick={() => handleSelectMethod(method)}
-                  className={`group relative p-4 rounded-2xl border transition-all duration-200 cursor-pointer flex items-center justify-between ${
-                    isSelected
-                      ? "bg-card border-[var(--theme-primary)] ring-2 ring-[var(--theme-primary)]/20 shadow-md"
-                      : "bg-card border-border/80 hover:border-[var(--theme-primary)]/50 hover:bg-muted/30"
+                  className={`group relative p-4 rounded-2xl border transition-all duration-200 flex flex-col gap-3 ${
+                    isLocked
+                      ? "bg-card/70 border-border/70 opacity-80 cursor-not-allowed"
+                      : isSelected
+                      ? "bg-card border-[var(--theme-primary)] ring-2 ring-[var(--theme-primary)]/20 shadow-md cursor-pointer"
+                      : "bg-card border-border/80 hover:border-[var(--theme-primary)]/50 hover:bg-muted/30 cursor-pointer"
                   }`}
                 >
-                  {/* Right side: Icon + Name & Subtitle */}
-                  <div className="flex items-center gap-3.5">
-                    {method.logoImage ? (
-                      <div className="w-12 h-12 rounded-2xl border border-border/60 overflow-hidden flex items-center justify-center bg-background shrink-0 p-1">
-                        <img
-                          src={method.logoImage}
-                          alt={method.name}
-                          className="w-full h-full object-contain"
-                          onError={(e) => {
-                            (e.target as HTMLElement).style.display = "none";
-                          }}
-                        />
+                  <div className="flex items-center justify-between w-full">
+                    {/* Right side: Icon + Name & Subtitle */}
+                    <div className="flex items-center gap-3.5">
+                      <div className="relative">
+                        {method.logoImage ? (
+                          <div className="w-12 h-12 rounded-2xl border border-border/60 overflow-hidden flex items-center justify-center bg-background shrink-0 p-1">
+                            <img
+                              src={method.logoImage}
+                              alt={method.name}
+                              className="w-full h-full object-contain"
+                              onError={(e) => {
+                                (e.target as HTMLElement).style.display = "none";
+                              }}
+                            />
+                          </div>
+                        ) : (
+                          getMethodIcon(method.code)
+                        )}
+                        {isLocked && (
+                          <div className="absolute -top-1.5 -right-1.5 w-6 h-6 bg-red-500/20 border border-red-500/30 rounded-full flex items-center justify-center shadow-xs">
+                            <Lock className="w-3.5 h-3.5 text-red-500" />
+                          </div>
+                        )}
                       </div>
-                    ) : (
-                      getMethodIcon(method.code)
-                    )}
 
-                    <div className="space-y-1">
-                      <div className="font-bold text-base text-foreground group-hover:text-[var(--theme-primary)] transition-colors">
-                        {method.name}
-                      </div>
-                      <div className="flex items-center">
-                        <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-md border ${badge.className}`}>
-                          {badge.icon}
-                          {badge.text}
-                        </span>
+                      <div className="space-y-1">
+                        <div className="font-bold text-base text-foreground group-hover:text-[var(--theme-primary)] transition-colors flex items-center gap-2">
+                          <span>{method.name}</span>
+                          {isLocked && (
+                            <span className="text-[11px] font-medium text-red-500 bg-red-500/10 px-2 py-0.5 rounded-md">
+                              مقفلة
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center">
+                          <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-md border ${badge.className}`}>
+                            {badge.icon}
+                            {badge.text}
+                          </span>
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Left side: Radio indicator */}
-                  <div className="shrink-0 mr-2">
-                    <div
-                      className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
-                        isSelected
-                          ? "border-[var(--theme-primary)] bg-[var(--theme-primary)]"
-                          : "border-muted-foreground/30 bg-background group-hover:border-[var(--theme-primary)]/60"
-                      }`}
-                    >
-                      {isSelected && (
-                        <div className="w-2.5 h-2.5 rounded-full bg-white animate-in zoom-in duration-150" />
+                    {/* Left side: Radio indicator or Lock */}
+                    <div className="shrink-0 mr-2">
+                      {isLocked ? (
+                        <div className="w-7 h-7 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-500">
+                          <Lock className="w-3.5 h-3.5" />
+                        </div>
+                      ) : (
+                        <div
+                          className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
+                            isSelected
+                              ? "border-[var(--theme-primary)] bg-[var(--theme-primary)]"
+                              : "border-muted-foreground/30 bg-background group-hover:border-[var(--theme-primary)]/60"
+                          }`}
+                        >
+                          {isSelected && (
+                            <div className="w-2.5 h-2.5 rounded-full bg-white animate-in zoom-in duration-150" />
+                          )}
+                        </div>
                       )}
                     </div>
                   </div>
+
+                  {/* If locked, display inline action button to verify */}
+                  {isLocked && (
+                    <div className="pt-2 border-t border-border/50 flex items-center justify-between gap-2">
+                      <span className="text-xs text-muted-foreground">
+                        يتطلب شحن هذه الطريقة توثيق الهوية أولاً
+                      </span>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toast.error("يجب توثيق حسابك أولاً لاستخدام هذه الطريقة");
+                          setLocation("/identity-verification");
+                        }}
+                        className="px-3 py-1.5 text-xs font-bold rounded-xl transition-opacity hover:opacity-90 flex items-center gap-1.5 shrink-0 cursor-pointer text-white shadow-xs"
+                        style={{ backgroundColor: "var(--theme-primary)" }}
+                      >
+                        <ShieldCheck className="w-3.5 h-3.5" />
+                        <span>توثيق الآن</span>
+                      </button>
+                    </div>
+                  )}
                 </div>
               );
             })}

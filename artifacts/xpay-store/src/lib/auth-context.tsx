@@ -16,6 +16,8 @@ export type UserProfile = {
   avatarUrl?: string | null;
   hasPassword?: boolean;
   identityMissing?: boolean;
+  identityVerified?: boolean;
+  isVerified?: boolean;
   createdAt?: string;
 };
 
