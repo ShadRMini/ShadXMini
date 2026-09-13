@@ -62,12 +62,12 @@ export function DepositShamCash() {
     loadMethod();
   }, []);
 
-  // Generate fallback QR URL using reliable Google Chart or QR API if custom not uploaded
+  // Generate fallback QR URL in HD resolution (1080x1080) if custom not uploaded
   const effectiveQrUrl =
     qrImageUrl ||
-    `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(
+    `https://api.qrserver.com/v1/create-qr-code/?size=1080x1080&data=${encodeURIComponent(
       walletAddress
-    )}`;
+    )}&margin=10`;
 
   const handleCopy = async () => {
     try {

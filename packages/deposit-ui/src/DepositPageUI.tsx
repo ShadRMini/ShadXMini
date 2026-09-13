@@ -49,7 +49,7 @@ export function DepositPageUI({
 
   const effectiveQr =
     qrImageUrl ||
-    `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(
+    `https://api.qrserver.com/v1/create-qr-code/?size=1080x1080&data=${encodeURIComponent(
       walletAddress || SHAMCASH_DEFAULT_WALLET
     )}&margin=10`;
 
@@ -99,23 +99,30 @@ export function DepositPageUI({
           <span>رمز التحويل (QR Code)</span>
         </div>
 
-        <div
-          onClick={() => {
-            if (!isPreview && onQrClick) onQrClick();
-          }}
-          className="group relative w-56 h-56 sm:w-64 sm:h-64 mx-auto p-3.5 rounded-2xl bg-white border-2 border-gray-200 dark:border-zinc-700 hover:border-blue-500/70 shadow-xs transition-all cursor-pointer flex items-center justify-center overflow-hidden"
-          title="انقر لتكبير الرمز"
-        >
-          <img
-            src={effectiveQr}
-            alt="QR Code"
-            className="w-full h-full object-contain rounded-xl group-hover:scale-105 transition-transform duration-300"
-          />
-          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white rounded-2xl">
-            <span className="inline-flex items-center gap-1.5 text-xs font-bold bg-black/60 px-3 py-1.5 rounded-full backdrop-blur-xs">
-              <Maximize2 className="w-4 h-4" />
-              تكبير الرمز
-            </span>
+        <div className="flex justify-center py-2">
+          <div
+            onClick={() => {
+              if (!isPreview && onQrClick) onQrClick();
+            }}
+            className="group relative bg-white dark:bg-zinc-900 rounded-3xl border-2 border-gray-200 dark:border-zinc-700 p-4 shadow-sm hover:shadow-md hover:border-blue-500/70 transition-all cursor-pointer flex items-center justify-center overflow-hidden"
+            style={{
+              width: "100%",
+              maxWidth: "340px",
+              aspectRatio: "1 / 1",
+            }}
+            title="انقر لتكبير الرمز (1080×1080)"
+          >
+            <img
+              src={effectiveQr}
+              alt="QR Code"
+              className="w-full h-full object-contain rounded-2xl group-hover:scale-105 transition-transform duration-300"
+            />
+            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white rounded-3xl">
+              <span className="inline-flex items-center gap-1.5 text-xs font-bold bg-black/60 px-3 py-1.5 rounded-full backdrop-blur-xs">
+                <Maximize2 className="w-4 h-4" />
+                تكبير الرمز
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -238,16 +245,18 @@ export function DepositPageUI({
         <button
           type="submit"
           disabled={!isAmountValid || isSubmitting || isPreview}
-          className={`w-full h-12 rounded-2xl font-bold text-sm sm:text-base shadow-xs transition-all flex items-center justify-center gap-2 ${
+          className={`w-full h-12 rounded-2xl font-bold text-sm sm:text-base transition-all flex items-center justify-center gap-2 ${
             isAmountValid && !isSubmitting && !isPreview
-              ? "bg-[#2563EB] hover:bg-[#1D4ED8] text-white shadow-blue-500/20 active:scale-98 cursor-pointer"
-              : "bg-[#BFDBFE] dark:bg-blue-900/40 text-[#1E40AF] dark:text-blue-300 cursor-not-allowed opacity-80"
+              ? "bg-[#2563EB] text-white hover:bg-[#1D4ED8] active:bg-[#1E40AF] cursor-pointer shadow-lg shadow-[#2563EB]/20"
+              : "bg-[#BFDBFE] text-[#1E40AF] cursor-not-allowed"
           }`}
-          style={
-            config.button_color && isAmountValid
-              ? { backgroundColor: config.button_color, color: "#FFFFFF" }
-              : undefined
-          }
+          style={{
+            backgroundColor:
+              isAmountValid && !isSubmitting && !isPreview
+                ? config.button_color || "#2563EB"
+                : "#BFDBFE",
+            color: isAmountValid && !isSubmitting && !isPreview ? "#FFFFFF" : "#1E40AF",
+          }}
         >
           {isSubmitting ? (
             <span className="inline-flex items-center gap-2">
