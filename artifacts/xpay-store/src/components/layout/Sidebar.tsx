@@ -146,9 +146,10 @@ export default function Sidebar({ brandLogo, onClose }: SidebarProps) {
       <div
         className={`p-5 border-b flex items-center justify-between min-h-[72px] ${
           isDark ? "border-zinc-800" : "border-zinc-200"
-        }`}
+        } ${onClose ? "justify-between" : ""}`}
       >
-        <Link href="/" className="flex items-center gap-3">
+        {/* Brand Logo & Name - Hidden on mobile (<768px), visible on md/lg and desktop */}
+        <Link href="/" className="hidden md:flex items-center gap-3">
           {brandLogo ? (
             <img
               src={brandLogo}
@@ -168,13 +169,16 @@ export default function Sidebar({ brandLogo, onClose }: SidebarProps) {
           )}
         </Link>
         {onClose && (
-          <button
-            onClick={onClose}
-            className="lg:hidden text-zinc-400 hover:text-[#C8A45C] p-1.5 rounded-xl hover:bg-zinc-800/40 transition cursor-pointer"
-            aria-label="إغلاق القائمة"
-          >
-            <X size={20} />
-          </button>
+          <div className="flex items-center justify-between w-full md:w-auto">
+            <span className="text-sm font-bold text-zinc-400 md:hidden">القائمة</span>
+            <button
+              onClick={onClose}
+              className="lg:hidden text-zinc-400 hover:text-[#C8A45C] p-1.5 rounded-xl hover:bg-zinc-800/40 transition cursor-pointer"
+              aria-label="إغلاق القائمة"
+            >
+              <X size={20} />
+            </button>
+          </div>
         )}
       </div>
 
