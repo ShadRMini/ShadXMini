@@ -681,36 +681,42 @@ router.post("/deposits/shamcash/verify", async (req, res) => {
       return;
     }
 
-    const verifyUrls = [
-      `${SAM_PAY_BASE_URL.replace(/\/+$/, "")}/pay/${encodeURIComponent(invoiceId)}/verify`,
-    ];
+    const cleanBase = SAM_API_BASE_URL.replace(/\/+$/, "").replace(/\/api$/i, "");
+    const verifyUrl = `${cleanBase}/pay/${encodeURIComponent(invoiceId)}/verify`;
+    const verifyBody = { transactionRef: String(transactionRef) };
+
+    console.log("[ShamCash Verify] 📤 URL:", verifyUrl);
+    console.log("[ShamCash Verify] 📤 Body:", JSON.stringify(verifyBody));
 
     let verifyResp: Response | null = null;
     let verifyJson: any = {};
+    let responseText = "";
 
-    for (const url of verifyUrls) {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 15000);
+      const resp = await fetch(verifyUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(verifyBody),
+        signal: controller.signal,
+      });
+      clearTimeout(timeout);
+
+      verifyResp = resp;
+      responseText = await resp.text();
+      console.log("[ShamCash Verify] 📥 Status:", resp.status);
+      console.log("[ShamCash Verify] 📥 Body:", responseText);
+
       try {
-        const { response, payload } = await fetchJsonWithTimeout(
-          url,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ transactionRef }),
-          },
-          10000,
-        );
-        verifyResp = response;
-        verifyJson = payload;
-
-        // stop on success, or when provider returned a structured response
-        if (response.ok || payload?.verified !== undefined || payload?.message || payload?.code) {
-          break;
-        }
-      } catch (error) {
-        console.error("ShamCash verify attempt failed:", { url, error });
+        verifyJson = JSON.parse(responseText);
+      } catch {
+        verifyJson = {};
       }
+    } catch (fetchErr: any) {
+      console.error("[ShamCash Verify] ❌ Network/Fetch error:", fetchErr.message);
     }
 
     if (verifyResp?.ok && verifyJson?.verified === true) {
@@ -733,7 +739,18 @@ router.post("/deposits/shamcash/verify", async (req, res) => {
         return;
       }
       await applyDepositStatusChangeAuto(dep.id, "approved");
-      res.json({ ok: true, verified: true, message: verifyJson?.message || "verified" });
+      res.json({ ok: true, verified: true, message: verifyJson?.message || "تم التحقق من الدفع بنجاح" });
+      return;
+    }
+
+    // If verified is explicitly false or provider returned a message/error
+    if (verifyJson?.verified === false || verifyJson?.message) {
+      res.status(400).json({
+        ok: false,
+        verified: false,
+        message: verifyJson.message || "رقم العملية غير موجود في سجل المحفظة",
+        code: verifyJson.code || "VERIFY_FAILED",
+      });
       return;
     }
 
