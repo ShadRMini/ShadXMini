@@ -26,6 +26,7 @@ import {
   HelpCircle,
   Sliders,
   CheckCircle2,
+  Info,
 } from "lucide-react";
 import {
   DndContext,
