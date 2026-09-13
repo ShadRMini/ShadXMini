@@ -180,8 +180,8 @@ export function DepositShamCash() {
         </span>
       </div>
 
-      {/* Main Card with DepositPageUI */}
-      <div className="shadow-xl rounded-2xl overflow-hidden border border-border/40">
+      {/* Main Card with DepositPageUI (Matches Image 2 exactly) */}
+      <div className="shadow-xs rounded-3xl overflow-hidden">
         <DepositPageUI
           config={methodConfig || {}}
           amount={amount}
@@ -190,35 +190,11 @@ export function DepositShamCash() {
           currency={currency}
           onCurrencyChange={(c) => setCurrency(c as "USD" | "SYP")}
           walletAddress={walletAddress}
+          qrImageUrl={effectiveQrUrl}
           onConfirm={handleCreateInvoice}
           isSubmitting={submitting}
+          onQrClick={() => setShowLightbox(true)}
         />
-      </div>
-
-      {/* QR Code Section below main UI */}
-      <div className="text-center space-y-3 p-5 rounded-2xl bg-muted/20 border border-border/50">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted text-xs font-semibold text-muted-foreground border border-border/60">
-          <QrCode className="w-3.5 h-3.5" />
-          <span>رمز التحويل (QR Code)</span>
-        </div>
-
-        <div 
-          onClick={() => setShowLightbox(true)}
-          className="group relative w-48 h-48 sm:w-56 sm:h-56 mx-auto p-3 rounded-2xl bg-white border-2 border-border/60 hover:border-[var(--theme-primary)]/80 shadow-md transition-all cursor-pointer flex items-center justify-center overflow-hidden"
-          title="انقر لتكبير الرمز"
-        >
-          <img
-            src={effectiveQrUrl}
-            alt="QR Code شام كاش"
-            className="w-full h-full object-contain rounded-xl group-hover:scale-105 transition-transform duration-300"
-          />
-          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white rounded-2xl">
-            <span className="inline-flex items-center gap-1.5 text-xs font-bold bg-black/60 px-3 py-1.5 rounded-full backdrop-blur-xs">
-              <Maximize2 className="w-4 h-4" />
-              تكبير الرمز
-            </span>
-          </div>
-        </div>
       </div>
 
       {/* Lightbox Modal for QR Code */}
