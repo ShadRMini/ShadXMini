@@ -60,7 +60,10 @@ async function fetchJsonWithTimeout(
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
   try {
     const response = await fetch(url, { ...init, signal: controller.signal });
-    const payload = await response.json().catch(() => ({}));
+    const payload = await response.json().catch((jsonErr) => {
+      console.warn("[fetchJsonWithTimeout] ⚠️ Failed to parse response JSON from:", url, jsonErr?.message);
+      return {};
+    });
     return { response, payload };
   } finally {
     clearTimeout(timeout);
@@ -266,7 +269,10 @@ async function syncShamCashInvoiceStatus(invoiceId: string): Promise<{
   if (dep.status !== "pending") return { found: true, status: dep.status, synced: dep.status as any };
 
   const payResp = await fetch(`${SAM_PAY_BASE_URL.replace(/\/+$/, "")}/pay/${encodeURIComponent(cleanInvoiceId)}`);
-  const payJson: any = await payResp.json().catch(() => ({}));
+  const payJson: any = await payResp.json().catch((jsonErr) => {
+    console.warn("[syncShamCashInvoiceStatus] ⚠️ Failed to parse response JSON from pay endpoint:", jsonErr?.message);
+    return {};
+  });
   const samStatus = String(payJson?.status || "").toLowerCase();
 
   if (samStatus === "paid") {
@@ -489,9 +495,8 @@ router.post("/deposits", async (req, res) => {
   res.json(CreateDepositResponse.parse(rowToDeposit(dep)));
 });
 
-async function handleShamCashInvoiceCreate(req: any, res: any) {
+async function authenticate(req: any, res: any, next: any) {
   try {
-    await ensureDepositsTelegramMessageColumn();
     const bodyIdentity = {
       telegramId: String(req.body?.telegramId || "").trim(),
       telegramUsername: String(req.body?.telegramUsername || "").trim(),
@@ -514,95 +519,114 @@ async function handleShamCashInvoiceCreate(req: any, res: any) {
     };
 
     const user = await getOrCreateCurrentUserStrict(reqWithFallbackHeaders);
-    const currency = String(req.body?.currency || "SYP").toUpperCase();
-    const amount = Number(req.body?.amount);
-    const walletAddress = String(req.body?.walletAddress || req.body?.identifier || "").trim();
+    if (!user) {
+      return res.status(401).json({ error: "غير مصرح", message: "يجب تسجيل الدخول أولاً" });
+    }
+    req.user = user;
+    next();
+  } catch (err: any) {
+    console.error("[Auth] User authentication failed:", err.message);
+    return res.status(401).json({ error: "غير مصرح", message: "فشل التحقق من هوية المستخدم" });
+  }
+}
 
-    if (!["USD", "SYP", "EUR"].includes(currency) || !Number.isFinite(amount) || amount <= 0) {
-      res.status(400).json({ error: "VALIDATION_ERROR", message: "Invalid amount or currency." });
-      return;
+async function handleShamCashInvoiceCreate(req: any, res: any) {
+  try {
+    await ensureDepositsTelegramMessageColumn();
+    const { amount, currency } = req.body;
+    const user = (req as any).user || (await getOrCreateCurrentUserStrict(req));
+    const userId = user.id;
+
+    console.log("[API] 📝 Received invoice request:", { userId, amount, currency });
+
+    if (!amount || Number(amount) <= 0) {
+      return res.status(400).json({ error: "المبلغ غير صالح", message: "المبلغ غير صالح" });
     }
 
-    const [methodRow] = await db
-      .select()
-      .from(paymentMethodsTable)
-      .where(eq(paymentMethodsTable.code, "sham_cash_auto"))
-      .limit(1);
+    const result = await createShamCashInvoice({
+      amount: Number(amount),
+      currency: currency || "USD",
+      userId,
+    });
 
-    const amountUsd = currency === "USD" ? amount : amount / 119;
-    const amountSyp = currency === "SYP" ? amount : amount * 119;
+    console.log("[API] ✅ Invoice created successfully:", result.invoiceId);
 
-    const [dep] = await db
-      .insert(depositsTable)
-      .values({
-        userId: user.id,
-        amountUsd: String(amountUsd.toFixed(4)),
-        amountSyp: String(amountSyp.toFixed(2)),
-        currency,
-        method: "sham_cash_auto",
-        methodLabel: methodRow?.name || "شام كاش تلقائي",
-        transactionId: `SC-PENDING-${Date.now()}-${user.id}`,
-        status: "pending",
-      })
-      .returning();
-
-    let invoiceResult;
+    // Record the deposit in DB for verification & history
+    let depositId: number | undefined;
     try {
-      invoiceResult = await createShamCashInvoice({
-        amount,
-        currency,
-        walletAddress: walletAddress || undefined,
-        orderId: String(dep.id),
-        telegramId: user.telegramId || undefined,
-      });
-    } catch (invoiceErr: any) {
-      await db
-        .update(depositsTable)
-        .set({ status: "rejected" })
-        .where(eq(depositsTable.id, dep.id));
-      throw invoiceErr;
-    }
+      const numAmount = Number(amount);
+      const curr = (currency || "USD").toUpperCase();
+      const amountUsd = curr === "USD" ? numAmount : numAmount / 119;
+      const amountSyp = curr === "SYP" ? numAmount : numAmount * 119;
 
-    await db
-      .update(depositsTable)
-      .set({ transactionId: String(invoiceResult.invoiceId) })
-      .where(eq(depositsTable.id, dep.id));
+      const [methodRow] = await db
+        .select()
+        .from(paymentMethodsTable)
+        .where(eq(paymentMethodsTable.code, "sham_cash_auto"))
+        .limit(1);
 
-    try {
-      const pendingMessageId = await notifyUserDepositPending({
-        telegramId: user.telegramId,
-        operationNumber: String(invoiceResult.invoiceId),
-        amount,
-        currency: currency as "USD" | "SYP",
-      });
-      if (pendingMessageId) {
-        await db
-          .update(depositsTable)
-          .set({ telegramMessageId: pendingMessageId })
-          .where(eq(depositsTable.id, dep.id));
+      const [dep] = await db
+        .insert(depositsTable)
+        .values({
+          userId,
+          amountUsd: String(amountUsd.toFixed(4)),
+          amountSyp: String(amountSyp.toFixed(2)),
+          currency: curr,
+          method: "sham_cash_auto",
+          methodLabel: methodRow?.name || "شام كاش تلقائي",
+          transactionId: String(result.invoiceId),
+          status: "pending",
+        })
+        .returning();
+
+      depositId = dep?.id;
+
+      if (depositId) {
+        try {
+          const pendingMessageId = await notifyUserDepositPending({
+            telegramId: user.telegramId,
+            operationNumber: String(result.invoiceId),
+            amount: numAmount,
+            currency: curr as "USD" | "SYP",
+          });
+          if (pendingMessageId) {
+            await db
+              .update(depositsTable)
+              .set({ telegramMessageId: pendingMessageId })
+              .where(eq(depositsTable.id, depositId));
+          }
+        } catch (notifyErr: any) {
+          console.error("[API] ⚠️ notifyUserDepositPending failed:", notifyErr.message);
+        }
       }
-    } catch (error) {
-      console.error("Notify auto-deposit pending failed:", error);
+    } catch (dbErr: any) {
+      console.error("[API] ⚠️ DB insert deposit record failed:", dbErr.message);
     }
 
-    res.json({
+    return res.json({
+      success: true,
       ok: true,
-      depositId: dep.id,
-      invoiceId: invoiceResult.invoiceId,
-      paymentUrl: invoiceResult.paymentUrl,
-      expiresAt: invoiceResult.expiresAt || null,
+      invoiceId: result.invoiceId,
+      depositId,
+      paymentUrl: result.paymentUrl,
+      walletAddress: result.walletAddress,
+      expiresAt: result.expiresAt,
+      amount: result.amount,
+      currency: result.currency,
     });
   } catch (error: any) {
-    console.error("ShamCash invoice create failed:", error);
-    res.status(error?.statusCode || 500).json({
-      error: "SHAMCASH_INVOICE_EXCEPTION",
-      message: error?.publicMessage || error?.message || "failed_to_create_invoice",
+    console.error("[API] ❌ Invoice creation failed:", error.message);
+    return res.status(500).json({
+      error: error.message || "حدث خطأ أثناء فتح الفاتورة، يرجى المحاولة لاحقاً",
+      message: error.message || "حدث خطأ أثناء فتح الفاتورة، يرجى المحاولة لاحقاً",
+      success: false,
+      ok: false,
     });
   }
 }
 
-router.post("/deposits/shamcash/invoice", shamCashInvoiceRateLimit, handleShamCashInvoiceCreate);
-router.post("/deposit/shamcash/create-invoice", shamCashInvoiceRateLimit, handleShamCashInvoiceCreate);
+router.post("/deposits/shamcash/invoice", authenticate, handleShamCashInvoiceCreate);
+router.post("/deposit/shamcash/create-invoice", authenticate, handleShamCashInvoiceCreate);
 
 router.post("/deposits/shamcash/verify", async (req, res) => {
   try {

@@ -56,56 +56,199 @@ export async function getShamCashSettings() {
   };
 }
 
-export async function createShamCashInvoice(args: {
+const SAM_API_BASE_URL = process.env.SAM_API_BASE_URL || "https://sam-api.pro/api";
+const SAM_API_KEY = process.env.SAM_API_KEY || "";
+const SAM_SHAMCASH_IDENTIFIER = process.env.SAM_SHAMCASH_IDENTIFIER || "";
+const PUBLIC_API_BASE_URL = process.env.PUBLIC_API_BASE_URL || "";
+
+export async function createShamCashInvoice({
+  amount,
+  currency,
+  userId,
+  walletAddress,
+  orderId,
+  telegramId,
+}: {
   amount: number;
   currency: string;
+  userId?: number;
   walletAddress?: string;
   orderId?: string;
   telegramId?: string;
 }) {
-  const settings = await getShamCashSettings();
-  if (!settings.apiKey || !settings.shamcashIdentifier || !settings.publicApiBaseUrl) {
-    throw {
-      statusCode: 500,
-      error: "SAM config missing",
-      message: "Missing required server configuration for ShamCash auto invoice.",
-      required: ["shamcash_api_key", "shamcash_shamcash_identifier", "public_api_base_url"],
-    };
+  let apiKey = SAM_API_KEY;
+  let walletIdentifier = SAM_SHAMCASH_IDENTIFIER;
+  let baseUrl = SAM_API_BASE_URL;
+  let publicBaseUrl = PUBLIC_API_BASE_URL;
+
+  // Fallback to database settings if environment variables are not set
+  if (!apiKey || !walletIdentifier) {
+    try {
+      const dbSettings = await getShamCashSettings();
+      if (!apiKey && dbSettings.apiKey) apiKey = dbSettings.apiKey;
+      if (!walletIdentifier && dbSettings.shamcashIdentifier) walletIdentifier = dbSettings.shamcashIdentifier;
+      if ((!baseUrl || baseUrl === "https://sam-api.pro/api") && dbSettings.apiBaseUrl) baseUrl = dbSettings.apiBaseUrl;
+      if (!publicBaseUrl && dbSettings.publicApiBaseUrl) publicBaseUrl = dbSettings.publicApiBaseUrl;
+    } catch (err: any) {
+      console.warn("[ShamCash] ⚠️ Failed to load settings from DB fallback:", err.message);
+    }
   }
 
-  const webhookSecretPath = settings.webhookSecret ? `/${encodeURIComponent(settings.webhookSecret)}` : "";
-  const webhookUrl = `${settings.publicApiBaseUrl.replace(/\/+$/, "")}/api/webhooks/shamcash${webhookSecretPath}`;
+  // ============ 1. التحقق من الإعدادات ============
+  console.log("========== [ShamCash] START ==========");
+  console.log("[ShamCash] BASE_URL:", baseUrl);
+  console.log("[ShamCash] API_KEY (first 15):", apiKey ? apiKey.substring(0, 15) + "..." : "(empty)");
+  console.log("[ShamCash] WALLET:", walletAddress || walletIdentifier);
+  console.log("[ShamCash] AMOUNT:", amount, "CURRENCY:", currency);
 
-  const res = await fetch(`${settings.apiBaseUrl.replace(/\/+$/, "")}/v1/invoices`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${settings.apiKey}`,
-      "X-Api-Key": settings.apiKey,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      method: "shamcash",
-      identifier: args.walletAddress || settings.shamcashIdentifier,
-      amount: String(args.amount),
-      currency: args.currency.toUpperCase(),
-      webhookUrl,
-      ...(args.orderId ? { orderId: args.orderId } : {}),
-    }),
-  });
-
-  const json: any = await res.json().catch(() => ({}));
-  if (!res.ok || !json?.invoiceId || !json?.paymentUrl) {
-    throw {
-      statusCode: 502,
-      error: "SAM_INVOICE_CREATE_FAILED",
-      message: json?.message || "Sam API rejected invoice creation.",
-      details: json,
-    };
+  if (!apiKey || !apiKey.startsWith("sk_")) {
+    console.error("[ShamCash] ❌ SAM_API_KEY is missing or invalid");
+    throw new Error("مفتاح API غير مهيأ على الخادم");
   }
 
-  return {
-    invoiceId: String(json.invoiceId),
-    paymentUrl: String(json.paymentUrl),
-    expiresAt: json.expiresAt || null,
+  const effectiveWalletIdentifier = walletAddress || walletIdentifier;
+  if (!effectiveWalletIdentifier) {
+    console.error("[ShamCash] ❌ SAM_SHAMCASH_IDENTIFIER is missing");
+    throw new Error("عنوان محفظة شام كاش غير مهيأ على الخادم");
+  }
+
+  // ============ 2. تجهيز الطلب ============
+  const cleanBaseUrl = baseUrl.replace(/\/+$/, "");
+  const url = `${cleanBaseUrl}/v1/invoices`;
+
+  const requestBody: any = {
+    amount: Number(amount),
+    currency: currency.toUpperCase(),
+    wallet_identifier: effectiveWalletIdentifier,
   };
+
+  // إضافة callback إن كان لديك رابط عام
+  if (publicBaseUrl) {
+    requestBody.callback_url = `${publicBaseUrl.replace(/\/+$/, "")}/api/webhooks/shamcash`;
+  }
+  if (orderId) {
+    requestBody.order_id = orderId;
+  }
+
+  console.log("[ShamCash] 📤 Request URL:", url);
+  console.log("[ShamCash] 📤 Request Body:", JSON.stringify({ ...requestBody, wallet_identifier: "***" }));
+
+  // ============ 3. إرسال الطلب ============
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 20000); // 20 ثانية
+
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "x-Api-Key": apiKey, // إضافة كلا الطريقتين للتوافق
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+      },
+      body: JSON.stringify(requestBody),
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    // ============ 4. قراءة الاستجابة الفعلية ============
+    const responseText = await response.text();
+    console.log("[ShamCash] 📥 Response Status:", response.status);
+    console.log("[ShamCash] 📥 Response Headers:", JSON.stringify(Object.fromEntries(response.headers.entries())));
+    console.log("[ShamCash] 📥 Response Body (RAW):", responseText);
+
+    // ============ 5. معالجة الخطأ ============
+    if (!response.ok) {
+      let errorData: any = {};
+      try {
+        errorData = JSON.parse(responseText);
+      } catch {
+        errorData = { message: responseText };
+      }
+
+      const errorCode = errorData.error_code || errorData.code || `HTTP_${response.status}`;
+      const errorMessage = errorData.message || errorData.error || responseText || "Unknown error";
+
+      console.error(`[ShamCash] ❌ ERROR CODE: ${errorCode}`);
+      console.error(`[ShamCash] ❌ ERROR MESSAGE: ${errorMessage}`);
+
+      const errorMessagesAr: Record<string, string> = {
+        MISSING_API_KEY: "مفتاح API مفقود",
+        INVALID_API_KEY: "مفتاح API غير صالح",
+        VALIDATION_ERROR: `بيانات الطلب غير صحيحة: ${errorMessage}`,
+        INVALID_IDENTIFIER: "معرّف المحفظة غير صحيح",
+        NOT_FOUND: "المحفظة أو الفاتورة غير موجودة",
+        EXPIRED: "انتهت صلاحية الفاتورة",
+        WALLET_SESSION_EXPIRED: "انتهت جلسة المحفظة",
+        WALLET_UPSTREAM_ERROR: "تعذر الاتصال بمزود المحفظة",
+        PROVIDER_ERROR: `رفض المزود العملية: ${errorMessage}`,
+      };
+
+      throw new Error(errorMessagesAr[errorCode] || `فشل من المزود [${errorCode}]: ${errorMessage}`);
+    }
+
+    // ============ 6. تحليل الاستجابة الناجحة ============
+    let data: any;
+    try {
+      data = JSON.parse(responseText);
+    } catch (e) {
+      console.error("[ShamCash] ❌ Failed to parse JSON:", responseText);
+      throw new Error("استجابة غير صالحة من مزود الدفع");
+    }
+
+    console.log("[ShamCash] ✅ Parsed Response:", JSON.stringify(data));
+
+    // ============ 7. استخراج invoice_id (بجميع الاحتمالات) ============
+    const invoiceId =
+      data.invoice_id ||
+      data.invoiceId ||
+      data.id ||
+      data.data?.invoice_id ||
+      data.data?.invoiceId ||
+      data.data?.id;
+
+    if (!invoiceId) {
+      console.error("[ShamCash] ❌ No invoice_id found in response");
+      throw new Error("لم يتم إرجاع معرف الفاتورة من المزود");
+    }
+
+    const paymentUrl =
+      data.payment_url ||
+      data.paymentUrl ||
+      data.url ||
+      data.pay_url ||
+      data.data?.payment_url ||
+      `${cleanBaseUrl}/pay/${invoiceId}`;
+
+    const expiresAt =
+      data.expires_at ||
+      data.expiresAt ||
+      data.data?.expires_at ||
+      new Date(Date.now() + 15 * 60 * 1000).toISOString();
+
+    console.log("[ShamCash] ✅ SUCCESS! Invoice ID:", invoiceId);
+    console.log("========== [ShamCash] END ==========");
+
+    return {
+      invoiceId: String(invoiceId),
+      paymentUrl,
+      walletAddress: effectiveWalletIdentifier,
+      expiresAt,
+      amount,
+      currency,
+    };
+  } catch (error: any) {
+    clearTimeout(timeoutId);
+
+    if (error.name === "AbortError") {
+      console.error("[ShamCash] ❌ REQUEST TIMEOUT after 20s");
+      throw new Error("انتهت مهلة الاتصال بمزود الدفع");
+    }
+
+    console.error("[ShamCash] ❌ EXCEPTION:", error.message);
+    console.error("[ShamCash] ❌ STACK:", error.stack);
+    console.log("========== [ShamCash] FAILED ==========");
+    throw error;
+  }
 }
