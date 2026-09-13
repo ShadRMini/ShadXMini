@@ -1645,6 +1645,22 @@ router.patch("/admin/banners/:id/toggle-active", requireAdmin, async (req, res) 
   }
 });
 
+router.get("/admin/payment-methods", requireAdmin, async (_req, res) => {
+  try {
+    console.log("[API] 📥 GET /admin/payment-methods");
+    await ensureDatabaseSchema();
+    const methods = await db
+      .select()
+      .from(paymentMethodsTable)
+      .orderBy(asc(paymentMethodsTable.order));
+    console.log("[API] ✅ Returning", methods.length, "methods");
+    res.json(methods);
+  } catch (err: any) {
+    console.error("[API] ❌ Error fetching payment methods:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.patch("/admin/payment-methods/reorder", requireAdmin, async (req, res) => {
   try {
     await ensureDatabaseSchema();

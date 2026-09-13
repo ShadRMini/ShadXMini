@@ -96,7 +96,6 @@ const NEW_NAV_GROUPS: NavGroup[] = [
       { to: "/product-page-settings", label: "تخصيص صفحة المنتج", icon: Package },
       { to: "/about-settings", label: "تخصيص صفحة من نحن", icon: Info },
       { to: "/contact-settings", label: "تخصيص صفحة تواصل معنا", icon: Headphones },
-      { to: "/deposit-settings", label: "تخصيص صفحة شحن الرصيد", icon: Wallet },
       { to: "/social-links", label: "الروابط الاجتماعية", icon: Share2 },
       { to: "/notifications", label: "الإشعارات", icon: Bell },
       { to: "/languages", label: "اللغات", icon: LangIcon },

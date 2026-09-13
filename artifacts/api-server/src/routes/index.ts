@@ -10,6 +10,7 @@ import depositsRouter from "./deposits.js";
 import notificationsRouter from "./notifications.js";
 import telegramAdminRouter from "./telegram-admin.js";
 import telegramStoreRouter from "./telegram-store.js";
+import adminRouter from "./admin.js";
 
 const router: IRouter = Router();
 
@@ -24,5 +25,6 @@ router.use(depositsRouter);
 router.use(notificationsRouter);
 router.use(telegramAdminRouter);
 router.use(telegramStoreRouter);
+router.use(adminRouter);
 
 export default router;

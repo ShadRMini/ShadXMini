@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "sonner";
+import DepositSettings from "./DepositSettings";
 import {
   CreditCard,
   Plus,
@@ -126,6 +129,24 @@ export default function PaymentMethods() {
     order: 0,
   });
 
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialTab = searchParams.get("tab") === "customize" ? "customize" : "methods";
+  const [activeTab, setActiveTab] = useState<"methods" | "customize">(initialTab);
+
+  useEffect(() => {
+    const tab = searchParams.get("tab");
+    if (tab === "customize" && activeTab !== "customize") {
+      setActiveTab("customize");
+    } else if (!tab && activeTab !== "methods") {
+      setActiveTab("methods");
+    }
+  }, [searchParams]);
+
+  const handleTabChange = (tab: "methods" | "customize") => {
+    setActiveTab(tab);
+    setSearchParams(tab === "customize" ? { tab: "customize" } : {});
+  };
+
   const showToast = (text: string, type: "success" | "error" = "success") => {
     setToastMessage({ text, type });
     setTimeout(() => setToastMessage(null), 3500);
@@ -133,8 +154,10 @@ export default function PaymentMethods() {
 
   const fetchMethods = async () => {
     setLoading(true);
+    console.log("[UI] 📥 Loading payment methods...");
     try {
-      const data = await get<any[]>("/payment-methods");
+      const data = await get<any[]>("/admin/payment-methods");
+      console.log("[UI] ✅ Received payment methods data:", data);
       if (Array.isArray(data)) {
         const formatted: PaymentMethod[] = data.map((item: any) => ({
           id: Number(item.id),
@@ -155,10 +178,18 @@ export default function PaymentMethods() {
         // Sort by order ascending
         formatted.sort((a, b) => a.order - b.order || a.id - b.id);
         setMethods(formatted);
+      } else {
+        setMethods([]);
       }
     } catch (err: any) {
-      console.error("Error fetching payment methods:", err);
-      showToast("تعذر تحميل طرق الدفع من الخادم", "error");
+      console.error("[UI] ❌ Failed to load payment methods:", err);
+      console.error("[UI] Error details:", {
+        message: err.message,
+        status: err?.response?.status,
+        data: err?.response?.data,
+      });
+      showToast(`تعذر تحميل طرق الدفع من الخادم: ${err.message || ""}`, "error");
+      toast.error(`تعذر تحميل طرق الدفع: ${err.message || ""}`);
     } finally {
       setLoading(false);
     }
@@ -455,8 +486,40 @@ export default function PaymentMethods() {
         )}
       </AnimatePresence>
 
-      {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[#141414] p-6 rounded-3xl border border-[#262626] shadow-xl">
+      {/* Tabs navigation */}
+      <div className="flex gap-2 bg-[#1A1A1A] p-1.5 rounded-2xl border border-[#C8A45C]/20 shadow-md">
+        <button
+          type="button"
+          id="tab-payment-methods"
+          onClick={() => handleTabChange("methods")}
+          className={`flex-1 py-3 px-4 rounded-xl font-black text-sm flex items-center justify-center gap-2 transition-all cursor-pointer ${
+            activeTab === "methods"
+              ? "bg-[#C8A45C] text-black shadow-lg shadow-[#C8A45C]/20"
+              : "text-zinc-400 hover:text-white hover:bg-[#252525]"
+          }`}
+        >
+          <CreditCard className="w-4 h-4" />
+          <span>طرق الدفع</span>
+        </button>
+        <button
+          type="button"
+          id="tab-deposit-customization"
+          onClick={() => handleTabChange("customize")}
+          className={`flex-1 py-3 px-4 rounded-xl font-black text-sm flex items-center justify-center gap-2 transition-all cursor-pointer ${
+            activeTab === "customize"
+              ? "bg-[#C8A45C] text-black shadow-lg shadow-[#C8A45C]/20"
+              : "text-zinc-400 hover:text-white hover:bg-[#252525]"
+          }`}
+        >
+          <Wallet className="w-4 h-4" />
+          <span>تخصيص صفحة شحن الرصيد</span>
+        </button>
+      </div>
+
+      {activeTab === "methods" ? (
+        <>
+          {/* Header Section */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[#141414] p-6 rounded-3xl border border-[#262626] shadow-xl">
         <div className="flex items-center gap-4">
           <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#C8A45C]/20 to-[#C8A45C]/5 border border-[#C8A45C]/30 flex items-center justify-center text-[#C8A45C] shadow-lg">
             <CreditCard className="w-7 h-7" />
@@ -1167,6 +1230,12 @@ export default function PaymentMethods() {
           </div>
         )}
       </AnimatePresence>
+        </>
+      ) : (
+        <div className="pt-2">
+          <DepositSettings />
+        </div>
+      )}
     </div>
   );
 }
