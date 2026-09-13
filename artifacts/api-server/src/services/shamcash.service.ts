@@ -117,21 +117,17 @@ export async function createShamCashInvoice({
   const url = `${cleanBaseUrl}/v1/invoices`;
 
   const requestBody: any = {
-    amount: Number(amount),
+    method: "shamcash",
+    identifier: effectiveWalletIdentifier,
+    amount: String(amount),
     currency: currency.toUpperCase(),
-    wallet_identifier: effectiveWalletIdentifier,
+    webhookUrl: publicBaseUrl
+      ? `${publicBaseUrl.replace(/\/+$/, "")}/api/webhooks/shamcash`
+      : undefined,
   };
 
-  // إضافة callback إن كان لديك رابط عام
-  if (publicBaseUrl) {
-    requestBody.callback_url = `${publicBaseUrl.replace(/\/+$/, "")}/api/webhooks/shamcash`;
-  }
-  if (orderId) {
-    requestBody.order_id = orderId;
-  }
-
   console.log("[ShamCash] 📤 Request URL:", url);
-  console.log("[ShamCash] 📤 Request Body:", JSON.stringify({ ...requestBody, wallet_identifier: "***" }));
+  console.log("[ShamCash] 📤 Request Body (FULL):", JSON.stringify(requestBody));
 
   // ============ 3. إرسال الطلب ============
   const controller = new AbortController();
