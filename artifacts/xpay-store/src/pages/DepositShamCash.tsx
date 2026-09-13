@@ -18,6 +18,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { getPublicJson } from "@/lib/public-api";
 import { useAuth } from "@/lib/auth-context";
+import { DepositPageUI } from "@workspace/deposit-ui";
 
 // Fallback ShamCash QR image generator or SVG
 const SHAMCASH_DEFAULT_WALLET = "35147b5811bdc0bf07fdb11b85c8a5d";
@@ -179,206 +180,45 @@ export function DepositShamCash() {
         </span>
       </div>
 
-      {/* Main Card */}
-      <div 
-        className="rounded-3xl p-6 sm:p-8 shadow-xl space-y-6 border transition-all"
-        style={{
-          backgroundColor: methodConfig?.bg_color || undefined,
-          borderColor: methodConfig?.border_color ? `${methodConfig.border_color}44` : undefined,
-          color: methodConfig?.text_color || undefined,
-        }}
-      >
-        {/* Header Title & Subtitle if custom */}
-        {methodConfig?.page_title && (
-          <div className="text-center space-y-1 pb-3 border-b border-white/10">
-            <h1 
-              className="text-xl sm:text-2xl font-black tracking-tight"
-              style={{ color: methodConfig?.title_color || "var(--theme-primary)" }}
-            >
-              {methodConfig.page_title}
-            </h1>
-            {methodConfig.page_subtitle && (
-              <p className="text-xs sm:text-sm opacity-80 max-w-md mx-auto">
-                {methodConfig.page_subtitle}
-              </p>
-            )}
-          </div>
-        )}
+      {/* Main Card with DepositPageUI */}
+      <div className="shadow-xl rounded-2xl overflow-hidden border border-border/40">
+        <DepositPageUI
+          config={methodConfig || {}}
+          amount={amount}
+          onAmountChange={setAmount}
+          onAmountSelect={(v) => setAmount(String(v))}
+          currency={currency}
+          onCurrencyChange={(c) => setCurrency(c as "USD" | "SYP")}
+          walletAddress={walletAddress}
+          onConfirm={handleCreateInvoice}
+          isSubmitting={submitting}
+        />
+      </div>
 
-        {/* QR Code Section */}
-        <div className="text-center space-y-3">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted text-xs font-semibold text-muted-foreground border border-border/60">
-            <QrCode className="w-3.5 h-3.5" />
-            <span>رمز التحويل (QR Code)</span>
-          </div>
-
-          <div 
-            onClick={() => setShowLightbox(true)}
-            className="group relative w-56 h-56 sm:w-64 sm:h-64 mx-auto p-3.5 rounded-3xl bg-white border-2 border-border/60 hover:border-[var(--theme-primary)]/80 shadow-md transition-all cursor-pointer flex items-center justify-center overflow-hidden"
-            title="انقر لتكبير الرمز"
-          >
-            <img
-              src={effectiveQrUrl}
-              alt="QR Code شام كاش"
-              className="w-full h-full object-contain rounded-xl group-hover:scale-105 transition-transform duration-300"
-            />
-            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white rounded-3xl">
-              <span className="inline-flex items-center gap-1.5 text-xs font-bold bg-black/60 px-3 py-1.5 rounded-full backdrop-blur-xs">
-                <Maximize2 className="w-4 h-4" />
-                تكبير الرمز
-              </span>
-            </div>
-          </div>
+      {/* QR Code Section below main UI */}
+      <div className="text-center space-y-3 p-5 rounded-2xl bg-muted/20 border border-border/50">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted text-xs font-semibold text-muted-foreground border border-border/60">
+          <QrCode className="w-3.5 h-3.5" />
+          <span>رمز التحويل (QR Code)</span>
         </div>
 
-        {/* Wallet Address / Account ID Box */}
-        <div className="space-y-2 text-center pt-2">
-          <div className="flex items-center justify-center gap-1.5 text-xs font-medium text-muted-foreground">
-            <Wallet className="w-3.5 h-3.5 text-[var(--theme-primary)]" />
-            <span>عنوان المحفظة / معرف الحساب</span>
-          </div>
-
-          <div className="bg-muted/40 border border-border/80 rounded-2xl p-3 max-w-md mx-auto">
-            <div 
-              className="font-mono font-bold text-xs sm:text-sm select-all break-all tracking-wider"
-              style={{ color: methodConfig?.title_color || "var(--theme-primary)" }}
-            >
-              {walletAddress}
-            </div>
-          </div>
-
-          <div className="flex justify-center pt-1">
-            <button
-              type="button"
-              onClick={handleCopy}
-              className="inline-flex items-center gap-2 px-5 py-2 rounded-xl text-xs font-bold border border-[var(--theme-primary)]/40 bg-[var(--theme-primary)]/10 text-[var(--theme-primary)] hover:bg-[var(--theme-primary)] hover:text-white transition-all shadow-xs active:scale-95"
-            >
-              {copied ? (
-                <>
-                  <Check className="w-3.5 h-3.5" />
-                  <span>تم النسخ</span>
-                </>
-              ) : (
-                <>
-                  <Copy className="w-3.5 h-3.5" />
-                  <span>نسخ معرف المحفظة</span>
-                </>
-              )}
-            </button>
+        <div 
+          onClick={() => setShowLightbox(true)}
+          className="group relative w-48 h-48 sm:w-56 sm:h-56 mx-auto p-3 rounded-2xl bg-white border-2 border-border/60 hover:border-[var(--theme-primary)]/80 shadow-md transition-all cursor-pointer flex items-center justify-center overflow-hidden"
+          title="انقر لتكبير الرمز"
+        >
+          <img
+            src={effectiveQrUrl}
+            alt="QR Code شام كاش"
+            className="w-full h-full object-contain rounded-xl group-hover:scale-105 transition-transform duration-300"
+          />
+          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white rounded-2xl">
+            <span className="inline-flex items-center gap-1.5 text-xs font-bold bg-black/60 px-3 py-1.5 rounded-full backdrop-blur-xs">
+              <Maximize2 className="w-4 h-4" />
+              تكبير الرمز
+            </span>
           </div>
         </div>
-
-        {/* Instructions Box if defined in config */}
-        {methodConfig?.instructions && (
-          <div className="p-3.5 rounded-2xl bg-black/20 border border-white/10 text-xs leading-relaxed opacity-90 whitespace-pre-wrap">
-            {methodConfig.instructions}
-          </div>
-        )}
-
-        {/* Suggested Amounts Buttons if defined */}
-        {Array.isArray(methodConfig?.suggested_amounts) && methodConfig.suggested_amounts.length > 0 && (
-          <div className="space-y-2 pt-2">
-            <label className="text-xs font-bold opacity-80 block">
-              اختر مبلغ مقترح:
-            </label>
-            <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-              {methodConfig.suggested_amounts.map((amt: number) => (
-                <button
-                  key={amt}
-                  type="button"
-                  onClick={() => setAmount(String(amt))}
-                  className={`py-2 px-1 rounded-xl text-xs font-mono font-bold border transition-all cursor-pointer ${
-                    amount === String(amt)
-                      ? "border-[var(--theme-primary)] bg-[var(--theme-primary)] text-black"
-                      : "bg-muted/40 border-border/70 hover:bg-muted"
-                  }`}
-                  style={
-                    amount === String(amt) && methodConfig?.button_color
-                      ? { backgroundColor: methodConfig.button_color, color: "#141414" }
-                      : undefined
-                  }
-                >
-                  ${amt}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Amount & Currency Form */}
-        <form onSubmit={handleCreateInvoice} className="space-y-4 pt-4 border-t border-border/60">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {/* Amount Input */}
-            <div className="sm:col-span-2 space-y-1.5">
-              <label className="text-xs font-bold text-foreground">
-                المبلغ المراد شحنه <span className="text-destructive">*</span>
-              </label>
-              <div className="relative">
-                <Input
-                  type="number"
-                  step="any"
-                  min="0.1"
-                  required
-                  placeholder="أدخل المبلغ..."
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  className="h-12 rounded-xl text-left font-mono font-bold text-base px-4 pr-4 border-border/80 focus:border-[var(--theme-primary)]"
-                />
-              </div>
-            </div>
-
-            {/* Currency Select */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-foreground">
-                العملة <span className="text-destructive">*</span>
-              </label>
-              <div className="relative">
-                <select
-                  value={currency}
-                  onChange={(e) => setCurrency(e.target.value as "USD" | "SYP")}
-                  className="w-full h-12 rounded-xl bg-background border border-border/80 px-3 text-xs font-bold text-foreground focus:outline-hidden focus:border-[var(--theme-primary)] appearance-none cursor-pointer"
-                >
-                  <option value="USD">(دولار أمريكي) USD</option>
-                  <option value="SYP">(ليرة سورية) SYP</option>
-                </select>
-                <div className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-muted-foreground">
-                  <ChevronDown className="w-4 h-4" />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Session Note */}
-          <div className="rounded-2xl p-3.5 bg-blue-500/10 border border-blue-500/20 flex items-start gap-2.5 text-xs text-blue-800 dark:text-blue-300">
-            <Clock className="w-4 h-4 shrink-0 mt-0.5 text-blue-600 dark:text-blue-400" />
-            <p className="leading-relaxed">
-              سيتم إنشاء فاتورة صالحة لمدة 15 دقيقة. يرجى إتمام الدفع خلال هذه المدة.
-            </p>
-          </div>
-
-          {/* Action Button */}
-          <Button
-            type="submit"
-            disabled={submitting || !amount}
-            className="w-full h-12 rounded-2xl font-bold text-sm sm:text-base shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
-            style={{
-              backgroundColor: methodConfig?.button_color || "var(--theme-primary)",
-              color: methodConfig?.button_color ? "#141414" : undefined,
-            }}
-          >
-            {submitting ? (
-              <span className="inline-flex items-center gap-2">
-                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                جاري فتح الفاتورة...
-              </span>
-            ) : (
-              <>
-                <span>{methodConfig?.confirm_button_text || "تأكيد وفتح فاتورة"}</span>
-                <span className="text-lg leading-none">←</span>
-              </>
-            )}
-          </Button>
-        </form>
       </div>
 
       {/* Lightbox Modal for QR Code */}

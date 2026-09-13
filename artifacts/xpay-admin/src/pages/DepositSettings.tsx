@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { get, put } from "../lib/api";
 import { toast } from "sonner";
+import { DepositPageUI, type DepositPageConfig } from "@workspace/deposit-ui";
 import {
   Wallet,
   Save,
@@ -538,154 +539,28 @@ export function DepositSettings() {
           <div className="flex items-center justify-between px-1">
             <div className="flex items-center gap-2 text-xs font-bold text-zinc-400">
               <Eye className="w-4 h-4 text-[#C8A45C]" />
-              <span className="text-zinc-200">معاينة حية وتفاعلية (React Component):</span>
+              <span className="text-zinc-200">معاينة حية ومطابقة 100% للمتجر (DepositPageUI):</span>
             </div>
             <span className="text-[10px] px-2 py-0.5 rounded-md bg-[#1F1F1F] text-[#C8A45C] border border-[#333] font-mono">
               تحديث فوري
             </span>
           </div>
 
-          {/* Internal Live Preview Container */}
-          <div
-            className="p-5 sm:p-6 rounded-3xl border shadow-2xl transition-all space-y-5 overflow-hidden"
-            style={{
-              backgroundColor: config.bg_color || "#1A1A1A",
-              color: config.text_color || "#FFFFFF",
-              borderColor: `${config.border_color || "#C8A45C"}44`,
-            }}
-          >
-            {/* Header section in preview */}
-            <div className="text-center space-y-2 pb-4 border-b border-white/10">
-              <div
-                className="w-12 h-12 mx-auto rounded-2xl flex items-center justify-center shadow-lg"
-                style={{
-                  backgroundColor: `${config.title_color || "#C8A45C"}20`,
-                  border: `1px solid ${config.title_color || "#C8A45C"}50`,
-                  color: config.title_color || "#C8A45C",
-                }}
-              >
-                <Wallet size={24} />
-              </div>
-              <h3
-                className="text-lg font-black tracking-tight"
-                style={{ color: config.title_color || "#C8A45C" }}
-              >
-                {config.page_title || "شحن الرصيد"}
-              </h3>
-              <p className="text-xs opacity-75 max-w-xs mx-auto leading-relaxed">
-                {config.page_subtitle || "أضف رصيداً إلى محفظتك"}
-              </p>
+          {/* Internal Live Preview Container with DepositPageUI */}
+          <div className="border-2 border-[#C8A45C]/30 rounded-3xl overflow-hidden shadow-2xl">
+            <div className="bg-[#0A0A0A] px-4 py-2 text-xs text-[#C8A45C] border-b border-[#C8A45C]/20 flex items-center justify-between">
+              <span className="font-bold">معاينة حية (Live Preview)</span>
+              <span className="text-[10px] text-zinc-400 font-mono">Single Source of Truth</span>
             </div>
-
-            {/* Method Details Card Mockup */}
-            <div
-              className="p-4 rounded-2xl border space-y-3"
-              style={{
-                backgroundColor: "#222222",
-                borderColor: `${config.border_color || "#C8A45C"}33`,
-              }}
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div
-                    className="w-7 h-7 rounded-lg flex items-center justify-center"
-                    style={{
-                      backgroundColor: `${config.title_color || "#C8A45C"}20`,
-                      color: config.title_color || "#C8A45C",
-                    }}
-                  >
-                    <CreditCard size={15} />
-                  </div>
-                  <span className="text-xs font-bold text-white">
-                    {selectedMethod?.name || "طريقة الدفع المختارة"}
-                  </span>
-                </div>
-                <span
-                  className="text-[10px] font-bold px-2 py-0.5 rounded-full border"
-                  style={{
-                    backgroundColor: `${config.title_color || "#C8A45C"}15`,
-                    borderColor: `${config.title_color || "#C8A45C"}40`,
-                    color: config.title_color || "#C8A45C",
-                  }}
-                >
-                  معتمدة
-                </span>
-              </div>
-
-              {/* Instructions box */}
-              {config.instructions && (
-                <div className="text-[11px] opacity-85 leading-relaxed bg-black/25 p-3 rounded-xl border border-white/5 whitespace-pre-wrap">
-                  {config.instructions}
-                </div>
-              )}
-            </div>
-
-            {/* Suggested amounts buttons */}
-            {config.suggested_amounts && config.suggested_amounts.length > 0 && (
-              <div className="space-y-2">
-                <label className="text-xs font-bold opacity-80 block">
-                  اختر مبلغ مقترح:
-                </label>
-                <div className="grid grid-cols-3 gap-2">
-                  {config.suggested_amounts.map((amt) => {
-                    const isSelected = previewAmount === amt;
-                    return (
-                      <button
-                        key={amt}
-                        type="button"
-                        onClick={() => setPreviewAmount(amt)}
-                        className="py-2 px-2 rounded-xl text-xs font-mono font-bold border transition-all cursor-pointer"
-                        style={{
-                          backgroundColor: isSelected
-                            ? config.button_color || "#C8A45C"
-                            : "#252525",
-                          color: isSelected ? "#141414" : config.text_color || "#FFFFFF",
-                          borderColor: isSelected
-                            ? config.button_color || "#C8A45C"
-                            : `${config.border_color || "#C8A45C"}33`,
-                        }}
-                      >
-                        ${amt}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            {/* Custom amount field */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold opacity-80 block">
-                المبلغ المراد شحنه:
-              </label>
-              <div className="relative">
-                <input
-                  type="number"
-                  value={previewAmount}
-                  onChange={(e) => setPreviewAmount(e.target.value)}
-                  placeholder="أدخل المبلغ..."
-                  className="w-full h-11 bg-black/30 border rounded-xl px-3 text-xs font-mono font-bold"
-                  style={{
-                    borderColor: `${config.border_color || "#C8A45C"}44`,
-                    color: config.text_color || "#FFFFFF",
-                  }}
-                />
-                <span className="absolute left-3 top-3 text-xs opacity-60 font-mono">USD</span>
-              </div>
-            </div>
-
-            {/* Confirm action button */}
-            <button
-              type="button"
-              className="w-full h-11 rounded-2xl font-bold text-xs shadow-lg transition-all cursor-pointer flex items-center justify-center gap-2"
-              style={{
-                backgroundColor: config.button_color || "#C8A45C",
-                color: "#141414",
-              }}
-            >
-              <span>{config.confirm_button_text || "تأكيد والتحقق من الإيداع"}</span>
-              <CheckCircle2 size={15} />
-            </button>
+            <DepositPageUI
+              config={config}
+              amount={String(previewAmount)}
+              onAmountChange={(v) => setPreviewAmount(v)}
+              onAmountSelect={(amt) => setPreviewAmount(amt)}
+              currency="USD"
+              walletAddress={selectedMethod?.walletAddress || "35147b5811bdc0bf07fdb11b85c8a5d"}
+              isPreview={true}
+            />
           </div>
         </div>
       </div>
