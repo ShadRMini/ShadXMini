@@ -83,7 +83,10 @@ export function DepositInvoicePay() {
         const headers: Record<string, string> = {};
         if (authToken) headers["Authorization"] = `Bearer ${authToken}`;
 
-        const res = await fetch(`/api/deposits/shamcash/invoice/${encodeURIComponent(invoiceId)}`, {
+        const apiBase = String(import.meta.env.VITE_API_URL || "").replace(/\/+$/, "");
+        const pollUrl = `${apiBase}/api/deposits/shamcash/invoice/${encodeURIComponent(invoiceId)}`;
+
+        const res = await fetch(pollUrl, {
           headers,
         });
         if (!res.ok) return;
@@ -143,7 +146,14 @@ export function DepositInvoicePay() {
       };
       if (authToken) headers["Authorization"] = `Bearer ${authToken}`;
 
-      const res = await fetch("/api/deposits/shamcash/verify", {
+      const apiBase = String(import.meta.env.VITE_API_URL || "").replace(/\/+$/, "");
+      const verifyUrl = `${apiBase}/api/deposits/shamcash/verify`;
+
+      console.log("[Verify] 📤 URL:", verifyUrl);
+      console.log("[Verify] 📤 Body:", { invoiceId, transactionRef: cleanRef });
+      console.log("[Verify] 📤 Token:", authToken ? authToken.substring(0, 15) + "..." : "(none)");
+
+      const res = await fetch(verifyUrl, {
         method: "POST",
         headers,
         body: JSON.stringify({
@@ -152,7 +162,9 @@ export function DepositInvoicePay() {
         }),
       });
 
+      console.log("[Verify] 📥 Status:", res.status);
       const data = await res.json().catch(() => ({}));
+      console.log("[Verify] 📥 Body:", data);
 
       if (res.ok && (data.verified || data.ok)) {
         setStatus("approved");
