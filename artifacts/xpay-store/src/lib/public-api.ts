@@ -2,8 +2,10 @@ const TOKEN_KEY = "xpay_store_auth_token";
 
 export async function getPublicJson<T>(path: string): Promise<T> {
   const baseUrl = String(import.meta.env.VITE_API_URL || "").replace(/\/+$/, "");
-  const separator = path.includes("?") ? "&" : "?";
-  const url = `${baseUrl}/api${path}${separator}_=${Date.now()}`;
+  const cleanPath = path.startsWith("/api/") ? path.slice(4) : path.startsWith("/api") && !path.startsWith("/api-") ? path.slice(4) : path;
+  const normalizedPath = cleanPath.startsWith("/") ? cleanPath : `/${cleanPath}`;
+  const separator = normalizedPath.includes("?") ? "&" : "?";
+  const url = `${baseUrl}/api${normalizedPath}${separator}_=${Date.now()}`;
 
   const token = typeof window !== "undefined" ? localStorage.getItem(TOKEN_KEY) : null;
   const headers: Record<string, string> = {
@@ -30,8 +32,10 @@ export async function getPublicJson<T>(path: string): Promise<T> {
 
 export async function apiRequest<T = any>(path: string, options: RequestInit = {}): Promise<T> {
   const baseUrl = String(import.meta.env.VITE_API_URL || "").replace(/\/+$/, "");
-  const separator = path.includes("?") ? "&" : "?";
-  const url = `${baseUrl}/api${path}${separator}_=${Date.now()}`;
+  const cleanPath = path.startsWith("/api/") ? path.slice(4) : path.startsWith("/api") && !path.startsWith("/api-") ? path.slice(4) : path;
+  const normalizedPath = cleanPath.startsWith("/") ? cleanPath : `/${cleanPath}`;
+  const separator = normalizedPath.includes("?") ? "&" : "?";
+  const url = `${baseUrl}/api${normalizedPath}${separator}_=${Date.now()}`;
 
   const token = typeof window !== "undefined" ? localStorage.getItem(TOKEN_KEY) : null;
   const headers: Record<string, string> = {

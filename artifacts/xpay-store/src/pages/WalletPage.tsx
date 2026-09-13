@@ -169,22 +169,20 @@ export function WalletPage() {
     async function loadMethods() {
       try {
         setLoading(true);
-        const data = await getPublicJson<PaymentMethodItem[]>("/api/payment-methods");
+        const data = await getPublicJson<PaymentMethodItem[]>("/payment-methods");
         if (isMounted) {
-          if (Array.isArray(data) && data.length > 0) {
-            setMethods(data.filter((m) => m.active !== false));
-            setSelectedCode(data[0].code);
-          } else {
-            setMethods(DEFAULT_METHODS);
-            setSelectedCode("sham_cash");
+          if (Array.isArray(data)) {
+            const activeList = data.filter((m) => m.active !== false);
+            setMethods(activeList);
+            if (activeList.length > 0) {
+              setSelectedCode((prev) =>
+                activeList.some((m) => m.code === prev) ? prev : activeList[0].code,
+              );
+            }
           }
         }
       } catch (err) {
-        console.warn("Failed to fetch payment methods, using defaults:", err);
-        if (isMounted) {
-          setMethods(DEFAULT_METHODS);
-          setSelectedCode("sham_cash");
-        }
+        console.warn("Failed to fetch payment methods:", err);
       } finally {
         if (isMounted) setLoading(false);
       }

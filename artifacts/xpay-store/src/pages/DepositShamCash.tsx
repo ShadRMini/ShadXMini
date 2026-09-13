@@ -38,7 +38,7 @@ export function DepositShamCash() {
   useEffect(() => {
     async function loadMethod() {
       try {
-        const methods = await getPublicJson<any[]>("/api/payment-methods");
+        const methods = await getPublicJson<any[]>("/payment-methods");
         if (Array.isArray(methods)) {
           const sham = methods.find(
             (m) => m.code === "sham_cash" || m.code === "sham_cash_auto"

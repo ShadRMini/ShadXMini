@@ -472,7 +472,7 @@ export default function DepositSettings() {
   const [useLegacy, setUseLegacy] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
   const [saving, setSaving] = useState<boolean>(false);
-  const [activeTab, setActiveTab] = useState<"general" | "amounts" | "methods" | "instructions" | "styles" | "preview">("general");
+  const [activeTab, setActiveTab] = useState<"general" | "amounts" | "instructions" | "styles" | "preview">("general");
   const [selectedAmountPreview, setSelectedAmountPreview] = useState<number | null>(50);
   const [selectedMethodPreview, setSelectedMethodPreview] = useState<string>("sham_cash");
 
@@ -680,6 +680,12 @@ export default function DepositSettings() {
 
   return (
     <div className="p-4 sm:p-6 space-y-6 max-w-6xl mx-auto" dir="rtl">
+      {/* Explanatory Banner */}
+      <div className="bg-[#1F1F1F] border border-[#C8A45C]/30 rounded-2xl p-4 flex items-center gap-3 text-sm text-[#FDE68A]">
+        <Info className="w-5 h-5 text-[#C8A45C] shrink-0" />
+        <span className="font-bold">تعديل الإعدادات العامة لصفحة الإيداع (العنوان، الألوان، النصوص).</span>
+      </div>
+
       {/* Top Header & Bar */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-[#2D2D2D] border border-[#C8A45C]/35 rounded-3xl p-5 shadow-xl">
         <div className="flex items-center gap-3">
@@ -786,19 +792,6 @@ export default function DepositSettings() {
         >
           <Sliders size={16} />
           <span>الأقسام الأساسية</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveTab("methods")}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl font-bold text-xs transition cursor-pointer ${
-            activeTab === "methods"
-              ? "bg-[#C8A45C] text-[#1A1A1A] shadow-md"
-              : "bg-[#2D2D2D] text-zinc-400 hover:text-white border border-zinc-700"
-          }`}
-        >
-          <CreditCard size={16} />
-          <span>طرق الدفع ({config.payment_methods_list.length})</span>
         </button>
 
         <button
@@ -1045,53 +1038,7 @@ export default function DepositSettings() {
         </div>
       )}
 
-      {/* TAB 2: PAYMENT METHODS MANAGEMENT */}
-      {activeTab === "methods" && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <p className="text-xs text-zinc-400 font-medium">
-              إضافة وتعديل وإعادة ترتيب وسائل الدفع وحقول إدخال البيانات المطلوبة:
-            </p>
-            <button
-              type="button"
-              onClick={handleAddMethod}
-              className="flex items-center gap-1.5 bg-[#C8A45C]/20 hover:bg-[#C8A45C] text-[#C8A45C] hover:text-[#1A1A1A] px-3.5 py-2 rounded-2xl border border-[#C8A45C]/40 text-xs font-bold transition cursor-pointer"
-            >
-              <Plus size={16} />
-              <span>إضافة طريقة دفع جديدة</span>
-            </button>
-          </div>
-
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragEnd={handleDragEndMethods}
-          >
-            <SortableContext
-              items={config.payment_methods_list.map((m) => m.id)}
-              strategy={verticalListSortingStrategy}
-            >
-              <div className="space-y-3">
-                {config.payment_methods_list.map((method, idx) => (
-                  <MethodSortableCard
-                    key={method.id}
-                    method={method}
-                    onToggleActive={handleToggleMethodActive}
-                    onDeleteMethod={handleDeleteMethod}
-                    onUpdateMethod={handleUpdateMethod}
-                    onMoveUp={handleMoveMethodUp}
-                    onMoveDown={handleMoveMethodDown}
-                    isFirst={idx === 0}
-                    isLast={idx === config.payment_methods_list.length - 1}
-                  />
-                ))}
-              </div>
-            </SortableContext>
-          </DndContext>
-        </div>
-      )}
-
-      {/* TAB 3: AMOUNTS MANAGEMENT */}
+      {/* TAB 2: AMOUNTS MANAGEMENT */}
       {activeTab === "amounts" && (
         <div className="bg-[#2D2D2D] border border-[#C8A45C]/35 rounded-3xl p-6 shadow-xl space-y-6">
           <h2 className="font-black text-white text-base border-b border-zinc-700 pb-3">

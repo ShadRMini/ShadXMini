@@ -972,6 +972,7 @@ export async function ensureDatabaseSchema() {
 
     // 15. Ensure payment_methods table and seed default methods
     try {
+      // ضمان وجود جدول payment_methods
       await db.execute(sql`
         CREATE TABLE IF NOT EXISTS payment_methods (
           id SERIAL PRIMARY KEY,
@@ -991,46 +992,48 @@ export async function ensureDatabaseSchema() {
         );
       `);
 
-      await db.execute(sql`
-        ALTER TABLE payment_methods ADD COLUMN IF NOT EXISTS logo_image TEXT;
-        ALTER TABLE payment_methods ADD COLUMN IF NOT EXISTS qr_image TEXT;
-        ALTER TABLE payment_methods ADD COLUMN IF NOT EXISTS "order" INTEGER DEFAULT 0;
-        ALTER TABLE payment_methods ADD COLUMN IF NOT EXISTS category TEXT;
-        ALTER TABLE payment_methods ADD COLUMN IF NOT EXISTS subtitle TEXT DEFAULT '';
-        ALTER TABLE payment_methods ADD COLUMN IF NOT EXISTS wallet_address TEXT;
-        ALTER TABLE payment_methods ADD COLUMN IF NOT EXISTS instructions TEXT;
-        ALTER TABLE payment_methods ADD COLUMN IF NOT EXISTS min_amount NUMERIC(12, 2) NOT NULL DEFAULT 1;
-        ALTER TABLE payment_methods ADD COLUMN IF NOT EXISTS active BOOLEAN NOT NULL DEFAULT true;
-        ALTER TABLE payment_methods ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT NOW();
-        ALTER TABLE payment_methods ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT NOW();
-      `).catch(() => null);
+      // إضافة كل عمود في db.execute منفصل (مهم جداً)
+      await db.execute(sql`ALTER TABLE payment_methods ADD COLUMN IF NOT EXISTS "order" INTEGER NOT NULL DEFAULT 0;`);
+      await db.execute(sql`ALTER TABLE payment_methods ADD COLUMN IF NOT EXISTS category TEXT;`);
+      await db.execute(sql`ALTER TABLE payment_methods ADD COLUMN IF NOT EXISTS logo_image TEXT;`);
+      await db.execute(sql`ALTER TABLE payment_methods ADD COLUMN IF NOT EXISTS qr_image TEXT;`);
+      await db.execute(sql`ALTER TABLE payment_methods ADD COLUMN IF NOT EXISTS wallet_address TEXT;`);
+      await db.execute(sql`ALTER TABLE payment_methods ADD COLUMN IF NOT EXISTS instructions TEXT;`);
+      await db.execute(sql`ALTER TABLE payment_methods ADD COLUMN IF NOT EXISTS subtitle TEXT DEFAULT '';`);
+      await db.execute(sql`ALTER TABLE payment_methods ADD COLUMN IF NOT EXISTS min_amount NUMERIC(12, 2) NOT NULL DEFAULT 1;`);
+      await db.execute(sql`ALTER TABLE payment_methods ADD COLUMN IF NOT EXISTS active BOOLEAN NOT NULL DEFAULT true;`);
+      await db.execute(sql`ALTER TABLE payment_methods ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT NOW();`);
+      await db.execute(sql`ALTER TABLE payment_methods ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT NOW();`);
 
-      const checkPaymentMethods: any = await db.execute(sql`SELECT count(*)::int as c FROM payment_methods`);
-      const count = Number(checkPaymentMethods?.rows?.[0]?.c ?? checkPaymentMethods?.[0]?.c ?? 0);
-      if (count === 0) {
-        await db.execute(sql`
-          INSERT INTO payment_methods (id, code, name, subtitle, instructions, wallet_address, logo_image, qr_image, min_amount, active, "order", category)
-          VALUES
-            (1, 'sham_cash', 'شام كاش', 'تتطلب توثيق الحساب', 'يرجى التحويل إلى عنوان المحفظة ثم إدخال رقم العملية للتأكيد الفوري.', '35147b5811bdc0bf07fdb11b85c8a5d', '', '', 1, true, 1, 'تلقائي'),
-            (2, 'syriatel_cash', 'سيرياتيل كاش', 'شحن فوري', 'يرجى التحويل إلى الرقم المعتمد وإرفاق إشعار الدفع.', '0991234567', '', '', 1, true, 2, 'فوري'),
-            (3, 'binance_pay', 'Binance Pay', 'شحن فوري', 'الدفع عبر معرف بينانس مع التأكيد السريع.', 'xpay_binance@pay', '', '', 1, true, 3, 'فوري'),
-            (4, 'usdt_auto', 'USDT تلقائي', 'شحن فوري', 'تحويل شبكة TRC20 مع المعالجة التلقائية.', 'TQn9Y2khEsLJW1ChVWFMSMeSTow5KaxnSE', '', '', 5, true, 4, 'فوري'),
-            (5, 'mtn_cash', 'MTN Cash', 'مراجعة يدوية', 'يرجى التحويل عبر MTN كاش ورفع إشعار العملية للمراجعة.', '0941234567', '', '', 1, true, 5, 'يدوي')
-          ON CONFLICT (code) DO NOTHING;
-        `);
-      }
-
-      // Always synchronize payment_methods serial sequence to prevent duplicate key errors on insert
+      // مزامنة التسلسل التلقائي
       await db.execute(sql`
         SELECT setval(
           pg_get_serial_sequence('payment_methods', 'id'),
           COALESCE((SELECT MAX(id) FROM payment_methods), 0) + 1,
           false
         );
-      `).catch(() => null);
-      console.log("[DB Schema] payment_methods schema and sequence ensured successfully.");
+      `);
+
+      // إدراج الطرق الافتراضية (بعد ضمان الأعمدة)
+      const checkPM: any = await db.execute(sql`SELECT count(*)::int as c FROM payment_methods`);
+      const pmCount = Number(checkPM?.rows?.[0]?.c ?? checkPM?.[0]?.c ?? 0);
+      if (pmCount === 0) {
+        await db.execute(sql`
+          INSERT INTO payment_methods (code, name, subtitle, instructions, wallet_address, min_amount, active, "order", category)
+          VALUES
+            ('sham_cash', 'شام كاش', 'تتطلب توثيق الحساب', 'يرجى التحويل إلى عنوان المحفظة ثم إدخال رقم العملية للتأكيد الفوري.', '35147b5811bdc0bf07fdb11b85c8a5d', 1, true, 1, 'تلقائي'),
+            ('syriatel_cash', 'سيرياتيل كاش', 'شحن فوري', 'يرجى التحويل إلى الرقم المعتمد وإرفاق إشعار الدفع.', '0991234567', 1, true, 2, 'فوري'),
+            ('binance_pay', 'Binance Pay', 'شحن فوري', 'الدفع عبر معرف بينانس مع التأكيد السريع.', 'xpay_binance@pay', 1, true, 3, 'فوري'),
+            ('usdt_auto', 'USDT تلقائي', 'شحن فوري', 'تحويل شبكة TRC20 مع المعالجة التلقائية.', 'TQn9Y2khEsLJW1ChVWFMSMeSTow5KaxnSE', 5, true, 4, 'فوري'),
+            ('mtn_cash', 'MTN Cash', 'مراجعة يدوية', 'يرجى التحويل عبر MTN كاش ورفع إشعار العملية للمراجعة.', '0941234567', 1, true, 5, 'يدوي')
+          ON CONFLICT (code) DO NOTHING;
+        `);
+      }
+
+      console.log("[DB Schema] ✅ payment_methods schema ensured successfully");
     } catch (pmErr) {
       console.warn("[DB Schema] Error seeding payment_methods:", pmErr);
+      throw pmErr;
     }
 
     schemaEnsured = true;

@@ -1138,6 +1138,8 @@ async function sanitizeCrudDataForRuntimeSchema(path: string, data: any): Promis
     }
     if ("subtitle" in normalized && typeof normalized.subtitle === "string") {
       normalized.subtitle = normalized.subtitle.trim();
+    } else if (!("subtitle" in normalized)) {
+      normalized.subtitle = "";
     }
     if ("instructions" in normalized && typeof normalized.instructions === "string") {
       normalized.instructions = normalized.instructions.trim();
@@ -1145,12 +1147,17 @@ async function sanitizeCrudDataForRuntimeSchema(path: string, data: any): Promis
     if ("walletAddress" in normalized && typeof normalized.walletAddress === "string") {
       normalized.walletAddress = normalized.walletAddress.trim();
     }
+    if ("logoImage" in normalized && typeof normalized.logoImage === "string") {
+      normalized.logoImage = normalized.logoImage.trim();
+    }
+    if ("qrImage" in normalized && typeof normalized.qrImage === "string") {
+      normalized.qrImage = normalized.qrImage.trim();
+    }
     if ("category" in normalized && typeof normalized.category === "string") {
       normalized.category = normalized.category.trim();
     }
     if (isBlank(normalized.code)) throw new ValidationError("كود وسيلة الدفع مطلوب");
     if (isBlank(normalized.name)) throw new ValidationError("اسم وسيلة الدفع مطلوب");
-    if (isBlank(normalized.subtitle)) throw new ValidationError("العنوان الفرعي لوسيلة الدفع مطلوب");
     if ("minAmount" in normalized) normalizeDecimalField(normalized, "minAmount", { required: true });
     if ("order" in normalized) normalizeNumberField(normalized, "order", { required: false });
     if ("active" in normalized) normalized.active = !!normalized.active;

@@ -518,6 +518,12 @@ export default function PaymentMethods() {
 
       {activeTab === "methods" ? (
         <>
+          {/* Explanatory Banner */}
+          <div className="bg-[#1F1F1F] border border-[#C8A45C]/30 rounded-2xl p-4 flex items-center gap-3 text-sm text-[#FDE68A]">
+            <Info className="w-5 h-5 text-[#C8A45C] shrink-0" />
+            <span className="font-bold">إدارة كل طريقة دفع على حدة (الاسم، الشعار، البيانات).</span>
+          </div>
+
           {/* Header Section */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[#141414] p-6 rounded-3xl border border-[#262626] shadow-xl">
         <div className="flex items-center gap-4">
