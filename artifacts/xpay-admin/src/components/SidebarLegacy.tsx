@@ -43,7 +43,7 @@ const LEGACY_NAV: { to: string; label: string; icon: any; group: string }[] = [
   // Group 4
   { to: "/orders", label: "الطلبات", icon: ShoppingCart, group: "الإدارة المالية والتسويق" },
   { to: "/order-messages", label: "قوالب رسائل الطلبات", icon: MessageSquare, group: "الإدارة المالية والتسويق" },
-  { to: "/payment-methods", label: "طرق الدفع (إضافة)", icon: CreditCard, group: "الإدارة المالية والتسويق" },
+  { to: "/payment-methods", label: "طرق الدفع", icon: CreditCard, group: "الإدارة المالية والتسويق" },
   { to: "/coupons", label: "كوبونات الخصم (إضافة/حذف)", icon: Ticket, group: "الإدارة المالية والتسويق" },
   { to: "/promotions", label: "العروض الترويجية", icon: Megaphone, group: "الإدارة المالية والتسويق" },
   { to: "/vip", label: "عضويات VIP", icon: Crown, group: "الإدارة المالية والتسويق" },

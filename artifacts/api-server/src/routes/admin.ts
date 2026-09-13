@@ -815,21 +815,44 @@ function makeCrud<T extends { id: any }>(
   opts: { orderBy?: any; allowedFields?: string[] } = {},
 ) {
   router.get(`/admin/${path}`, requireAdmin, async (_req, res) => {
-    const rows = await db.select().from(table).orderBy(opts.orderBy ?? desc(table.id));
-    res.json(rows);
+    try {
+      if (path === "providers" || path === "payment-methods") {
+        await ensureDatabaseSchema();
+      }
+      const rows = await db.select().from(table).orderBy(opts.orderBy ?? desc(table.id));
+      res.json(rows);
+    } catch (error: any) {
+      console.error(`Get ${path} failed:`, error);
+      const httpErr = toHttpError(error);
+      res.status(httpErr.status).json({ error: httpErr.message });
+    }
   });
   router.get(`/admin/${path}/:id`, requireAdmin, async (req, res) => {
-    const [row] = await db.select().from(table).where(eq(table.id, Number(req.params.id))).limit(1);
-    if (!row) {
-      res.status(404).json({ error: "غير موجود" });
-      return;
+    try {
+      const [row] = await db.select().from(table).where(eq(table.id, Number(req.params.id))).limit(1);
+      if (!row) {
+        res.status(404).json({ error: "غير موجود" });
+        return;
+      }
+      res.json(row);
+    } catch (error: any) {
+      const httpErr = toHttpError(error);
+      res.status(httpErr.status).json({ error: httpErr.message });
     }
-    res.json(row);
   });
   router.post(`/admin/${path}`, requireAdmin, async (req, res) => {
     try {
-      if (path === "providers") {
+      if (path === "providers" || path === "payment-methods") {
         await ensureDatabaseSchema();
+        if (path === "payment-methods") {
+          await db.execute(sql`
+            SELECT setval(
+              pg_get_serial_sequence('payment_methods', 'id'),
+              COALESCE((SELECT MAX(id) FROM payment_methods), 1),
+              true
+            );
+          `).catch(() => null);
+        }
       }
       const data = await sanitizeCrudDataForRuntimeSchema(
         path,
@@ -849,9 +872,12 @@ function makeCrud<T extends { id: any }>(
       res.status(httpErr.status).json({ error: httpErr.message });
     }
   });
-  const handleUpdate = async (req: any, res: any) => {
+  const handleUpdate = async (req: any, res: any, next?: any) => {
+    if (req.params?.id === "reorder") {
+      return typeof next === "function" ? next() : res.status(404).end();
+    }
     try {
-      if (path === "providers") {
+      if (path === "providers" || path === "payment-methods") {
         await ensureDatabaseSchema();
       }
       const data = await sanitizeCrudDataForRuntimeSchema(
@@ -1101,6 +1127,33 @@ async function sanitizeCrudDataForRuntimeSchema(path: string, data: any): Promis
     if (isBlank(normalized.platform)) throw new ValidationError("اسم المنصة مطلوب");
     if (isBlank(normalized.label)) throw new ValidationError("عنوان الرابط مطلوب");
     if (isBlank(normalized.url)) throw new ValidationError("رابط المنصة مطلوب");
+  }
+
+  if (path === "payment-methods") {
+    if ("code" in normalized && typeof normalized.code === "string") {
+      normalized.code = normalized.code.trim();
+    }
+    if ("name" in normalized && typeof normalized.name === "string") {
+      normalized.name = normalized.name.trim();
+    }
+    if ("subtitle" in normalized && typeof normalized.subtitle === "string") {
+      normalized.subtitle = normalized.subtitle.trim();
+    }
+    if ("instructions" in normalized && typeof normalized.instructions === "string") {
+      normalized.instructions = normalized.instructions.trim();
+    }
+    if ("walletAddress" in normalized && typeof normalized.walletAddress === "string") {
+      normalized.walletAddress = normalized.walletAddress.trim();
+    }
+    if ("category" in normalized && typeof normalized.category === "string") {
+      normalized.category = normalized.category.trim();
+    }
+    if (isBlank(normalized.code)) throw new ValidationError("كود وسيلة الدفع مطلوب");
+    if (isBlank(normalized.name)) throw new ValidationError("اسم وسيلة الدفع مطلوب");
+    if (isBlank(normalized.subtitle)) throw new ValidationError("العنوان الفرعي لوسيلة الدفع مطلوب");
+    if ("minAmount" in normalized) normalizeDecimalField(normalized, "minAmount", { required: true });
+    if ("order" in normalized) normalizeNumberField(normalized, "order", { required: false });
+    if ("active" in normalized) normalized.active = !!normalized.active;
   }
 
   if (path === "categories" || path === "product-groups") {
@@ -1592,25 +1645,30 @@ router.patch("/admin/banners/:id/toggle-active", requireAdmin, async (req, res) 
   }
 });
 
-makeCrud("payment-methods", paymentMethodsTable, {
-  orderBy: asc(paymentMethodsTable.order),
-  allowedFields: [
-    "code",
-    "name",
-    "subtitle",
-    "instructions",
-    "walletAddress",
-    "logoImage",
-    "qrImage",
-    "minAmount",
-    "active",
-    "order",
-    "category",
-  ],
+router.patch("/admin/payment-methods/reorder", requireAdmin, async (req, res) => {
+  try {
+    await ensureDatabaseSchema();
+    const items = req.body?.items; // Array of { id: number, order: number }
+    if (Array.isArray(items)) {
+      for (const item of items) {
+        if (item.id !== undefined && item.order !== undefined) {
+          await db
+            .update(paymentMethodsTable)
+            .set({ order: Number(item.order), updatedAt: new Date() } as any)
+            .where(eq(paymentMethodsTable.id, Number(item.id)));
+        }
+      }
+    }
+    res.json({ ok: true });
+  } catch (err: any) {
+    console.error("Reorder payment methods failed:", err);
+    res.status(500).json({ error: err.message });
+  }
 });
 
 router.patch("/admin/payment-methods/:id/toggle", requireAdmin, async (req, res) => {
   try {
+    await ensureDatabaseSchema();
     const id = Number(req.params.id);
     const [existing] = await db
       .select()
@@ -1627,27 +1685,26 @@ router.patch("/admin/payment-methods/:id/toggle", requireAdmin, async (req, res)
       .where(eq(paymentMethodsTable.id, id));
     res.json({ ok: true, active: newActive });
   } catch (err: any) {
+    console.error("Toggle payment method failed:", err);
     res.status(500).json({ error: err.message });
   }
 });
 
-router.patch("/admin/payment-methods/reorder", requireAdmin, async (req, res) => {
-  try {
-    const items = req.body?.items; // Array of { id: number, order: number }
-    if (Array.isArray(items)) {
-      for (const item of items) {
-        if (item.id !== undefined && item.order !== undefined) {
-          await db
-            .update(paymentMethodsTable)
-            .set({ order: Number(item.order), updatedAt: new Date() } as any)
-            .where(eq(paymentMethodsTable.id, Number(item.id)));
-        }
-      }
-    }
-    res.json({ ok: true });
-  } catch (err: any) {
-    res.status(500).json({ error: err.message });
-  }
+makeCrud("payment-methods", paymentMethodsTable, {
+  orderBy: asc(paymentMethodsTable.order),
+  allowedFields: [
+    "code",
+    "name",
+    "subtitle",
+    "instructions",
+    "walletAddress",
+    "logoImage",
+    "qrImage",
+    "minAmount",
+    "active",
+    "order",
+    "category",
+  ],
 });
 
 makeCrud("social-links", socialLinksTable, {
@@ -3376,7 +3433,7 @@ const PUT_RESOURCES: Array<{ path: string; table: any; allowed: string[] }> = [
     table: paymentMethodsTable,
     allowed: [
       "code", "name", "subtitle", "instructions", "walletAddress", "logoImage", "qrImage",
-      "minAmount", "active",
+      "minAmount", "active", "order", "category",
     ],
   },
   { path: "social-links", table: socialLinksTable, allowed: ["platform", "url", "label", "order"] },

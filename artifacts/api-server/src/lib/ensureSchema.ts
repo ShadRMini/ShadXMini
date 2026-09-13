@@ -994,6 +994,13 @@ export async function ensureDatabaseSchema() {
       await db.execute(sql`
         ALTER TABLE payment_methods ADD COLUMN IF NOT EXISTS "order" INTEGER NOT NULL DEFAULT 0;
         ALTER TABLE payment_methods ADD COLUMN IF NOT EXISTS category TEXT;
+        ALTER TABLE payment_methods ADD COLUMN IF NOT EXISTS logo_image TEXT;
+        ALTER TABLE payment_methods ADD COLUMN IF NOT EXISTS qr_image TEXT;
+        ALTER TABLE payment_methods ADD COLUMN IF NOT EXISTS wallet_address TEXT;
+        ALTER TABLE payment_methods ADD COLUMN IF NOT EXISTS instructions TEXT;
+        ALTER TABLE payment_methods ADD COLUMN IF NOT EXISTS subtitle TEXT DEFAULT '';
+        ALTER TABLE payment_methods ADD COLUMN IF NOT EXISTS min_amount NUMERIC(12, 2) NOT NULL DEFAULT 1;
+        ALTER TABLE payment_methods ADD COLUMN IF NOT EXISTS active BOOLEAN NOT NULL DEFAULT true;
         ALTER TABLE payment_methods ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT NOW();
         ALTER TABLE payment_methods ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT NOW();
       `).catch(() => null);
@@ -1011,16 +1018,17 @@ export async function ensureDatabaseSchema() {
             (5, 'mtn_cash', 'MTN Cash', 'مراجعة يدوية', 'يرجى التحويل عبر MTN كاش ورفع إشعار العملية للمراجعة.', '0941234567', '', '', 1, true, 5, 'يدوي')
           ON CONFLICT (code) DO NOTHING;
         `);
-
-        await db.execute(sql`
-          SELECT setval(
-            pg_get_serial_sequence('payment_methods', 'id'),
-            COALESCE((SELECT MAX(id) FROM payment_methods), 5),
-            true
-          );
-        `).catch(() => null);
-        console.log("[DB Schema] Seeded 5 payment methods successfully.");
       }
+
+      // Always synchronize payment_methods serial sequence to prevent duplicate key errors on insert
+      await db.execute(sql`
+        SELECT setval(
+          pg_get_serial_sequence('payment_methods', 'id'),
+          COALESCE((SELECT MAX(id) FROM payment_methods), 1),
+          true
+        );
+      `).catch(() => null);
+      console.log("[DB Schema] payment_methods schema and sequence ensured successfully.");
     } catch (pmErr) {
       console.warn("[DB Schema] Error seeding payment_methods:", pmErr);
     }

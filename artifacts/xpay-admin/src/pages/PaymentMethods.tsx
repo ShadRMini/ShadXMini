@@ -237,11 +237,13 @@ export default function PaymentMethods() {
 
     if (!file.type.startsWith("image/")) {
       showToast("يرجى اختيار ملف صورة صالح (PNG, JPG, SVG, WebP)", "error");
+      e.target.value = "";
       return;
     }
 
     if (file.size > 2 * 1024 * 1024) {
       showToast("حجم الصورة كبير جداً. الحد الأقصى المسموح 2 ميجابايت", "error");
+      e.target.value = "";
       return;
     }
 
@@ -255,6 +257,7 @@ export default function PaymentMethods() {
       showToast("فشل في قراءة ملف الصورة", "error");
     };
     reader.readAsDataURL(file);
+    e.target.value = "";
   };
 
   const handleQrUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -263,11 +266,13 @@ export default function PaymentMethods() {
 
     if (!file.type.startsWith("image/")) {
       showToast("يرجى اختيار ملف صورة صالح", "error");
+      e.target.value = "";
       return;
     }
 
     if (file.size > 2 * 1024 * 1024) {
       showToast("حجم صورة QR كبير جداً. الحد الأقصى 2 ميجابايت", "error");
+      e.target.value = "";
       return;
     }
 
@@ -281,6 +286,7 @@ export default function PaymentMethods() {
       showToast("فشل في قراءة ملف QR", "error");
     };
     reader.readAsDataURL(file);
+    e.target.value = "";
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -328,7 +334,7 @@ export default function PaymentMethods() {
       }
 
       setShowModal(false);
-      fetchMethods();
+      await fetchMethods();
     } catch (err: any) {
       console.error("Save error:", err);
       showToast(err.message || "حدث خطأ أثناء حفظ البيانات", "error");
@@ -347,12 +353,13 @@ export default function PaymentMethods() {
     try {
       await patch(`/payment-methods/${item.id}/toggle`, { active: newActive });
       showToast(newActive ? `تم تفعيل "${item.name}"` : `تم تعطيل "${item.name}"`);
-    } catch (err) {
+    } catch (err: any) {
+      console.error("Toggle active error:", err);
       // Revert optimistic update
       setMethods((prev) =>
         prev.map((m) => (m.id === item.id ? { ...m, active: item.active } : m))
       );
-      showToast("فشل في تحديث حالة التفعيل", "error");
+      showToast(err?.message || "فشل في تحديث حالة التفعيل", "error");
     }
   };
 
@@ -368,13 +375,16 @@ export default function PaymentMethods() {
     }
   };
 
-  const handleMove = async (index: number, direction: "up" | "down") => {
-    const targetIndex = direction === "up" ? index - 1 : index + 1;
+  const handleMove = async (method: PaymentMethod, direction: "up" | "down") => {
+    const currentIndex = methods.findIndex((m) => m.id === method.id);
+    if (currentIndex === -1) return;
+
+    const targetIndex = direction === "up" ? currentIndex - 1 : currentIndex + 1;
     if (targetIndex < 0 || targetIndex >= methods.length) return;
 
     const newMethods = [...methods];
-    const temp = newMethods[index];
-    newMethods[index] = newMethods[targetIndex];
+    const temp = newMethods[currentIndex];
+    newMethods[currentIndex] = newMethods[targetIndex];
     newMethods[targetIndex] = temp;
 
     // Update order values sequentially
@@ -385,9 +395,9 @@ export default function PaymentMethods() {
       const items = updated.map((m) => ({ id: m.id, order: m.order }));
       await patch("/payment-methods/reorder", { items });
       showToast("تم تحديث ترتيب ظهور طرق الدفع");
-    } catch (err) {
+    } catch (err: any) {
       console.error("Reorder error:", err);
-      showToast("تعذر حفظ الترتيب الجديد في الخادم", "error");
+      showToast(err?.message || "تعذر حفظ الترتيب الجديد في الخادم", "error");
       fetchMethods();
     }
   };
@@ -429,7 +439,7 @@ export default function PaymentMethods() {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className={`fixed top-5 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3 text-sm font-bold border backdrop-blur-md ${
+            className={`fixed top-5 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3 text-sm font-bold border backdrop-blur-md pointer-events-none ${
               toastMessage.type === "success"
                 ? "bg-emerald-950/90 text-emerald-300 border-emerald-500/40"
                 : "bg-red-950/90 text-red-300 border-red-500/40"
@@ -608,7 +618,8 @@ export default function PaymentMethods() {
                     <td className="py-3 px-3 text-center">
                       <div className="flex flex-col items-center justify-center gap-1">
                         <button
-                          onClick={() => handleMove(index, "up")}
+                          type="button"
+                          onClick={() => handleMove(method, "up")}
                           disabled={index === 0}
                           title="تحريك لأعلى"
                           className="p-1 rounded bg-[#202020] hover:bg-[#2E2E2E] text-zinc-400 hover:text-white disabled:opacity-20 transition-all"
@@ -619,7 +630,8 @@ export default function PaymentMethods() {
                           {method.order}
                         </span>
                         <button
-                          onClick={() => handleMove(index, "down")}
+                          type="button"
+                          onClick={() => handleMove(method, "down")}
                           disabled={index === filteredMethods.length - 1}
                           title="تحريك لأسفل"
                           className="p-1 rounded bg-[#202020] hover:bg-[#2E2E2E] text-zinc-400 hover:text-white disabled:opacity-20 transition-all"

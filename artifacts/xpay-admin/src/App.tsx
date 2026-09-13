@@ -133,6 +133,7 @@ export default function App() {
           <Route path="/product-groups" element={<ProductGroups />} />
           <Route path="/products" element={<Products />} />
           <Route path="/payment-methods" element={<PaymentMethods />} />
+          <Route path="/admin/payment-methods" element={<Navigate to="/payment-methods" replace />} />
           <Route path="/banners" element={<Banners />} />
           <Route path="/news" element={<News />} />
           <Route path="/social-links" element={<SocialLinks />} />
