@@ -12,7 +12,7 @@ export async function getShamCashSettings() {
     settingsMap["shamcash_api_base_url"]?.url ||
     settingsMap["shamcash_api_base_url"] ||
     process.env.SAM_API_BASE_URL ||
-    "https://sam-api.pro/api";
+    "https://www.sam-api.pro/api";
 
   const apiKey =
     settingsMap["shamcash_api_key"]?.key ||
@@ -56,7 +56,7 @@ export async function getShamCashSettings() {
   };
 }
 
-const SAM_API_BASE_URL = process.env.SAM_API_BASE_URL || "https://sam-api.pro/api";
+const SAM_API_BASE_URL = process.env.SAM_API_BASE_URL || "https://www.sam-api.pro/api";
 const SAM_API_KEY = process.env.SAM_API_KEY || "";
 const SAM_SHAMCASH_IDENTIFIER = process.env.SAM_SHAMCASH_IDENTIFIER || "";
 const PUBLIC_API_BASE_URL = process.env.PUBLIC_API_BASE_URL || "";
@@ -87,7 +87,7 @@ export async function createShamCashInvoice({
       const dbSettings = await getShamCashSettings();
       if (!apiKey && dbSettings.apiKey) apiKey = dbSettings.apiKey;
       if (!walletIdentifier && dbSettings.shamcashIdentifier) walletIdentifier = dbSettings.shamcashIdentifier;
-      if ((!baseUrl || baseUrl === "https://sam-api.pro/api") && dbSettings.apiBaseUrl) baseUrl = dbSettings.apiBaseUrl;
+      if ((!baseUrl || baseUrl === "https://sam-api.pro/api" || baseUrl === "https://www.sam-api.pro/api") && dbSettings.apiBaseUrl) baseUrl = dbSettings.apiBaseUrl;
       if (!publicBaseUrl && dbSettings.publicApiBaseUrl) publicBaseUrl = dbSettings.publicApiBaseUrl;
     } catch (err: any) {
       console.warn("[ShamCash] ⚠️ Failed to load settings from DB fallback:", err.message);
@@ -116,7 +116,7 @@ export async function createShamCashInvoice({
   const cleanBaseUrl = baseUrl.replace(/\/+$/, "");
   const url = `${cleanBaseUrl}/v1/invoices`;
 
-  const requestBody: any = {
+  const requestBody = {
     method: "shamcash",
     identifier: effectiveWalletIdentifier,
     amount: String(amount),
@@ -127,7 +127,7 @@ export async function createShamCashInvoice({
   };
 
   console.log("[ShamCash] 📤 Request URL:", url);
-  console.log("[ShamCash] 📤 Request Body (FULL):", JSON.stringify(requestBody));
+  console.log("[ShamCash] 📤 Request Body (FULL):", JSON.stringify(requestBody, null, 2));
 
   // ============ 3. إرسال الطلب ============
   const controller = new AbortController();

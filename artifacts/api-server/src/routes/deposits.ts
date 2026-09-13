@@ -22,7 +22,7 @@ import { rateLimit } from "../lib/rateLimit.js";
 import { createShamCashInvoice, getShamCashSettings } from "../services/shamcash.service.js";
 
 const router: IRouter = Router();
-const SAM_API_BASE_URL = process.env.SAM_API_BASE_URL || "https://sam-api.pro/api";
+const SAM_API_BASE_URL = process.env.SAM_API_BASE_URL || "https://www.sam-api.pro/api";
 const SAM_PAY_BASE_URL =
   process.env.SAM_PAY_BASE_URL ||
   SAM_API_BASE_URL.replace(/\/api\/?$/i, "");
