@@ -128,6 +128,7 @@ export const paymentMethodsTable = pgTable("payment_methods", {
   active: boolean("active").notNull().default(true),
   order: integer("order").notNull().default(0),
   category: text("category"),
+  displayConfig: jsonb("display_config"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

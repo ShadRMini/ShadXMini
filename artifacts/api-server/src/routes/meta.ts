@@ -31,6 +31,7 @@ router.get("/payment-methods", async (_req, res) => {
         active: m.active,
         order: m.order !== undefined ? Number(m.order) : 0,
         category: m.category ?? undefined,
+        displayConfig: m.displayConfig ?? undefined,
       })),
     );
   } catch (err) {

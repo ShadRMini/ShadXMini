@@ -17,14 +17,30 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
+import { getPublicJson } from "@/lib/public-api";
 
 export function DepositInvoicePay() {
   const [, params] = useRoute("/deposit/pay/:invoiceId");
   const [, setLocation] = useLocation();
   const { refreshUser } = useAuth();
+  const [methodConfig, setMethodConfig] = useState<any>(null);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "instant" });
+    async function loadMethodConfig() {
+      try {
+        const methods = await getPublicJson<any[]>("/payment-methods");
+        if (Array.isArray(methods)) {
+          const sham = methods.find((m) => m.code === "sham_cash" || m.code === "sham_cash_auto");
+          if (sham?.displayConfig || sham?.display_config) {
+            setMethodConfig(sham.displayConfig || sham.display_config);
+          }
+        }
+      } catch (e) {
+        console.warn("Could not load payment method config:", e);
+      }
+    }
+    loadMethodConfig();
   }, []);
 
   const invoiceId = params?.invoiceId ? decodeURIComponent(params.invoiceId) : "";
@@ -305,7 +321,11 @@ export function DepositInvoicePay() {
             <Button
               type="submit"
               disabled={verifying || !transactionRef.trim() || isExpired || status === "approved"}
-              className="w-full h-12 rounded-2xl bg-[var(--theme-primary)] hover:opacity-90 text-white font-bold text-sm sm:text-base shadow-lg shadow-[var(--theme-primary)]/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full h-12 rounded-2xl font-bold text-sm sm:text-base shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
+              style={{
+                backgroundColor: methodConfig?.button_color || "var(--theme-primary)",
+                color: methodConfig?.button_color ? "#141414" : undefined,
+              }}
             >
               {verifying ? (
                 <span className="inline-flex items-center gap-2">
@@ -315,7 +335,7 @@ export function DepositInvoicePay() {
               ) : (
                 <>
                   <CheckCircle2 className="w-4 h-4" />
-                  <span>تأكيد والتحقق من الإيداع</span>
+                  <span>{methodConfig?.confirm_button_text || "تأكيد والتحقق من الإيداع"}</span>
                 </>
               )}
             </Button>

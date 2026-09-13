@@ -33,6 +33,7 @@ export function DepositShamCash() {
   const [copied, setCopied] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [showLightbox, setShowLightbox] = useState(false);
+  const [methodConfig, setMethodConfig] = useState<any>(null);
 
   // Load payment methods to get active ShamCash wallet and QR
   useEffect(() => {
@@ -48,6 +49,9 @@ export function DepositShamCash() {
           }
           if (sham?.qrImage) {
             setQrImageUrl(sham.qrImage);
+          }
+          if (sham?.displayConfig || sham?.display_config) {
+            setMethodConfig(sham.displayConfig || sham.display_config);
           }
         }
       } catch (e) {
@@ -175,8 +179,32 @@ export function DepositShamCash() {
         </span>
       </div>
 
-      {/* Main Card (Image 2.1 design) */}
-      <div className="bg-card border border-border/80 rounded-3xl p-6 sm:p-8 shadow-xl shadow-black/5 space-y-6">
+      {/* Main Card */}
+      <div 
+        className="rounded-3xl p-6 sm:p-8 shadow-xl space-y-6 border transition-all"
+        style={{
+          backgroundColor: methodConfig?.bg_color || undefined,
+          borderColor: methodConfig?.border_color ? `${methodConfig.border_color}44` : undefined,
+          color: methodConfig?.text_color || undefined,
+        }}
+      >
+        {/* Header Title & Subtitle if custom */}
+        {methodConfig?.page_title && (
+          <div className="text-center space-y-1 pb-3 border-b border-white/10">
+            <h1 
+              className="text-xl sm:text-2xl font-black tracking-tight"
+              style={{ color: methodConfig?.title_color || "var(--theme-primary)" }}
+            >
+              {methodConfig.page_title}
+            </h1>
+            {methodConfig.page_subtitle && (
+              <p className="text-xs sm:text-sm opacity-80 max-w-md mx-auto">
+                {methodConfig.page_subtitle}
+              </p>
+            )}
+          </div>
+        )}
+
         {/* QR Code Section */}
         <div className="text-center space-y-3">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted text-xs font-semibold text-muted-foreground border border-border/60">
@@ -211,7 +239,10 @@ export function DepositShamCash() {
           </div>
 
           <div className="bg-muted/40 border border-border/80 rounded-2xl p-3 max-w-md mx-auto">
-            <div className="font-mono font-bold text-xs sm:text-sm text-[var(--theme-primary)] select-all break-all tracking-wider">
+            <div 
+              className="font-mono font-bold text-xs sm:text-sm select-all break-all tracking-wider"
+              style={{ color: methodConfig?.title_color || "var(--theme-primary)" }}
+            >
               {walletAddress}
             </div>
           </div>
@@ -236,6 +267,43 @@ export function DepositShamCash() {
             </button>
           </div>
         </div>
+
+        {/* Instructions Box if defined in config */}
+        {methodConfig?.instructions && (
+          <div className="p-3.5 rounded-2xl bg-black/20 border border-white/10 text-xs leading-relaxed opacity-90 whitespace-pre-wrap">
+            {methodConfig.instructions}
+          </div>
+        )}
+
+        {/* Suggested Amounts Buttons if defined */}
+        {Array.isArray(methodConfig?.suggested_amounts) && methodConfig.suggested_amounts.length > 0 && (
+          <div className="space-y-2 pt-2">
+            <label className="text-xs font-bold opacity-80 block">
+              اختر مبلغ مقترح:
+            </label>
+            <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+              {methodConfig.suggested_amounts.map((amt: number) => (
+                <button
+                  key={amt}
+                  type="button"
+                  onClick={() => setAmount(String(amt))}
+                  className={`py-2 px-1 rounded-xl text-xs font-mono font-bold border transition-all cursor-pointer ${
+                    amount === String(amt)
+                      ? "border-[var(--theme-primary)] bg-[var(--theme-primary)] text-black"
+                      : "bg-muted/40 border-border/70 hover:bg-muted"
+                  }`}
+                  style={
+                    amount === String(amt) && methodConfig?.button_color
+                      ? { backgroundColor: methodConfig.button_color, color: "#141414" }
+                      : undefined
+                  }
+                >
+                  ${amt}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Amount & Currency Form */}
         <form onSubmit={handleCreateInvoice} className="space-y-4 pt-4 border-t border-border/60">
@@ -292,7 +360,11 @@ export function DepositShamCash() {
           <Button
             type="submit"
             disabled={submitting || !amount}
-            className="w-full h-12 rounded-2xl bg-[var(--theme-primary)] hover:opacity-90 text-white font-bold text-sm sm:text-base shadow-lg shadow-[var(--theme-primary)]/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
+            className="w-full h-12 rounded-2xl font-bold text-sm sm:text-base shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
+            style={{
+              backgroundColor: methodConfig?.button_color || "var(--theme-primary)",
+              color: methodConfig?.button_color ? "#141414" : undefined,
+            }}
           >
             {submitting ? (
               <span className="inline-flex items-center gap-2">
@@ -301,7 +373,7 @@ export function DepositShamCash() {
               </span>
             ) : (
               <>
-                <span>تأكيد وفتح فاتورة</span>
+                <span>{methodConfig?.confirm_button_text || "تأكيد وفتح فاتورة"}</span>
                 <span className="text-lg leading-none">←</span>
               </>
             )}

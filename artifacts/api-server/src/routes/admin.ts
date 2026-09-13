@@ -1727,6 +1727,8 @@ makeCrud("payment-methods", paymentMethodsTable, {
     "active",
     "order",
     "category",
+    "displayConfig",
+    "display_config",
   ],
 });
 

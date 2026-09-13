@@ -1007,6 +1007,7 @@ export async function ensureDatabaseSchema() {
       await db.execute(sql`ALTER TABLE payment_methods ADD COLUMN IF NOT EXISTS subtitle TEXT DEFAULT '';`);
       await db.execute(sql`ALTER TABLE payment_methods ADD COLUMN IF NOT EXISTS min_amount NUMERIC(12, 2) NOT NULL DEFAULT 1;`);
       await db.execute(sql`ALTER TABLE payment_methods ADD COLUMN IF NOT EXISTS active BOOLEAN NOT NULL DEFAULT true;`);
+      await db.execute(sql`ALTER TABLE payment_methods ADD COLUMN IF NOT EXISTS display_config JSONB DEFAULT '{}'::jsonb;`);
       await db.execute(sql`ALTER TABLE payment_methods ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT NOW();`);
       await db.execute(sql`ALTER TABLE payment_methods ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT NOW();`);
 

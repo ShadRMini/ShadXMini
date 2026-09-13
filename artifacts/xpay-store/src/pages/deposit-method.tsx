@@ -45,6 +45,8 @@ type UiMethod = {
   instructions?: string;
   walletAddress?: string;
   qrImage?: string;
+  displayConfig?: any;
+  display_config?: any;
 };
 
 type TelegramIdentity = {
@@ -159,6 +161,7 @@ export default function DepositMethod() {
 
   const visibleMethods = ((fallbackMethods && fallbackMethods.length > 0 ? fallbackMethods : methods) || []) as UiMethod[];
   const method = visibleMethods.find((m) => m.code === methodCode);
+  const cfg = method?.displayConfig || method?.display_config;
   const apiBaseUrl = (import.meta.env.VITE_API_URL || "").replace(/\/+$/, "");
   const isShamCashAuto = method?.code === "sham_cash_auto";
   const isShamCashManual = method?.code === "sham_cash";
@@ -413,49 +416,110 @@ export default function DepositMethod() {
   }
 
   return (
-    <div className="min-h-screen bg-[#1A1A1A] text-white pb-24 animate-in slide-in-from-right-4 duration-300" dir="rtl">
+    <div 
+      className="min-h-screen text-white pb-24 animate-in slide-in-from-right-4 duration-300" 
+      style={{ backgroundColor: cfg?.bg_color || "#1A1A1A" }}
+      dir="rtl"
+    >
       {/* Header bar */}
-      <div className="sticky top-0 z-20 bg-[#1A1A1A]/95 backdrop-blur-xl px-4 py-3.5 flex items-center justify-between border-b border-[#C8A45C]/20 shadow-md">
+      <div 
+        className="sticky top-0 z-20 backdrop-blur-xl px-4 py-3.5 flex items-center justify-between border-b shadow-md"
+        style={{
+          backgroundColor: cfg?.bg_color ? `${cfg.bg_color}F2` : "#1A1A1AF2",
+          borderColor: cfg?.border_color ? `${cfg.border_color}33` : "#C8A45C33",
+        }}
+      >
         <div className="flex items-center gap-3">
           <Link href="/deposit">
-            <div className="bg-[#2D2D2D] p-2 rounded-xl border border-[#C8A45C]/40 hover:border-[#C8A45C] text-[#C8A45C] hover:text-[#FDE68A] transition-colors cursor-pointer shadow-xs">
+            <div 
+              className="bg-[#2D2D2D] p-2 rounded-xl border transition-colors cursor-pointer shadow-xs"
+              style={{
+                borderColor: cfg?.border_color ? `${cfg.border_color}66` : "#C8A45C66",
+                color: cfg?.title_color || "#C8A45C",
+              }}
+            >
               <ChevronRight className="w-5 h-5" />
             </div>
           </Link>
           <div>
-            <h1 className="font-bold text-base sm:text-lg text-[#FDE68A]">{getMethodName(method)}</h1>
-            <p className="text-[11px] text-zinc-400">{getMethodSubtitle(method)}</p>
+            <h1 
+              className="font-bold text-base sm:text-lg"
+              style={{ color: cfg?.title_color || "#FDE68A" }}
+            >
+              {cfg?.page_title || getMethodName(method)}
+            </h1>
+            <p className="text-[11px] text-zinc-400">{cfg?.page_subtitle || getMethodSubtitle(method)}</p>
           </div>
         </div>
-        <span className="text-[11px] px-2.5 py-1 rounded-full bg-[#C8A45C]/20 border border-[#C8A45C]/35 text-[#FDE68A] font-bold">
+        <span 
+          className="text-[11px] px-2.5 py-1 rounded-full border font-bold"
+          style={{
+            backgroundColor: `${cfg?.title_color || "#C8A45C"}20`,
+            borderColor: `${cfg?.border_color || "#C8A45C"}50`,
+            color: cfg?.title_color || "#FDE68A",
+          }}
+        >
           بوابة الدفع
         </span>
       </div>
 
       <div className="max-w-3xl mx-auto p-4 sm:p-6 space-y-6 mt-2">
         {/* Method Info Card */}
-        <div className="p-5 sm:p-6 rounded-3xl bg-[#2D2D2D] border border-[#C8A45C]/35 shadow-xl relative overflow-hidden">
+        <div 
+          className="p-5 sm:p-6 rounded-3xl bg-[#2D2D2D] border shadow-xl relative overflow-hidden"
+          style={{
+            borderColor: cfg?.border_color ? `${cfg.border_color}55` : "#C8A45C55",
+            color: cfg?.text_color || undefined,
+          }}
+        >
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-black text-lg sm:text-xl text-[#FDE68A]">{getMethodSubtitle(method)}</h2>
-            <div className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-[#C8A45C]/20 text-[#FDE68A] border border-[#C8A45C]/35">
+            <h2 
+              className="font-black text-lg sm:text-xl"
+              style={{ color: cfg?.title_color || "#FDE68A" }}
+            >
+              {cfg?.page_title || getMethodSubtitle(method)}
+            </h2>
+            <div 
+              className="text-[11px] font-bold px-2.5 py-1 rounded-full border"
+              style={{
+                backgroundColor: `${cfg?.title_color || "#C8A45C"}20`,
+                borderColor: `${cfg?.border_color || "#C8A45C"}50`,
+                color: cfg?.title_color || "#FDE68A",
+              }}
+            >
               وسيلة معتمدة
             </div>
           </div>
 
-          {method.instructions && (
-            <p className="text-xs sm:text-sm text-[#E5E7EB] mb-5 leading-relaxed whitespace-pre-wrap">
-              {method.instructions}
+          {(cfg?.instructions || method.instructions) && (
+            <p className="text-xs sm:text-sm mb-5 leading-relaxed whitespace-pre-wrap opacity-90">
+              {cfg?.instructions || method.instructions}
             </p>
           )}
 
           {method.walletAddress && (
-            <div className="bg-[#1A1A1A] p-4 rounded-2xl border border-[#C8A45C]/25 shadow-inner">
-              <div className="text-[11px] font-bold text-[#C8A45C] mb-2">عنوان المحفظة / الرقم:</div>
+            <div 
+              className="p-4 rounded-2xl border shadow-inner"
+              style={{
+                backgroundColor: cfg?.bg_color ? `${cfg.bg_color}EE` : "#1A1A1A",
+                borderColor: cfg?.border_color ? `${cfg.border_color}44` : "#C8A45C44",
+              }}
+            >
+              <div 
+                className="text-[11px] font-bold mb-2"
+                style={{ color: cfg?.title_color || "#C8A45C" }}
+              >
+                عنوان المحفظة / الرقم:
+              </div>
               <div className="flex items-center justify-between gap-3">
                 <div className="font-mono text-sm font-bold text-white truncate select-all">{method.walletAddress}</div>
                 <button
                   onClick={() => copyToClipboard(method.walletAddress!)}
-                  className="shrink-0 px-3 py-1.5 rounded-xl flex items-center gap-1.5 bg-[#C8A45C] text-[#1A1A1A] hover:bg-[#B8954A] transition font-bold text-xs cursor-pointer shadow-xs"
+                  className="shrink-0 px-3 py-1.5 rounded-xl flex items-center gap-1.5 transition font-bold text-xs cursor-pointer shadow-xs"
+                  style={{
+                    backgroundColor: cfg?.button_color || "#C8A45C",
+                    color: cfg?.button_color ? "#1A1A1A" : "#1A1A1A",
+                  }}
                 >
                   <Copy className="w-3.5 h-3.5" />
                   <span>نسخ</span>
@@ -541,6 +605,21 @@ export default function DepositMethod() {
                         className="h-12 bg-[#3D3D3D] border-[#4B5563] text-white placeholder:text-zinc-400 rounded-xl text-base focus:border-[#C8A45C] focus:ring-1 focus:ring-[#C8A45C]"
                       />
                     </FormControl>
+                    {/* Suggested Amounts from displayConfig */}
+                    {Array.isArray(cfg?.suggested_amounts) && cfg.suggested_amounts.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 pt-2">
+                        {cfg.suggested_amounts.map((amt: number) => (
+                          <button
+                            key={amt}
+                            type="button"
+                            onClick={() => form.setValue("amount", amt as any)}
+                            className="px-2.5 py-1 rounded-lg text-xs font-mono font-bold bg-[#3D3D3D] hover:bg-[#C8A45C]/20 text-[#FDE68A] border border-zinc-600 transition-colors cursor-pointer"
+                          >
+                            ${amt}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                     <FormMessage className="text-red-400 text-xs" />
                   </FormItem>
                 )}
@@ -606,11 +685,16 @@ export default function DepositMethod() {
                 <Button
                   type="submit"
                   disabled={createDeposit.isPending || autoLoading}
-                  className="w-full h-13 rounded-2xl text-base font-black text-[#1A1A1A] bg-[#C8A45C] hover:bg-[#B8954A] transition-all shadow-lg shadow-[#C8A45C]/20 cursor-pointer active:scale-98 disabled:opacity-50"
+                  className="w-full h-13 rounded-2xl text-base font-black transition-all shadow-lg cursor-pointer active:scale-98 disabled:opacity-50"
+                  style={{
+                    backgroundColor: cfg?.button_color || "#C8A45C",
+                    color: cfg?.button_color ? "#1A1A1A" : "#1A1A1A",
+                  }}
                 >
-                  {method.code === "sham_cash_auto"
-                    ? (autoLoading ? "جاري تأكيد الإيداع..." : "تأكيد الإيداع")
-                    : (createDeposit.isPending ? "جاري الإرسال..." : "تأكيد الدفع")}
+                  {cfg?.confirm_button_text ||
+                    (method.code === "sham_cash_auto"
+                      ? (autoLoading ? "جاري تأكيد الإيداع..." : "تأكيد الإيداع")
+                      : (createDeposit.isPending ? "جاري الإرسال..." : "تأكيد الدفع"))}
                 </Button>
               </div>
             </form>
