@@ -145,24 +145,6 @@ export default function PaymentMethods() {
     order: 0,
   });
 
-  const [searchParams, setSearchParams] = useSearchParams();
-  const initialTab = searchParams.get("tab") === "customize" ? "customize" : "methods";
-  const [activeTab, setActiveTab] = useState<"methods" | "customize">(initialTab);
-
-  useEffect(() => {
-    const tab = searchParams.get("tab");
-    if (tab === "customize" && activeTab !== "customize") {
-      setActiveTab("customize");
-    } else if (!tab && activeTab !== "methods") {
-      setActiveTab("methods");
-    }
-  }, [searchParams]);
-
-  const handleTabChange = (tab: "methods" | "customize") => {
-    setActiveTab(tab);
-    setSearchParams(tab === "customize" ? { tab: "customize" } : {});
-  };
-
   const showToast = (text: string, type: "success" | "error" = "success") => {
     setToastMessage({ text, type });
     setTimeout(() => setToastMessage(null), 3500);
@@ -490,7 +472,7 @@ export default function PaymentMethods() {
   const inactiveCount = totalCount - activeCount;
 
   return (
-    <div className="w-full space-y-6 pb-12" dir="rtl">
+    <div className="w-full space-y-8 pb-12" dir="rtl">
       {/* Toast Notification */}
       <AnimatePresence>
         {toastMessage && (
@@ -514,85 +496,49 @@ export default function PaymentMethods() {
         )}
       </AnimatePresence>
 
-      {/* Tabs navigation */}
-      <div className="flex gap-2 bg-[#1A1A1A] p-1.5 rounded-2xl border border-[#C8A45C]/20 shadow-md">
-        <button
-          type="button"
-          id="tab-payment-methods"
-          onClick={() => handleTabChange("methods")}
-          className={`flex-1 py-3 px-4 rounded-xl font-black text-sm flex items-center justify-center gap-2 transition-all cursor-pointer ${
-            activeTab === "methods"
-              ? "bg-[#C8A45C] text-black shadow-lg shadow-[#C8A45C]/20"
-              : "text-zinc-400 hover:text-white hover:bg-[#252525]"
-          }`}
-        >
-          <CreditCard className="w-4 h-4" />
-          <span>طرق الدفع</span>
-        </button>
-        <button
-          type="button"
-          id="tab-deposit-customization"
-          onClick={() => handleTabChange("customize")}
-          className={`flex-1 py-3 px-4 rounded-xl font-black text-sm flex items-center justify-center gap-2 transition-all cursor-pointer ${
-            activeTab === "customize"
-              ? "bg-[#C8A45C] text-black shadow-lg shadow-[#C8A45C]/20"
-              : "text-zinc-400 hover:text-white hover:bg-[#252525]"
-          }`}
-        >
-          <Wallet className="w-4 h-4" />
-          <span>تخصيص صفحة شحن الرصيد</span>
-        </button>
-      </div>
-
-      {activeTab === "methods" ? (
-        <>
-          {/* Explanatory Banner */}
-          <div className="bg-[#1F1F1F] border border-[#C8A45C]/30 rounded-2xl p-4 flex items-center gap-3 text-sm text-[#FDE68A]">
-            <Info className="w-5 h-5 text-[#C8A45C] shrink-0" />
-            <span className="font-bold">إدارة كل طريقة دفع على حدة (الاسم، الشعار، البيانات).</span>
-          </div>
-
-          {/* Header Section */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[#141414] p-6 rounded-3xl border border-[#262626] shadow-xl">
-        <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#C8A45C]/20 to-[#C8A45C]/5 border border-[#C8A45C]/30 flex items-center justify-center text-[#C8A45C] shadow-lg">
-            <CreditCard className="w-7 h-7" />
-          </div>
-          <div>
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-black text-white tracking-tight">
-                إدارة طرق الدفع
-              </h1>
-              <span className="text-xs px-2.5 py-0.5 rounded-full bg-[#C8A45C]/15 text-[#C8A45C] font-semibold border border-[#C8A45C]/30">
-                ربط كامل مع المتجر
-              </span>
+      {/* القسم 1: إدارة طرق الدفع */}
+      <section className="space-y-6">
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[#141414] p-6 rounded-3xl border border-[#262626] shadow-xl">
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#C8A45C]/20 to-[#C8A45C]/5 border border-[#C8A45C]/30 flex items-center justify-center text-[#C8A45C] shadow-lg">
+              <CreditCard className="w-7 h-7" />
             </div>
-            <p className="text-xs sm:text-sm text-zinc-400 mt-1">
-              تحكم كامل في طرق الإيداع، الشعار، العناوين، والترتيب مع المزامنة التلقائية مع صفحة المحفظة
-            </p>
+            <div>
+              <div className="flex items-center gap-3">
+                <h1 className="text-2xl font-black text-white tracking-tight">
+                  إدارة طرق الدفع
+                </h1>
+                <span className="text-xs px-2.5 py-0.5 rounded-full bg-[#C8A45C]/15 text-[#C8A45C] font-semibold border border-[#C8A45C]/30">
+                  ربط كامل مع المتجر
+                </span>
+              </div>
+              <p className="text-xs sm:text-sm text-zinc-400 mt-1">
+                تحكم كامل في طرق الإيداع، الشعار، العناوين، والترتيب مع المزامنة التلقائية مع صفحة المحفظة
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2.5">
+            <button
+              onClick={fetchMethods}
+              disabled={loading}
+              className="p-3 rounded-2xl bg-[#1F1F1F] hover:bg-[#262626] border border-[#333] text-zinc-300 hover:text-white transition-all disabled:opacity-50"
+              title="تحديث البيانات"
+            >
+              <RefreshCw className={`w-5 h-5 ${loading ? "animate-spin text-[#C8A45C]" : ""}`} />
+            </button>
+
+            <button
+              id="btn-add-payment-method"
+              onClick={handleOpenAddModal}
+              className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-[#C8A45C] to-[#DFBF7A] text-black font-bold text-sm shadow-lg hover:brightness-110 active:scale-95 transition-all"
+            >
+              <Plus className="w-5 h-5" />
+              <span>إضافة طريقة دفع جديدة</span>
+            </button>
           </div>
         </div>
-
-        <div className="flex items-center gap-2.5">
-          <button
-            onClick={fetchMethods}
-            disabled={loading}
-            className="p-3 rounded-2xl bg-[#1F1F1F] hover:bg-[#262626] border border-[#333] text-zinc-300 hover:text-white transition-all disabled:opacity-50"
-            title="تحديث البيانات"
-          >
-            <RefreshCw className={`w-5 h-5 ${loading ? "animate-spin text-[#C8A45C]" : ""}`} />
-          </button>
-
-          <button
-            id="btn-add-payment-method"
-            onClick={handleOpenAddModal}
-            className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-[#C8A45C] to-[#DFBF7A] text-black font-bold text-sm shadow-lg hover:brightness-110 active:scale-95 transition-all"
-          >
-            <Plus className="w-5 h-5" />
-            <span>إضافة طريقة دفع جديدة</span>
-          </button>
-        </div>
-      </div>
 
       {/* Metrics Row */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -1271,12 +1217,25 @@ export default function PaymentMethods() {
           </div>
         )}
       </AnimatePresence>
-        </>
-      ) : (
-        <div className="pt-2">
-          <DepositSettings />
+      </section>
+
+      {/* فاصل بصري راقي وواضح بين الأقسام */}
+      <div className="relative my-8">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-[#C8A45C]/25"></div>
         </div>
-      )}
+        <div className="relative flex justify-center">
+          <span className="px-5 py-1.5 bg-[#141414] text-xs text-[#C8A45C] font-black rounded-full border border-[#C8A45C]/30 shadow-lg flex items-center gap-2">
+            <Wallet className="w-4 h-4" />
+            <span>تخصيص صفحة شحن الرصيد</span>
+          </span>
+        </div>
+      </div>
+
+      {/* القسم 2: تخصيص صفحة شحن الرصيد */}
+      <section className="space-y-6">
+        <DepositSettings />
+      </section>
     </div>
   );
 }

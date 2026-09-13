@@ -156,7 +156,7 @@ export default function App() {
           <Route path="/product-page-settings" element={<ProductPageSettings />} />
           <Route path="/about-settings" element={<AboutSettings />} />
           <Route path="/contact-settings" element={<ContactSettings />} />
-          <Route path="/deposit-settings" element={<Navigate to="/payment-methods?tab=customize" replace />} />
+          <Route path="/deposit-settings" element={<Navigate to="/payment-methods" replace />} />
           <Route path="/reports" element={<Reports />} />
           <Route path="/tickets" element={<Tickets />} />
           <Route path="/tickets/:id" element={<TicketDetail />} />

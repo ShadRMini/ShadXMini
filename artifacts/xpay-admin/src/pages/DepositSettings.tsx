@@ -680,35 +680,29 @@ export default function DepositSettings() {
   }
 
   return (
-    <div className="p-4 sm:p-6 space-y-6 max-w-6xl mx-auto" dir="rtl">
-      {/* Explanatory Banner */}
-      <div className="bg-[#1F1F1F] border border-[#C8A45C]/30 rounded-2xl p-4 flex items-center gap-3 text-sm text-[#FDE68A]">
-        <Info className="w-5 h-5 text-[#C8A45C] shrink-0" />
-        <span className="font-bold">تعديل الإعدادات العامة لصفحة الإيداع (العنوان، الألوان، النصوص).</span>
-      </div>
-
-      {/* Top Header & Bar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[#141414] p-6 rounded-3xl border border-[#262626] shadow-xl">
-        <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#C8A45C]/20 to-[#C8A45C]/5 border border-[#C8A45C]/30 flex items-center justify-center text-[#C8A45C] shadow-lg shrink-0">
-            <Wallet size={26} />
+    <div className="space-y-6 w-full" dir="rtl">
+      {/* Top Action Bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#141414] p-5 rounded-3xl border border-[#262626] shadow-xl">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#C8A45C]/20 to-[#C8A45C]/5 border border-[#C8A45C]/30 flex items-center justify-center text-[#C8A45C] shadow-lg shrink-0">
+            <Wallet size={24} />
           </div>
           <div>
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-black text-white tracking-tight">
-                تخصيص صفحة شحن الرصيد
-              </h1>
-              <span className="text-xs px-2.5 py-0.5 rounded-full bg-[#C8A45C]/15 text-[#C8A45C] font-semibold border border-[#C8A45C]/30">
-                تنسيقات المتجر
+            <div className="flex items-center gap-2">
+              <h2 className="text-xl font-black text-white tracking-tight">
+                إعدادات تخصيص صفحة شحن الرصيد
+              </h2>
+              <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-[#C8A45C]/15 text-[#C8A45C] font-semibold border border-[#C8A45C]/30">
+                المتجر
               </span>
             </div>
-            <p className="text-xs sm:text-sm text-zinc-400 mt-1">
-              تعديل وإدارة جميع محتويات وتنسيقات صفحة شحن الرصيد بالكامل
+            <p className="text-xs text-zinc-400 mt-0.5">
+              تعديل النصوص، المبالغ المقترحة، التعليمات، والألوان مع المعاينة الحية
             </p>
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto">
+        <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
           <a
             href={`${import.meta.env.VITE_STORE_URL || ""}/deposit`}
             target="_blank"
