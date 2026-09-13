@@ -497,6 +497,7 @@ router.post("/deposits", async (req, res) => {
 
 async function authenticate(req: any, res: any, next: any) {
   try {
+    console.log("[Auth] Authenticating deposit request...");
     const bodyIdentity = {
       telegramId: String(req.body?.telegramId || "").trim(),
       telegramUsername: String(req.body?.telegramUsername || "").trim(),
@@ -520,12 +521,14 @@ async function authenticate(req: any, res: any, next: any) {
 
     const user = await getOrCreateCurrentUserStrict(reqWithFallbackHeaders);
     if (!user) {
+      console.warn("[Auth] ⚠️ User authentication returned empty user");
       return res.status(401).json({ error: "غير مصرح", message: "يجب تسجيل الدخول أولاً" });
     }
+    console.log("[Auth] ✅ User authenticated:", user.id, `(${user.username || user.telegramId})`);
     req.user = user;
     next();
   } catch (err: any) {
-    console.error("[Auth] User authentication failed:", err.message);
+    console.error("[Auth] ❌ User authentication failed:", err.message);
     return res.status(401).json({ error: "غير مصرح", message: "فشل التحقق من هوية المستخدم" });
   }
 }
@@ -625,8 +628,21 @@ async function handleShamCashInvoiceCreate(req: any, res: any) {
   }
 }
 
-router.post("/deposits/shamcash/invoice", authenticate, handleShamCashInvoiceCreate);
-router.post("/deposit/shamcash/create-invoice", authenticate, handleShamCashInvoiceCreate);
+router.post("/deposits/shamcash/invoice", (req, res, next) => {
+  console.log("========== [/deposits/shamcash/invoice] REQUEST RECEIVED ==========");
+  console.log("Headers:", JSON.stringify(req.headers, null, 2));
+  console.log("Body:", JSON.stringify(req.body, null, 2));
+  console.log("Auth Header:", req.headers.authorization ? "present" : "MISSING");
+  next();
+}, authenticate, handleShamCashInvoiceCreate);
+
+router.post("/deposit/shamcash/create-invoice", (req, res, next) => {
+  console.log("========== [/deposit/shamcash/create-invoice] REQUEST RECEIVED ==========");
+  console.log("Headers:", JSON.stringify(req.headers, null, 2));
+  console.log("Body:", JSON.stringify(req.body, null, 2));
+  console.log("Auth Header:", req.headers.authorization ? "present" : "MISSING");
+  next();
+}, authenticate, handleShamCashInvoiceCreate);
 
 router.post("/deposits/shamcash/verify", async (req, res) => {
   try {

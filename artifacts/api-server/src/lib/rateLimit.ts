@@ -42,6 +42,7 @@ export function rateLimit(options: RateLimitOptions): RequestHandler {
 
     current.count += 1;
     if (current.count > options.max) {
+      console.warn(`[RateLimit] ⚠️ Limit exceeded for key: ${key} (${current.count}/${options.max})`);
       const retryAfterSeconds = Math.max(1, Math.ceil((current.resetAt - now) / 1000));
       res.setHeader("Retry-After", String(retryAfterSeconds));
       res.status(429).json({

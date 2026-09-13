@@ -104,19 +104,29 @@ export function DepositShamCash() {
         tgHeaders["Authorization"] = `Bearer ${authToken}`;
       }
 
-      const res = await fetch("/api/deposits/shamcash/invoice", {
+      const requestUrl = `${String(import.meta.env.VITE_API_URL || "").replace(/\/+$/, "")}/api/deposits/shamcash/invoice`;
+      const requestBody = {
+        amount: numAmount,
+        currency,
+      };
+
+      console.log("[Deposit] 📤 Sending request to:", requestUrl);
+      console.log("[Deposit] 📦 Body:", requestBody);
+      console.log("[Deposit] 🔑 Token:", authToken ? authToken.substring(0, 15) + "..." : "(none)");
+      console.log("[Deposit] 🏷️ Headers:", tgHeaders);
+
+      const res = await fetch(requestUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           ...tgHeaders,
         },
-        body: JSON.stringify({
-          amount: numAmount,
-          currency,
-        }),
+        body: JSON.stringify(requestBody),
       });
 
+      console.log("[Deposit] 📥 Response Status:", res.status);
       const data = await res.json().catch(() => ({}));
+      console.log("[Deposit] 📥 Response Body:", data);
 
       if (!res.ok || !data.ok) {
         const errMsg =
