@@ -688,47 +688,54 @@ export default function DepositSettings() {
       </div>
 
       {/* Top Header & Bar */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-[#2D2D2D] border border-[#C8A45C]/35 rounded-3xl p-5 shadow-xl">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-[#C8A45C]/20 border border-[#C8A45C]/40 flex items-center justify-center text-[#C8A45C] shrink-0">
-            <Wallet size={24} />
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[#141414] p-6 rounded-3xl border border-[#262626] shadow-xl">
+        <div className="flex items-center gap-4">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#C8A45C]/20 to-[#C8A45C]/5 border border-[#C8A45C]/30 flex items-center justify-center text-[#C8A45C] shadow-lg shrink-0">
+            <Wallet size={26} />
           </div>
           <div>
-            <h1 className="text-xl font-black text-[#FDE68A]">تخصيص صفحة شحن الرصيد</h1>
-            <p className="text-xs text-zinc-400 font-medium">
-              تعديل وإدارة جميع محتويات صفحة الدفع وتعبئة الرصيد بالكامل ديناميكياً
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl font-black text-white tracking-tight">
+                تخصيص صفحة شحن الرصيد
+              </h1>
+              <span className="text-xs px-2.5 py-0.5 rounded-full bg-[#C8A45C]/15 text-[#C8A45C] font-semibold border border-[#C8A45C]/30">
+                تنسيقات المتجر
+              </span>
+            </div>
+            <p className="text-xs sm:text-sm text-zinc-400 mt-1">
+              تعديل وإدارة جميع محتويات وتنسيقات صفحة شحن الرصيد بالكامل
             </p>
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
+        <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto">
           <a
-            href="/deposit"
+            href={`${import.meta.env.VITE_STORE_URL || ""}/deposit`}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-1.5 text-xs font-bold bg-[#1A1A1A] hover:bg-[#383838] text-zinc-300 hover:text-white px-3.5 py-2.5 rounded-2xl border border-zinc-700 transition cursor-pointer"
+            className="flex items-center gap-1.5 text-xs font-bold bg-[#1F1F1F] hover:bg-[#262626] text-zinc-300 hover:text-white px-3.5 py-2.5 rounded-2xl border border-[#333] transition cursor-pointer"
           >
             <ExternalLink size={14} />
-            <span>معاينة الصفحة</span>
+            <span>معاينة في نافذة مستقلة</span>
           </a>
 
           <button
             type="button"
             onClick={handleResetDefaults}
-            className="flex items-center gap-1.5 text-xs font-bold bg-[#1A1A1A] hover:bg-red-500/10 text-zinc-400 hover:text-red-400 px-3 py-2.5 rounded-2xl border border-zinc-700 hover:border-red-500/40 transition cursor-pointer"
+            className="p-2.5 rounded-2xl bg-[#1F1F1F] hover:bg-red-500/10 border border-[#333] text-zinc-400 hover:text-red-400 transition cursor-pointer"
             title="استعادة الافتراضي"
           >
-            <RotateCcw size={14} />
+            <RotateCcw size={16} />
           </button>
 
           <button
             type="button"
             onClick={handleSave}
             disabled={saving}
-            className="flex items-center gap-1.5 text-xs font-bold bg-[#C8A45C] hover:bg-[#B8954A] text-[#1A1A1A] px-5 py-2.5 rounded-2xl shadow-lg transition cursor-pointer disabled:opacity-50"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-gradient-to-r from-[#C8A45C] to-[#E5C378] text-[#141414] font-black text-xs hover:opacity-95 transition-all shadow-lg shadow-[#C8A45C]/20 disabled:opacity-50 cursor-pointer"
           >
             {saving ? (
-              <div className="w-4 h-4 border-2 border-[#1A1A1A] border-t-transparent rounded-full animate-spin" />
+              <div className="w-4 h-4 border-2 border-[#141414] border-t-transparent rounded-full animate-spin" />
             ) : (
               <Save size={16} />
             )}
@@ -1457,164 +1464,49 @@ export default function DepositSettings() {
       {/* TAB 6: LIVE PREVIEW */}
       {activeTab === "preview" && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between text-xs text-zinc-400">
-            <span>معاينة حية وتفاعلية لصفحة شحن الرصيد بموجب التنسيقات الحالية:</span>
-            {useLegacy && (
-              <span className="text-amber-400 font-bold">
-                تنبيه: مفعّل الوضع القديم للمتجر.
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-zinc-400 bg-[#1F1F1F] p-4 rounded-2xl border border-zinc-800">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-[#C8A45C]" />
+              <span className="font-bold text-zinc-200">
+                معاينة حية ومباشرة لصفحة شحن الرصيد في المتجر (نسخة طبق الأصل):
               </span>
-            )}
+            </div>
+            <a
+              href={`${import.meta.env.VITE_STORE_URL || ""}/deposit`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-[#C8A45C] hover:underline font-bold"
+            >
+              <ExternalLink size={14} />
+              <span>فتح الصفحة في نافذة جديدة</span>
+            </a>
           </div>
 
-          <div
-            className="p-6 rounded-3xl border border-zinc-800 space-y-6 shadow-2xl transition-all max-w-2xl mx-auto"
-            style={{
-              backgroundColor: config.styles.bg_color || "#1A1A1A",
-              color: config.styles.text_color || "#FFFFFF",
-              fontFamily: config.styles.font_family || "Cairo",
-            }}
-          >
-            {/* Header section */}
-            {config.sections.header.visible && (
-              <div className="text-center space-y-2 pb-4 border-b border-white/10">
-                <div className="w-12 h-12 mx-auto rounded-2xl bg-[#C8A45C]/20 border border-[#C8A45C]/40 flex items-center justify-center text-[#C8A45C]">
-                  <Wallet size={24} />
+          {/* Device Frame Preview Container */}
+          <div className="flex justify-center items-center py-4 bg-[#141414] rounded-3xl border border-[#262626] p-4 sm:p-6 shadow-2xl">
+            <div className="w-full max-w-xl bg-[#1A1A1A] rounded-3xl border-4 border-zinc-800 shadow-2xl overflow-hidden flex flex-col">
+              {/* Device Frame Header */}
+              <div className="bg-[#2D2D2D] px-4 py-3 border-b border-zinc-700 flex items-center justify-between text-xs text-zinc-400">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-3 h-3 rounded-full bg-red-500/80" />
+                  <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
+                  <div className="w-3 h-3 rounded-full bg-green-500/80" />
                 </div>
-                <h1
-                  className="text-xl font-black"
-                  style={{ color: config.styles.title_color || "#C8A45C" }}
-                >
-                  {config.sections.header.title}
-                </h1>
-                <p className="text-xs opacity-75">{config.sections.header.description}</p>
-              </div>
-            )}
-
-            {/* Payment methods section */}
-            {config.sections.payment_methods.visible && (
-              <div className="space-y-3">
-                <h3
-                  className="text-sm font-bold"
-                  style={{ color: config.styles.title_color || "#C8A45C" }}
-                >
-                  {config.sections.payment_methods.title}
-                </h3>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {config.payment_methods_list
-                    .filter((m) => m.active)
-                    .map((method) => (
-                      <div
-                        key={method.id}
-                        onClick={() => setSelectedMethodPreview(method.id)}
-                        className={`p-3.5 border transition cursor-pointer flex items-center gap-3 ${
-                          selectedMethodPreview === method.id ? "ring-2 ring-[#C8A45C]" : ""
-                        }`}
-                        style={{
-                          backgroundColor: config.styles.card_bg || "#2D2D2D",
-                          borderRadius: config.styles.border_radius || "16px",
-                          borderColor: `${config.styles.title_color || "#C8A45C"}33`,
-                        }}
-                      >
-                        <div className="w-9 h-9 rounded-xl bg-black/25 flex items-center justify-center text-[#C8A45C]">
-                          <Landmark size={18} />
-                        </div>
-                        <div>
-                          <h4 className="font-bold text-xs text-white">{method.name}</h4>
-                          <p className="text-[10px] opacity-70">{method.description}</p>
-                        </div>
-                      </div>
-                    ))}
+                <div className="bg-[#1A1A1A] px-4 py-1 rounded-xl text-[11px] font-mono text-zinc-400 border border-zinc-700/60 truncate max-w-[240px]">
+                  /deposit
                 </div>
+                <div className="w-8" />
               </div>
-            )}
 
-            {/* Suggested amounts section */}
-            {config.sections.amounts.visible && (
-              <div className="space-y-3">
-                <h3
-                  className="text-sm font-bold"
-                  style={{ color: config.styles.title_color || "#C8A45C" }}
-                >
-                  {config.sections.amounts.title}
-                </h3>
-
-                <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-                  {(config.sections.amounts.suggested_amounts || []).map((amt) => (
-                    <button
-                      key={amt}
-                      type="button"
-                      onClick={() => setSelectedAmountPreview(amt)}
-                      className="py-2.5 px-2 rounded-xl text-xs font-bold border transition cursor-pointer"
-                      style={{
-                        backgroundColor:
-                          selectedAmountPreview === amt
-                            ? config.styles.button_bg || "#C8A45C"
-                            : config.styles.card_bg || "#2D2D2D",
-                        color:
-                          selectedAmountPreview === amt
-                            ? config.styles.button_text || "#1A1A1A"
-                            : config.styles.title_color || "#C8A45C",
-                        borderColor: `${config.styles.title_color || "#C8A45C"}40`,
-                      }}
-                    >
-                      ${amt}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Custom amount section */}
-            {config.sections.custom_amount.visible && (
-              <div className="space-y-2">
-                <label className="block text-xs font-bold opacity-80">
-                  {config.sections.custom_amount.label}:
-                </label>
-                <input
-                  type="number"
-                  placeholder={config.sections.custom_amount.placeholder}
-                  className="w-full p-2.5 rounded-xl text-xs font-bold border"
-                  style={{
-                    backgroundColor: config.styles.input_bg || "#3D3D3D",
-                    color: config.styles.input_text || "#FFFFFF",
-                    borderColor: config.styles.input_border || "#4B5563",
-                  }}
+              {/* iframe pointing to the real store deposit page */}
+              <div className="relative w-full h-[650px] bg-background">
+                <iframe
+                  src={`${import.meta.env.VITE_STORE_URL || ""}/deposit?preview=true`}
+                  title="Store Deposit Preview"
+                  className="w-full h-full border-0"
                 />
               </div>
-            )}
-
-            {/* Instructions section */}
-            {config.sections.instructions.visible && (
-              <div
-                className="p-4 border space-y-2"
-                style={{
-                  backgroundColor: config.styles.card_bg || "#2D2D2D",
-                  borderRadius: config.styles.border_radius || "16px",
-                  borderColor: `${config.styles.title_color || "#C8A45C"}33`,
-                }}
-              >
-                <h4
-                  className="text-xs font-bold flex items-center gap-1.5"
-                  style={{ color: config.styles.title_color || "#C8A45C" }}
-                >
-                  <ShieldCheck size={16} />
-                  <span>{config.sections.instructions.title}</span>
-                </h4>
-                <p className="text-[11px] opacity-80 leading-relaxed">
-                  {config.sections.instructions.content}
-                </p>
-
-                <ul className="space-y-1 text-[11px] opacity-85 pt-1">
-                  {(config.sections.instructions.steps || []).map((st, i) => (
-                    <li key={i} className="flex items-center gap-2">
-                      <CheckCircle2 size={12} className="text-[#C8A45C]" />
-                      <span>{st}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
+            </div>
           </div>
         </div>
       )}
