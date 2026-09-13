@@ -975,7 +975,7 @@ export async function ensureDatabaseSchema() {
       }
     });
 
-    // 15. Ensure payment_methods table and seed default methods
+      // 15. Ensure payment_methods table and seed default methods
     try {
       // ضمان وجود جدول payment_methods
       await db.execute(sql`
@@ -1010,6 +1010,16 @@ export async function ensureDatabaseSchema() {
       await db.execute(sql`ALTER TABLE payment_methods ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT NOW();`);
       await db.execute(sql`ALTER TABLE payment_methods ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT NOW();`);
 
+      // تحديث البيانات الموجودة مسبقاً إلى القيم الإنجليزية الموحدة
+      try {
+        await db.execute(sql`UPDATE payment_methods SET subtitle = 'requires_verification' WHERE subtitle = 'تتطلب توثيق الحساب';`);
+        await db.execute(sql`UPDATE payment_methods SET subtitle = 'instant' WHERE subtitle = 'شحن فوري' OR subtitle = 'تأكيد فوري' OR subtitle = 'شحن فوري TRC20';`);
+        await db.execute(sql`UPDATE payment_methods SET subtitle = 'manual_review' WHERE subtitle = 'مراجعة يدوية';`);
+        await db.execute(sql`UPDATE payment_methods SET subtitle = 'normal' WHERE subtitle IN ('تلقائي', 'يدوي', '') OR subtitle IS NULL;`);
+      } catch (e) {
+        console.warn("[ensureSchema] subtitle migration skipped:", e);
+      }
+
       // مزامنة التسلسل التلقائي
       await db.execute(sql`
         SELECT setval(
@@ -1026,11 +1036,11 @@ export async function ensureDatabaseSchema() {
         await db.execute(sql`
           INSERT INTO payment_methods (code, name, subtitle, instructions, wallet_address, min_amount, active, "order", category)
           VALUES
-            ('sham_cash', 'شام كاش', 'تتطلب توثيق الحساب', 'يرجى التحويل إلى عنوان المحفظة ثم إدخال رقم العملية للتأكيد الفوري.', '35147b5811bdc0bf07fdb11b85c8a5d', 1, true, 1, 'تلقائي'),
-            ('syriatel_cash', 'سيرياتيل كاش', 'شحن فوري', 'يرجى التحويل إلى الرقم المعتمد وإرفاق إشعار الدفع.', '0991234567', 1, true, 2, 'فوري'),
-            ('binance_pay', 'Binance Pay', 'شحن فوري', 'الدفع عبر معرف بينانس مع التأكيد السريع.', 'xpay_binance@pay', 1, true, 3, 'فوري'),
-            ('usdt_auto', 'USDT تلقائي', 'شحن فوري', 'تحويل شبكة TRC20 مع المعالجة التلقائية.', 'TQn9Y2khEsLJW1ChVWFMSMeSTow5KaxnSE', 5, true, 4, 'فوري'),
-            ('mtn_cash', 'MTN Cash', 'مراجعة يدوية', 'يرجى التحويل عبر MTN كاش ورفع إشعار العملية للمراجعة.', '0941234567', 1, true, 5, 'يدوي')
+            ('sham_cash', 'شام كاش', 'requires_verification', 'يرجى التحويل إلى عنوان المحفظة ثم إدخال رقم العملية للتأكيد الفوري.', '35147b5811bdc0bf07fdb11b85c8a5d', 1, true, 1, 'تلقائي'),
+            ('syriatel_cash', 'سيرياتيل كاش', 'instant', 'يرجى التحويل إلى الرقم المعتمد وإرفاق إشعار الدفع.', '0991234567', 1, true, 2, 'فوري'),
+            ('binance_pay', 'Binance Pay', 'instant', 'الدفع عبر معرف بينانس مع التأكيد السريع.', 'xpay_binance@pay', 1, true, 3, 'فوري'),
+            ('usdt_auto', 'USDT تلقائي', 'instant', 'تحويل شبكة TRC20 مع المعالجة التلقائية.', 'TQn9Y2khEsLJW1ChVWFMSMeSTow5KaxnSE', 5, true, 4, 'فوري'),
+            ('mtn_cash', 'MTN Cash', 'manual_review', 'يرجى التحويل عبر MTN كاش ورفع إشعار العملية للمراجعة.', '0941234567', 1, true, 5, 'يدوي')
           ON CONFLICT (code) DO NOTHING;
         `);
       }

@@ -136,25 +136,58 @@ function getMethodIcon(code: string) {
   }
 }
 
-function getBadgeProps(subtitle: string, code: string, category?: string) {
-  if (category === "تلقائي" || code.includes("sham") || subtitle.includes("توثيق")) {
-    return {
-      icon: <Lock className="w-3 h-3 shrink-0" />,
-      className: "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20",
-      text: subtitle || "تتطلب توثيق الحساب",
-    };
-  }
-  if (category === "يدوي" || category === "مراجعة يدوية" || subtitle.includes("يدوية") || subtitle.includes("مراجعة")) {
-    return {
-      icon: <Clock className="w-3 h-3 shrink-0" />,
-      className: "bg-slate-500/10 text-slate-700 dark:text-slate-400 border-slate-500/20",
-      text: subtitle || "مراجعة يدوية",
-    };
-  }
+export const STATUS_MAP: Record<string, { emoji: string; text: string; style: string }> = {
+  normal: {
+    emoji: "✅",
+    text: "تعمل بشكل طبيعي",
+    style: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
+  },
+  instant: {
+    emoji: "⚡",
+    text: "شحن فوري",
+    style: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20",
+  },
+  manual_review: {
+    emoji: "⏳",
+    text: "مراجعة يدوية",
+    style: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
+  },
+  requires_verification: {
+    emoji: "🔒",
+    text: "تتطلب توثيق الحساب",
+    style: "bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20",
+  },
+  temporarily_unavailable: {
+    emoji: "🛑",
+    text: "متوقف مؤقتاً",
+    style: "bg-gray-500/10 text-gray-600 dark:text-gray-400 border-gray-500/20",
+  },
+};
+
+function getBadgeProps(subtitleRaw: string, code: string, category?: string) {
+  const subtitle = subtitleRaw || "normal";
+  const mappedKey =
+    subtitle === "تتطلب توثيق الحساب"
+      ? "requires_verification"
+      : subtitle === "شحن فوري" || subtitle === "تأكيد فوري" || subtitle === "شحن فوري TRC20"
+      ? "instant"
+      : subtitle === "مراجعة يدوية"
+      ? "manual_review"
+      : STATUS_MAP[subtitle]
+      ? subtitle
+      : code.includes("sham")
+      ? "requires_verification"
+      : category === "يدوي" || category === "مراجعة يدوية"
+      ? "manual_review"
+      : "normal";
+
+  const status = STATUS_MAP[mappedKey] || STATUS_MAP.normal;
+
   return {
-    icon: <Zap className="w-3 h-3 shrink-0" />,
-    className: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20",
-    text: subtitle || "شحن فوري",
+    key: mappedKey,
+    emoji: status.emoji,
+    text: status.text,
+    className: status.style,
   };
 }
 
@@ -200,32 +233,42 @@ export function WalletPage() {
   const isVerified = Boolean(user?.identityVerified || user?.isVerified);
 
   const handleSelectMethod = (method: PaymentMethodItem) => {
-    const subtitle = method.subtitle || "";
-    const requiresVerification =
-      subtitle.includes("تتطلب توثيق الحساب") ||
-      subtitle.includes("توثيق") ||
-      method.code.includes("sham");
+    const subtitleRaw = method.subtitle || "normal";
+    const mappedSubtitle =
+      subtitleRaw === "تتطلب توثيق الحساب"
+        ? "requires_verification"
+        : subtitleRaw === "شحن فوري" || subtitleRaw === "تأكيد فوري" || subtitleRaw === "شحن فوري TRC20"
+        ? "instant"
+        : subtitleRaw === "مراجعة يدوية"
+        ? "manual_review"
+        : STATUS_MAP[subtitleRaw]
+        ? subtitleRaw
+        : method.code.includes("sham")
+        ? "requires_verification"
+        : method.category === "يدوي" || method.category === "مراجعة يدوية"
+        ? "manual_review"
+        : "normal";
 
-    const isLocked = requiresVerification && !isVerified;
+    // الحالة 1: متوقف مؤقتاً
+    if (mappedSubtitle === "temporarily_unavailable") {
+      toast.error("🛑 هذه الطريقة متوقفة مؤقتاً. سنخبرك عندما تتوفر.");
+      return;
+    }
 
-    if (isLocked) {
+    // الحالة 2: تتطلب توثيق الحساب
+    if (mappedSubtitle === "requires_verification" && !isVerified) {
       toast.error("يجب توثيق حسابك أولاً لاستخدام هذه الطريقة");
       setLocation("/identity-verification");
       return;
     }
 
-    const isManualReview =
-      subtitle.includes("مراجعة يدوية") ||
-      subtitle.includes("يدوية") ||
-      method.category === "يدوي" ||
-      method.category === "مراجعة يدوية";
-
-    if (isManualReview) {
-      toast.info("⚠️ هذه الطريقة تتطلب مراجعة يدوية. سيتم مراجعة طلبك خلال 24 ساعة.");
+    // الحالة 3: مراجعة يدوية
+    if (mappedSubtitle === "manual_review") {
+      toast.info("⏳ هذه الطريقة تتطلب مراجعة يدوية. ستتم المراجعة من دقيقة إلى 12 ساعة.");
     }
 
+    // الاختيار الفعلي والانتقال
     setSelectedCode(method.code);
-    // Slight delay for smooth visual feedback on radio click
     setTimeout(() => {
       if (method.code === "sham_cash" || method.code === "sham_cash_auto") {
         setLocation("/deposit/shamcash");
@@ -322,13 +365,9 @@ export function WalletPage() {
             {methods.map((method) => {
               const isSelected = selectedCode === method.code;
               const badge = getBadgeProps(method.subtitle, method.code, method.category);
-
-              const subtitle = method.subtitle || "";
-              const requiresVerification =
-                subtitle.includes("تتطلب توثيق الحساب") ||
-                subtitle.includes("توثيق") ||
-                method.code.includes("sham");
-              const isLocked = requiresVerification && !isVerified;
+              const isUnavailable = badge.key === "temporarily_unavailable";
+              const isRequiresVerification = badge.key === "requires_verification";
+              const isLocked = isRequiresVerification && !isVerified;
 
               return (
                 <div
@@ -336,7 +375,9 @@ export function WalletPage() {
                   id={`method-card-${method.code}`}
                   onClick={() => handleSelectMethod(method)}
                   className={`group relative p-4 rounded-2xl border transition-all duration-200 flex flex-col gap-3 ${
-                    isLocked
+                    isUnavailable
+                      ? "bg-card/50 border-border/50 opacity-60 cursor-not-allowed grayscale"
+                      : isLocked
                       ? "bg-card/70 border-border/70 opacity-80 cursor-not-allowed"
                       : isSelected
                       ? "bg-card border-[var(--theme-primary)] ring-2 ring-[var(--theme-primary)]/20 shadow-md cursor-pointer"
@@ -371,6 +412,11 @@ export function WalletPage() {
                       <div className="space-y-1">
                         <div className="font-bold text-base text-foreground group-hover:text-[var(--theme-primary)] transition-colors flex items-center gap-2">
                           <span>{method.name}</span>
+                          {isUnavailable && (
+                            <span className="text-[11px] font-medium text-gray-500 bg-gray-500/10 px-2 py-0.5 rounded-md">
+                              متوقف
+                            </span>
+                          )}
                           {isLocked && (
                             <span className="text-[11px] font-medium text-red-500 bg-red-500/10 px-2 py-0.5 rounded-md">
                               مقفلة
@@ -379,8 +425,8 @@ export function WalletPage() {
                         </div>
                         <div className="flex items-center">
                           <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-md border ${badge.className}`}>
-                            {badge.icon}
-                            {badge.text}
+                            <span>{badge.emoji}</span>
+                            <span>{badge.text}</span>
                           </span>
                         </div>
                       </div>
@@ -388,7 +434,11 @@ export function WalletPage() {
 
                     {/* Left side: Radio indicator or Lock */}
                     <div className="shrink-0 mr-2">
-                      {isLocked ? (
+                      {isUnavailable ? (
+                        <div className="w-7 h-7 rounded-full bg-gray-500/10 border border-gray-500/20 flex items-center justify-center text-gray-400 text-xs">
+                          🛑
+                        </div>
+                      ) : isLocked ? (
                         <div className="w-7 h-7 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-500">
                           <Lock className="w-3.5 h-3.5" />
                         </div>

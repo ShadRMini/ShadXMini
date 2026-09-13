@@ -50,7 +50,7 @@ const PRESET_METHODS = [
   {
     code: "sham_cash",
     name: "شام كاش",
-    subtitle: "تتطلب توثيق الحساب",
+    subtitle: "requires_verification",
     category: "تلقائي",
     minAmount: 1,
     instructions: "يرجى التحويل إلى عنوان المحفظة ثم إدخال رقم العملية للتأكيد الفوري.",
@@ -58,7 +58,7 @@ const PRESET_METHODS = [
   {
     code: "sham_cash_auto",
     name: "شام كاش (تلقائي)",
-    subtitle: "تأكيد فوري",
+    subtitle: "instant",
     category: "تلقائي",
     minAmount: 1,
     instructions: "الدفع التلقائي عبر شام كاش مع التحقق اللحظي.",
@@ -66,7 +66,7 @@ const PRESET_METHODS = [
   {
     code: "syriatel_cash",
     name: "سيرياتيل كاش",
-    subtitle: "شحن فوري",
+    subtitle: "instant",
     category: "فوري",
     minAmount: 1,
     instructions: "يرجى التحويل إلى الرقم المعتمد وإرفاق إشعار الدفع.",
@@ -74,7 +74,7 @@ const PRESET_METHODS = [
   {
     code: "binance_pay",
     name: "Binance Pay",
-    subtitle: "شحن فوري",
+    subtitle: "instant",
     category: "فوري",
     minAmount: 1,
     instructions: "الدفع عبر معرف بينانس مع التأكيد السريع.",
@@ -82,7 +82,7 @@ const PRESET_METHODS = [
   {
     code: "usdt_auto",
     name: "USDT تلقائي",
-    subtitle: "شحن فوري TRC20",
+    subtitle: "instant",
     category: "فوري",
     minAmount: 5,
     instructions: "تحويل شبكة TRC20 مع المعالجة التلقائية.",
@@ -90,12 +90,28 @@ const PRESET_METHODS = [
   {
     code: "mtn_cash",
     name: "MTN Cash",
-    subtitle: "مراجعة يدوية",
+    subtitle: "manual_review",
     category: "يدوي",
     minAmount: 1,
     instructions: "يرجى التحويل عبر MTN كاش ورفع إشعار العملية للمراجعة.",
   },
 ];
+
+export const STATUS_OPTIONS = [
+  { value: "normal", label: "✅ تعمل بشكل طبيعي" },
+  { value: "instant", label: "⚡ شحن فوري" },
+  { value: "manual_review", label: "⏳ مراجعة يدوية" },
+  { value: "requires_verification", label: "🔒 تتطلب توثيق الحساب" },
+  { value: "temporarily_unavailable", label: "🛑 متوقف مؤقتاً" },
+];
+
+export const STATUS_LABEL_MAP: Record<string, { label: string; style: string }> = {
+  normal: { label: "✅ تعمل بشكل طبيعي", style: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" },
+  instant: { label: "⚡ شحن فوري", style: "bg-blue-500/10 text-blue-400 border-blue-500/20" },
+  manual_review: { label: "⏳ مراجعة يدوية", style: "bg-amber-500/10 text-amber-400 border-amber-500/20" },
+  requires_verification: { label: "🔒 تتطلب توثيق الحساب", style: "bg-red-500/10 text-red-400 border-red-500/20" },
+  temporarily_unavailable: { label: "🛑 متوقف مؤقتاً", style: "bg-gray-500/10 text-gray-400 border-gray-500/20" },
+};
 
 export default function PaymentMethods() {
   const [methods, setMethods] = useState<PaymentMethod[]>([]);
@@ -118,7 +134,7 @@ export default function PaymentMethods() {
     code: "sham_cash",
     customCode: "",
     name: "",
-    subtitle: "",
+    subtitle: "normal",
     category: "فوري",
     instructions: "",
     walletAddress: "",
@@ -206,7 +222,7 @@ export default function PaymentMethods() {
       code: "sham_cash",
       customCode: "",
       name: "شام كاش",
-      subtitle: "تتطلب توثيق الحساب",
+      subtitle: "requires_verification",
       category: "تلقائي",
       instructions: "يرجى التحويل إلى عنوان المحفظة ثم إدخال رقم العملية للتأكيد الفوري.",
       walletAddress: "35147b5811bdc0bf07fdb11b85c8a5d",
@@ -222,11 +238,23 @@ export default function PaymentMethods() {
   const handleOpenEditModal = (item: PaymentMethod) => {
     setEditingItem(item);
     const isPreset = PRESET_METHODS.some((p) => p.code === item.code);
+    const itemSubtitle = item.subtitle || "normal";
+    const mappedSubtitle =
+      itemSubtitle === "تتطلب توثيق الحساب"
+        ? "requires_verification"
+        : itemSubtitle === "شحن فوري" || itemSubtitle === "تأكيد فوري" || itemSubtitle === "شحن فوري TRC20"
+        ? "instant"
+        : itemSubtitle === "مراجعة يدوية"
+        ? "manual_review"
+        : STATUS_OPTIONS.some((o) => o.value === itemSubtitle)
+        ? itemSubtitle
+        : "normal";
+
     setFormData({
       code: isPreset ? item.code : "custom",
       customCode: isPreset ? "" : item.code,
       name: item.name,
-      subtitle: item.subtitle,
+      subtitle: mappedSubtitle,
       category: item.category || "فوري",
       instructions: item.instructions || "",
       walletAddress: item.walletAddress || "",
@@ -734,7 +762,7 @@ export default function PaymentMethods() {
                             )}
                           </div>
                           <div className="text-xs text-zinc-400 mt-0.5 line-clamp-1">
-                            {method.subtitle}
+                            {STATUS_LABEL_MAP[method.subtitle]?.label || method.subtitle}
                           </div>
                         </div>
                       </div>
@@ -962,18 +990,25 @@ export default function PaymentMethods() {
                     />
                   </div>
 
-                  <div className="space-y-1.5">
+                    <div className="space-y-1.5">
                     <label className="text-xs font-bold text-zinc-300 block">
-                      الوصف الفرعي (شارة الحالة) <span className="text-red-400">*</span>
+                      الوصف الفرعي (الحالة) <span className="text-red-400">*</span>
                     </label>
-                    <input
-                      type="text"
-                      placeholder="مثال: شحن فوري أو تتطلب توثيق الحساب"
-                      value={formData.subtitle}
+                    <select
+                      value={
+                        STATUS_OPTIONS.some((opt) => opt.value === formData.subtitle)
+                          ? formData.subtitle
+                          : "normal"
+                      }
                       onChange={(e) => setFormData((prev) => ({ ...prev, subtitle: e.target.value }))}
                       className="w-full px-3 py-2.5 bg-[#121212] border border-[#2E2E2E] rounded-xl text-xs text-white focus:outline-none focus:border-[#C8A45C]"
-                      required
-                    />
+                    >
+                      {STATUS_OPTIONS.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </div>
 
