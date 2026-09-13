@@ -758,57 +758,62 @@ export async function ensureDatabaseSchema() {
     });
 
     // 14. VIP Memberships table
-    await db.execute(sql`
-      CREATE TABLE IF NOT EXISTS vip_memberships (
-        id SERIAL PRIMARY KEY,
-        name TEXT NOT NULL,
-        name_ar TEXT NOT NULL DEFAULT '',
-        level_order INTEGER NOT NULL DEFAULT 1,
-        required_amount NUMERIC(12, 2) NOT NULL DEFAULT 0,
-        discount_percent NUMERIC(5, 2) NOT NULL DEFAULT 0,
-        profit_pct NUMERIC(5, 2),
-        badge_color TEXT DEFAULT '#C8A45C',
-        badge TEXT,
-        benefits JSONB DEFAULT '[]',
-        description TEXT,
-        hidden BOOLEAN NOT NULL DEFAULT false,
-        created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-        updated_at TIMESTAMP NOT NULL DEFAULT NOW()
-      );
+    try {
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS vip_memberships (
+          id SERIAL PRIMARY KEY,
+          name TEXT NOT NULL,
+          name_ar TEXT NOT NULL DEFAULT '',
+          level_order INTEGER NOT NULL DEFAULT 1,
+          required_amount NUMERIC(12, 2) NOT NULL DEFAULT 0,
+          discount_percent NUMERIC(5, 2) NOT NULL DEFAULT 0,
+          profit_pct NUMERIC(5, 2) NOT NULL DEFAULT 0,
+          badge_color TEXT DEFAULT '#C8A45C',
+          badge TEXT,
+          benefits JSONB DEFAULT '[]',
+          description TEXT,
+          hidden BOOLEAN NOT NULL DEFAULT false,
+          created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+          updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+        );
 
-      ALTER TABLE vip_memberships ADD COLUMN IF NOT EXISTS name_ar TEXT DEFAULT '';
-      ALTER TABLE vip_memberships ADD COLUMN IF NOT EXISTS level_order INTEGER DEFAULT 1;
-      ALTER TABLE vip_memberships ADD COLUMN IF NOT EXISTS discount_percent NUMERIC(5, 2) DEFAULT 0;
-      ALTER TABLE vip_memberships ADD COLUMN IF NOT EXISTS profit_pct NUMERIC(5, 2);
-      ALTER TABLE vip_memberships ADD COLUMN IF NOT EXISTS badge_color TEXT DEFAULT '#C8A45C';
-      ALTER TABLE vip_memberships ADD COLUMN IF NOT EXISTS badge TEXT;
-      ALTER TABLE vip_memberships ADD COLUMN IF NOT EXISTS benefits JSONB DEFAULT '[]';
-      ALTER TABLE vip_memberships ADD COLUMN IF NOT EXISTS description TEXT;
-      ALTER TABLE vip_memberships ADD COLUMN IF NOT EXISTS hidden BOOLEAN DEFAULT false;
-      ALTER TABLE vip_memberships ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT NOW();
-      ALTER TABLE vip_memberships ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT NOW();
-    `);
+        ALTER TABLE vip_memberships ADD COLUMN IF NOT EXISTS name_ar TEXT DEFAULT '';
+        ALTER TABLE vip_memberships ADD COLUMN IF NOT EXISTS level_order INTEGER DEFAULT 1;
+        ALTER TABLE vip_memberships ADD COLUMN IF NOT EXISTS discount_percent NUMERIC(5, 2) DEFAULT 0;
+        ALTER TABLE vip_memberships ADD COLUMN IF NOT EXISTS profit_pct NUMERIC(5, 2) DEFAULT 0;
+        ALTER TABLE vip_memberships ADD COLUMN IF NOT EXISTS badge_color TEXT DEFAULT '#C8A45C';
+        ALTER TABLE vip_memberships ADD COLUMN IF NOT EXISTS badge TEXT;
+        ALTER TABLE vip_memberships ADD COLUMN IF NOT EXISTS benefits JSONB DEFAULT '[]';
+        ALTER TABLE vip_memberships ADD COLUMN IF NOT EXISTS description TEXT;
+        ALTER TABLE vip_memberships ADD COLUMN IF NOT EXISTS hidden BOOLEAN DEFAULT false;
+        ALTER TABLE vip_memberships ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT NOW();
+        ALTER TABLE vip_memberships ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT NOW();
+      `);
 
-    // Insert or update the 5 standard ready-made VIP levels
-    await db.execute(sql`
-      INSERT INTO vip_memberships (id, name, name_ar, level_order, required_amount, discount_percent, badge_color, benefits, description, hidden)
-      VALUES 
-        (1, 'Pro', 'بروتو', 1, 0, 0.00, '#9CA3AF', '["مستوى أساسي", "لا خصومات"]'::jsonb, 'المستوى الأساسي لجميع المستخدمين الجدد', false),
-        (2, 'Silver', 'فضي', 2, 300, 5.00, '#C0C0C0', '["خصم 5%", "دعم أولوية"]'::jsonb, 'مستوى فضي مع خصومات ومزايا إضافية', false),
-        (3, 'Gold', 'ذهبي', 3, 500, 10.00, '#C8A45C', '["خصم 10%", "توصيل مجاني", "دعم أولوية"]'::jsonb, 'مستوى ذهبي مع خصومات ومزايا مميزة', false),
-        (4, 'Diamond', 'ماسي', 4, 1000, 15.00, '#60A5FA', '["خصم 15%", "توصيل مجاني", "دعم مباشر", "هدايا شهرية"]'::jsonb, 'مستوى ماسي مع خصومات ومزايا حصرية', false),
-        (5, 'VIP', 'VIP', 5, 2500, 20.00, '#A855F7', '["خصم 20%", "كل المزايا السابقة", "مدير حساب مخصص", "دخول مبكر للعروض"]'::jsonb, 'مستوى VIP مع كل المزايا الحصرية', false)
-      ON CONFLICT (id) DO NOTHING;
-    `);
+      // Insert or update the 5 standard ready-made VIP levels
+      await db.execute(sql`
+        INSERT INTO vip_memberships (id, name, name_ar, level_order, required_amount, discount_percent, profit_pct, badge_color, benefits, description, hidden)
+        VALUES 
+          (1, 'Pro', 'بروتو', 1, 0, 0.00, 0.00, '#9CA3AF', '["مستوى أساسي", "لا خصومات"]'::jsonb, 'المستوى الأساسي لجميع المستخدمين الجدد', false),
+          (2, 'Silver', 'فضي', 2, 300, 5.00, 5.00, '#C0C0C0', '["خصم 5%", "دعم أولوية"]'::jsonb, 'مستوى فضي مع خصومات ومزايا إضافية', false),
+          (3, 'Gold', 'ذهبي', 3, 500, 10.00, 10.00, '#C8A45C', '["خصم 10%", "توصيل مجاني", "دعم أولوية"]'::jsonb, 'مستوى ذهبي مع خصومات ومزايا مميزة', false),
+          (4, 'Diamond', 'ماسي', 4, 1000, 15.00, 15.00, '#60A5FA', '["خصم 15%", "توصيل مجاني", "دعم مباشر", "هدايا شهرية"]'::jsonb, 'مستوى ماسي مع خصومات ومزايا حصرية', false),
+          (5, 'VIP', 'VIP', 5, 2500, 20.00, 20.00, '#A855F7', '["خصم 20%", "كل المزايا السابقة", "مدير حساب مخصص", "دخول مبكر للعروض"]'::jsonb, 'مستوى VIP مع كل المزايا الحصرية', false)
+        ON CONFLICT (id) DO NOTHING;
+      `);
 
-    // Sync sequence to avoid collision when creating new levels
-    await db.execute(sql`
-      SELECT setval(
-        pg_get_serial_sequence('vip_memberships', 'id'),
-        COALESCE((SELECT MAX(id) FROM vip_memberships), 5),
-        true
-      );
-    `).catch(() => null);
+      // Sync sequence to avoid collision when creating new levels
+      await db.execute(sql`
+        SELECT setval(
+          pg_get_serial_sequence('vip_memberships', 'id'),
+          COALESCE((SELECT MAX(id) FROM vip_memberships), 5),
+          true
+        );
+      `).catch(() => null);
+      console.log("[ensureSchema] ✅ vip_memberships done");
+    } catch (e) {
+      console.error("[ensureSchema] vip_memberships failed:", e);
+    }
 
     // Ensure legacy interface settings defaults
     await db.execute(sql`
@@ -1012,7 +1017,7 @@ export async function ensureDatabaseSchema() {
           COALESCE((SELECT MAX(id) FROM payment_methods), 0) + 1,
           false
         );
-      `);
+      `).catch(() => null);
 
       // إدراج الطرق الافتراضية (بعد ضمان الأعمدة)
       const checkPM: any = await db.execute(sql`SELECT count(*)::int as c FROM payment_methods`);
@@ -1030,10 +1035,9 @@ export async function ensureDatabaseSchema() {
         `);
       }
 
-      console.log("[DB Schema] ✅ payment_methods schema ensured successfully");
-    } catch (pmErr) {
-      console.warn("[DB Schema] Error seeding payment_methods:", pmErr);
-      throw pmErr;
+      console.log("[ensureSchema] ✅ payment_methods done");
+    } catch (e) {
+      console.error("[ensureSchema] payment_methods failed:", e);
     }
 
     schemaEnsured = true;

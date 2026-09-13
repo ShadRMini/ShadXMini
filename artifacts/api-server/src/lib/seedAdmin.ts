@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
 import { db, adminsTable, usersTable } from "@workspace/db";
-import { eq, or } from "drizzle-orm";
+import { eq, or, sql } from "drizzle-orm";
 
 export async function seedSuperAdmin() {
   try {
@@ -50,8 +50,19 @@ export async function seedSuperAdmin() {
       .limit(1);
 
     if (existingUsers.length === 0) {
+      let nextDisplayId = "1001";
+      try {
+        const maxResult: any = await db.execute(
+          sql`SELECT COALESCE(MAX(NULLIF(regexp_replace(display_id, '\D', '', 'g'), '')::INTEGER), 1000) + 1 as next FROM users`
+        );
+        const nextVal = maxResult?.rows?.[0]?.next ?? maxResult?.[0]?.next;
+        if (nextVal) nextDisplayId = String(nextVal);
+      } catch {
+        nextDisplayId = String(Date.now()).slice(-6);
+      }
+
       await db.insert(usersTable).values({
-        displayId: "1001",
+        displayId: nextDisplayId,
         username: adminUsername,
         email: adminEmail,
         passwordHash: hashedPassword,
@@ -60,7 +71,7 @@ export async function seedSuperAdmin() {
         balanceUsd: "1000",
         balanceSyp: "0",
       });
-      console.log("[Seed] Super Admin created in users table:", adminEmail);
+      console.log("[Seed] Super Admin created in users table with displayId:", nextDisplayId, adminEmail);
     } else {
       await db
         .update(usersTable)
