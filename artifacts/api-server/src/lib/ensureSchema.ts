@@ -1051,6 +1051,67 @@ export async function ensureDatabaseSchema() {
       console.error("[ensureSchema] payment_methods failed:", e);
     }
 
+    // 16. Ensure shamcash_used_transaction_refs table, columns, and UNIQUE INDEX
+    try {
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS shamcash_used_transaction_refs (
+          id SERIAL PRIMARY KEY,
+          transaction_ref TEXT,
+          deposit_id INTEGER,
+          user_id INTEGER,
+          invoice_id TEXT,
+          amount_usd NUMERIC(24, 12),
+          amount_syp NUMERIC(14, 2),
+          currency TEXT,
+          created_at TIMESTAMP DEFAULT NOW()
+        );
+      `);
+
+      // تأكيد وجود الأعمدة المطلوبة
+      await db.execute(sql`ALTER TABLE shamcash_used_transaction_refs ADD COLUMN IF NOT EXISTS transaction_ref TEXT;`);
+      await db.execute(sql`ALTER TABLE shamcash_used_transaction_refs ADD COLUMN IF NOT EXISTS deposit_id INTEGER;`);
+      await db.execute(sql`ALTER TABLE shamcash_used_transaction_refs ADD COLUMN IF NOT EXISTS user_id INTEGER;`);
+      await db.execute(sql`ALTER TABLE shamcash_used_transaction_refs ADD COLUMN IF NOT EXISTS invoice_id TEXT;`);
+      await db.execute(sql`ALTER TABLE shamcash_used_transaction_refs ADD COLUMN IF NOT EXISTS amount_usd NUMERIC(24, 12);`);
+      await db.execute(sql`ALTER TABLE shamcash_used_transaction_refs ADD COLUMN IF NOT EXISTS amount_syp NUMERIC(14, 2);`);
+      await db.execute(sql`ALTER TABLE shamcash_used_transaction_refs ADD COLUMN IF NOT EXISTS currency TEXT;`);
+      await db.execute(sql`ALTER TABLE shamcash_used_transaction_refs ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT NOW();`);
+
+      // فحص وإزالة أي تكرار قبل إنشاء UNIQUE INDEX
+      try {
+        const dupCheck: any = await db.execute(sql`
+          SELECT transaction_ref, COUNT(*)::int as cnt
+          FROM shamcash_used_transaction_refs 
+          WHERE transaction_ref IS NOT NULL
+          GROUP BY transaction_ref 
+          HAVING COUNT(*) > 1;
+        `);
+        const dupRows = dupCheck?.rows || (Array.isArray(dupCheck) ? dupCheck : []);
+        if (dupRows.length > 0) {
+          console.warn("[ensureSchema] ⚠️ Found duplicate transaction_refs before unique index:", JSON.stringify(dupRows));
+        }
+
+        // تنظيف أي تكرار موجود أولاً
+        await db.execute(sql`
+          DELETE FROM shamcash_used_transaction_refs a
+          USING shamcash_used_transaction_refs b
+          WHERE a.id > b.id AND a.transaction_ref = b.transaction_ref;
+        `);
+      } catch (cleanErr: any) {
+        console.warn("[ensureSchema] Deduplication step warning:", cleanErr?.message);
+      }
+
+      // حماية مزدوجة: إنشاء UNIQUE INDEX على transaction_ref
+      await db.execute(sql`
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_shamcash_used_refs_ref 
+        ON shamcash_used_transaction_refs(transaction_ref);
+      `);
+
+      console.log("[ensureSchema] ✅ shamcash_used_transaction_refs & unique index done");
+    } catch (e: any) {
+      console.error("[ensureSchema] shamcash_used_transaction_refs schema update failed:", e);
+    }
+
     schemaEnsured = true;
     console.log("[DB Schema] Runtime schema verified and synchronized successfully.");
   } catch (error) {

@@ -84,7 +84,7 @@
   "admins": [
     {
       "username": "ShadMini",
-      "password": "$2b$10$VS6pU452RYyXL167aNe91eATsuknjnpUXl2UFK6k4nYHupVDxg5Fu",
+      "password": "$2b$10$ZHZKQ1t0hAyrdzJAAWXoe.Z7WudpmLkVaaBXPJN31HIaFWKejXc2O",
       "fullName": "ShadMini Super Admin",
       "email": "shadyrahimox@gmail.com",
       "role": "super_admin",
@@ -94,7 +94,7 @@
       },
       "id": 1,
       "createdAt": "2026-09-12T23:11:59.954Z",
-      "updatedAt": "2026-09-12T23:11:59.954Z"
+      "updatedAt": "2026-09-14T18:28:49.691Z"
     }
   ],
   "users": [
@@ -102,14 +102,15 @@
       "displayId": "1001",
       "username": "ShadMini",
       "email": "shadyrahimox@gmail.com",
-      "passwordHash": "$2b$10$VS6pU452RYyXL167aNe91eATsuknjnpUXl2UFK6k4nYHupVDxg5Fu",
+      "passwordHash": "$2b$10$ZHZKQ1t0hAyrdzJAAWXoe.Z7WudpmLkVaaBXPJN31HIaFWKejXc2O",
       "role": "super_admin",
       "vipLevel": 4,
       "balanceUsd": "1000",
       "balanceSyp": "0",
       "id": 1,
       "createdAt": "2026-09-12T23:11:59.955Z",
-      "updatedAt": "2026-09-12T23:11:59.955Z"
+      "updatedAt": "2026-09-14T18:28:49.691Z",
+      "banned": false
     }
   ]
 }

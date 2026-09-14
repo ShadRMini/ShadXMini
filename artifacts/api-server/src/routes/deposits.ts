@@ -86,6 +86,10 @@ function normalizeShamCashTransactionRef(input: unknown): string {
   return String(input || "").replace(/\D/g, "").trim();
 }
 
+function isValidShamCashTransactionRef(ref: string): boolean {
+  return /^[a-zA-Z0-9]{4,100}$/.test(ref);
+}
+
 async function ensureShamCashRefsTable() {
   if (shamCashRefsTableReady) return;
   await db.execute(sql`
@@ -148,6 +152,169 @@ async function reserveShamCashTransactionRef(args: {
     return true;
   } catch (error: any) {
     if (error?.code === "23505") return false;
+    throw error;
+  }
+}
+
+type ApproveDepositAtomicResult =
+  | { success: true; alreadyProcessed: false; deposit: any }
+  | { success: true; alreadyProcessed: true; deposit: any }
+  | { success: false; error: "not_found" }
+  | { success: false; error: "duplicate_ref"; message: string }
+  | { success: false; error: "invalid_ref"; message: string };
+
+async function approveShamCashDepositAtomic(params: {
+  depositId: number;
+  transactionRef?: string | null;
+  invoiceId?: string;
+}): Promise<ApproveDepositAtomicResult> {
+  await ensureShamCashRefsTable();
+  await ensureDepositsTelegramMessageColumn();
+
+  let notifyData: {
+    userId: number;
+    depositId: number;
+    amountUsd: string | number;
+    amountSyp: string | number | null;
+    currency: string;
+    telegramMessageId?: number | null;
+  } | null = null;
+
+  try {
+    const txResult = await db.transaction(async (tx: any) => {
+      // 1. قفل صف الإيداع لمنع أي Race Condition (SELECT ... FOR UPDATE)
+      let query = tx.select().from(depositsTable).where(eq(depositsTable.id, params.depositId));
+      if (typeof query.for === "function") {
+        query = query.for("update");
+      }
+      const [dep] = await query.limit(1);
+
+      if (!dep) {
+        return { success: false as const, error: "not_found" as const };
+      }
+
+      // إذا كان الإيداع معتمدًا مسبقًا
+      if (dep.status === "approved") {
+        return { success: true as const, alreadyProcessed: true as const, deposit: dep };
+      }
+
+      // 2. إذا وجد transactionRef: التحقق منه وحجزه داخل المعاملة
+      const ref = params.transactionRef ? String(params.transactionRef).trim() : null;
+      if (ref) {
+        if (!isValidShamCashTransactionRef(ref)) {
+          return {
+            success: false as const,
+            error: "invalid_ref" as const,
+            message: "رقم العملية غير صالح. يجب أن يحتوي على أحرف وأرقام فقط وطوله بين 4 و100 محرف.",
+          };
+        }
+
+        try {
+          await tx.execute(sql`
+            INSERT INTO shamcash_used_transaction_refs (
+              transaction_ref,
+              deposit_id,
+              user_id,
+              invoice_id,
+              amount_usd,
+              amount_syp,
+              currency
+            )
+            VALUES (
+              ${ref},
+              ${dep.id},
+              ${dep.userId},
+              ${params.invoiceId || dep.transactionId || null},
+              ${String(dep.amountUsd)},
+              ${dep.amountSyp == null ? null : String(dep.amountSyp)},
+              ${dep.currency}
+            )
+          `);
+        } catch (insertErr: any) {
+          if (insertErr?.code === "23505") {
+            return {
+              success: false as const,
+              error: "duplicate_ref" as const,
+              message: "رقم العملية غير صالح أو تم استخدامه مسبقًا.",
+            };
+          }
+          throw insertErr;
+        }
+      }
+
+      // 3. إضافة الرصيد إلى المستخدم ذرّياً
+      const col = dep.currency === "SYP" ? "balanceSyp" : "balanceUsd";
+      const amount = dep.currency === "SYP" ? dep.amountSyp : dep.amountUsd;
+      if (amount) {
+        await tx
+          .update(usersTable)
+          .set({
+            [col]:
+              col === "balanceSyp"
+                ? sql`${usersTable.balanceSyp} + ${amount}`
+                : sql`${usersTable.balanceUsd} + ${amount}`,
+          })
+          .where(eq(usersTable.id, dep.userId));
+      }
+
+      // 4. تحديث حالة الإيداع إلى approved
+      const [updatedDep] = await tx
+        .update(depositsTable)
+        .set({ status: "approved" })
+        .where(eq(depositsTable.id, dep.id))
+        .returning();
+
+      notifyData = {
+        userId: dep.userId,
+        depositId: dep.id,
+        amountUsd: dep.amountUsd,
+        amountSyp: dep.amountSyp,
+        currency: dep.currency,
+        telegramMessageId: dep.telegramMessageId,
+      };
+
+      return {
+        success: true as const,
+        alreadyProcessed: false as const,
+        deposit: updatedDep || dep,
+      };
+    });
+
+    // 5. إرسال الإشعارات بعد اكتمال المعاملة بنجاح
+    if (txResult.success && !txResult.alreadyProcessed && notifyData) {
+      try {
+        const [u] = await db.select().from(usersTable).where(eq(usersTable.id, (notifyData as any).userId)).limit(1);
+        if (u) {
+          await notifyUserDepositApproved({
+            telegramId: u.telegramId,
+            addedUsd: Number((notifyData as any).amountUsd),
+            currentUsd: Number(u.balanceUsd),
+            operationNumber: String((notifyData as any).depositId),
+            messageId: (notifyData as any).telegramMessageId,
+          }).catch((e: any) => console.error("[Telegram notify error]:", e));
+
+          await notifyInternalDepositConfirmed({
+            userId: u.id,
+            id: (notifyData as any).depositId,
+            amountUsd: (notifyData as any).amountUsd,
+            amountSyp: (notifyData as any).amountSyp,
+            currency: (notifyData as any).currency,
+          }).catch((e: any) => console.error("[Internal notify error]:", e));
+        }
+      } catch (notifyErr) {
+        console.error("Post-commit notify failed:", notifyErr);
+      }
+    }
+
+    return txResult;
+  } catch (error: any) {
+    if (error?.code === "23505") {
+      return {
+        success: false,
+        error: "duplicate_ref",
+        message: "رقم العملية غير صالح أو تم استخدامه مسبقًا.",
+      };
+    }
     throw error;
   }
 }
@@ -276,7 +443,12 @@ async function syncShamCashInvoiceStatus(invoiceId: string): Promise<{
   const samStatus = String(payJson?.status || "").toLowerCase();
 
   if (samStatus === "paid") {
-    await applyDepositStatusChangeAuto(dep.id, "approved");
+    const rawTxRef = normalizeShamCashTransactionRef(payJson?.transactionRef || payJson?.transaction_ref);
+    await approveShamCashDepositAtomic({
+      depositId: dep.id,
+      transactionRef: rawTxRef || null,
+      invoiceId: cleanInvoiceId,
+    });
     return { found: true, status: samStatus, synced: "approved" };
   }
   if (samStatus === "expired") {
@@ -660,6 +832,18 @@ router.post("/deposits/shamcash/verify", async (req, res) => {
       return;
     }
 
+    // 1. فحص صحة تنسيق رقم العملية (بين 4 و100 محرف أبجدي رقمي)
+    if (!isValidShamCashTransactionRef(transactionRef)) {
+      res.status(400).json({
+        ok: false,
+        verified: false,
+        message: "رقم العملية غير صالح. يجب أن يتكون من 4 إلى 100 خانة رقمية أو أبجدية.",
+        code: "INVALID_TRANSACTION_REF",
+      });
+      return;
+    }
+
+    // 2. الفحص السريع الأولي: رفض فوري إذا كان الرقم مستخدماً مسبقاً
     if (await isShamCashTransactionRefUsed(transactionRef)) {
       res.status(409).json({
         ok: false,
@@ -678,6 +862,11 @@ router.post("/deposits/shamcash/verify", async (req, res) => {
 
     if (!dep) {
       res.status(404).json({ error: "deposit_not_found_for_invoice" });
+      return;
+    }
+
+    if (dep.status === "approved") {
+      res.json({ ok: true, verified: true, message: "تم شحن هذا الإيداع وتأكيده مسبقًا" });
       return;
     }
 
@@ -720,25 +909,30 @@ router.post("/deposits/shamcash/verify", async (req, res) => {
     }
 
     if (verifyResp?.ok && verifyJson?.verified === true) {
-      const reserved = await reserveShamCashTransactionRef({
-        transactionRef,
+      const atomicRes = await approveShamCashDepositAtomic({
         depositId: dep.id,
-        userId: dep.userId,
+        transactionRef,
         invoiceId,
-        amountUsd: dep.amountUsd,
-        amountSyp: dep.amountSyp,
-        currency: dep.currency,
       });
-      if (!reserved) {
-        res.status(409).json({
+
+      if (!atomicRes.success) {
+        if (atomicRes.error === "duplicate_ref") {
+          res.status(409).json({
+            ok: false,
+            verified: false,
+            message: atomicRes.message,
+            code: "TRANSACTION_REF_ALREADY_USED",
+          });
+          return;
+        }
+        res.status(400).json({
           ok: false,
           verified: false,
-          message: "رقم العملية غير صالح أو تم استخدامه مسبقًا.",
-          code: "TRANSACTION_REF_ALREADY_USED",
+          message: (atomicRes as any).message || "فشلت عملية التحقق",
         });
         return;
       }
-      await applyDepositStatusChangeAuto(dep.id, "approved");
+
       res.json({ ok: true, verified: true, message: verifyJson?.message || "تم التحقق من الدفع بنجاح" });
       return;
     }
@@ -768,25 +962,30 @@ router.post("/deposits/shamcash/verify", async (req, res) => {
       const amountMatches = Number.isFinite(depExpectedAmount) && Number.isFinite(txAmount) && txAmount >= depExpectedAmount;
 
       if (sameCurrency && amountMatches) {
-        const reserved = await reserveShamCashTransactionRef({
-          transactionRef,
+        const atomicRes = await approveShamCashDepositAtomic({
           depositId: dep.id,
-          userId: dep.userId,
+          transactionRef,
           invoiceId,
-          amountUsd: dep.amountUsd,
-          amountSyp: dep.amountSyp,
-          currency: dep.currency,
         });
-        if (!reserved) {
-          res.status(409).json({
+
+        if (!atomicRes.success) {
+          if (atomicRes.error === "duplicate_ref") {
+            res.status(409).json({
+              ok: false,
+              verified: false,
+              message: atomicRes.message,
+              code: "TRANSACTION_REF_ALREADY_USED",
+            });
+            return;
+          }
+          res.status(400).json({
             ok: false,
             verified: false,
-            message: "رقم العملية غير صالح أو تم استخدامه مسبقًا.",
-            code: "TRANSACTION_REF_ALREADY_USED",
+            message: (atomicRes as any).message || "فشلت عملية التحقق",
           });
           return;
         }
-        await applyDepositStatusChangeAuto(dep.id, "approved");
+
         res.json({
           ok: true,
           verified: true,
@@ -841,25 +1040,34 @@ async function handleShamCashWebhook(req: any, res: any) {
 
     if (event === "invoice.paid") {
       const transactionRef = normalizeShamCashTransactionRef(req.body?.transactionRef);
-      if (transactionRef) {
-        const reserved = await reserveShamCashTransactionRef({
-          transactionRef,
-          depositId: dep.id,
-          userId: dep.userId,
-          invoiceId,
-          amountUsd: dep.amountUsd,
-          amountSyp: dep.amountSyp,
-          currency: dep.currency,
-        });
-        if (!reserved) {
+
+      // إذا وُجد transactionRef: فحص سريع أولي لمنع التكرار
+      if (transactionRef && (await isShamCashTransactionRefUsed(transactionRef))) {
+        if (dep.status === "pending") {
+          await applyDepositStatusChangeAuto(dep.id, "rejected");
+        }
+        res.status(200).json({ ok: true, ignored: "transaction_ref_already_used" });
+        return;
+      }
+
+      const atomicRes = await approveShamCashDepositAtomic({
+        depositId: dep.id,
+        transactionRef: transactionRef || null,
+        invoiceId,
+      });
+
+      if (!atomicRes.success) {
+        if (atomicRes.error === "duplicate_ref") {
           if (dep.status === "pending") {
             await applyDepositStatusChangeAuto(dep.id, "rejected");
           }
           res.status(200).json({ ok: true, ignored: "transaction_ref_already_used" });
           return;
         }
+        res.status(400).json({ error: (atomicRes as any).message || "approval_failed" });
+        return;
       }
-      await applyDepositStatusChangeAuto(dep.id, "approved");
+
       res.status(200).json({ ok: true, status: "approved" });
       return;
     }

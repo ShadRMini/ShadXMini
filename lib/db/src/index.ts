@@ -208,6 +208,9 @@ if (!db) {
           limitCount = cnt;
           return chain;
         },
+        for: (_lockMode: string) => {
+          return chain;
+        },
         groupBy: () => chain,
         leftJoin: () => chain,
         innerJoin: () => chain,
