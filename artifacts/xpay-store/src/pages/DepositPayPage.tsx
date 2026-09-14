@@ -18,6 +18,7 @@ import {
   ExternalLink,
   ArrowRight,
 } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -386,9 +387,7 @@ export default function DepositPayPage() {
   };
 
   const walletAddress = paymentMethod?.walletAddress || "SHAM-CASH-PAY";
-  const qrImageSrc =
-    paymentMethod?.qrImage ||
-    `https://api.qrserver.com/v1/create-qr-code/?size=1080x1080&data=${encodeURIComponent(walletAddress)}`;
+  const qrImageSrc = paymentMethod?.qrImage || null;
 
   return (
     <div
@@ -509,7 +508,7 @@ export default function DepositPayPage() {
               <div className="w-full flex justify-center items-center">
                 <div
                   onClick={() => setLightboxOpen(true)}
-                  className="group relative cursor-pointer rounded-2xl bg-white p-3.5 shadow-lg border-2 transition-transform duration-200 hover:scale-[1.02] active:scale-95 flex items-center justify-center aspect-square"
+                  className="group relative cursor-pointer rounded-2xl bg-white p-3.5 shadow-lg border-2 transition-transform duration-200 hover:scale-[1.02] active:scale-95 flex items-center justify-center aspect-square overflow-hidden"
                   style={{
                     width: `${Math.min(300, qrSize)}px`,
                     maxWidth: "min(300px, 100%)",
@@ -517,14 +516,24 @@ export default function DepositPayPage() {
                   }}
                   title="انقر لتكبير رمز الـ QR بالحجم الكامل"
                 >
-                  <img
-                    src={qrImageSrc}
-                    alt="Sham Cash QR Code"
-                    width={1080}
-                    height={1080}
-                    className="w-full h-full object-contain rounded-xl select-none"
-                    loading="eager"
-                  />
+                  {qrImageSrc ? (
+                    <img
+                      src={qrImageSrc}
+                      alt="Sham Cash QR Code"
+                      width={1080}
+                      height={1080}
+                      className="w-full h-full object-contain rounded-xl select-none"
+                      loading="eager"
+                    />
+                  ) : (
+                    <QRCodeSVG
+                      value={walletAddress}
+                      size={1080}
+                      level="M"
+                      className="w-full h-full"
+                      style={{ width: "100%", height: "100%" }}
+                    />
+                  )}
 
                   <div className="absolute inset-0 rounded-2xl bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white gap-1 p-2">
                     <Maximize2 className="w-6 h-6 text-amber-300 drop-shadow" />
@@ -883,14 +892,24 @@ export default function DepositPayPage() {
               </p>
             </div>
 
-            <div className="w-[min(80vw,480px)] aspect-square flex items-center justify-center bg-white p-2">
-              <img
-                src={qrImageSrc}
-                alt="Sham Cash Full QR Code"
-                width={1080}
-                height={1080}
-                className="w-full h-full object-contain select-none"
-              />
+            <div className="w-[min(80vw,480px)] aspect-square flex items-center justify-center bg-white p-2 overflow-hidden">
+              {qrImageSrc ? (
+                <img
+                  src={qrImageSrc}
+                  alt="Sham Cash Full QR Code"
+                  width={1080}
+                  height={1080}
+                  className="w-full h-full object-contain select-none"
+                />
+              ) : (
+                <QRCodeSVG
+                  value={walletAddress}
+                  size={1080}
+                  level="M"
+                  className="w-full h-full"
+                  style={{ width: "100%", height: "100%" }}
+                />
+              )}
             </div>
 
             <div className="mt-4 flex gap-3 w-full justify-center">

@@ -13,6 +13,7 @@ import {
   ShieldCheck,
   ChevronDown
 } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -35,6 +36,8 @@ export function DepositShamCash() {
   const [submitting, setSubmitting] = useState(false);
   const [showLightbox, setShowLightbox] = useState(false);
   const [methodConfig, setMethodConfig] = useState<any>(null);
+  const [methodMinAmount, setMethodMinAmount] = useState<number>(1);
+  const [methodMaxAmount, setMethodMaxAmount] = useState<number | undefined>(undefined);
 
   // Load payment methods to get active ShamCash wallet and QR
   useEffect(() => {
@@ -54,6 +57,12 @@ export function DepositShamCash() {
           if (sham?.displayConfig || sham?.display_config) {
             setMethodConfig(sham.displayConfig || sham.display_config);
           }
+          if (sham?.minAmount !== undefined && sham?.minAmount !== null) {
+            setMethodMinAmount(Number(sham.minAmount) || 1);
+          }
+          if (sham?.maxAmount !== undefined && sham?.maxAmount !== null && Number(sham.maxAmount) > 0) {
+            setMethodMaxAmount(Number(sham.maxAmount));
+          }
         }
       } catch (e) {
         console.warn("Could not load sham_cash settings:", e);
@@ -61,13 +70,6 @@ export function DepositShamCash() {
     }
     loadMethod();
   }, []);
-
-  // Generate fallback QR URL in HD resolution (1080x1080) if custom not uploaded
-  const effectiveQrUrl =
-    qrImageUrl ||
-    `https://api.qrserver.com/v1/create-qr-code/?size=1080x1080&data=${encodeURIComponent(
-      walletAddress
-    )}&margin=10`;
 
   const handleCopy = async () => {
     try {
@@ -183,14 +185,18 @@ export function DepositShamCash() {
       {/* Main Card with DepositPageUI (Matches Image 2 exactly) */}
       <div className="shadow-xs rounded-3xl overflow-hidden">
         <DepositPageUI
-          config={methodConfig || {}}
+          config={{
+            ...(methodConfig || {}),
+            minAmount: methodMinAmount,
+            maxAmount: methodMaxAmount,
+          }}
           amount={amount}
           onAmountChange={setAmount}
           onAmountSelect={(v) => setAmount(String(v))}
           currency={currency}
           onCurrencyChange={(c) => setCurrency(c as "USD" | "SYP")}
           walletAddress={walletAddress}
-          qrImageUrl={effectiveQrUrl}
+          qrImageUrl={qrImageUrl || undefined}
           onConfirm={handleCreateInvoice}
           isSubmitting={submitting}
           onQrClick={() => setShowLightbox(true)}
@@ -217,8 +223,17 @@ export function DepositShamCash() {
             <h3 className="font-bold text-foreground text-sm">
               رمز الاستجابة السريعة (QR Code)
             </h3>
-            <div className="w-64 h-64 mx-auto p-2 bg-white rounded-2xl border flex items-center justify-center">
-              <img src={effectiveQrUrl} alt="QR Big" className="w-full h-full object-contain" />
+            <div className="w-64 h-64 mx-auto p-2 bg-white rounded-2xl border flex items-center justify-center overflow-hidden">
+              {qrImageUrl ? (
+                <img src={qrImageUrl} alt="QR Big" className="w-full h-full object-contain" />
+              ) : (
+                <QRCodeSVG
+                  value={walletAddress || SHAMCASH_DEFAULT_WALLET}
+                  size={256}
+                  level="M"
+                  className="w-full h-full"
+                />
+              )}
             </div>
             <div className="font-mono text-xs text-muted-foreground break-all bg-muted/40 p-2 rounded-xl">
               {walletAddress}

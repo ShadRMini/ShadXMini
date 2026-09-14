@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Copy, Check, Clock, QrCode, Maximize2 } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
 
 export interface DepositPageConfig {
   page_title?: string;
@@ -12,6 +13,8 @@ export interface DepositPageConfig {
   button_color?: string;
   border_color?: string;
   suggested_amounts?: number[];
+  minAmount?: number;
+  maxAmount?: number;
 }
 
 export interface DepositPageUIProps {
@@ -47,11 +50,7 @@ export function DepositPageUI({
 }: DepositPageUIProps) {
   const [copied, setCopied] = useState(false);
 
-  const effectiveQr =
-    qrImageUrl ||
-    `https://api.qrserver.com/v1/create-qr-code/?size=1080x1080&data=${encodeURIComponent(
-      walletAddress || SHAMCASH_DEFAULT_WALLET
-    )}&margin=10`;
+  const qrData = walletAddress || SHAMCASH_DEFAULT_WALLET;
 
   const handleCopyWallet = async () => {
     if (!walletAddress || isPreview) return;
@@ -64,7 +63,14 @@ export function DepositPageUI({
     }
   };
 
-  const isAmountValid = Boolean(amount && parseFloat(amount) > 0);
+  const minAmount = Number(config.minAmount ?? 1);
+  const maxAmount = config.maxAmount ? Number(config.maxAmount) : Infinity;
+  const amountNumber = Number(amount);
+  const isAmountEntered = Boolean(amount && !isNaN(amountNumber) && amountNumber > 0);
+  const isAmountValid =
+    isAmountEntered &&
+    amountNumber >= minAmount &&
+    amountNumber <= maxAmount;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -112,11 +118,21 @@ export function DepositPageUI({
             }}
             title="انقر لتكبير الرمز (1080×1080)"
           >
-            <img
-              src={effectiveQr}
-              alt="QR Code"
-              className="w-full h-full object-contain rounded-2xl group-hover:scale-105 transition-transform duration-300"
-            />
+            {qrImageUrl ? (
+              <img
+                src={qrImageUrl}
+                alt="QR Code"
+                className="w-full h-full object-contain rounded-2xl group-hover:scale-105 transition-transform duration-300"
+              />
+            ) : (
+              <QRCodeSVG
+                value={qrData}
+                size={1080}
+                level="M"
+                className="w-full h-full group-hover:scale-105 transition-transform duration-300"
+                style={{ width: "100%", height: "100%" }}
+              />
+            )}
             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white rounded-3xl">
               <span className="inline-flex items-center gap-1.5 text-xs font-bold bg-black/60 px-3 py-1.5 rounded-full backdrop-blur-xs">
                 <Maximize2 className="w-4 h-4" />
@@ -205,7 +221,8 @@ export function DepositPageUI({
             <input
               type="number"
               step="any"
-              min="0.1"
+              min={minAmount}
+              max={maxAmount !== Infinity ? maxAmount : undefined}
               required
               placeholder="أدخل المبلغ..."
               value={amount}
@@ -214,6 +231,13 @@ export function DepositPageUI({
               className="w-full h-12 bg-white dark:bg-zinc-900 rounded-xl px-4 text-right font-mono font-bold text-base border border-gray-200 dark:border-zinc-700 focus:outline-hidden focus:border-blue-500 text-gray-900 dark:text-white placeholder:text-gray-400"
             />
           </div>
+          {isAmountEntered && !isAmountValid && (
+            <p className="text-xs text-red-500 font-bold mt-1">
+              {amountNumber < minAmount
+                ? `الحد الأدنى للشحن: $${minAmount}`
+                : `الحد الأقصى للشحن: $${maxAmount}`}
+            </p>
+          )}
         </div>
 
         <div className="space-y-1.5">
