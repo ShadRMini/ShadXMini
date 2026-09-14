@@ -10,7 +10,8 @@ import {
   CheckCircle2, 
   ShieldCheck, 
   AlertCircle,
-  Coins
+  Coins,
+  Loader2
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
@@ -193,10 +194,30 @@ function getBadgeProps(subtitleRaw: string, code: string, category?: string) {
 
 export function WalletPage() {
   const [, setLocation] = useLocation();
-  const { user, refreshUser } = useAuth();
+  const { user, loading: authLoading, refreshUser } = useAuth();
   const [methods, setMethods] = useState<PaymentMethodItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCode, setSelectedCode] = useState<string>("sham_cash");
+
+  // الإصلاح 3: Cache حالة التوثيق لتحسين تجربة المستخدم ومنع وميض القفل
+  const [cachedVerified, setCachedVerified] = useState<boolean | null>(() => {
+    try {
+      const stored = localStorage.getItem("xpay_user_verified");
+      return stored !== null ? stored === "true" : null;
+    } catch {
+      return null;
+    }
+  });
+
+  useEffect(() => {
+    if (!authLoading && user) {
+      const verified = Boolean(user.identityVerified || user.isVerified);
+      setCachedVerified(verified);
+      try {
+        localStorage.setItem("xpay_user_verified", String(verified));
+      } catch {}
+    }
+  }, [user, authLoading]);
 
   useEffect(() => {
     let isMounted = true;
@@ -230,7 +251,10 @@ export function WalletPage() {
     };
   }, [refreshUser]);
 
-  const isVerified = Boolean(user?.identityVerified || user?.isVerified);
+  // استخدام الكاش أثناء التحميل لتجنب معاملة الموثق كغير موثق
+  const isVerified = cachedVerified !== null
+    ? cachedVerified
+    : Boolean(user?.identityVerified || user?.isVerified);
 
   const handleSelectMethod = (method: PaymentMethodItem) => {
     const subtitleRaw = method.subtitle || "normal";
@@ -256,10 +280,19 @@ export function WalletPage() {
     }
 
     // الحالة 2: تتطلب توثيق الحساب
-    if (mappedSubtitle === "requires_verification" && !isVerified) {
-      toast.error("يجب توثيق حسابك أولاً لاستخدام هذه الطريقة");
-      setLocation("/identity-verification");
-      return;
+    if (mappedSubtitle === "requires_verification") {
+      // إذا كان جاري التحقق ولا يوجد كاش إيجابي
+      if (authLoading && cachedVerified === null) {
+        toast.info("⏳ جاري التحقق من حالة حسابك...");
+        return;
+      }
+
+      const isLocked = !isVerified;
+      if (isLocked) {
+        toast.error("يجب توثيق حسابك أولاً لاستخدام هذه الطريقة");
+        setLocation("/identity-verification");
+        return;
+      }
     }
 
     // الحالة 3: مراجعة يدوية
@@ -367,7 +400,7 @@ export function WalletPage() {
               const badge = getBadgeProps(method.subtitle, method.code, method.category);
               const isUnavailable = badge.key === "temporarily_unavailable";
               const isRequiresVerification = badge.key === "requires_verification";
-              const isLocked = isRequiresVerification && !isVerified;
+              const isLocked = !authLoading && isRequiresVerification && !isVerified;
 
               return (
                 <div
@@ -423,11 +456,17 @@ export function WalletPage() {
                             </span>
                           )}
                         </div>
-                        <div className="flex items-center">
+                        <div className="flex flex-col gap-1 sm:flex-row sm:items-center">
                           <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-md border ${badge.className}`}>
                             <span>{badge.emoji}</span>
                             <span>{badge.text}</span>
                           </span>
+                          {isRequiresVerification && authLoading && (
+                            <div className="text-xs text-amber-500 flex items-center gap-1 font-medium">
+                              <Loader2 className="w-3 h-3 animate-spin shrink-0" />
+                              <span>جاري التحقق من حالة التوثيق...</span>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>

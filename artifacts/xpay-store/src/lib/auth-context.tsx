@@ -140,10 +140,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     const init = async () => {
-      setLoading(true);
-      await refreshUser(controller.signal);
-      if (!controller.signal.aborted) {
-        setLoading(false);
+      try {
+        setLoading(true);
+        await refreshUser(controller.signal);
+      } finally {
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        }
       }
     };
 
