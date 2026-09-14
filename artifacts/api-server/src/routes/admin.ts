@@ -45,6 +45,7 @@ import {
 import { rateLimit } from "../lib/rateLimit.js";
 import { addUnitPrices, decimalToScaled, parseProviderQuantityValues, subtractUnitPrices } from "../lib/pricing.js";
 import { ensureDatabaseSchema } from "../lib/ensureSchema";
+import { extractStringValue } from "../services/shamcash.service.js";
 const router: IRouter = Router();
 const EXTERNAL_CATEGORY_NAME = "External Provider";
 const EXTERNAL_CATEGORY_IMAGE = "https://placehold.co/600x400?text=External+Provider";
@@ -2892,7 +2893,13 @@ router.get("/admin/settings", requireAdmin, async (_req, res) => {
 
 router.put("/admin/settings", requireAdmin, async (req, res) => {
   const updates = req.body as Record<string, any>;
-  for (const [key, value] of Object.entries(updates)) {
+  for (let [key, value] of Object.entries(updates)) {
+    if (
+      key.startsWith("shamcash_") ||
+      key === "public_api_base_url"
+    ) {
+      value = extractStringValue(value);
+    }
     await db
       .insert(settingsTable)
       .values({ key, value })
@@ -3960,10 +3967,13 @@ router.put("/admin/settings/items", requireAdmin, async (req, res) => {
     return;
   }
   for (const it of items) {
+    const val = (it.key.startsWith("shamcash_") || it.key === "public_api_base_url")
+      ? extractStringValue(it.value)
+      : it.value;
     await db
       .insert(settingsTable)
-      .values({ key: it.key, value: it.value })
-      .onConflictDoUpdate({ target: settingsTable.key, set: { value: it.value } });
+      .values({ key: it.key, value: val })
+      .onConflictDoUpdate({ target: settingsTable.key, set: { value: val } });
   }
   res.json({ ok: true });
 });
@@ -5309,8 +5319,11 @@ router.get("/admin/settings/:key", requireAdmin, async (req, res) => {
 
 router.put("/admin/settings/:key", requireAdmin, async (req, res) => {
   try {
-    const key = req.params.key;
-    const value = req.body.value !== undefined ? req.body.value : req.body;
+    const key = String(req.params.key);
+    let value = req.body.value !== undefined ? req.body.value : req.body;
+    if (key.startsWith("shamcash_") || key === "public_api_base_url") {
+      value = extractStringValue(value);
+    }
     await db
       .insert(settingsTable)
       .values({ key, value })

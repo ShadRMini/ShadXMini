@@ -148,6 +148,42 @@ export async function ensureDatabaseSchema() {
       );
     `);
 
+    // تنظيف وتوحيد مفاتيح shamcash و public_api_base_url المخزنة كـ JSON object
+    try {
+      const keysToNormalize = [
+        "shamcash_api_key",
+        "shamcash_shamcash_identifier",
+        "shamcash_api_base_url",
+        "public_api_base_url",
+        "shamcash_webhook_secret",
+      ];
+      for (const k of keysToNormalize) {
+        const rows: any = await db.execute(sql`SELECT value FROM settings WHERE key = ${k} LIMIT 1;`);
+        const row = rows?.rows?.[0];
+        if (row && row.value && typeof row.value === "object" && !Array.isArray(row.value)) {
+          const stringValue =
+            row.value.key ||
+            row.value.value ||
+            row.value.apiKey ||
+            row.value.identifier ||
+            row.value.url ||
+            row.value.secret ||
+            row.value.text ||
+            "";
+          if (stringValue && typeof stringValue === "string") {
+            await db.execute(sql`
+              UPDATE settings
+              SET value = to_jsonb(${stringValue.trim()}::text)
+              WHERE key = ${k};
+            `);
+            console.log(`[ensureSchema] ✅ Normalized ${k} to string JSONB`);
+          }
+        }
+      }
+    } catch (e) {
+      console.warn("[ensureSchema] shamcash settings normalization skipped:", e);
+    }
+
     // 5.1 Banners table
     await db.execute(sql`
       CREATE TABLE IF NOT EXISTS banners (

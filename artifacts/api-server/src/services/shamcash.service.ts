@@ -1,6 +1,25 @@
 import { db, settingsTable } from "@workspace/db";
 import { sql } from "drizzle-orm";
 
+/**
+ * استخراج قيمة نصية من أي شكل مخزّن في قاعدة البيانات:
+ * - إذا كانت string → يعيدها مباشرة
+ * - إذا كانت object → يجرّب المفاتيح الشائعة (key, value, apiKey, identifier, url, secret, text)
+ * - وإلا → يعيد ""
+ */
+export function extractStringValue(value: any): string {
+  if (typeof value === "string") return value.trim();
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    const candidates = ["key", "value", "apiKey", "identifier", "url", "secret", "text"];
+    for (const k of candidates) {
+      if (typeof value[k] === "string" && value[k].trim()) {
+        return value[k].trim();
+      }
+    }
+  }
+  return "";
+}
+
 export async function getShamCashSettings() {
   const rows = await db.select().from(settingsTable);
   const settingsMap: Record<string, any> = {};
@@ -9,40 +28,36 @@ export async function getShamCashSettings() {
   }
 
   const apiBaseUrl =
-    settingsMap["shamcash_api_base_url"]?.url ||
-    settingsMap["shamcash_api_base_url"] ||
+    extractStringValue(settingsMap["shamcash_api_base_url"]) ||
     process.env.SAM_API_BASE_URL ||
     "https://www.sam-api.pro/api";
 
   const apiKey =
-    settingsMap["shamcash_api_key"]?.key ||
-    settingsMap["shamcash_api_key"] ||
+    extractStringValue(settingsMap["shamcash_api_key"]) ||
     process.env.SAM_API_KEY ||
     "";
 
   const shamcashIdentifier =
-    settingsMap["shamcash_shamcash_identifier"]?.identifier ||
-    settingsMap["shamcash_shamcash_identifier"] ||
+    extractStringValue(settingsMap["shamcash_shamcash_identifier"]) ||
     process.env.SAM_SHAMCASH_IDENTIFIER ||
     "";
 
   const webhookSecret =
-    settingsMap["shamcash_webhook_secret"]?.secret ||
-    settingsMap["shamcash_webhook_secret"] ||
+    extractStringValue(settingsMap["shamcash_webhook_secret"]) ||
     process.env.SAM_WEBHOOK_SECRET ||
     "";
 
   const publicApiBaseUrl =
-    settingsMap["public_api_base_url"]?.url ||
-    settingsMap["public_api_base_url"] ||
+    extractStringValue(settingsMap["public_api_base_url"]) ||
     process.env.PUBLIC_API_BASE_URL ||
     process.env.RENDER_EXTERNAL_URL ||
     "";
 
+  const rawExpiry = settingsMap["shamcash_invoice_expiry_minutes"];
   const expiryMinutes = Number(
-    settingsMap["shamcash_invoice_expiry_minutes"]?.minutes ||
-    settingsMap["shamcash_invoice_expiry_minutes"] ||
-    15
+    typeof rawExpiry === "object" && rawExpiry !== null
+      ? rawExpiry.minutes || rawExpiry.value || 15
+      : rawExpiry || 15
   );
 
   return {
