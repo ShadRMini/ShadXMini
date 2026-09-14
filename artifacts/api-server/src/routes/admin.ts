@@ -1727,6 +1727,7 @@ makeCrud("payment-methods", paymentMethodsTable, {
     "active",
     "order",
     "category",
+    "requiresVerification",
     "displayConfig",
     "display_config",
   ],
@@ -3458,7 +3459,7 @@ const PUT_RESOURCES: Array<{ path: string; table: any; allowed: string[] }> = [
     table: paymentMethodsTable,
     allowed: [
       "code", "name", "subtitle", "instructions", "walletAddress", "logoImage", "qrImage",
-      "minAmount", "active", "order", "category",
+      "minAmount", "active", "order", "category", "requiresVerification",
     ],
   },
   { path: "social-links", table: socialLinksTable, allowed: ["platform", "url", "label", "order"] },

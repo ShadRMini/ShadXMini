@@ -23,6 +23,7 @@ router.get("/payment-methods", async (_req, res) => {
         code: String(m.code),
         name: m.name,
         subtitle: m.subtitle,
+        requiresVerification: Boolean(m.requiresVerification),
         instructions: m.instructions ?? undefined,
         walletAddress: m.walletAddress ?? undefined,
         logoImage: m.logoImage ?? undefined,

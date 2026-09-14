@@ -1004,21 +1004,53 @@ export async function ensureDatabaseSchema() {
       await db.execute(sql`ALTER TABLE payment_methods ADD COLUMN IF NOT EXISTS qr_image TEXT;`);
       await db.execute(sql`ALTER TABLE payment_methods ADD COLUMN IF NOT EXISTS wallet_address TEXT;`);
       await db.execute(sql`ALTER TABLE payment_methods ADD COLUMN IF NOT EXISTS instructions TEXT;`);
-      await db.execute(sql`ALTER TABLE payment_methods ADD COLUMN IF NOT EXISTS subtitle TEXT DEFAULT '';`);
+      await db.execute(sql`ALTER TABLE payment_methods ADD COLUMN IF NOT EXISTS subtitle TEXT DEFAULT 'normal';`);
+      await db.execute(sql`ALTER TABLE payment_methods ADD COLUMN IF NOT EXISTS requires_verification BOOLEAN NOT NULL DEFAULT false;`);
       await db.execute(sql`ALTER TABLE payment_methods ADD COLUMN IF NOT EXISTS min_amount NUMERIC(12, 2) NOT NULL DEFAULT 1;`);
       await db.execute(sql`ALTER TABLE payment_methods ADD COLUMN IF NOT EXISTS active BOOLEAN NOT NULL DEFAULT true;`);
       await db.execute(sql`ALTER TABLE payment_methods ADD COLUMN IF NOT EXISTS display_config JSONB DEFAULT '{}'::jsonb;`);
       await db.execute(sql`ALTER TABLE payment_methods ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT NOW();`);
       await db.execute(sql`ALTER TABLE payment_methods ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT NOW();`);
 
-      // تحديث البيانات الموجودة مسبقاً إلى القيم الإنجليزية الموحدة
+      // ترحيل البيانات القديمة: من subtitle إلى (status + requires_verification)
       try {
-        await db.execute(sql`UPDATE payment_methods SET subtitle = 'requires_verification' WHERE subtitle = 'تتطلب توثيق الحساب';`);
-        await db.execute(sql`UPDATE payment_methods SET subtitle = 'instant' WHERE subtitle = 'شحن فوري' OR subtitle = 'تأكيد فوري' OR subtitle = 'شحن فوري TRC20';`);
-        await db.execute(sql`UPDATE payment_methods SET subtitle = 'manual_review' WHERE subtitle = 'مراجعة يدوية';`);
-        await db.execute(sql`UPDATE payment_methods SET subtitle = 'normal' WHERE subtitle IN ('تلقائي', 'يدوي', '') OR subtitle IS NULL;`);
+        // 1. الحالات التي كانت requires_verification → status = instant + requires_verification = true
+        await db.execute(sql`
+          UPDATE payment_methods 
+          SET requires_verification = true,
+              subtitle = 'instant'
+          WHERE (subtitle = 'requires_verification' OR subtitle = 'تتطلب توثيق الحساب')
+            AND (requires_verification IS NULL OR requires_verification = false);
+        `);
+        
+        // 2. الحالات الأخرى → الاحتفاظ بها كما هي
+        await db.execute(sql`
+          UPDATE payment_methods 
+          SET subtitle = 'instant'
+          WHERE subtitle = 'شحن فوري' OR subtitle = 'تأكيد فوري' OR subtitle = 'شحن فوري TRC20';
+        `);
+        
+        await db.execute(sql`
+          UPDATE payment_methods 
+          SET subtitle = 'manual_review'
+          WHERE subtitle = 'مراجعة يدوية';
+        `);
+        
+        await db.execute(sql`
+          UPDATE payment_methods 
+          SET subtitle = 'temporarily_unavailable'
+          WHERE subtitle = 'متوقف مؤقتاً';
+        `);
+        
+        await db.execute(sql`
+          UPDATE payment_methods 
+          SET subtitle = 'normal'
+          WHERE subtitle IN ('تلقائي', 'يدوي', '') OR subtitle IS NULL;
+        `);
+        
+        console.log("[ensureSchema] ✅ payment_methods migrated: status + requires_verification");
       } catch (e) {
-        console.warn("[ensureSchema] subtitle migration skipped:", e);
+        console.warn("[ensureSchema] payment_methods migration skipped:", e);
       }
 
       // مزامنة التسلسل التلقائي
@@ -1035,13 +1067,13 @@ export async function ensureDatabaseSchema() {
       const pmCount = Number(checkPM?.rows?.[0]?.c ?? checkPM?.[0]?.c ?? 0);
       if (pmCount === 0) {
         await db.execute(sql`
-          INSERT INTO payment_methods (code, name, subtitle, instructions, wallet_address, min_amount, active, "order", category)
+          INSERT INTO payment_methods (code, name, subtitle, requires_verification, instructions, wallet_address, min_amount, active, "order", category)
           VALUES
-            ('sham_cash', 'شام كاش', 'requires_verification', 'يرجى التحويل إلى عنوان المحفظة ثم إدخال رقم العملية للتأكيد الفوري.', '35147b5811bdc0bf07fdb11b85c8a5d', 1, true, 1, 'تلقائي'),
-            ('syriatel_cash', 'سيرياتيل كاش', 'instant', 'يرجى التحويل إلى الرقم المعتمد وإرفاق إشعار الدفع.', '0991234567', 1, true, 2, 'فوري'),
-            ('binance_pay', 'Binance Pay', 'instant', 'الدفع عبر معرف بينانس مع التأكيد السريع.', 'xpay_binance@pay', 1, true, 3, 'فوري'),
-            ('usdt_auto', 'USDT تلقائي', 'instant', 'تحويل شبكة TRC20 مع المعالجة التلقائية.', 'TQn9Y2khEsLJW1ChVWFMSMeSTow5KaxnSE', 5, true, 4, 'فوري'),
-            ('mtn_cash', 'MTN Cash', 'manual_review', 'يرجى التحويل عبر MTN كاش ورفع إشعار العملية للمراجعة.', '0941234567', 1, true, 5, 'يدوي')
+            ('sham_cash', 'شام كاش', 'instant', true, 'يرجى التحويل إلى عنوان المحفظة ثم إدخال رقم العملية للتأكيد الفوري.', '35147b5811bdc0bf07fdb11b85c8a5d', 1, true, 1, 'تلقائي'),
+            ('syriatel_cash', 'سيرياتيل كاش', 'instant', false, 'يرجى التحويل إلى الرقم المعتمد وإرفاق إشعار الدفع.', '0991234567', 1, true, 2, 'فوري'),
+            ('binance_pay', 'Binance Pay', 'instant', false, 'الدفع عبر معرف بينانس مع التأكيد السريع.', 'xpay_binance@pay', 1, true, 3, 'فوري'),
+            ('usdt_auto', 'USDT تلقائي', 'instant', false, 'تحويل شبكة TRC20 مع المعالجة التلقائية.', 'TQn9Y2khEsLJW1ChVWFMSMeSTow5KaxnSE', 5, true, 4, 'فوري'),
+            ('mtn_cash', 'MTN Cash', 'manual_review', false, 'يرجى التحويل عبر MTN كاش ورفع إشعار العملية للمراجعة.', '0941234567', 1, true, 5, 'يدوي')
           ON CONFLICT (code) DO NOTHING;
         `);
       }

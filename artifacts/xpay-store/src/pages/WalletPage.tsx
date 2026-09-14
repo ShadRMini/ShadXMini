@@ -23,6 +23,7 @@ export interface PaymentMethodItem {
   code: string;
   name: string;
   subtitle: string;
+  requiresVerification?: boolean;
   instructions?: string;
   walletAddress?: string;
   logoImage?: string;
@@ -38,7 +39,8 @@ const DEFAULT_METHODS: PaymentMethodItem[] = [
     id: "1",
     code: "sham_cash",
     name: "شام كاش",
-    subtitle: "تتطلب توثيق الحساب",
+    subtitle: "instant",
+    requiresVerification: true,
     instructions: "يرجى التحويل إلى عنوان المحفظة ثم إدخال رقم العملية للتأكيد الفوري.",
     walletAddress: "35147b5811bdc0bf07fdb11b85c8a5d",
     active: true,
@@ -47,7 +49,8 @@ const DEFAULT_METHODS: PaymentMethodItem[] = [
     id: "2",
     code: "syriatel_cash",
     name: "سيرياتيل كاش",
-    subtitle: "شحن فوري",
+    subtitle: "instant",
+    requiresVerification: false,
     instructions: "يرجى التحويل إلى الرقم المعتمد وإرفاق إشعار الدفع.",
     walletAddress: "0991234567",
     active: true,
@@ -56,7 +59,8 @@ const DEFAULT_METHODS: PaymentMethodItem[] = [
     id: "3",
     code: "binance_pay",
     name: "Binance Pay",
-    subtitle: "شحن فوري",
+    subtitle: "instant",
+    requiresVerification: false,
     instructions: "الدفع عبر معرف بينانس مع التأكيد السريع.",
     walletAddress: "xpay_binance@pay",
     active: true,
@@ -65,7 +69,8 @@ const DEFAULT_METHODS: PaymentMethodItem[] = [
     id: "4",
     code: "usdt_auto",
     name: "USDT تلقائي",
-    subtitle: "شحن فوري",
+    subtitle: "instant",
+    requiresVerification: false,
     instructions: "تحويل شبكة TRC20 مع المعالجة التلقائية.",
     walletAddress: "TQn9Y2khEsLJW1ChVWFMSMeSTow5KaxnSE",
     active: true,
@@ -74,7 +79,8 @@ const DEFAULT_METHODS: PaymentMethodItem[] = [
     id: "5",
     code: "mtn_cash",
     name: "MTN Cash",
-    subtitle: "مراجعة يدوية",
+    subtitle: "manual_review",
+    requiresVerification: false,
     instructions: "يرجى التحويل عبر MTN كاش ورفع إشعار العملية للمراجعة.",
     walletAddress: "0941234567",
     active: true,
@@ -153,11 +159,6 @@ export const STATUS_MAP: Record<string, { emoji: string; text: string; style: st
     text: "مراجعة يدوية",
     style: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
   },
-  requires_verification: {
-    emoji: "🔒",
-    text: "تتطلب توثيق الحساب",
-    style: "bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20",
-  },
   temporarily_unavailable: {
     emoji: "🛑",
     text: "متوقف مؤقتاً",
@@ -168,16 +169,16 @@ export const STATUS_MAP: Record<string, { emoji: string; text: string; style: st
 function getBadgeProps(subtitleRaw: string, code: string, category?: string) {
   const subtitle = subtitleRaw || "normal";
   const mappedKey =
-    subtitle === "تتطلب توثيق الحساب"
-      ? "requires_verification"
-      : subtitle === "شحن فوري" || subtitle === "تأكيد فوري" || subtitle === "شحن فوري TRC20"
+    subtitle === "شحن فوري" || subtitle === "تأكيد فوري" || subtitle === "شحن فوري TRC20" || subtitle === "instant"
       ? "instant"
-      : subtitle === "مراجعة يدوية"
+      : subtitle === "مراجعة يدوية" || subtitle === "manual_review"
       ? "manual_review"
+      : subtitle === "متوقف مؤقتاً" || subtitle === "temporarily_unavailable"
+      ? "temporarily_unavailable"
       : STATUS_MAP[subtitle]
       ? subtitle
-      : code.includes("sham")
-      ? "requires_verification"
+      : category === "فوري"
+      ? "instant"
       : category === "يدوي" || category === "مراجعة يدوية"
       ? "manual_review"
       : "normal";
@@ -257,30 +258,21 @@ export function WalletPage() {
     : Boolean(user?.identityVerified || user?.isVerified);
 
   const handleSelectMethod = (method: PaymentMethodItem) => {
-    const subtitleRaw = method.subtitle || "normal";
-    const mappedSubtitle =
-      subtitleRaw === "تتطلب توثيق الحساب"
-        ? "requires_verification"
-        : subtitleRaw === "شحن فوري" || subtitleRaw === "تأكيد فوري" || subtitleRaw === "شحن فوري TRC20"
-        ? "instant"
-        : subtitleRaw === "مراجعة يدوية"
-        ? "manual_review"
-        : STATUS_MAP[subtitleRaw]
-        ? subtitleRaw
-        : method.code.includes("sham")
-        ? "requires_verification"
-        : method.category === "يدوي" || method.category === "مراجعة يدوية"
-        ? "manual_review"
-        : "normal";
+    const badge = getBadgeProps(method.subtitle, method.code, method.category);
 
     // الحالة 1: متوقف مؤقتاً
-    if (mappedSubtitle === "temporarily_unavailable") {
+    if (badge.key === "temporarily_unavailable") {
       toast.error("🛑 هذه الطريقة متوقفة مؤقتاً. سنخبرك عندما تتوفر.");
       return;
     }
 
-    // الحالة 2: تتطلب توثيق الحساب
-    if (mappedSubtitle === "requires_verification") {
+    // الحالة 2: تتطلب توثيق الحساب (فحص متطلب التوثيق المنفصل)
+    const requiresVer = Boolean(
+      method.requiresVerification ??
+      (method.subtitle === "requires_verification" || method.subtitle === "تتطلب توثيق الحساب" || method.code.includes("sham"))
+    );
+
+    if (requiresVer) {
       // إذا كان جاري التحقق ولا يوجد كاش إيجابي
       if (authLoading && cachedVerified === null) {
         toast.info("⏳ جاري التحقق من حالة حسابك...");
@@ -296,7 +288,7 @@ export function WalletPage() {
     }
 
     // الحالة 3: مراجعة يدوية
-    if (mappedSubtitle === "manual_review") {
+    if (badge.key === "manual_review") {
       toast.info("⏳ هذه الطريقة تتطلب مراجعة يدوية. ستتم المراجعة من دقيقة إلى 12 ساعة.");
     }
 
@@ -399,7 +391,10 @@ export function WalletPage() {
               const isSelected = selectedCode === method.code;
               const badge = getBadgeProps(method.subtitle, method.code, method.category);
               const isUnavailable = badge.key === "temporarily_unavailable";
-              const isRequiresVerification = badge.key === "requires_verification";
+              const isRequiresVerification = Boolean(
+                method.requiresVerification ??
+                (method.subtitle === "requires_verification" || method.subtitle === "تتطلب توثيق الحساب" || method.code.includes("sham"))
+              );
               const isLocked = !authLoading && isRequiresVerification && !isVerified;
 
               return (
@@ -456,15 +451,21 @@ export function WalletPage() {
                             </span>
                           )}
                         </div>
-                        <div className="flex flex-col gap-1 sm:flex-row sm:items-center">
+                        <div className="flex flex-wrap items-center gap-1.5">
                           <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-md border ${badge.className}`}>
                             <span>{badge.emoji}</span>
                             <span>{badge.text}</span>
                           </span>
+                          {isRequiresVerification && (
+                            <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-md border bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20">
+                              <span>🔒</span>
+                              <span>يتطلب توثيق الحساب</span>
+                            </span>
+                          )}
                           {isRequiresVerification && authLoading && (
                             <div className="text-xs text-amber-500 flex items-center gap-1 font-medium">
                               <Loader2 className="w-3 h-3 animate-spin shrink-0" />
-                              <span>جاري التحقق من حالة التوثيق...</span>
+                              <span>جاري التحقق...</span>
                             </div>
                           )}
                         </div>

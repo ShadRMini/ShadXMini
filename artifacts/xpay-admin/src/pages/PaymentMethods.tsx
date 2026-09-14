@@ -34,6 +34,7 @@ export interface PaymentMethod {
   code: string;
   name: string;
   subtitle: string;
+  requiresVerification?: boolean;
   instructions?: string;
   walletAddress?: string;
   logoImage?: string;
@@ -50,7 +51,8 @@ const PRESET_METHODS = [
   {
     code: "sham_cash",
     name: "شام كاش",
-    subtitle: "requires_verification",
+    subtitle: "instant",
+    requiresVerification: true,
     category: "تلقائي",
     minAmount: 1,
     instructions: "يرجى التحويل إلى عنوان المحفظة ثم إدخال رقم العملية للتأكيد الفوري.",
@@ -59,6 +61,7 @@ const PRESET_METHODS = [
     code: "sham_cash_auto",
     name: "شام كاش (تلقائي)",
     subtitle: "instant",
+    requiresVerification: true,
     category: "تلقائي",
     minAmount: 1,
     instructions: "الدفع التلقائي عبر شام كاش مع التحقق اللحظي.",
@@ -67,6 +70,7 @@ const PRESET_METHODS = [
     code: "syriatel_cash",
     name: "سيرياتيل كاش",
     subtitle: "instant",
+    requiresVerification: false,
     category: "فوري",
     minAmount: 1,
     instructions: "يرجى التحويل إلى الرقم المعتمد وإرفاق إشعار الدفع.",
@@ -75,6 +79,7 @@ const PRESET_METHODS = [
     code: "binance_pay",
     name: "Binance Pay",
     subtitle: "instant",
+    requiresVerification: false,
     category: "فوري",
     minAmount: 1,
     instructions: "الدفع عبر معرف بينانس مع التأكيد السريع.",
@@ -83,6 +88,7 @@ const PRESET_METHODS = [
     code: "usdt_auto",
     name: "USDT تلقائي",
     subtitle: "instant",
+    requiresVerification: false,
     category: "فوري",
     minAmount: 5,
     instructions: "تحويل شبكة TRC20 مع المعالجة التلقائية.",
@@ -91,6 +97,7 @@ const PRESET_METHODS = [
     code: "mtn_cash",
     name: "MTN Cash",
     subtitle: "manual_review",
+    requiresVerification: false,
     category: "يدوي",
     minAmount: 1,
     instructions: "يرجى التحويل عبر MTN كاش ورفع إشعار العملية للمراجعة.",
@@ -101,7 +108,6 @@ export const STATUS_OPTIONS = [
   { value: "normal", label: "✅ تعمل بشكل طبيعي" },
   { value: "instant", label: "⚡ شحن فوري" },
   { value: "manual_review", label: "⏳ مراجعة يدوية" },
-  { value: "requires_verification", label: "🔒 تتطلب توثيق الحساب" },
   { value: "temporarily_unavailable", label: "🛑 متوقف مؤقتاً" },
 ];
 
@@ -109,7 +115,6 @@ export const STATUS_LABEL_MAP: Record<string, { label: string; style: string }> 
   normal: { label: "✅ تعمل بشكل طبيعي", style: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" },
   instant: { label: "⚡ شحن فوري", style: "bg-blue-500/10 text-blue-400 border-blue-500/20" },
   manual_review: { label: "⏳ مراجعة يدوية", style: "bg-amber-500/10 text-amber-400 border-amber-500/20" },
-  requires_verification: { label: "🔒 تتطلب توثيق الحساب", style: "bg-red-500/10 text-red-400 border-red-500/20" },
   temporarily_unavailable: { label: "🛑 متوقف مؤقتاً", style: "bg-gray-500/10 text-gray-400 border-gray-500/20" },
 };
 
@@ -134,7 +139,8 @@ export default function PaymentMethods() {
     code: "sham_cash",
     customCode: "",
     name: "",
-    subtitle: "normal",
+    subtitle: "instant",
+    requiresVerification: false,
     category: "فوري",
     instructions: "",
     walletAddress: "",
@@ -162,6 +168,7 @@ export default function PaymentMethods() {
           code: String(item.code || ""),
           name: String(item.name || ""),
           subtitle: String(item.subtitle || ""),
+          requiresVerification: Boolean(item.requiresVerification),
           category: item.category || "فوري",
           instructions: item.instructions || "",
           walletAddress: item.walletAddress || "",
@@ -204,7 +211,8 @@ export default function PaymentMethods() {
       code: "sham_cash",
       customCode: "",
       name: "شام كاش",
-      subtitle: "requires_verification",
+      subtitle: "instant",
+      requiresVerification: true,
       category: "تلقائي",
       instructions: "يرجى التحويل إلى عنوان المحفظة ثم إدخال رقم العملية للتأكيد الفوري.",
       walletAddress: "35147b5811bdc0bf07fdb11b85c8a5d",
@@ -222,21 +230,29 @@ export default function PaymentMethods() {
     const isPreset = PRESET_METHODS.some((p) => p.code === item.code);
     const itemSubtitle = item.subtitle || "normal";
     const mappedSubtitle =
-      itemSubtitle === "تتطلب توثيق الحساب"
-        ? "requires_verification"
+      itemSubtitle === "تتطلب توثيق الحساب" || itemSubtitle === "requires_verification"
+        ? "instant"
         : itemSubtitle === "شحن فوري" || itemSubtitle === "تأكيد فوري" || itemSubtitle === "شحن فوري TRC20"
         ? "instant"
         : itemSubtitle === "مراجعة يدوية"
         ? "manual_review"
+        : itemSubtitle === "متوقف مؤقتاً"
+        ? "temporarily_unavailable"
         : STATUS_OPTIONS.some((o) => o.value === itemSubtitle)
         ? itemSubtitle
         : "normal";
+
+    const requiresVer = Boolean(
+      item.requiresVerification ??
+      (itemSubtitle === "requires_verification" || itemSubtitle === "تتطلب توثيق الحساب" || item.code.includes("sham"))
+    );
 
     setFormData({
       code: isPreset ? item.code : "custom",
       customCode: isPreset ? "" : item.code,
       name: item.name,
       subtitle: mappedSubtitle,
+      requiresVerification: requiresVer,
       category: item.category || "فوري",
       instructions: item.instructions || "",
       walletAddress: item.walletAddress || "",
@@ -262,6 +278,7 @@ export default function PaymentMethods() {
         customCode: "",
         name: prev.name && prev.name !== preset.name ? prev.name : preset.name,
         subtitle: prev.subtitle && prev.subtitle !== preset.subtitle ? prev.subtitle : preset.subtitle,
+        requiresVerification: preset.requiresVerification ?? prev.requiresVerification,
         category: preset.category,
         minAmount: preset.minAmount,
         instructions: prev.instructions || preset.instructions,
@@ -356,6 +373,7 @@ export default function PaymentMethods() {
         code: finalCode,
         name: formData.name.trim(),
         subtitle: formData.subtitle.trim(),
+        requiresVerification: Boolean(formData.requiresVerification),
         category: formData.category,
         instructions: formData.instructions.trim(),
         walletAddress: formData.walletAddress.trim(),
@@ -707,8 +725,16 @@ export default function PaymentMethods() {
                               </span>
                             )}
                           </div>
-                          <div className="text-xs text-zinc-400 mt-0.5 line-clamp-1">
-                            {STATUS_LABEL_MAP[method.subtitle]?.label || method.subtitle}
+                          <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                            <span className="text-xs text-zinc-300">
+                              {STATUS_LABEL_MAP[method.subtitle]?.label || method.subtitle}
+                            </span>
+                            {method.requiresVerification && (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                                <span>🔒</span>
+                                <span>يتطلب توثيق</span>
+                              </span>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -938,7 +964,7 @@ export default function PaymentMethods() {
 
                     <div className="space-y-1.5">
                     <label className="text-xs font-bold text-zinc-300 block">
-                      الوصف الفرعي (الحالة) <span className="text-red-400">*</span>
+                      الحالة <span className="text-red-400">*</span>
                     </label>
                     <select
                       value={
@@ -956,6 +982,30 @@ export default function PaymentMethods() {
                       ))}
                     </select>
                   </div>
+                </div>
+
+                {/* Verification requirement toggle */}
+                <div className="flex items-center justify-between p-3 rounded-xl bg-[#121212] border border-[#262626]">
+                  <div>
+                    <div className="text-xs font-bold text-white flex items-center gap-1.5">
+                      <span>🔒</span>
+                      <span>تتطلب توثيق الحساب (KYC)</span>
+                    </div>
+                    <div className="text-[11px] text-zinc-500">
+                      إذا تم التفعيل، لن يتمكن من استخدام هذه الطريقة إلا المستخدمون الموثقون فقط
+                    </div>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.requiresVerification}
+                      onChange={(e) =>
+                        setFormData((prev) => ({ ...prev, requiresVerification: e.target.checked }))
+                      }
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-[#333] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+                  </label>
                 </div>
 
                 {/* 3. Category, Min Amount, Order */}
