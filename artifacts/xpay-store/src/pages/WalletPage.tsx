@@ -456,13 +456,21 @@ export function WalletPage() {
                             <span>{badge.emoji}</span>
                             <span>{badge.text}</span>
                           </span>
-                          {isRequiresVerification && (
-                            <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-md border bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20">
-                              <span>🔒</span>
+                          {/* شارة "متطلب توثيق" — تظهر فقط للمستخدمين غير الموثقين بعد انتهاء التحميل */}
+                          {isRequiresVerification && !authLoading && !isVerified && (
+                            <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-md border bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20">
+                              <Lock className="w-3 h-3" />
                               <span>يتطلب توثيق الحساب</span>
                             </span>
                           )}
-                          {isRequiresVerification && authLoading && (
+                          {/* شارة للمستخدمين الموثقين تُطمئنهم */}
+                          {isRequiresVerification && !authLoading && isVerified && (
+                            <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-md border bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20">
+                              <CheckCircle2 className="w-3 h-3" />
+                              <span>حسابك موثّق</span>
+                            </span>
+                          )}
+                          {isRequiresVerification && authLoading && cachedVerified === null && (
                             <div className="text-xs text-amber-500 flex items-center gap-1 font-medium">
                               <Loader2 className="w-3 h-3 animate-spin shrink-0" />
                               <span>جاري التحقق...</span>
