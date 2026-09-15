@@ -126,6 +126,7 @@ export const paymentMethodsTable = pgTable("payment_methods", {
   walletAddress: text("wallet_address"),
   logoImage: text("logo_image"),
   qrImage: text("qr_image"),
+  showQrFromAddress: boolean("show_qr_from_address").notNull().default(false),
   minAmount: numeric("min_amount", { precision: 12, scale: 2 }).notNull().default("1"),
   active: boolean("active").notNull().default(true),
   order: integer("order").notNull().default(0),

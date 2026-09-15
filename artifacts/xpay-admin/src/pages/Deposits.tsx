@@ -1,9 +1,12 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { get, patch } from "../lib/api";
 import { Check, X as XIcon } from "lucide-react";
 
 function formatAmount(deposit: any) {
-  if (deposit.currency === "USD") return `$${Number(deposit.amountUsd || 0).toFixed(2)}`;
+  if (deposit.amountUsd !== undefined && deposit.amountUsd !== null) {
+    return `$${Number(deposit.amountUsd || 0).toFixed(2)} USD`;
+  }
+  if (deposit.currency === "USD") return `$${Number(deposit.amountUsd || 0).toFixed(2)} USD`;
   return `${Number(deposit.amountSyp || 0).toFixed(0)} ل.س`;
 }
 
@@ -74,7 +77,8 @@ export default function Deposits() {
                 <th className="text-right px-4 py-3 font-semibold">#</th>
                 <th className="text-right px-4 py-3 font-semibold">المستخدم</th>
                 <th className="text-right px-4 py-3 font-semibold">الطريقة</th>
-                <th className="text-right px-4 py-3 font-semibold">المبلغ</th>
+                <th className="text-right px-4 py-3 font-semibold">المبلغ (USD)</th>
+                <th className="text-right px-4 py-3 font-semibold">العملة الأصلية</th>
                 <th className="text-right px-4 py-3 font-semibold">رقم العملية</th>
                 <th className="text-right px-4 py-3 font-semibold">الحالة</th>
                 <th className="text-right px-4 py-3 font-semibold">التاريخ</th>
@@ -84,19 +88,27 @@ export default function Deposits() {
             <tbody>
               {items.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="text-center py-8 text-slate-400">
+                  <td colSpan={9} className="text-center py-8 text-slate-400">
                     لا توجد إيداعات
                   </td>
                 </tr>
               ) : (
                 items.map((d) => {
                   const isAutoSham = d.method === "sham_cash_auto";
+                  const usdAmount = Number(d.amountUsd || 0).toFixed(2);
+                  const origCurrency = d.currency || (d.amountSyp ? "SYP" : "USD");
                   return (
                     <tr key={d.id} className="border-t border-slate-100 hover:bg-slate-50">
                       <td className="px-4 py-3 text-slate-500">{d.id}</td>
                       <td className="px-4 py-3">{d.userName || `#${d.userId}`}</td>
                       <td className="px-4 py-3">{methodLabel(d)}</td>
-                      <td className="px-4 py-3 font-bold">{formatAmount(d)}</td>
+                      <td className="px-4 py-3 font-bold text-[#C8A45C]">
+                        ${usdAmount} USD
+                      </td>
+                      <td className="px-4 py-3 text-xs font-semibold text-slate-600">
+                        {origCurrency}
+                        {d.amountSyp && origCurrency === "SYP" ? ` (${Number(d.amountSyp).toLocaleString()} ل.س)` : ""}
+                      </td>
                       <td className="px-4 py-3 font-mono text-xs">{d.transactionId || "-"}</td>
                       <td className="px-4 py-3">
                         <StatusPill s={d.status} />

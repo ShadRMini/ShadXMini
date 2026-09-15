@@ -1038,6 +1038,7 @@ export async function ensureDatabaseSchema() {
       await db.execute(sql`ALTER TABLE payment_methods ADD COLUMN IF NOT EXISTS category TEXT;`);
       await db.execute(sql`ALTER TABLE payment_methods ADD COLUMN IF NOT EXISTS logo_image TEXT;`);
       await db.execute(sql`ALTER TABLE payment_methods ADD COLUMN IF NOT EXISTS qr_image TEXT;`);
+      await db.execute(sql`ALTER TABLE payment_methods ADD COLUMN IF NOT EXISTS show_qr_from_address BOOLEAN NOT NULL DEFAULT false;`);
       await db.execute(sql`ALTER TABLE payment_methods ADD COLUMN IF NOT EXISTS wallet_address TEXT;`);
       await db.execute(sql`ALTER TABLE payment_methods ADD COLUMN IF NOT EXISTS instructions TEXT;`);
       await db.execute(sql`ALTER TABLE payment_methods ADD COLUMN IF NOT EXISTS subtitle TEXT DEFAULT 'normal';`);

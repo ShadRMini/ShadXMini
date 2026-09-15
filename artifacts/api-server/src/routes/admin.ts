@@ -1724,6 +1724,8 @@ makeCrud("payment-methods", paymentMethodsTable, {
     "walletAddress",
     "logoImage",
     "qrImage",
+    "showQrFromAddress",
+    "show_qr_from_address",
     "minAmount",
     "active",
     "order",

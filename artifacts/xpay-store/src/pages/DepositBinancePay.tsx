@@ -34,7 +34,9 @@ export function DepositBinancePay() {
   const { user } = useAuth();
 
   // Payment method configurations from DB
-  const [walletAddress, setWalletAddress] = useState<string>(DEFAULT_BINANCE_PAY_ID);
+  const [walletAddress, setWalletAddress] = useState<string>("");
+  const [qrImage, setQrImage] = useState<string>("");
+  const [showQrFromAddress, setShowQrFromAddress] = useState<boolean>(false);
   const [methodConfig, setMethodConfig] = useState<any>(null);
   const [minAmount, setMinAmount] = useState<number>(1);
   const [maxAmount, setMaxAmount] = useState<number | undefined>(undefined);
@@ -68,6 +70,12 @@ export function DepositBinancePay() {
           if (binance) {
             if (binance.walletAddress) {
               setWalletAddress(binance.walletAddress);
+            }
+            if (binance.qrImage) {
+              setQrImage(binance.qrImage);
+            }
+            if (binance.showQrFromAddress !== undefined) {
+              setShowQrFromAddress(Boolean(binance.showQrFromAddress));
             }
             if (binance.displayConfig || binance.display_config) {
               setMethodConfig(binance.displayConfig || binance.display_config);
@@ -228,7 +236,10 @@ export function DepositBinancePay() {
     }
   };
 
-  const qrValue = walletAddress || DEFAULT_BINANCE_PAY_ID;
+  const hasCustomQrImage = Boolean(qrImage && qrImage.trim() !== "");
+  const canRenderQrFromAddress = Boolean(showQrFromAddress && walletAddress && walletAddress.trim() !== "");
+  const shouldDisplayQr = hasCustomQrImage || canRenderQrFromAddress;
+  const qrValue = walletAddress || "";
   const numAmount = parseFloat(amount) || 0;
   const suggestedAmounts = methodConfig?.suggested_amounts || [5, 10, 20, 50, 100, 200];
 
@@ -353,23 +364,49 @@ export function DepositBinancePay() {
 
             {/* QR Code and Account ID Preview */}
             <div className="bg-muted/30 border border-border/60 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-center gap-5">
-              {/* Local QR SVG */}
-              <div 
-                onClick={() => setShowLightbox(true)}
-                className="relative group cursor-pointer w-36 h-36 bg-white p-2.5 rounded-2xl border border-border/80 shadow-xs flex items-center justify-center shrink-0"
-                title="اضغط للتكبير"
-              >
-                <QRCodeSVG
-                  value={qrValue}
-                  size={124}
-                  level="M"
-                  className="w-full h-full"
-                />
-                <div className="absolute inset-0 bg-black/40 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-semibold gap-1">
-                  <Maximize2 className="w-4 h-4" />
-                  <span>تكبير</span>
+              {/* QR Rendering Section */}
+              {hasCustomQrImage ? (
+                <div
+                  onClick={() => setShowLightbox(true)}
+                  className="relative group cursor-pointer w-36 h-36 bg-white p-2.5 rounded-2xl border border-border/80 shadow-xs flex items-center justify-center shrink-0"
+                  title="اضغط للتكبير"
+                >
+                  <img
+                    src={qrImage}
+                    alt="Binance Pay QR"
+                    className="w-full h-full object-contain rounded-xl"
+                  />
+                  <div className="absolute inset-0 bg-black/40 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-semibold gap-1">
+                    <Maximize2 className="w-4 h-4" />
+                    <span>تكبير</span>
+                  </div>
                 </div>
-              </div>
+              ) : canRenderQrFromAddress ? (
+                <div
+                  onClick={() => setShowLightbox(true)}
+                  className="relative group cursor-pointer w-36 h-36 bg-white p-2.5 rounded-2xl border border-border/80 shadow-xs flex items-center justify-center shrink-0"
+                  title="اضغط للتكبير"
+                >
+                  <QRCodeSVG
+                    value={walletAddress}
+                    size={124}
+                    level="M"
+                    className="w-full h-full"
+                  />
+                  <div className="absolute inset-0 bg-black/40 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-semibold gap-1">
+                    <Maximize2 className="w-4 h-4" />
+                    <span>تكبير</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="w-36 h-36 bg-muted/50 rounded-2xl border border-dashed border-border/80 flex flex-col items-center justify-center text-muted-foreground p-3 text-center shrink-0">
+                  <AlertCircle className="w-7 h-7 mb-1.5 text-amber-500/80" />
+                  <p className="text-xs font-bold text-foreground">لا يوجد QR متاح</p>
+                  <p className="text-[10px] text-muted-foreground mt-0.5 leading-tight">
+                    استخدم معرّف الحساب
+                  </p>
+                </div>
+              )}
 
               {/* Account details */}
               <div className="space-y-3 flex-1 text-center sm:text-right w-full">
@@ -377,23 +414,31 @@ export function DepositBinancePay() {
                   <div className="text-xs text-muted-foreground font-medium mb-1">
                     معرّف حساب Binance Pay (Pay ID):
                   </div>
-                  <div className="flex items-center justify-between bg-background border border-border/80 rounded-xl px-3 py-2">
-                    <span className="font-mono text-xs sm:text-sm font-bold text-foreground truncate select-all">
-                      {walletAddress}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={handleCopyWallet}
-                      className="text-xs font-semibold text-amber-600 hover:text-amber-700 p-1 rounded hover:bg-amber-500/10 transition-colors flex items-center gap-1 shrink-0 mr-1"
-                    >
-                      {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                      <span>{copied ? "تم النسخ" : "نسخ"}</span>
-                    </button>
-                  </div>
+                  {walletAddress ? (
+                    <div className="flex items-center justify-between bg-background border border-border/80 rounded-xl px-3 py-2">
+                      <span className="font-mono text-xs sm:text-sm font-bold text-foreground truncate select-all">
+                        {walletAddress}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={handleCopyWallet}
+                        className="text-xs font-semibold text-amber-600 hover:text-amber-700 p-1 rounded hover:bg-amber-500/10 transition-colors flex items-center gap-1 shrink-0 mr-1"
+                      >
+                        {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                        <span>{copied ? "تم النسخ" : "نسخ"}</span>
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="bg-background border border-border/80 rounded-xl px-3 py-2 text-xs text-muted-foreground text-center">
+                      يرجى التواصل مع الإدارة لتعيين معرف الدفع
+                    </div>
+                  )}
                 </div>
 
                 <p className="text-[11px] text-muted-foreground leading-relaxed">
-                  يمكنك مسح الرمز مباشرة من تطبيق Binance أو التحويل يدويًا عبر معرّف الحساب أعلاه.
+                  {shouldDisplayQr
+                    ? "يمكنك مسح الرمز مباشرة من تطبيق Binance أو التحويل يدويًا عبر معرّف الحساب أعلاه."
+                    : "يرجى نسخ معرّف الحساب أعلاه وإتمام الدفع من داخل تطبيق Binance."}
                 </p>
               </div>
             </div>
@@ -446,26 +491,36 @@ export function DepositBinancePay() {
             </div>
 
             {/* QR Code Quick View in Step 2 */}
-            <div className="flex items-center gap-4 p-3.5 bg-background rounded-2xl border border-border/60">
-              <div 
-                onClick={() => setShowLightbox(true)}
-                className="w-16 h-16 bg-white p-1 rounded-xl border border-border/80 shrink-0 cursor-pointer"
-                title="اضغط للتكبير"
-              >
-                <QRCodeSVG
-                  value={qrValue}
-                  size={56}
-                  level="M"
-                  className="w-full h-full"
-                />
-              </div>
-              <div className="text-xs space-y-1">
-                <div className="font-bold text-foreground">هل أتممت عملية التحويل من تطبيق بينانس؟</div>
-                <div className="text-muted-foreground text-[11px]">
-                  قم بنسخ رقم العملية (Transaction ID / Order ID) من إيصال التحويل والصقه بالأسفل.
+            {shouldDisplayQr && (
+              <div className="flex items-center gap-4 p-3.5 bg-background rounded-2xl border border-border/60">
+                <div 
+                  onClick={() => setShowLightbox(true)}
+                  className="w-16 h-16 bg-white p-1 rounded-xl border border-border/80 shrink-0 cursor-pointer overflow-hidden flex items-center justify-center"
+                  title="اضغط للتكبير"
+                >
+                  {hasCustomQrImage ? (
+                    <img
+                      src={qrImage}
+                      alt="Binance Pay QR"
+                      className="w-full h-full object-contain"
+                    />
+                  ) : (
+                    <QRCodeSVG
+                      value={walletAddress}
+                      size={56}
+                      level="M"
+                      className="w-full h-full"
+                    />
+                  )}
+                </div>
+                <div className="text-xs space-y-1">
+                  <div className="font-bold text-foreground">هل أتممت عملية التحويل من تطبيق بينانس؟</div>
+                  <div className="text-muted-foreground text-[11px]">
+                    قم بنسخ رقم العملية (Transaction ID / Order ID) من إيصال التحويل والصقه بالأسفل.
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
             {/* Transaction Ref Input Form */}
             <form onSubmit={handleSubmitRef} className="space-y-4">
@@ -635,12 +690,20 @@ export function DepositBinancePay() {
               <span>رمز استجابة Binance Pay (QR)</span>
             </div>
             <div className="w-64 h-64 mx-auto p-3 bg-white rounded-2xl border flex items-center justify-center overflow-hidden">
-              <QRCodeSVG
-                value={qrValue}
-                size={240}
-                level="M"
-                className="w-full h-full"
-              />
+              {hasCustomQrImage ? (
+                <img
+                  src={qrImage}
+                  alt="Binance Pay QR"
+                  className="w-full h-full object-contain rounded-xl"
+                />
+              ) : (
+                <QRCodeSVG
+                  value={walletAddress}
+                  size={240}
+                  level="M"
+                  className="w-full h-full"
+                />
+              )}
             </div>
             <div className="font-mono text-xs text-muted-foreground break-all bg-muted/40 p-2.5 rounded-xl">
               {walletAddress}

@@ -39,6 +39,7 @@ export interface PaymentMethod {
   walletAddress?: string;
   logoImage?: string;
   qrImage?: string;
+  showQrFromAddress?: boolean;
   minAmount: number;
   active: boolean;
   order: number;
@@ -146,6 +147,7 @@ export default function PaymentMethods() {
     walletAddress: "",
     logoImage: "",
     qrImage: "",
+    showQrFromAddress: false,
     minAmount: 1,
     active: true,
     order: 0,
@@ -218,6 +220,7 @@ export default function PaymentMethods() {
       walletAddress: "35147b5811bdc0bf07fdb11b85c8a5d",
       logoImage: "",
       qrImage: "",
+      showQrFromAddress: false,
       minAmount: 1,
       active: true,
       order: maxOrder + 1,
@@ -258,6 +261,7 @@ export default function PaymentMethods() {
       walletAddress: item.walletAddress || "",
       logoImage: item.logoImage || "",
       qrImage: item.qrImage || "",
+      showQrFromAddress: Boolean(item.showQrFromAddress),
       minAmount: item.minAmount,
       active: item.active,
       order: item.order,
@@ -379,6 +383,7 @@ export default function PaymentMethods() {
         walletAddress: formData.walletAddress.trim(),
         logoImage: formData.logoImage.trim(),
         qrImage: formData.qrImage.trim(),
+        showQrFromAddress: Boolean(formData.showQrFromAddress),
         minAmount: Number(formData.minAmount || 1),
         active: formData.active,
         order: Number(formData.order || 0),
@@ -1178,6 +1183,29 @@ export default function PaymentMethods() {
                         className="w-full px-3 py-2 bg-[#181818] border border-[#2E2E2E] rounded-xl text-xs text-white placeholder-zinc-600 focus:outline-none focus:border-[#C8A45C]"
                       />
                     </div>
+                  </div>
+
+                  {/* Toggle توليد QR من العنوان تلقائياً */}
+                  <div className="pt-2 border-t border-[#222] flex items-center justify-between">
+                    <div>
+                      <div className="text-xs font-semibold text-zinc-300">
+                        توليد QR تلقائي من عنوان المحفظة
+                      </div>
+                      <div className="text-[11px] text-zinc-500">
+                        في حال عدم توفر صورة QR، يتم توليد رمز QR ديناميكياً من عنوان المحفظة
+                      </div>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formData.showQrFromAddress}
+                        onChange={(e) =>
+                          setFormData((prev) => ({ ...prev, showQrFromAddress: e.target.checked }))
+                        }
+                        className="sr-only peer"
+                      />
+                      <div className="w-9 h-5 bg-[#333] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#C8A45C]"></div>
+                    </label>
                   </div>
                 </div>
 
