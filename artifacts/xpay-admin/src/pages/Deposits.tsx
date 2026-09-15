@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { get, patch } from "../lib/api";
 import { Check, X as XIcon } from "lucide-react";
+import { toast } from "sonner";
 
 function formatAmount(deposit: any) {
   if (deposit.amountUsd !== undefined && deposit.amountUsd !== null) {
@@ -14,6 +15,7 @@ function methodLabel(deposit: any) {
   if (deposit.methodLabel) return deposit.methodLabel;
   if (deposit.method === "sham_cash_auto") return "شام كاش تلقائي";
   if (deposit.method === "sham_cash" || deposit.method === "shamcash") return "شام كاش يدوي";
+  if (deposit.method === "binance_pay") return "Binance Pay";
   if (deposit.method === "manual") return "إيداع يدوي";
   return deposit.method || "غير محدد";
 }
@@ -23,22 +25,46 @@ export default function Deposits() {
   const [status, setStatus] = useState("all");
   const [busy, setBusy] = useState<number | null>(null);
 
-  const load = () => {
-    const params = new URLSearchParams();
-    if (status !== "all") params.set("status", status);
-    const qs = params.toString();
-    get(`/deposits${qs ? "?" + qs : ""}`).then(setItems).catch(() => {});
+  const load = async () => {
+    try {
+      const params = new URLSearchParams();
+      if (status !== "all") params.set("status", status);
+      const qs = params.toString();
+      const data = await get(`/deposits${qs ? "?" + qs : ""}`);
+      setItems(Array.isArray(data) ? data : []);
+    } catch (err: any) {
+      console.error("[Admin] Fetch deposits error:", err);
+      toast.error("فشل جلب قائمة الإيداعات");
+    }
   };
 
   useEffect(() => {
     load();
   }, [status]);
 
-  const update = async (id: number, newStatus: string) => {
+  const handleApprove = async (id: number) => {
     setBusy(id);
     try {
-      await patch(`/deposits/${id}/status`, { status: newStatus });
-      load();
+      await patch(`/deposits/${id}/approve`, {});
+      toast.success("✅ تم قبول الإيداع وإضافة الرصيد بنجاح");
+      await load();
+    } catch (err: any) {
+      console.error("[Admin] Approve deposit error:", err);
+      toast.error(err.message || "فشل قبول الإيداع");
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const handleReject = async (id: number) => {
+    setBusy(id);
+    try {
+      await patch(`/deposits/${id}/reject`, { reason: "تم الرفض من قبل الإدارة" });
+      toast.success("تم رفض طلب الإيداع");
+      await load();
+    } catch (err: any) {
+      console.error("[Admin] Reject deposit error:", err);
+      toast.error(err.message || "فشل رفض الإيداع");
     } finally {
       setBusy(null);
     }
@@ -121,7 +147,7 @@ export default function Deposits() {
                           <div className="flex items-center gap-1">
                             <button
                               disabled={busy === d.id}
-                              onClick={() => update(d.id, "approved")}
+                              onClick={() => handleApprove(d.id)}
                               className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded disabled:opacity-50"
                               title="قبول"
                             >
@@ -129,7 +155,7 @@ export default function Deposits() {
                             </button>
                             <button
                               disabled={busy === d.id}
-                              onClick={() => update(d.id, "rejected")}
+                              onClick={() => handleReject(d.id)}
                               className="p-1.5 text-rose-600 hover:bg-rose-50 rounded disabled:opacity-50"
                               title="رفض"
                             >

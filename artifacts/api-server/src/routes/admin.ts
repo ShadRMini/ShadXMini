@@ -246,35 +246,79 @@ async function getOrCreateExternalCategoryId(): Promise<number> {
   return created.id;
 }
 
-async function applyDepositStatusChange(id: number, status: string) {
+async function applyDepositStatusChange(id: number, status: string, note?: string) {
   await ensureDepositsTelegramMessageColumn();
-  const [dep] = await db.select().from(depositsTable).where(eq(depositsTable.id, id)).limit(1);
-  if (!dep) return { error: "not_found" as const };
-  if (dep.method === "sham_cash_auto") {
-    return { error: "auto_managed" as const };
-  }
 
-  if (status === "approved" && dep.status !== "approved") {
-    const col = dep.currency === "SYP" ? "balanceSyp" : "balanceUsd";
-    const amount = dep.currency === "SYP" ? dep.amountSyp : dep.amountUsd;
-    if (amount) {
-      await db
-        .update(usersTable)
-        .set({
-          [col]:
-            col === "balanceSyp"
-              ? sql`${usersTable.balanceSyp} + ${amount}`
-              : sql`${usersTable.balanceUsd} + ${amount}`,
-        })
-        .where(eq(usersTable.id, dep.userId));
+  const changeResult = await db.transaction(async (tx: any) => {
+    const [dep] = await tx.select().from(depositsTable).where(eq(depositsTable.id, id)).limit(1);
+    if (!dep) return { error: "not_found" as const };
+    if (dep.method === "sham_cash_auto") {
+      return { error: "auto_managed" as const };
     }
+
+    if (dep.status === "approved" && status === "approved") {
+      return { error: "already_approved" as const };
+    }
+
+    if (dep.status === "rejected" && status === "rejected") {
+      return { error: "already_rejected" as const };
+    }
+
+    if (status === "approved" && dep.status !== "approved") {
+      const col = dep.currency === "SYP" ? "balanceSyp" : "balanceUsd";
+      const amount = dep.currency === "SYP" ? dep.amountSyp : dep.amountUsd;
+      if (amount && Number(amount) > 0) {
+        await tx
+          .update(usersTable)
+          .set({
+            [col]:
+              col === "balanceSyp"
+                ? sql`${usersTable.balanceSyp} + ${amount}`
+                : sql`${usersTable.balanceUsd} + ${amount}`,
+          })
+          .where(eq(usersTable.id, dep.userId));
+      }
+
+      // Add user notification
+      try {
+        await tx.insert(notificationsTable).values({
+          targetType: "user",
+          targetUserId: dep.userId,
+          title: "✅ تم قبول إيداعك",
+          content: `تم تأكيد إيداعك وإضافة ${Number(dep.amountUsd || 0).toFixed(2)}$ إلى محفظتك بنجاح`,
+          status: "sent",
+        });
+      } catch (e) {
+        console.debug("User notification insert error (ignored):", e);
+      }
+    } else if (status === "rejected" && dep.status !== "rejected") {
+      try {
+        await tx.insert(notificationsTable).values({
+          targetType: "user",
+          targetUserId: dep.userId,
+          title: "❌ تم رفض طلب الإيداع",
+          content: note || "تم رفض طلب الإيداع من قبل الإدارة. يرجى مراجعة الدعم الفني.",
+          status: "sent",
+        });
+      } catch (e) {
+        console.debug("User notification insert error (ignored):", e);
+      }
+    }
+
+    const [updated] = await tx
+      .update(depositsTable)
+      .set({ status })
+      .where(eq(depositsTable.id, id))
+      .returning();
+
+    return { updated, dep };
+  });
+
+  if ("error" in changeResult) {
+    return changeResult;
   }
 
-  const [updated] = await db
-    .update(depositsTable)
-    .set({ status })
-    .where(eq(depositsTable.id, id))
-    .returning();
+  const { updated, dep } = changeResult;
 
   const [user] = await db.select().from(usersTable).where(eq(usersTable.id, dep.userId)).limit(1);
   if (user) {
@@ -2120,18 +2164,95 @@ router.post("/admin/orders/:id/status", requireAdmin, async (req, res) => {
 
 // ========== DEPOSITS ==========
 router.get("/admin/deposits", requireAdmin, async (req, res) => {
-  const status = req.query["status"] as string | undefined;
-  const conditions = status && status !== "all" ? [eq(depositsTable.status, status)] : [];
-  const rows = await db
-    .select({ deposit: depositsTable, user: usersTable })
-    .from(depositsTable)
-    .leftJoin(usersTable, eq(usersTable.id, depositsTable.userId))
-    .where(conditions.length ? and(...conditions) : undefined)
-    .orderBy(desc(depositsTable.createdAt))
-    .limit(500);
-  res.json(
-    rows.map((r) => ({ ...r.deposit, userName: r.user?.username })),
-  );
+  try {
+    const status = req.query["status"] as string | undefined;
+    const method = req.query["method"] as string | undefined;
+    const conditions = [];
+    if (status && status !== "all") {
+      conditions.push(eq(depositsTable.status, status));
+    }
+    if (method && method !== "all") {
+      conditions.push(eq(depositsTable.method, method));
+    }
+    const rows = await db
+      .select({ deposit: depositsTable, user: usersTable })
+      .from(depositsTable)
+      .leftJoin(usersTable, eq(usersTable.id, depositsTable.userId))
+      .where(conditions.length ? and(...conditions) : undefined)
+      .orderBy(desc(depositsTable.createdAt))
+      .limit(500);
+    res.json(
+      rows.map((r) => ({ ...r.deposit, userName: r.user?.username })),
+    );
+  } catch (err: any) {
+    console.error("[Admin GET /admin/deposits error]:", err);
+    res.status(500).json({ error: err.message || "فشل جلب الإيداعات" });
+  }
+});
+
+router.patch("/admin/deposits/:id/approve", requireAdmin, async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ error: "معرف الإيداع غير صالح" });
+    }
+    const result = await applyDepositStatusChange(id, "approved");
+    if ("error" in result) {
+      if (result.error === "auto_managed") {
+        return res.status(400).json({ error: "إيداع شام كاش التلقائي يُدار تلقائيًا عبر API ولا يقبل موافقة يدوية." });
+      }
+      if (result.error === "already_approved") {
+        return res.status(400).json({ error: "الإيداع مقبول مسبقاً", status: "approved" });
+      }
+      if (result.error === "already_rejected") {
+        return res.status(400).json({ error: "الإيداع مرفوض مسبقاً", status: "rejected" });
+      }
+      return res.status(404).json({ error: "الإيداع غير موجود" });
+    }
+    await logActivity(
+      { id: req.session.adminId, name: req.session.adminUsername },
+      "deposit_approved",
+      String(id),
+      { status: "approved" },
+    );
+    return res.json({ success: true, deposit: result.updated });
+  } catch (err: any) {
+    console.error("[Admin Approve Error]:", err);
+    return res.status(500).json({ error: err.message || "فشل قبول الإيداع" });
+  }
+});
+
+router.patch("/admin/deposits/:id/reject", requireAdmin, async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const { reason } = req.body as { reason?: string };
+    if (isNaN(id)) {
+      return res.status(400).json({ error: "معرف الإيداع غير صالح" });
+    }
+    const result = await applyDepositStatusChange(id, "rejected");
+    if ("error" in result) {
+      if (result.error === "auto_managed") {
+        return res.status(400).json({ error: "إيداع شام كاش التلقائي يُدار تلقائيًا عبر API ولا يقبل رفض يدوي." });
+      }
+      if (result.error === "already_approved") {
+        return res.status(400).json({ error: "الإيداع مقبول مسبقاً", status: "approved" });
+      }
+      if (result.error === "already_rejected") {
+        return res.status(400).json({ error: "الإيداع مرفوض مسبقاً", status: "rejected" });
+      }
+      return res.status(404).json({ error: "الإيداع غير موجود" });
+    }
+    await logActivity(
+      { id: req.session.adminId, name: req.session.adminUsername },
+      "deposit_rejected",
+      String(id),
+      { status: "rejected", reason },
+    );
+    return res.json({ success: true, deposit: result.updated });
+  } catch (err: any) {
+    console.error("[Admin Reject Error]:", err);
+    return res.status(500).json({ error: err.message || "فشل رفض الإيداع" });
+  }
 });
 
 router.post("/admin/deposits/:id/status", requireAdmin, async (req, res) => {
@@ -2141,6 +2262,14 @@ router.post("/admin/deposits/:id/status", requireAdmin, async (req, res) => {
   if ("error" in result) {
     if (result.error === "auto_managed") {
       res.status(400).json({ error: "إيداع شام كاش التلقائي يُدار تلقائيًا عبر API ولا يقبل موافقة/رفض يدوي." });
+      return;
+    }
+    if (result.error === "already_approved") {
+      res.status(400).json({ error: "الإيداع مقبول مسبقاً", status: "approved" });
+      return;
+    }
+    if (result.error === "already_rejected") {
+      res.status(400).json({ error: "الإيداع مرفوض مسبقاً", status: "rejected" });
       return;
     }
     res.status(404).json({ error: "غير موجود" });
