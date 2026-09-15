@@ -172,6 +172,9 @@ export default function App() {
           <Route path="/api-products" element={<ApiProducts />} />
           <Route path="/promotions" element={<Promotions />} />
           <Route path="/currency" element={<CurrencySettings />} />
+          <Route path="/cron-jobs" element={<CronJobs />} />
+          <Route path="/cron" element={<Navigate to="/cron-jobs" replace />} />
+          <Route path="/cache" element={<CacheManagement />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Layout>
