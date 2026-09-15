@@ -163,7 +163,7 @@ export default function App() {
           <Route path="/support" element={<Tickets />} />
           <Route path="/backup" element={<Backup />} />
           <Route path="/profile" element={<Profile me={me} />} />
-          <Route path="/2fa" element={<TwoFactor />} />
+          <Route path="/2fa" element={<TwoFactor me={me} />} />
           <Route path="/permissions" element={<Permissions />} />
           <Route path="/currencies" element={<Currencies />} />
           <Route path="/languages" element={<Languages />} />

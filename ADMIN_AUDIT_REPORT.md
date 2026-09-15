@@ -79,7 +79,7 @@
 | 31 | تذاكر الدعم الفني | `Tickets.tsx` / `TicketDetail.tsx` | `/tickets` | ✅ مكتمل | نعم |
 | 32 | النسخ الاحتياطي | `Backup.tsx` | `/backup` | ✅ مكتمل | نعم |
 | 33 | الملف الشخصي | `Profile.tsx` | `/profile` | ✅ مكتمل | نعم |
-| 34 | التحقق الثنائي (2FA) | `TwoFactor.tsx` | `/2fa` | ⚠️ يحتاج QR | نعم |
+| 34 | التحقق الثنائي (2FA) | `TwoFactor.tsx` | `/2fa` | ✅ مكتمل مع QR | نعم |
 | 35 | مصفوفة الصلاحيات | `Permissions.tsx` | `/permissions` | ✅ تم الربط والحفظ | نعم |
 | 36 | إدارة الكاش والمهام | `CacheManagement.tsx` / `CronJobs.tsx` | `/cache`, `/cron` | ✅ تم ربط API | نعم |
 
