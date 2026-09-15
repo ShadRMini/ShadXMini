@@ -1090,4 +1090,174 @@ async function handleShamCashWebhook(req: any, res: any) {
 router.post("/webhooks/shamcash", handleShamCashWebhook);
 router.post("/webhooks/shamcash/:secret", handleShamCashWebhook);
 
+// ==========================================
+// 🚀 Binance Pay Deposit Endpoints
+// ==========================================
+
+// 1. POST /deposits/binance/create
+router.post("/deposits/binance/create", async (req, res) => {
+  try {
+    await ensureDepositsTelegramMessageColumn();
+    const user = await getOrCreateCurrentUserStrict(req);
+    const amount = Number(req.body?.amount);
+    const currency = String(req.body?.currency || "USDT").toUpperCase();
+
+    if (!amount || isNaN(amount) || amount <= 0) {
+      res.status(400).json({ error: "المبلغ غير صالح" });
+      return;
+    }
+
+    const [methodRow] = await db
+      .select()
+      .from(paymentMethodsTable)
+      .where(eq(paymentMethodsTable.code, "binance_pay"))
+      .limit(1);
+
+    const methodLabel = methodRow?.name || "Binance Pay";
+    // USDT is equivalent to USD
+    const amountUsd = currency === "SYP" ? amount / 119 : amount;
+    const amountSyp = currency === "SYP" ? amount : amount * 119;
+    const tempTxId = `BINANCE_PENDING_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+
+    const [inserted] = await db
+      .insert(depositsTable)
+      .values({
+        userId: user.id,
+        amountUsd: String(amountUsd.toFixed(4)),
+        amountSyp: String(amountSyp.toFixed(2)),
+        currency,
+        method: "binance_pay",
+        methodLabel,
+        transactionId: tempTxId,
+        status: "pending",
+      })
+      .returning();
+
+    res.json({
+      success: true,
+      depositId: inserted.id,
+      invoiceId: inserted.id,
+      amountUsd: Number(inserted.amountUsd),
+      currency: inserted.currency,
+      status: inserted.status,
+    });
+  } catch (error: any) {
+    console.error("Binance pay deposit create error:", error);
+    res.status(500).json({ error: error?.message || "فشل إنشاء سجل إيداع بينانس" });
+  }
+});
+
+// 2. POST /deposits/binance/submit-ref
+router.post("/deposits/binance/submit-ref", async (req, res) => {
+  try {
+    await ensureDepositsTelegramMessageColumn();
+    const user = await getOrCreateCurrentUserStrict(req);
+    const depositId = Number(req.body?.depositId);
+    const transactionRef = String(req.body?.transactionRef || "").trim();
+
+    if (!depositId || isNaN(depositId)) {
+      res.status(400).json({ error: "معرف الإيداع غير صالح" });
+      return;
+    }
+
+    if (!transactionRef) {
+      res.status(400).json({ error: "يرجى إدخال رقم العملية" });
+      return;
+    }
+
+    const [dep] = await db
+      .select()
+      .from(depositsTable)
+      .where(and(eq(depositsTable.id, depositId), eq(depositsTable.userId, user.id)))
+      .limit(1);
+
+    if (!dep) {
+      res.status(404).json({ error: "طلب الإيداع غير موجود" });
+      return;
+    }
+
+    // Update transactionId with actual Binance transaction reference
+    const [updated] = await db
+      .update(depositsTable)
+      .set({
+        transactionId: transactionRef,
+      })
+      .where(eq(depositsTable.id, dep.id))
+      .returning();
+
+    // Notify admins via Telegram about this deposit request
+    try {
+      await notifyAdminsAboutDeposit({
+        depositId: updated.id,
+        amount: Number(updated.amountUsd),
+        currency: updated.currency,
+        telegramId: user.telegramId,
+        username: user.username,
+        transactionId: transactionRef,
+      });
+
+      const pendingMessageId = await notifyUserDepositPending({
+        telegramId: user.telegramId,
+        operationNumber: String(updated.id),
+        amount: Number(updated.amountUsd),
+        currency: updated.currency,
+      });
+
+      if (pendingMessageId) {
+        await db
+          .update(depositsTable)
+          .set({ telegramMessageId: pendingMessageId })
+          .where(eq(depositsTable.id, updated.id));
+      }
+    } catch (notifyErr) {
+      console.error("Telegram notification error for Binance deposit:", notifyErr);
+    }
+
+    res.json({
+      success: true,
+      depositId: updated.id,
+      status: updated.status,
+    });
+  } catch (error: any) {
+    console.error("Binance pay submit-ref error:", error);
+    res.status(500).json({ error: error?.message || "فشل إرسال رقم العملية" });
+  }
+});
+
+// 3. GET /deposits/:id/status
+router.get("/deposits/:id/status", async (req, res) => {
+  try {
+    const user = await getOrCreateCurrentUserStrict(req);
+    const id = Number(req.params.id);
+
+    if (!id || isNaN(id)) {
+      res.status(400).json({ error: "معرف غير صالح" });
+      return;
+    }
+
+    const [dep] = await db
+      .select()
+      .from(depositsTable)
+      .where(and(eq(depositsTable.id, id), eq(depositsTable.userId, user.id)))
+      .limit(1);
+
+    if (!dep) {
+      res.status(404).json({ error: "الإيداع غير موجود" });
+      return;
+    }
+
+    res.json({
+      id: dep.id,
+      status: dep.status, // "pending" | "approved" | "rejected"
+      amountUsd: Number(dep.amountUsd),
+      currency: dep.currency,
+      transactionId: dep.transactionId,
+      createdAt: dep.createdAt,
+    });
+  } catch (error: any) {
+    console.error("Get deposit status error:", error);
+    res.status(500).json({ error: error?.message || "فشل جلب حالة الإيداع" });
+  }
+});
+
 export default router;

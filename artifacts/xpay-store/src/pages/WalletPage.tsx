@@ -297,6 +297,8 @@ export function WalletPage() {
     setTimeout(() => {
       if (method.code === "sham_cash" || method.code === "sham_cash_auto") {
         setLocation("/deposit/shamcash");
+      } else if (method.code === "binance_pay" || method.code === "binance") {
+        setLocation("/deposit/binance-pay");
       } else {
         setLocation(`/deposit/${encodeURIComponent(method.code)}`);
       }

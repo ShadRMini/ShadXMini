@@ -19,6 +19,7 @@ import DepositMethod from "@/pages/deposit-method";
 import ShamCashInvoiceVerify from "@/pages/shamcash-invoice-verify";
 import WalletPage from "@/pages/WalletPage";
 import DepositShamCash from "@/pages/DepositShamCash";
+import DepositBinancePay from "@/pages/DepositBinancePay";
 import DepositInvoicePay from "@/pages/DepositInvoicePay";
 import DepositsList from "@/pages/deposits";
 import Profile from "@/pages/profile";
@@ -206,6 +207,7 @@ function Router() {
             <Route path="/wallet" component={() => <ProtectedRoute component={WalletPage} />} />
             <Route path="/deposit" component={() => <ProtectedRoute component={WalletPage} />} />
             <Route path="/deposit/shamcash" component={() => <ProtectedRoute component={DepositShamCash} />} />
+            <Route path="/deposit/binance-pay" component={() => <ProtectedRoute component={DepositBinancePay} />} />
             <Route path="/deposit/pay/:invoiceId" component={() => <ProtectedRoute component={DepositInvoicePay} />} />
             <Route path="/deposit-legacy" component={() => <ProtectedRoute component={Deposit} />} />
             <Route path="/deposit/:method/invoice" component={() => <ProtectedRoute component={ShamCashInvoiceVerify} />} />

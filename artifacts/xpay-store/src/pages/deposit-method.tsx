@@ -161,6 +161,13 @@ export default function DepositMethod() {
 
   const visibleMethods = ((fallbackMethods && fallbackMethods.length > 0 ? fallbackMethods : methods) || []) as UiMethod[];
   const method = visibleMethods.find((m) => m.code === methodCode);
+
+  useEffect(() => {
+    if (methodCode === "binance_pay" || methodCode === "binance") {
+      setLocation("/deposit/binance-pay");
+    }
+  }, [methodCode, setLocation]);
+
   const cfg = method?.displayConfig || method?.display_config;
   const apiBaseUrl = (import.meta.env.VITE_API_URL || "").replace(/\/+$/, "");
   const isShamCashAuto = method?.code === "sham_cash_auto";
