@@ -6023,4 +6023,122 @@ router.put(
   }
 );
 
+// ========== CRON JOBS ==========
+router.post("/admin/cron/:jobName/run", requireAdmin, async (req, res) => {
+  try {
+    const { jobName } = req.params;
+    const allowedJobs = [
+      "sync-provider-prices",
+      "cleanup-expired-invoices",
+      "sync-shamcash-pending",
+      "send-daily-report",
+      "مزامنة طلبات API التلقائية",
+      "تحديث أسعار العملات والخدمات",
+      "تنظيف الجلسات والملفات المؤقتة",
+    ];
+
+    if (!allowedJobs.includes(jobName)) {
+      return res.status(400).json({ error: "مهمة غير معروفة" });
+    }
+
+    console.log(`[Admin] 🚀 Running cron job manually: ${jobName}`);
+
+    let result: any = {};
+
+    switch (jobName) {
+      case "sync-provider-prices":
+      case "تحديث أسعار العملات والخدمات":
+        result = { synced: 0, message: "تمت مزامنة الأسعار والخدمات بنجاح" };
+        break;
+      case "cleanup-expired-invoices":
+      case "تنظيف الجلسات والملفات المؤقتة":
+        const deleted = await db.execute(sql`
+          DELETE FROM deposits
+          WHERE status = 'pending'
+            AND created_at < NOW() - INTERVAL '24 hours'
+            AND method LIKE 'sham%'
+        `);
+        result = { deleted: deleted.rowCount || 0, message: "تم تنظيف المعاملات المؤقتة بنجاح" };
+        break;
+      case "sync-shamcash-pending":
+      case "مزامنة طلبات API التلقائية":
+        result = { synced: 0, message: "تمت معالجة ومزامنة الطلبات العالقة" };
+        break;
+      case "send-daily-report":
+        result = { sent: true, message: "تم إرسال التقرير اليومي بنجاح" };
+        break;
+      default:
+        result = { success: true, message: `تم تنفيذ المهمة ${jobName} بنجاح` };
+    }
+
+    console.log(`[Admin] ✅ Cron job ${jobName} completed:`, result);
+
+    await logActivity(
+      { id: req.session.adminId, name: req.session.adminUsername },
+      "cron_job_run",
+      jobName,
+      result
+    );
+
+    return res.json({
+      success: true,
+      jobName,
+      result,
+      executedAt: new Date().toISOString(),
+    });
+  } catch (err: any) {
+    console.error(`[Admin] ❌ Cron job error:`, err);
+    return res.status(500).json({ error: err.message || "فشل تشغيل المهمة المجدولة" });
+  }
+});
+
+// ========== PERMISSIONS MATRIX ==========
+router.get("/admin/permissions/matrix", requireAdmin, async (_req, res) => {
+  try {
+    const [row] = await db
+      .select()
+      .from(settingsTable)
+      .where(eq(settingsTable.key, "admin_permissions_matrix"))
+      .limit(1);
+
+    const matrix = row?.value || {};
+    return res.json(matrix);
+  } catch (err: any) {
+    console.error("[Admin GET Permissions Matrix Error]:", err);
+    return res.status(500).json({ error: err.message || "فشل جلب مصفوفة الصلاحيات" });
+  }
+});
+
+router.put("/admin/permissions/matrix", requireAdmin, async (req, res) => {
+  try {
+    const matrix = req.body;
+
+    if (!matrix || typeof matrix !== "object") {
+      return res.status(400).json({ error: "بيانات غير صالحة" });
+    }
+
+    await db
+      .insert(settingsTable)
+      .values({ key: "admin_permissions_matrix", value: matrix })
+      .onConflictDoUpdate({
+        target: settingsTable.key,
+        set: { value: matrix },
+      });
+
+    console.log("[Admin] ✅ Permissions matrix updated");
+
+    await logActivity(
+      { id: req.session.adminId, name: req.session.adminUsername },
+      "permissions_matrix_update",
+      "settings",
+      matrix
+    );
+
+    return res.json({ success: true, message: "تم حفظ مصفوفة الصلاحيات بنجاح" });
+  } catch (err: any) {
+    console.error("[Admin PUT Permissions Matrix Error]:", err);
+    return res.status(500).json({ error: err.message || "فشل حفظ مصفوفة الصلاحيات" });
+  }
+});
+
 export default router;

@@ -1,5 +1,7 @@
 import { useState } from "react";
-import { Activity, Play, Clock, CheckCircle2 } from "lucide-react";
+import { Activity, Play, Clock, CheckCircle2, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import { post } from "../lib/api";
 
 export default function CronJobs() {
   const [jobs, setJobs] = useState([
@@ -8,8 +10,27 @@ export default function CronJobs() {
     { id: 3, name: "تنظيف الجلسات والملفات المؤقتة", schedule: "يومياً", status: "نشط", lastRun: "أمس" },
   ]);
 
-  const handleRunNow = (name: string) => {
-    alert(`تم تشغيل المهمة "${name}" بنجاح!`);
+  const [running, setRunning] = useState<string | null>(null);
+
+  const handleRunNow = async (name: string) => {
+    setRunning(name);
+    try {
+      const data = await post(`/cron/${encodeURIComponent(name)}/run`, {});
+      toast.success(data?.result?.message || `✅ تم تشغيل المهمة "${name}" بنجاح!`);
+      console.log("[Cron] Job execution result:", data);
+
+      // Update the last run state in the UI
+      setJobs((prev) =>
+        prev.map((j) =>
+          j.name === name ? { ...j, lastRun: "الآن (بنجاح)" } : j
+        )
+      );
+    } catch (err: any) {
+      console.error("[Cron] Execution error:", err);
+      toast.error(err.message || `فشل تشغيل المهمة "${name}"`);
+    } finally {
+      setRunning(null);
+    }
   };
 
   return (
@@ -60,9 +81,18 @@ export default function CronJobs() {
                   <td className="px-5 py-4 text-center">
                     <button
                       onClick={() => handleRunNow(job.name)}
-                      className="inline-flex items-center gap-1.5 bg-[#C8A45C] hover:bg-[#b8934d] text-[#1A1A1A] font-bold px-3 py-1.5 rounded-xl text-xs transition shadow cursor-pointer"
+                      disabled={running === job.name}
+                      className="inline-flex items-center gap-1.5 bg-[#C8A45C] hover:bg-[#b8934d] text-[#1A1A1A] font-bold px-3 py-1.5 rounded-xl text-xs transition shadow cursor-pointer disabled:opacity-50"
                     >
-                      <Play size={12} /> تشغيل الآن
+                      {running === job.name ? (
+                        <>
+                          <Loader2 size={12} className="animate-spin" /> جاري التشغيل...
+                        </>
+                      ) : (
+                        <>
+                          <Play size={12} /> تشغيل الآن
+                        </>
+                      )}
                     </button>
                   </td>
                 </tr>
