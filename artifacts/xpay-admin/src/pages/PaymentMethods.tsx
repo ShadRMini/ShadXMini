@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
-import DepositSettings from "./DepositSettings";
 import {
   CreditCard,
   Plus,
@@ -1295,24 +1294,6 @@ export default function PaymentMethods() {
           </div>
         )}
       </AnimatePresence>
-      </section>
-
-      {/* فاصل بصري راقي وواضح بين الأقسام */}
-      <div className="relative my-8">
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-[#C8A45C]/25"></div>
-        </div>
-        <div className="relative flex justify-center">
-          <span className="px-5 py-1.5 bg-[#141414] text-xs text-[#C8A45C] font-black rounded-full border border-[#C8A45C]/30 shadow-lg flex items-center gap-2">
-            <Wallet className="w-4 h-4" />
-            <span>تخصيص صفحة شحن الرصيد</span>
-          </span>
-        </div>
-      </div>
-
-      {/* القسم 2: تخصيص صفحة شحن الرصيد */}
-      <section className="space-y-6">
-        <DepositSettings />
       </section>
     </div>
   );
