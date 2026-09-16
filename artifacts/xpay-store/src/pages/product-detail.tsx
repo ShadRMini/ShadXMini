@@ -25,6 +25,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import ProductCard from "@/components/product/ProductCard";
+import { useCurrency } from "@/lib/currency-context";
 
 type PurchaseMode = "apps" | "games" | "balance";
 
@@ -194,6 +195,8 @@ export default function ProductDetail() {
   const [customization, setCustomization] = useState<CustomizationConfig>(DEFAULT_CUSTOMIZATION);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [legacyOverride, setLegacyOverride] = useState<boolean | null>(null);
+
+  const { formatPrice, formatPriceWithSyp } = useCurrency();
 
   const { data: product, isLoading } = useGetProduct(id || "", {
     query: { enabled: !!id, queryKey: getGetProductQueryKey(id || "") },
@@ -560,6 +563,8 @@ export default function ProductDetail() {
       }
 
       case "price":
+        const unitFormatted = formatPriceWithSyp(unitPrice);
+        const totalFormatted = formatPriceWithSyp(totalUsd);
         return (
           <div
             key={sec.id}
@@ -569,15 +574,25 @@ export default function ProductDetail() {
             <div>
               <div className="text-xs font-semibold mb-0.5" style={{ color: customization.unit_price_color || "#E5E7EB" }}>سعر الوحدة</div>
               <div className="text-2xl font-black font-mono" style={{ color: customization.unit_price_color || customization.price_color || "#FDE68A" }}>
-                ${unitPrice ? unitPrice.toFixed(4) : "0.0000"}
+                {unitFormatted.primary}
               </div>
+              {unitFormatted.secondary && (
+                <div className="text-[11px] text-zinc-400 font-normal">
+                  {unitFormatted.secondary}
+                </div>
+              )}
             </div>
 
             <div className="text-left border-r border-zinc-700/80 pr-4">
               <div className="text-xs font-semibold" style={{ color: customization.total_price_color || "#C8A45C" }}>المجموع الكلي</div>
               <div className="text-2xl font-black font-mono" style={{ color: customization.total_price_color || customization.price_color || "#FDE68A" }}>
-                ${totalUsd.toFixed(4)}
+                {totalFormatted.primary}
               </div>
+              {totalFormatted.secondary && (
+                <div className="text-[11px] text-zinc-400 font-normal">
+                  {totalFormatted.secondary}
+                </div>
+              )}
             </div>
           </div>
         );
@@ -845,6 +860,7 @@ export default function ProductDetail() {
 
       case "buy_now":
       case "add_to_cart":
+        const btnTotalFormatted = formatPrice(totalUsd);
         return (
           <Button
             key={sec.id}
@@ -864,7 +880,7 @@ export default function ProductDetail() {
             ) : (
               <span className="flex items-center gap-2">
                 <ShoppingCart size={20} />
-                {sec.button_text || "شراء الآن / تأكيد الشراء الفوري"} (${totalUsd.toFixed(4)})
+                {sec.button_text || "شراء الآن / تأكيد الشراء الفوري"} ({btnTotalFormatted})
               </span>
             )}
           </Button>
@@ -1159,7 +1175,10 @@ export default function ProductDetail() {
 
             <div className="rounded-2xl bg-[#1A1A1A] border border-[#C8A45C]/30 p-4 text-center">
               <div className="text-xs text-zinc-400 font-semibold">السعر الإجمالي</div>
-              <div className="text-3xl font-black text-[#FDE68A] mt-1">${totalUsd.toFixed(5)}</div>
+              <div className="text-3xl font-black text-[#FDE68A] mt-1">{formatPrice(totalUsd)}</div>
+              {formatPriceWithSyp(totalUsd).secondary && (
+                <div className="text-xs text-zinc-400 mt-1 font-medium">{formatPriceWithSyp(totalUsd).secondary}</div>
+              )}
             </div>
 
             <Button

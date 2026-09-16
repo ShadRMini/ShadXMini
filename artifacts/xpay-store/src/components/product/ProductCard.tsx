@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { PackageOpen, Sparkles, ShoppingBag, Lock } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useStoreSettings } from "@/lib/store-settings-context";
+import { useCurrency } from "@/lib/currency-context";
 import LoginRequiredModal from "@/components/LoginRequiredModal";
 
 export interface ProductCardProps {
@@ -27,16 +28,6 @@ function withImageVersion(url: string, version: string): string {
   return `${cleanUrl}${separator}v=${encodeURIComponent(version)}`;
 }
 
-function formatPrice(priceUsd?: number | string, minTotalUsd?: number | string, minQty?: number): string {
-  const apiTotal = Number(minTotalUsd);
-  if (Number.isFinite(apiTotal) && apiTotal >= 0) return `$${apiTotal.toFixed(2)}`;
-
-  const unitPrice = Number(priceUsd || 0);
-  const qty = Number(minQty || 1);
-  const total = unitPrice * (qty > 0 ? qty : 1);
-  return Number.isFinite(total) ? `$${total.toFixed(2)}` : "$0.00";
-}
-
 export default function ProductCard({
   id,
   name,
@@ -54,6 +45,7 @@ export default function ProductCard({
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const { user, token } = useAuth();
   const storeSettings = useStoreSettings();
+  const { formatPrice } = useCurrency();
 
   const isGuestModeEnabled = Boolean(
     storeSettings.guestPreviewEnabled ?? storeSettings.guest_preview_enabled ?? true
@@ -63,7 +55,16 @@ export default function ProductCard({
 
   const targetLink = href || `/products/${id}`;
   const finalImageUrl = image ? withImageVersion(image, imageVersion || `${id}-${image}`) : "";
-  const formattedPrice = formatPrice(priceUsd, minTotalUsd, minQty);
+
+  // Compute effective USD price for minimum quantity or explicit min total
+  const rawApiTotal = Number(minTotalUsd);
+  const rawUnitPrice = Number(priceUsd || 0);
+  const effectiveQty = Number(minQty || 1);
+  const effectiveUsd = Number.isFinite(rawApiTotal) && rawApiTotal >= 0
+    ? rawApiTotal
+    : rawUnitPrice * (effectiveQty > 0 ? effectiveQty : 1);
+
+  const formattedPrice = formatPrice(effectiveUsd);
 
   const handleClick = (e: React.MouseEvent) => {
     if (isGuest) {

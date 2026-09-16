@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
+import { useCurrency } from "@/lib/currency-context";
 import { getPublicJson } from "@/lib/public-api";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -196,6 +197,7 @@ function getBadgeProps(subtitleRaw: string, code: string, category?: string) {
 export function WalletPage() {
   const [, setLocation] = useLocation();
   const { user, loading: authLoading, refreshUser } = useAuth();
+  const { formatPrice, formatPriceWithSyp, baseCurrency } = useCurrency();
   const [methods, setMethods] = useState<PaymentMethodItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCode, setSelectedCode] = useState<string>("sham_cash");
@@ -346,11 +348,15 @@ export function WalletPage() {
             </span>
           </div>
 
-          <div className="flex items-baseline gap-1">
+          <div className="flex items-baseline gap-2 flex-wrap">
             <span className="text-4xl sm:text-5xl font-black tracking-tight text-white font-mono">
-              ${balanceUsd.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
+              {formatPrice(balanceUsd)}
             </span>
-            {user?.balanceSyp ? (
+            {formatPriceWithSyp(balanceUsd).secondary ? (
+              <span className="text-xs sm:text-sm text-white/80 font-medium">
+                {formatPriceWithSyp(balanceUsd).secondary}
+              </span>
+            ) : user?.balanceSyp && baseCurrency !== "SYP" ? (
               <span className="text-xs text-white/70 mr-2">
                 (≈ {Math.round(user.balanceSyp).toLocaleString()} ل.س)
               </span>

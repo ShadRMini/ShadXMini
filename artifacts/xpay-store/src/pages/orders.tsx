@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "wouter";
+import { useCurrency } from "@/lib/currency-context";
 
 const formatShortDateTime = (value: string | Date) =>
   new Intl.DateTimeFormat("ar-SY", {
@@ -17,6 +18,7 @@ const formatShortDateTime = (value: string | Date) =>
 export default function Orders() {
   const [filter, setFilter] = useState<"all" | "wait" | "accept" | "reject">("all");
   const [search, setSearch] = useState("");
+  const { formatPrice } = useCurrency();
 
   const { data: summary, isLoading: summaryLoading } = useGetOrdersSummary({
     query: { queryKey: getGetOrdersSummaryQueryKey() }
@@ -324,7 +326,7 @@ export default function Orders() {
                       className="text-sm font-black shrink-0"
                       style={{ color: "var(--gold-light, #FDE68A)" }}
                     >
-                      ${order.totalUsd.toFixed(2)}
+                      {formatPrice(order.totalUsd)}
                     </div>
                   </div>
                   

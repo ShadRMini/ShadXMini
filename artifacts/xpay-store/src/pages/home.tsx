@@ -6,6 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { getPublicJson } from "@/lib/public-api";
 import { useAuth } from "@/lib/auth-context";
 import { useStoreSettings } from "@/lib/store-settings-context";
+import { useCurrency } from "@/lib/currency-context";
 import CategoryCard from "@/components/categories/CategoryCard";
 import BannerCarousel, { BannerItem } from "@/components/home/BannerCarousel";
 import AnnouncementBar from "@/components/layout/AnnouncementBar";
@@ -43,6 +44,7 @@ export default function Home() {
   const [, setLocation] = useLocation();
   const { user, token } = useAuth();
   const storeSettings = useStoreSettings();
+  const { formatPrice, formatPriceWithSyp, baseCurrency } = useCurrency();
   const { data: profile, isLoading: profileLoading, isError: profileError } = useGetProfile();
   const { data: banners, isLoading: bannersLoading } = useListBanners();
   const { data: categories, isLoading: categoriesLoading } = useListCategories();
@@ -248,14 +250,19 @@ export default function Home() {
                     <Wallet className="w-4 h-4 text-[#C8A45C]" />
                     <span className="text-xs sm:text-sm font-bold">الرصيد المتاح في المحفظة</span>
                   </div>
-                  <div className="text-2xl sm:text-4xl font-black text-white flex items-baseline gap-1.5 tracking-tight">
-                    <span className="text-[#C8A45C] font-bold">$</span>
+                  <div className="text-2xl sm:text-4xl font-black text-white flex items-baseline gap-2 flex-wrap tracking-tight">
                     {profileLoading ? (
                       <Skeleton className="h-9 w-28 bg-zinc-700" />
                     ) : (
-                      Number(profile?.balanceUsd ?? user?.balanceUsd ?? 0).toFixed(2)
+                      <>
+                        <span>{formatPrice(profile?.balanceUsd ?? user?.balanceUsd ?? 0)}</span>
+                        {formatPriceWithSyp(profile?.balanceUsd ?? user?.balanceUsd ?? 0).secondary && (
+                          <span className="text-xs sm:text-sm text-zinc-300 font-medium">
+                            {formatPriceWithSyp(profile?.balanceUsd ?? user?.balanceUsd ?? 0).secondary}
+                          </span>
+                        )}
+                      </>
                     )}
-                    <span className="text-xs text-zinc-400 font-normal mr-2">USD</span>
                   </div>
                 </div>
 

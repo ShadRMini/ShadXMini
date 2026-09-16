@@ -4,6 +4,7 @@ import { ChevronRight, Package, Clock, CheckCircle2, XCircle, HeadphonesIcon, Co
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { useCurrency } from "@/lib/currency-context";
 
 const formatDateTime = (value: string | Date) =>
   new Intl.DateTimeFormat("ar-SY", {
@@ -18,6 +19,7 @@ const formatDateTime = (value: string | Date) =>
 export default function OrderDetail() {
   const [, params] = useRoute("/orders/:id");
   const id = params?.id;
+  const { formatPrice, formatPriceWithSyp } = useCurrency();
 
   const { data: order, isLoading } = useGetOrder(id || "", {
     query: { enabled: !!id, queryKey: getGetOrderQueryKey(id || "") },
@@ -263,8 +265,13 @@ export default function OrderDetail() {
               <span className="font-bold text-base" style={{ color: "var(--text-primary, #FFFFFF)" }}>المبلغ الإجمالي</span>
               <div className="text-left">
                 <div className="text-2xl font-black" style={{ color: "var(--gold-light, #FDE68A)" }}>
-                  ${order.totalUsd.toFixed(2)}
+                  {formatPrice(order.totalUsd)}
                 </div>
+                {formatPriceWithSyp(order.totalUsd).secondary && (
+                  <div className="text-xs font-medium text-zinc-400 mt-0.5">
+                    {formatPriceWithSyp(order.totalUsd).secondary}
+                  </div>
+                )}
               </div>
             </div>
           </div>

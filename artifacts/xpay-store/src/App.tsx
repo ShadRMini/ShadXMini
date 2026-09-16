@@ -5,7 +5,9 @@ import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/lib/auth-context";
 import { StoreSettingsProvider } from "@/lib/store-settings-context";
+import { CurrencyProvider } from "@/lib/currency-context";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { Redirect } from "wouter";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
 import Categories from "@/pages/categories";
@@ -225,6 +227,8 @@ function Router() {
             <Route path="/support" component={() => <ProtectedRoute component={ContactPage} allowGuest={true} />} />
             <Route path="/contact" component={() => <ProtectedRoute component={ContactPage} allowGuest={true} />} />
             <Route path="/about" component={() => <ProtectedRoute component={About} allowGuest={true} />} />
+            <Route path="/currencies" component={() => <Redirect to="/" />} />
+            <Route path="/currency" component={() => <Redirect to="/" />} />
             <Route component={NotFound} />
           </Switch>
         </AppLayout>
@@ -286,16 +290,18 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <StoreSettingsProvider>
-        <AuthProvider>
-          <TooltipProvider>
-            <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-              <Router />
-            </WouterRouter>
-            {settings && <StorePopup settings={settings} />}
-            <PopupNotification />
-            <Toaster theme="dark" position="top-center" dir="rtl" />
-          </TooltipProvider>
-        </AuthProvider>
+        <CurrencyProvider>
+          <AuthProvider>
+            <TooltipProvider>
+              <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+                <Router />
+              </WouterRouter>
+              {settings && <StorePopup settings={settings} />}
+              <PopupNotification />
+              <Toaster theme="dark" position="top-center" dir="rtl" />
+            </TooltipProvider>
+          </AuthProvider>
+        </CurrencyProvider>
       </StoreSettingsProvider>
     </QueryClientProvider>
   );

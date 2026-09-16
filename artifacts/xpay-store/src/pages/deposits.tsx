@@ -2,6 +2,7 @@ import { useGetDepositsSummary, useListMyDeposits, getGetDepositsSummaryQueryKey
 import { Search, Receipt, Clock, CheckCircle2, XCircle, ArrowDownToLine } from "lucide-react";
 import { useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useCurrency } from "@/lib/currency-context";
 
 const formatDateTime = (value: string | Date) =>
   new Intl.DateTimeFormat("en-CA", {
@@ -15,6 +16,7 @@ const formatDateTime = (value: string | Date) =>
 
 export default function DepositsList() {
   const [filter, setFilter] = useState<"all" | "pending" | "approved" | "rejected">("all");
+  const { formatPrice, formatPriceWithSyp } = useCurrency();
 
   const { data: summary, isLoading: summaryLoading } = useGetDepositsSummary({
     query: { queryKey: getGetDepositsSummaryQueryKey() }
@@ -43,9 +45,19 @@ export default function DepositsList() {
           <div className="absolute top-0 left-0 w-32 h-32 bg-[#C8A45C]/10 rounded-full blur-3xl -translate-y-1/2 -translate-x-1/2 pointer-events-none"></div>
           
           <div className="text-xs font-bold text-[#C8A45C] mb-1">إجمالي الشحن المقبول</div>
-          <div className="text-3xl font-black text-white mb-5 flex items-baseline gap-1">
-            <span className="text-[#C8A45C]">$</span>
-            {summaryLoading ? <Skeleton className="h-8 w-24 bg-zinc-800" /> : (summary?.totalApprovedUsd || 0).toFixed(2)}
+          <div className="text-3xl font-black text-white mb-5 flex items-baseline gap-2 flex-wrap">
+            {summaryLoading ? (
+              <Skeleton className="h-8 w-24 bg-zinc-800" />
+            ) : (
+              <>
+                <span>{formatPrice(summary?.totalApprovedUsd || 0)}</span>
+                {formatPriceWithSyp(summary?.totalApprovedUsd || 0).secondary && (
+                  <span className="text-xs text-zinc-400 font-medium">
+                    {formatPriceWithSyp(summary?.totalApprovedUsd || 0).secondary}
+                  </span>
+                )}
+              </>
+            )}
           </div>
 
           <div className="grid grid-cols-3 gap-2">
@@ -107,7 +119,7 @@ export default function DepositsList() {
                   <div className="flex justify-between items-start mb-1">
                     <h3 className="text-sm font-bold text-white truncate pl-2">{deposit.methodLabel}</h3>
                     <div className="text-sm font-black text-[#FDE68A] shrink-0">
-                      +${deposit.amountUsd.toFixed(2)}
+                      +{formatPrice(deposit.amountUsd)}
                     </div>
                   </div>
                   

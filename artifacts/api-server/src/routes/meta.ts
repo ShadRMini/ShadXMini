@@ -321,13 +321,123 @@ const getPublicSettingsHandler = async (_req: any, res: any) => {
     guest_preview_register_button: String(map.get("guest_preview_register_button") || "إنشاء حساب جديد"),
     guestPreviewNote: String(map.get("guest_preview_note") || "لا يمكنك الشراء أو استخدام المتجر بدون حساب. اضغط على أي قسم أو منتج للتسجيل."),
     guest_preview_note: String(map.get("guest_preview_note") || "لا يمكنك الشراء أو استخدام المتجر بدون حساب. اضغط على أي قسم أو منتج للتسجيل."),
+
+    // Currency Settings (Public)
+    base_currency: String(map.get("base_currency") || map.get("primary_currency") || "USD"),
+    baseCurrency: String(map.get("base_currency") || map.get("primary_currency") || "USD"),
+    currency_symbol: String(map.get("currency_symbol") || "$"),
+    currencySymbol: String(map.get("currency_symbol") || "$"),
+    usd_to_syp: Number(map.get("usd_to_syp") || map.get("exchange_rate") || 15000),
+    usdToSyp: Number(map.get("usd_to_syp") || map.get("exchange_rate") || 15000),
+    usd_to_try: Number(map.get("usd_to_try") || 34.5),
+    usdToTry: Number(map.get("usd_to_try") || 34.5),
+    usd_to_eur: Number(map.get("usd_to_eur") || 0.92),
+    usdToEur: Number(map.get("usd_to_eur") || 0.92),
+    usd_to_sar: Number(map.get("usd_to_sar") || 3.75),
+    usdToSar: Number(map.get("usd_to_sar") || 3.75),
+    show_both_currencies: map.get("show_both_currencies") !== undefined ? getBool("show_both_currencies", true) : true,
+    showBothCurrencies: map.get("show_both_currencies") !== undefined ? getBool("show_both_currencies", true) : true,
+    show_price_in_both: map.get("show_both_currencies") !== undefined ? getBool("show_both_currencies", true) : true,
+    currency_decimals: Number(map.get("currency_decimals") || 2),
+    currencyDecimals: Number(map.get("currency_decimals") || 2),
+    thousands_separator: String(map.get("thousands_separator") || ","),
+    thousandsSeparator: String(map.get("thousands_separator") || ","),
+    decimal_separator: String(map.get("decimal_separator") || "."),
+    decimalSeparator: String(map.get("decimal_separator") || "."),
   });
+};
+
+const getPublicCurrencySettingsHandler = async (_req: any, res: any) => {
+  try {
+    const rows = await db.select().from(settingsTable);
+    const map = new Map(rows.map((row) => [row.key, row.value]));
+    
+    // Check if there is an aggregated currency_settings json object stored
+    const aggregatedObj = map.get("currency_settings");
+    const agg = aggregatedObj && typeof aggregatedObj === "object" ? aggregatedObj : {};
+
+    const baseCurrency = String(map.get("base_currency") || map.get("primary_currency") || (agg as any).storeCurrency || (agg as any).baseCurrency || "USD");
+    const currencySymbol = String(map.get("currency_symbol") || (agg as any).currencySymbol || (baseCurrency === "SYP" ? "ل.س" : "$"));
+    const usdToSyp = Number(map.get("usd_to_syp") || map.get("exchange_rate") || (agg as any).usdToSyp || (agg as any).exchangeRate || 15000);
+    const usdToTry = Number(map.get("usd_to_try") || (agg as any).usdToTry || 34.5);
+    const usdToEur = Number(map.get("usd_to_eur") || (agg as any).usdToEur || 0.92);
+    const usdToSar = Number(map.get("usd_to_sar") || (agg as any).usdToSar || 3.75);
+
+    const getBool = (key: string, fallback = false) => {
+      const value = map.get(key);
+      if (typeof value === "boolean") return value;
+      if (typeof value === "string") return value === "true";
+      return fallback;
+    };
+
+    const showBothCurrencies = map.get("show_both_currencies") !== undefined
+      ? getBool("show_both_currencies", true)
+      : (agg as any).showBothCurrencies !== undefined
+      ? Boolean((agg as any).showBothCurrencies)
+      : true;
+
+    const decimals = Number(map.get("currency_decimals") ?? (agg as any).decimals ?? (agg as any).currencyDecimals ?? 2);
+    const thousandsSeparator = String(map.get("thousands_separator") || (agg as any).thousandsSeparator || ",");
+    const decimalSeparator = String(map.get("decimal_separator") || (agg as any).decimalSeparator || ".");
+
+    res.json({
+      baseCurrency,
+      base_currency: baseCurrency,
+      currencySymbol,
+      currency_symbol: currencySymbol,
+      usdToSyp,
+      usd_to_syp: usdToSyp,
+      usdToTry,
+      usd_to_try: usdToTry,
+      usdToEur,
+      usd_to_eur: usdToEur,
+      usdToSar,
+      usd_to_sar: usdToSar,
+      showBothCurrencies,
+      show_both_currencies: showBothCurrencies,
+      decimals,
+      currencyDecimals: decimals,
+      currency_decimals: decimals,
+      thousandsSeparator,
+      thousands_separator: thousandsSeparator,
+      decimalSeparator,
+      decimal_separator: decimalSeparator,
+      exchangeRate: usdToSyp,
+      exchange_rate: usdToSyp,
+    });
+  } catch (err: any) {
+    res.json({
+      baseCurrency: "USD",
+      base_currency: "USD",
+      currencySymbol: "$",
+      currency_symbol: "$",
+      usdToSyp: 15000,
+      usd_to_syp: 15000,
+      usdToTry: 34.5,
+      usdToEur: 0.92,
+      usdToSar: 3.75,
+      showBothCurrencies: true,
+      show_both_currencies: true,
+      decimals: 2,
+      currencyDecimals: 2,
+      currency_decimals: 2,
+      thousandsSeparator: ",",
+      thousands_separator: ",",
+      decimalSeparator: ".",
+      decimal_separator: ".",
+      exchangeRate: 15000,
+      exchange_rate: 15000,
+    });
+  }
 };
 
 router.get("/settings/public", getPublicSettingsHandler);
 router.get("/public-settings", getPublicSettingsHandler);
 router.get("/public/app-settings", getPublicSettingsHandler);
 router.get("/app-settings", getPublicSettingsHandler);
+router.get("/public/currency-settings", getPublicCurrencySettingsHandler);
+router.get("/currency-settings", getPublicCurrencySettingsHandler);
+router.get("/currency/settings", getPublicCurrencySettingsHandler);
 
 // Public Contact Page Config Endpoints
 const DEFAULT_PUBLIC_CONTACT_CONFIG = {
