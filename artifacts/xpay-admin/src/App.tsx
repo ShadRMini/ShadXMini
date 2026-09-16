@@ -165,13 +165,8 @@ export default function App() {
           <Route path="/profile" element={<Profile me={me} />} />
           <Route path="/2fa" element={<TwoFactor me={me} />} />
           <Route path="/permissions" element={<Permissions />} />
-          <Route path="/currencies" element={<Currencies />} />
-          <Route path="/languages" element={<Languages />} />
-          <Route path="/maintenance" element={<Maintenance />} />
-          <Route path="/provider-reports" element={<ProviderReports />} />
-          <Route path="/api-products" element={<ApiProducts />} />
-          <Route path="/promotions" element={<Promotions />} />
           <Route path="/currency" element={<CurrencySettings />} />
+          <Route path="/currencies" element={<Navigate to="/currency" replace />} />
           <Route path="/cron-jobs" element={<CronJobs />} />
           <Route path="/cron" element={<Navigate to="/cron-jobs" replace />} />
           <Route path="/cache" element={<CacheManagement />} />
