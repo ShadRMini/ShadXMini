@@ -64,7 +64,6 @@ const NEW_NAV_GROUPS: NavGroup[] = [
       { to: "/payment-methods", label: "طرق الدفع", icon: CreditCard },
       { to: "/deposits", label: "طلبات شحن الرصيد", icon: Wallet, badgeKey: "pendingDeposits" },
       { to: "/coupons", label: "كوبونات الخصم", icon: Ticket },
-      { to: "/promotions", label: "العروض الترويجية", icon: Megaphone },
       { to: "/vip", label: "عضويات VIP والمستويات", icon: Crown },
       { to: "/currency", label: "عملة المتجر", icon: Coins },
     ],

@@ -39,7 +39,6 @@ import Languages from "./pages/Languages";
 import Maintenance from "./pages/Maintenance";
 import ProviderReports from "./pages/ProviderReports";
 import ApiProducts from "./pages/ApiProducts";
-import Promotions from "./pages/Promotions";
 import CurrencySettings from "./pages/CurrencySettings";
 import CacheManagement from "./pages/CacheManagement";
 import CronJobs from "./pages/CronJobs";
@@ -135,6 +134,7 @@ export default function App() {
           <Route path="/payment-methods" element={<PaymentMethods />} />
           <Route path="/admin/payment-methods" element={<Navigate to="/payment-methods" replace />} />
           <Route path="/banners" element={<Banners />} />
+          <Route path="/promotions" element={<Navigate to="/banners" replace />} />
           <Route path="/news" element={<News />} />
           <Route path="/social-links" element={<SocialLinks />} />
           <Route path="/providers" element={<Providers />} />

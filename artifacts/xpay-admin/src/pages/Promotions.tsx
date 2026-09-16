@@ -1,16 +1,13 @@
-import Crud from "../components/Crud";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function Promotions() {
-  return (
-    <Crud
-      resource="banners"
-      title="العروض الترويجية والبانرات التسويقية"
-      fields={[
-        { name: "title", label: "عنوان العرض / البانر", type: "text", required: true },
-        { name: "image", label: "رابط الصورة (Image URL)", type: "text", required: true },
-        { name: "link", label: "رابط الإحالة / التوجيه", type: "text" },
-        { name: "order", label: "الترتيب", type: "number", default: 0 },
-      ]}
-    />
-  );
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    navigate("/banners", { replace: true });
+  }, [navigate]);
+
+  return null;
 }
+
