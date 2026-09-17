@@ -51,11 +51,7 @@ const LEGACY_NAV: { to: string; label: string; icon: any; group: string }[] = [
   // Group 5
   { to: "/interface-switcher", label: "تبديل الواجهات", icon: Layers, group: "إعدادات النظام" },
   { to: "/settings", label: "الإعدادات العامة", icon: SettingsIcon, group: "إعدادات النظام" },
-  { to: "/theme", label: "تخصيص التصميم", icon: Palette, group: "إعدادات النظام" },
-  { to: "/auth-pages-settings", label: "تخصيص صفحات الدخول والتسجيل", icon: LogIn, group: "إعدادات النظام" },
-  { to: "/product-page-settings", label: "تخصيص صفحة المنتج", icon: Package, group: "إعدادات النظام" },
-  { to: "/about-settings", label: "تخصيص صفحة من نحن", icon: Activity, group: "إعدادات النظام" },
-  { to: "/contact-settings", label: "تواصل معنا", icon: Headphones, group: "إعدادات النظام" },
+  { to: "/theme", label: "تخصيص الهوية والصفحات", icon: Palette, group: "إعدادات النظام" },
   { to: "/social-links", label: "الروابط الاجتماعية", icon: Share2, group: "إعدادات النظام" },
   { to: "/notifications", label: "الإشعارات", icon: Bell, group: "إعدادات النظام" },
   { to: "/cache", label: "الذاكرة المؤقتة (مسح الكاش)", icon: Database, group: "إعدادات النظام" },

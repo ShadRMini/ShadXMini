@@ -326,38 +326,56 @@ export function WalletPage() {
         </div>
       </div>
 
-      {/* 2. Current Balance Card (Image 1 reference) */}
+      {/* 2. Current Balance Card */}
       <div 
-        className="relative overflow-hidden rounded-3xl p-6 sm:p-8 text-white shadow-xl transition-all"
+        className="relative overflow-hidden rounded-3xl p-6 sm:p-8 shadow-xl transition-all"
         style={{
-          background: "linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #1d4ed8 100%)",
+          background: "linear-gradient(135deg, var(--theme-card) 0%, var(--theme-background) 100%)",
+          border: "1px solid var(--theme-border)",
+          color: "var(--theme-text-primary)",
         }}
       >
-        {/* Subtle background glow effect */}
-        <div className="absolute -top-12 -left-12 w-44 h-44 bg-white/10 rounded-full blur-2xl pointer-events-none" />
-        <div className="absolute -bottom-12 -right-12 w-44 h-44 bg-blue-400/20 rounded-full blur-2xl pointer-events-none" />
+        {/* Subtle background glow effect using theme colors */}
+        <div 
+          className="absolute -top-12 -left-12 w-44 h-44 rounded-full blur-2xl pointer-events-none"
+          style={{ backgroundColor: "var(--theme-primary)", opacity: 0.12 }}
+        />
+        <div 
+          className="absolute -bottom-12 -right-12 w-44 h-44 rounded-full blur-2xl pointer-events-none"
+          style={{ backgroundColor: "var(--theme-accent)", opacity: 0.08 }}
+        />
 
         <div className="relative z-10 flex flex-col justify-between h-full space-y-4">
           <div className="flex items-center justify-between">
-            <span className="text-white/80 font-medium text-sm sm:text-base">
+            <span className="font-medium text-sm sm:text-base" style={{ color: "var(--theme-text-muted)" }}>
               رصيدك الحالي
             </span>
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 text-xs text-white backdrop-blur-xs font-semibold">
-              <ShieldCheck className="w-3.5 h-3.5" />
+            <span 
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-xs"
+              style={{
+                backgroundColor: "var(--theme-background)",
+                border: "1px solid var(--theme-border)",
+                color: "var(--theme-text-primary)",
+              }}
+            >
+              <ShieldCheck className="w-3.5 h-3.5" style={{ color: "var(--theme-primary)" }} />
               محفظة آمنة
             </span>
           </div>
 
           <div className="flex items-baseline gap-2 flex-wrap">
-            <span className="text-4xl sm:text-5xl font-black tracking-tight text-white font-mono">
+            <span 
+              className="text-4xl sm:text-5xl font-black tracking-tight font-mono"
+              style={{ color: "var(--theme-text-primary)" }}
+            >
               {formatPrice(balanceUsd)}
             </span>
             {formatPriceWithSyp(balanceUsd).secondary ? (
-              <span className="text-xs sm:text-sm text-white/80 font-medium">
+              <span className="text-xs sm:text-sm font-medium" style={{ color: "var(--theme-text-muted)" }}>
                 {formatPriceWithSyp(balanceUsd).secondary}
               </span>
             ) : user?.balanceSyp && baseCurrency !== "SYP" ? (
-              <span className="text-xs text-white/70 mr-2">
+              <span className="text-xs mr-2" style={{ color: "var(--theme-text-muted)" }}>
                 (≈ {Math.round(user.balanceSyp).toLocaleString()} ل.س)
               </span>
             ) : null}

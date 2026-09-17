@@ -86,8 +86,8 @@ export default function Orders() {
       className="min-h-screen pb-28 p-4 max-w-4xl mx-auto animate-in fade-in duration-300" 
       dir="rtl"
       style={{
-        backgroundColor: "var(--bg-primary, #1A1A1A)",
-        color: "var(--text-primary, #FFFFFF)",
+        backgroundColor: "var(--theme-background, var(--bg-primary, #1A1A1A))",
+        color: "var(--theme-text-primary, var(--text-primary, #FFFFFF))",
       }}
     >
       {/* Page Header */}
@@ -95,13 +95,13 @@ export default function Orders() {
         <div>
           <h1 
             className="text-2xl font-black mb-1"
-            style={{ color: "var(--gold-light, #FDE68A)" }}
+            style={{ color: "var(--theme-accent, var(--gold-light, #FDE68A))" }}
           >
             مشترياتي
           </h1>
           <p 
             className="text-xs font-medium"
-            style={{ color: "var(--text-muted, #9CA3AF)" }}
+            style={{ color: "var(--theme-text-muted, var(--text-muted, #9CA3AF))" }}
           >
             متابعة حالة جميع طلبات المشتريات والخدمات
           </p>
@@ -111,9 +111,9 @@ export default function Orders() {
           <div 
             className="p-2.5 rounded-2xl border transition cursor-pointer flex items-center gap-1 text-xs font-bold"
             style={{
-              backgroundColor: "var(--bg-card, #2D2D2D)",
-              borderColor: "var(--border-color, #4B5563)",
-              color: "var(--gold-primary, #C8A45C)",
+              backgroundColor: "var(--theme-card, var(--bg-card, #2D2D2D))",
+              borderColor: "var(--theme-border, var(--border-color, #4B5563))",
+              color: "var(--theme-primary, var(--gold-primary, #C8A45C))",
             }}
           >
             <ArrowRight className="w-4 h-4" />
@@ -126,26 +126,29 @@ export default function Orders() {
       <div 
         className="rounded-3xl p-5 mb-6 shadow-xl relative overflow-hidden transition"
         style={{
-          backgroundColor: "var(--bg-card, #2D2D2D)",
-          borderColor: "var(--border-color, rgba(200, 164, 92, 0.35))",
+          backgroundColor: "var(--theme-card, var(--bg-card, #2D2D2D))",
+          borderColor: "var(--theme-border, var(--border-color, rgba(200, 164, 92, 0.35)))",
           borderWidth: "1px",
           borderStyle: "solid",
         }}
       >
-        <div className="absolute top-0 right-0 w-36 h-36 bg-[#C8A45C]/15 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
+        <div 
+          className="absolute top-0 right-0 w-36 h-36 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"
+          style={{ backgroundColor: "var(--theme-primary)", opacity: 0.15 }}
+        />
         
         <div 
           className="text-xs font-bold mb-1"
-          style={{ color: "var(--text-muted, #9CA3AF)" }}
+          style={{ color: "var(--theme-text-muted, var(--text-muted, #9CA3AF))" }}
         >
           إجمالي المشتريات المكتملة
         </div>
 
         <div 
           className="text-3xl font-black mb-5 flex items-baseline gap-1"
-          style={{ color: "var(--text-primary, #FFFFFF)" }}
+          style={{ color: "var(--theme-text-primary, var(--text-primary, #FFFFFF))" }}
         >
-          <span style={{ color: "var(--gold-primary, #C8A45C)" }}>$</span>
+          <span style={{ color: "var(--theme-primary, var(--gold-primary, #C8A45C))" }}>$</span>
           {summaryLoading ? (
             <Skeleton className="h-8 w-24 bg-zinc-800" />
           ) : (
@@ -159,12 +162,12 @@ export default function Orders() {
           <div 
             className="rounded-2xl p-3 text-center border transition"
             style={{
-              backgroundColor: "var(--bg-primary, #1A1A1A)",
-              borderColor: "var(--border-color, #3D3D3D)",
+              backgroundColor: "var(--theme-background, var(--bg-primary, #1A1A1A))",
+              borderColor: "var(--theme-border, var(--border-color, #3D3D3D))",
             }}
           >
-            <div className="text-xs mb-1" style={{ color: "var(--text-muted, #9CA3AF)" }}>الكل</div>
-            <div className="font-black text-base" style={{ color: "var(--text-primary, #FFFFFF)" }}>
+            <div className="text-xs mb-1" style={{ color: "var(--theme-text-muted, var(--text-muted, #9CA3AF))" }}>الكل</div>
+            <div className="font-black text-base" style={{ color: "var(--theme-text-primary, var(--text-primary, #FFFFFF))" }}>
               {summaryLoading ? <Skeleton className="h-5 w-8 mx-auto bg-zinc-800" /> : summary?.totalCount || 0}
             </div>
           </div>
@@ -226,17 +229,16 @@ export default function Orders() {
               className="px-4 py-2.5 rounded-2xl text-xs font-black whitespace-nowrap transition cursor-pointer"
               style={{
                 backgroundColor: isActive 
-                  ? "var(--gold-primary, #C8A45C)" 
-                  : "var(--bg-card, #2D2D2D)",
+                  ? "var(--theme-primary, var(--gold-primary, #C8A45C))" 
+                  : "var(--theme-card, var(--bg-card, #2D2D2D))",
                 color: isActive 
                   ? "#1A1A1A" 
-                  : "var(--text-secondary, #E5E7EB)",
+                  : "var(--theme-text-muted, var(--text-secondary, #E5E7EB))",
                 borderColor: isActive 
-                  ? "var(--gold-primary, #C8A45C)" 
-                  : "var(--border-color, #4B5563)",
+                  ? "var(--theme-primary, var(--gold-primary, #C8A45C))" 
+                  : "var(--theme-border, var(--border-color, #4B5563))",
                 borderWidth: "1px",
                 borderStyle: "solid",
-                boxShadow: isActive ? "0 0 12px rgba(200, 164, 92, 0.35)" : "none",
               }}
             >
               {labels[f]}
@@ -249,7 +251,7 @@ export default function Orders() {
       <div className="relative mb-6">
         <Search 
           className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4"
-          style={{ color: "var(--gold-primary, #C8A45C)" }}
+          style={{ color: "var(--theme-primary, var(--gold-primary, #C8A45C))" }}
         />
         <Input 
           value={search}
@@ -257,9 +259,9 @@ export default function Orders() {
           placeholder="ابحث برقم الطلب أو اسم المنتج..." 
           className="pl-3 pr-10 h-12 rounded-2xl text-sm placeholder:text-zinc-500 border transition"
           style={{
-            backgroundColor: "var(--bg-card, #2D2D2D)",
-            borderColor: "var(--border-color, #4B5563)",
-            color: "var(--text-primary, #FFFFFF)",
+            backgroundColor: "var(--theme-card, var(--bg-card, #2D2D2D))",
+            borderColor: "var(--theme-border, var(--border-color, #4B5563))",
+            color: "var(--theme-text-primary, var(--text-primary, #FFFFFF))",
           }}
         />
       </div>
@@ -272,8 +274,8 @@ export default function Orders() {
               key={i} 
               className="p-4 rounded-2xl flex gap-3 border"
               style={{
-                backgroundColor: "var(--bg-card, #2D2D2D)",
-                borderColor: "var(--border-color, #3D3D3D)",
+                backgroundColor: "var(--theme-card, var(--bg-card, #2D2D2D))",
+                borderColor: "var(--theme-border, var(--border-color, #3D3D3D))",
               }}
             >
               <Skeleton className="w-14 h-14 rounded-xl shrink-0 bg-zinc-800" />
@@ -289,8 +291,8 @@ export default function Orders() {
               key={order.id}
               className="p-4 rounded-2xl border transition-all duration-200 group relative overflow-hidden"
               style={{
-                backgroundColor: "var(--bg-card, #2D2D2D)",
-                borderColor: "var(--border-color, rgba(200, 164, 92, 0.25))",
+                backgroundColor: "var(--theme-card, var(--bg-card, #2D2D2D))",
+                borderColor: "var(--theme-border, var(--border-color, rgba(200, 164, 92, 0.25)))",
                 borderWidth: "1px",
                 borderStyle: "solid",
               }}
@@ -300,14 +302,14 @@ export default function Orders() {
                 <div 
                   className="w-14 h-14 rounded-xl overflow-hidden shrink-0 flex items-center justify-center border"
                   style={{
-                    backgroundColor: "var(--bg-primary, #1A1A1A)",
-                    borderColor: "var(--border-color, rgba(200, 164, 92, 0.3))",
+                    backgroundColor: "var(--theme-background, var(--bg-primary, #1A1A1A))",
+                    borderColor: "var(--theme-border, var(--border-color, rgba(200, 164, 92, 0.3)))",
                   }}
                 >
                   {order.productImage ? (
                     <img src={order.productImage} alt={order.productName} className="w-full h-full object-cover" />
                   ) : (
-                    <Package className="w-7 h-7" style={{ color: "var(--gold-primary, #C8A45C)" }} />
+                    <Package className="w-7 h-7" style={{ color: "var(--theme-primary, var(--gold-primary, #C8A45C))" }} />
                   )}
                 </div>
                 
@@ -317,14 +319,14 @@ export default function Orders() {
                     <Link href={`/orders/${order.id}`}>
                       <h3 
                         className="text-sm font-bold truncate transition cursor-pointer hover:underline"
-                        style={{ color: "var(--text-primary, #FFFFFF)" }}
+                        style={{ color: "var(--theme-text-primary, var(--text-primary, #FFFFFF))" }}
                       >
                         {order.productName}
                       </h3>
                     </Link>
                     <div 
                       className="text-sm font-black shrink-0"
-                      style={{ color: "var(--gold-light, #FDE68A)" }}
+                      style={{ color: "var(--theme-accent, var(--gold-light, #FDE68A))" }}
                     >
                       {formatPrice(order.totalUsd)}
                     </div>
@@ -333,11 +335,11 @@ export default function Orders() {
                   <div className="flex flex-wrap justify-between items-center gap-2 mt-2">
                     <div 
                       className="flex items-center gap-2 text-xs"
-                      style={{ color: "var(--text-muted, #9CA3AF)" }}
+                      style={{ color: "var(--theme-text-muted, var(--text-muted, #9CA3AF))" }}
                     >
                       <span 
                         className="font-mono font-bold"
-                        style={{ color: "var(--gold-primary, #C8A45C)" }}
+                        style={{ color: "var(--theme-primary, var(--gold-primary, #C8A45C))" }}
                       >
                         #{order.orderNumber}
                       </span>
@@ -353,7 +355,7 @@ export default function Orders() {
                           type="button"
                           className="px-3 py-1 rounded-xl text-xs font-bold transition flex items-center gap-1 cursor-pointer"
                           style={{
-                            backgroundColor: "var(--gold-primary, #C8A45C)",
+                            backgroundColor: "var(--theme-primary, var(--gold-primary, #C8A45C))",
                             color: "#1A1A1A",
                           }}
                         >
@@ -371,8 +373,8 @@ export default function Orders() {
           <div 
             className="flex flex-col items-center justify-center py-16 text-center rounded-3xl p-6"
             style={{
-              backgroundColor: "var(--bg-card, #2D2D2D)",
-              borderColor: "var(--border-color, rgba(200, 164, 92, 0.3))",
+              backgroundColor: "var(--theme-card, var(--bg-card, #2D2D2D))",
+              borderColor: "var(--theme-border, var(--border-color, rgba(200, 164, 92, 0.3)))",
               borderWidth: "1px",
               borderStyle: "dashed",
             }}
@@ -380,22 +382,22 @@ export default function Orders() {
             <div 
               className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4 border"
               style={{
-                backgroundColor: "var(--bg-primary, #1A1A1A)",
-                borderColor: "var(--border-color, rgba(200, 164, 92, 0.3))",
-                color: "var(--gold-primary, #C8A45C)",
+                backgroundColor: "var(--theme-background, var(--bg-primary, #1A1A1A))",
+                borderColor: "var(--theme-border, var(--border-color, rgba(200, 164, 92, 0.3)))",
+                color: "var(--theme-primary, var(--gold-primary, #C8A45C))",
               }}
             >
               <Package className="w-8 h-8" />
             </div>
             <p 
               className="font-bold text-base mb-1"
-              style={{ color: "var(--text-primary, #FFFFFF)" }}
+              style={{ color: "var(--theme-text-primary, var(--text-primary, #FFFFFF))" }}
             >
               لا توجد طلبات متطابقة
             </p>
             <p 
               className="text-xs max-w-[240px] mb-5"
-              style={{ color: "var(--text-muted, #9CA3AF)" }}
+              style={{ color: "var(--theme-text-muted, var(--text-muted, #9CA3AF))" }}
             >
               لم تقم بأي طلبات بعد في هذه الفئة. يمكنك تصفح كافة الخدمات والمنتجات المتاحة في المتجر.
             </p>
@@ -403,9 +405,9 @@ export default function Orders() {
             <Link href="/">
               <button
                 type="button"
-                className="px-6 py-2.5 rounded-2xl text-xs font-bold transition flex items-center gap-2 cursor-pointer shadow-lg shadow-[#C8A45C]/20"
+                className="px-6 py-2.5 rounded-2xl text-xs font-bold transition flex items-center gap-2 cursor-pointer shadow-lg"
                 style={{
-                  backgroundColor: "var(--gold-primary, #C8A45C)",
+                  backgroundColor: "var(--theme-primary, var(--gold-primary, #C8A45C))",
                   color: "#1A1A1A",
                 }}
               >

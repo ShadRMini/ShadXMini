@@ -1,6 +1,11 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useSearchParams } from "react-router-dom";
 import { get, put } from "../lib/api";
 import { applyAdminTheme, broadcastThemeChange, ensureGoogleFontsLoaded, DEFAULT_ADMIN_THEME } from "../lib/theme";
+import AuthPagesSettings from "./AuthPagesSettings";
+import ProductPageSettings from "./ProductPageSettings";
+import AboutSettings from "./AboutSettings";
+import ContactSettings from "./ContactSettings";
 import {
   Palette,
   Sparkles,
@@ -19,7 +24,10 @@ import {
   Info,
   ImageIcon,
   Maximize,
-  Sparkle
+  Sparkle,
+  LogIn,
+  Package,
+  Headphones
 } from "lucide-react";
 
 type PalettePreset = {
@@ -128,7 +136,30 @@ const PRESET_PALETTES: PalettePreset[] = [
 const GOOGLE_FONTS_ARABIC = ["Changa", "Cairo", "Almarai", "Tajawal", "Noto Kufi Arabic"];
 const GOOGLE_FONTS_ENGLISH = ["Inter", "Poppins", "Roboto", "Montserrat", "Open Sans"];
 
+export const THEME_TABS = [
+  { id: "general", label: "الهوية والمظهر", icon: Palette, badge: "الأساسي", desc: "الألوان، الخطوط، الشعار، الحواف والظلال" },
+  { id: "auth", label: "صفحات الدخول والتسجيل", icon: LogIn, desc: "خلفيات ونصوص ومميزات شاشات الدخول" },
+  { id: "product", label: "صفحة المنتج", icon: Package, desc: "ترتيب الأقسام، معاينة الشراء، وأزرار الطلب" },
+  { id: "about", label: "صفحة من نحن", icon: Info, desc: "نصوص وأقسام ومعلومات المتجر" },
+  { id: "contact", label: "تواصل معنا", icon: Headphones, desc: "قنوات الدعم الفني، وسائل التواصل والروابط" },
+] as const;
+
 export default function ThemeNew() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const currentTab = searchParams.get("tab") || "general";
+
+  const handleTabChange = (tabId: string) => {
+    if (tabId === "general") {
+      const nextParams = new URLSearchParams(searchParams);
+      nextParams.delete("tab");
+      setSearchParams(nextParams);
+    } else {
+      const nextParams = new URLSearchParams(searchParams);
+      nextParams.set("tab", tabId);
+      setSearchParams(nextParams);
+    }
+  };
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<{ text: string; type: "success" | "error" } | null>(null);
@@ -275,22 +306,56 @@ export default function ThemeNew() {
 
   return (
     <div className="space-y-6 text-zinc-100" dir="rtl">
-      {/* Toast Feedback */}
-      {toast && (
-        <div
-          className={`fixed top-5 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-2xl border shadow-2xl text-xs font-bold flex items-center gap-2 animate-bounce transition-all ${
-            toast.type === "success"
-              ? "bg-emerald-950 border-emerald-500/50 text-emerald-300"
-              : "bg-red-950 border-red-500/50 text-red-300"
-          }`}
-        >
-          {toast.type === "success" ? <CheckCircle2 size={16} /> : <AlertCircle size={16} />}
-          <span>{toast.text}</span>
-        </div>
-      )}
+      {/* Top Level Customization Tabs */}
+      <div className="bg-[#242424] p-2 rounded-2xl border border-[#C8A45C]/20 shadow-xl flex items-center gap-2 overflow-x-auto scrollbar-hide">
+        {THEME_TABS.map((tab) => {
+          const isActive = currentTab === tab.id;
+          const Icon = tab.icon;
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => handleTabChange(tab.id)}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
+                isActive
+                  ? "bg-[#C8A45C] text-[#1A1A1A] shadow-md shadow-[#C8A45C]/20"
+                  : "text-zinc-400 hover:text-white hover:bg-zinc-800"
+              }`}
+            >
+              <Icon size={16} className={isActive ? "text-[#1A1A1A]" : "text-[#C8A45C]"} />
+              <span>{tab.label}</span>
+              {tab.badge && (
+                <span
+                  className={`text-[10px] px-1.5 py-0.5 rounded-full font-black ${
+                    isActive ? "bg-[#1A1A1A] text-[#FDE68A]" : "bg-[#C8A45C]/15 text-[#C8A45C]"
+                  }`}
+                >
+                  {tab.badge}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
 
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#242424] p-5 rounded-2xl border border-[#C8A45C]/20 shadow-xl">
+      {currentTab === "general" && (
+        <>
+          {/* Toast Feedback */}
+          {toast && (
+            <div
+              className={`fixed top-5 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-2xl border shadow-2xl text-xs font-bold flex items-center gap-2 animate-bounce transition-all ${
+                toast.type === "success"
+                  ? "bg-emerald-950 border-emerald-500/50 text-emerald-300"
+                  : "bg-red-950 border-red-500/50 text-red-300"
+              }`}
+            >
+              {toast.type === "success" ? <CheckCircle2 size={16} /> : <AlertCircle size={16} />}
+              <span>{toast.text}</span>
+            </div>
+          )}
+
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#242424] p-5 rounded-2xl border border-[#C8A45C]/20 shadow-xl">
         <div className="flex items-center gap-3.5">
           <div className="w-12 h-12 rounded-xl bg-[#C8A45C]/10 border border-[#C8A45C]/30 flex items-center justify-center text-[#C8A45C]">
             <Palette size={26} />
@@ -999,6 +1064,20 @@ export default function ThemeNew() {
           </div>
         </div>
       )}
+        </>
+      )}
+
+      {/* Auth Pages Settings Tab */}
+      {currentTab === "auth" && <AuthPagesSettings />}
+
+      {/* Product Page Settings Tab */}
+      {currentTab === "product" && <ProductPageSettings />}
+
+      {/* About Us Page Settings Tab */}
+      {currentTab === "about" && <AboutSettings />}
+
+      {/* Contact Us Page Settings Tab */}
+      {currentTab === "contact" && <ContactSettings />}
     </div>
   );
 }

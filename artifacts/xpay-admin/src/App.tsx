@@ -163,11 +163,11 @@ export default function App() {
             <Route path="/interface-switcher" element={<InterfaceSwitcher />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/theme" element={<Theme />} />
-            <Route path="/auth-pages-settings" element={<AuthPagesSettings />} />
-            <Route path="/auth-settings" element={<AuthPagesSettings />} />
-            <Route path="/product-page-settings" element={<ProductPageSettings />} />
-            <Route path="/about-settings" element={<AboutSettings />} />
-            <Route path="/contact-settings" element={<ContactSettings />} />
+            <Route path="/auth-pages-settings" element={<Navigate to="/theme?tab=auth" replace />} />
+            <Route path="/auth-settings" element={<Navigate to="/theme?tab=auth" replace />} />
+            <Route path="/product-page-settings" element={<Navigate to="/theme?tab=product" replace />} />
+            <Route path="/about-settings" element={<Navigate to="/theme?tab=about" replace />} />
+            <Route path="/contact-settings" element={<Navigate to="/theme?tab=contact" replace />} />
             <Route path="/deposit-settings" element={<Navigate to="/payment-methods" replace />} />
             <Route path="/reports" element={<Reports />} />
             <Route path="/tickets" element={<Tickets />} />

@@ -90,11 +90,7 @@ const NEW_NAV_GROUPS: NavGroup[] = [
     items: [
       { to: "/interface-switcher", label: "تبديل الواجهات", icon: Layers },
       { to: "/settings", label: "الإعدادات العامة", icon: SettingsIcon },
-      { to: "/theme", label: "تخصيص التصميم", icon: Palette },
-      { to: "/auth-pages-settings", label: "تخصيص صفحات الدخول والتسجيل", icon: LogIn },
-      { to: "/product-page-settings", label: "تخصيص صفحة المنتج", icon: Package },
-      { to: "/about-settings", label: "تخصيص صفحة من نحن", icon: Info },
-      { to: "/contact-settings", label: "تخصيص صفحة تواصل معنا", icon: Headphones },
+      { to: "/theme", label: "تخصيص الهوية والصفحات", icon: Palette },
       { to: "/social-links", label: "الروابط الاجتماعية", icon: Share2 },
       { to: "/notifications", label: "الإشعارات", icon: Bell },
       { to: "/languages", label: "اللغات", icon: LangIcon },

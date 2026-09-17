@@ -45,7 +45,11 @@
   --theme-secondary: #B8954A;
   --theme-accent: #FDE68A;
   --theme-background: #1A1A1A;
+  --theme-card: #2D2D2D;
+  --theme-sidebar-bg: #1A1A1A;
   --theme-text-primary: #FFFFFF;
+  --theme-text-muted: #9CA3AF;
+  --theme-border: rgba(200, 164, 92, 0.2);
   --theme-font-arabic: 'Cairo', sans-serif;
   --theme-font-english: 'Inter', sans-serif;
   --theme-border-radius: 16px;
@@ -93,8 +97,15 @@
   --color-deep-dark: #F5F2EB;
   --color-warm-bg: #FFFFFF;
 
+  --theme-primary: #C8A45C;
+  --theme-secondary: #B8954A;
+  --theme-accent: #FDE68A;
   --theme-background: #F5F2EB;
+  --theme-card: #FFFFFF;
+  --theme-sidebar-bg: #F5F2EB;
   --theme-text-primary: #111827;
+  --theme-text-muted: #6B7280;
+  --theme-border: rgba(200, 164, 92, 0.2);
   --theme-shadow: 0 4px 18px rgba(0, 0, 0, 0.07);
   --theme-logo-size: 80px;
   --logo-size: 80px;

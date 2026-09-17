@@ -95,17 +95,34 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       )}
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 pb-20 lg:pb-8 bg-[var(--bg-primary,#1A1A1A)]">
+      <div 
+        className="flex-1 flex flex-col min-w-0 pb-20 lg:pb-8 transition-colors"
+        style={{
+          backgroundColor: "var(--theme-background, var(--bg-primary, #1A1A1A))",
+          color: "var(--theme-text-primary, #FFFFFF)",
+        }}
+      >
         {/* Mobile / Top Header Bar */}
-        <header className="sticky top-0 z-20 h-[72px] bg-[var(--bg-primary,#1A1A1A)]/95 backdrop-blur-md border-b border-[var(--border-color,rgba(200,164,92,0.3))] px-4 flex items-center justify-between shadow-md shrink-0">
+        <header 
+          className="sticky top-0 z-20 h-[72px] backdrop-blur-md px-4 flex items-center justify-between shadow-md shrink-0 transition-colors"
+          style={{
+            backgroundColor: "var(--theme-background, #1A1A1A)",
+            borderBottom: "1px solid var(--theme-border, rgba(200,164,92,0.3))",
+          }}
+        >
           <div className="flex items-center gap-3 h-full">
             {/* Hamburger Button */}
             <button
               onClick={() => setDrawerOpen(true)}
-              className="p-2 rounded-xl text-[#FDE68A] hover:bg-[var(--bg-card)] border border-[#C8A45C]/30 transition active:scale-95 cursor-pointer shrink-0"
+              className="p-2 rounded-xl transition active:scale-95 cursor-pointer shrink-0"
+              style={{
+                backgroundColor: "var(--theme-card, var(--bg-card))",
+                border: "1px solid var(--theme-border, rgba(200,164,92,0.3))",
+                color: "var(--theme-primary, #C8A45C)",
+              }}
               aria-label="فتح القائمة الجانبية"
             >
-              <Menu size={22} className="text-[#C8A45C]" />
+              <Menu size={22} style={{ color: "var(--theme-primary, #C8A45C)" }} />
             </button>
 
             <Link href="/" className="flex items-center gap-2.5 h-full py-2">
@@ -123,7 +140,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   }}
                 />
               ) : (
-                <span className="text-lg font-black text-[#FDE68A] tracking-wide">
+                <span 
+                  className="text-lg font-black tracking-wide"
+                  style={{ color: "var(--theme-accent, #FDE68A)" }}
+                >
                   {storeSettings.siteName || "ShadMini"}
                 </span>
               )}
@@ -137,24 +157,43 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 <NotificationBellDropdown />
 
                 <Link href="/deposit">
-                  <div className="flex items-center gap-1.5 bg-[var(--bg-card)] border border-[#C8A45C]/40 px-3 py-1.5 rounded-full cursor-pointer hover:border-[#C8A45C] transition shadow-xs">
-                    <span className="text-[11px] font-bold text-[var(--text-muted,#9CA3AF)]">الرصيد:</span>
-                    <span className="text-xs font-black text-[#FDE68A]">
+                  <div 
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full cursor-pointer transition shadow-xs"
+                    style={{
+                      backgroundColor: "var(--theme-card, var(--bg-card))",
+                      border: "1px solid var(--theme-border, rgba(200,164,92,0.4))",
+                    }}
+                  >
+                    <span className="text-[11px] font-bold" style={{ color: "var(--theme-text-muted, #9CA3AF)" }}>الرصيد:</span>
+                    <span className="text-xs font-black" style={{ color: "var(--theme-accent, #FDE68A)" }}>
                       ${Number(user.balanceUsd || 0).toFixed(2)}
                     </span>
-                    <Plus size={13} className="text-[#C8A45C]" />
+                    <Plus size={13} style={{ color: "var(--theme-primary, #C8A45C)" }} />
                   </div>
                 </Link>
               </>
             ) : (
               <div className="flex items-center gap-2">
                 <Link href="/login">
-                  <button className="bg-[#C8A45C] hover:bg-[#B8954A] text-[#1A1A1A] font-black text-xs px-3.5 py-1.5 rounded-full shadow-sm cursor-pointer transition">
+                  <button 
+                    className="font-black text-xs px-3.5 py-1.5 rounded-full shadow-sm cursor-pointer transition"
+                    style={{
+                      backgroundColor: "var(--theme-primary, #C8A45C)",
+                      color: "#1A1A1A",
+                    }}
+                  >
                     {storeSettings.guestPreviewLoginButton || "تسجيل الدخول"}
                   </button>
                 </Link>
                 <Link href="/register">
-                  <button className="hidden sm:inline-flex bg-[#2D2D2D] hover:bg-[#383838] border border-[#C8A45C]/40 text-[#FDE68A] font-bold text-xs px-3.5 py-1.5 rounded-full shadow-sm cursor-pointer transition">
+                  <button 
+                    className="hidden sm:inline-flex font-bold text-xs px-3.5 py-1.5 rounded-full shadow-sm cursor-pointer transition"
+                    style={{
+                      backgroundColor: "var(--theme-card, #2D2D2D)",
+                      border: "1px solid var(--theme-border, rgba(200,164,92,0.4))",
+                      color: "var(--theme-accent, #FDE68A)",
+                    }}
+                  >
                     {storeSettings.guestPreviewRegisterButton || "إنشاء حساب"}
                   </button>
                 </Link>
@@ -169,7 +208,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </main>
 
         {/* Global Store Footer */}
-        <footer className="w-full max-w-7xl mx-auto px-4 py-6 border-t border-[var(--border-color,rgba(200,164,92,0.15))] text-center text-xs text-zinc-400">
+        <footer 
+          className="w-full max-w-7xl mx-auto px-4 py-6 border-t text-center text-xs"
+          style={{
+            borderColor: "var(--theme-border, rgba(200,164,92,0.15))",
+            color: "var(--theme-text-muted, #9CA3AF)",
+          }}
+        >
           <p className="font-medium">
             جميع الحقوق محفوظة © {new Date().getFullYear()} {storeSettings.siteName || "ShadMini"}
           </p>
@@ -177,7 +222,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       </div>
 
       {/* Bottom Floating Navigation Bar (Mobile / Tablet Only) */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-[var(--bg-primary,#1A1A1A)]/95 backdrop-blur-xl border-t border-[var(--border-color,rgba(200,164,92,0.3))] pb-safe z-40 shadow-[0_-10px_30px_var(--shadow-color,rgba(0,0,0,0.3))]">
+      <nav 
+        className="lg:hidden fixed bottom-0 left-0 right-0 backdrop-blur-xl border-t pb-safe z-40 shadow-lg"
+        style={{
+          backgroundColor: "var(--theme-background, #1A1A1A)",
+          borderColor: "var(--theme-border, rgba(200,164,92,0.3))",
+        }}
+      >
         <div className="flex items-center justify-around px-2 h-16 max-w-md mx-auto">
           {bottomNavItems.map((item) => {
             const isActive =
@@ -189,14 +240,21 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   <div className="relative -top-5 flex flex-col items-center justify-center cursor-pointer group">
                     <div
                       className={`w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-transform active:scale-95 ${
-                        isActive
-                          ? "bg-[#C8A45C] text-[#1A1A1A] shadow-[#C8A45C]/50 scale-105"
-                          : "bg-[#C8A45C] text-[#1A1A1A] hover:bg-[#B8954A] shadow-[#C8A45C]/30"
+                        isActive ? "scale-105" : ""
                       }`}
+                      style={{
+                        backgroundColor: "var(--theme-primary, #C8A45C)",
+                        color: "#1A1A1A",
+                      }}
                     >
                       <item.icon className="w-7 h-7 stroke-[2.5]" />
                     </div>
-                    <span className="text-[10px] mt-1 font-bold text-[#C8A45C]">{item.label}</span>
+                    <span 
+                      className="text-[10px] mt-1 font-bold"
+                      style={{ color: "var(--theme-primary, #C8A45C)" }}
+                    >
+                      {item.label}
+                    </span>
                   </div>
                 </Link>
               );
@@ -206,16 +264,20 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               <Link key={item.href} href={item.href} onClick={(e) => handleNavClick(e, item.href)}>
                 <div className="flex flex-col items-center justify-center w-14 h-full cursor-pointer group">
                   <div
-                    className={`p-1.5 rounded-xl transition-all duration-300 ${
-                      isActive ? "bg-[#C8A45C]/20 text-[#C8A45C]" : "text-[var(--text-muted,#9CA3AF)] group-hover:text-[#C8A45C]"
-                    }`}
+                    className="p-1.5 rounded-xl transition-all duration-300"
+                    style={{
+                      backgroundColor: isActive ? "rgba(200, 164, 92, 0.2)" : "transparent",
+                      color: isActive ? "var(--theme-primary, #C8A45C)" : "var(--theme-text-muted, #9CA3AF)",
+                    }}
                   >
                     <item.icon className="w-5 h-5" strokeWidth={isActive ? 2.5 : 2} />
                   </div>
                   <span
-                    className={`text-[10px] mt-0.5 transition-colors ${
-                      isActive ? "text-[#C8A45C] font-extrabold" : "text-[var(--text-muted,#9CA3AF)] font-medium"
-                    }`}
+                    className="text-[10px] mt-0.5 transition-colors"
+                    style={{
+                      color: isActive ? "var(--theme-primary, #C8A45C)" : "var(--theme-text-muted, #9CA3AF)",
+                      fontWeight: isActive ? 800 : 500,
+                    }}
                   >
                     {item.label}
                   </span>

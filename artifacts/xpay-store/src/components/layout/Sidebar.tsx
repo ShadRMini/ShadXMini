@@ -138,15 +138,18 @@ export default function Sidebar({ brandLogo, onClose }: SidebarProps) {
 
   return (
     <div
-      className={`flex flex-col h-full select-none ${
-        isDark ? "bg-[#1A1A1A] text-white" : "bg-[#F8F9FA] text-zinc-900"
-      }`}
+      className="flex flex-col h-full select-none transition-colors"
+      style={{
+        backgroundColor: "var(--theme-sidebar-bg, var(--theme-background, #1A1A1A))",
+        color: "var(--theme-text-primary, #FFFFFF)",
+      }}
     >
       {/* Header / Brand */}
       <div
-        className={`p-5 border-b flex items-center justify-between min-h-[72px] ${
-          isDark ? "border-zinc-800" : "border-zinc-200"
-        } ${onClose ? "justify-between" : ""}`}
+        className={`p-5 border-b flex items-center justify-between min-h-[72px] ${onClose ? "justify-between" : ""}`}
+        style={{
+          borderColor: "var(--theme-border, rgba(200, 164, 92, 0.2))",
+        }}
       >
         {/* Brand Logo & Name - Hidden on mobile (<768px), visible on md/lg and desktop */}
         <Link href="/" className="hidden md:flex items-center gap-3">
@@ -163,17 +166,23 @@ export default function Sidebar({ brandLogo, onClose }: SidebarProps) {
               }}
             />
           ) : (
-            <span className="text-xl font-black text-[#FDE68A] tracking-wide">
+            <span 
+              className="text-xl font-black tracking-wide"
+              style={{ color: "var(--theme-accent, #FDE68A)" }}
+            >
               {storeSettings.siteName || "ShadMini"}
             </span>
           )}
         </Link>
         {onClose && (
           <div className="flex items-center justify-between w-full md:w-auto">
-            <span className="text-sm font-bold text-zinc-400 md:hidden">القائمة</span>
+            <span className="text-sm font-bold md:hidden" style={{ color: "var(--theme-text-muted, #9CA3AF)" }}>
+              القائمة
+            </span>
             <button
               onClick={onClose}
-              className="lg:hidden text-zinc-400 hover:text-[#C8A45C] p-1.5 rounded-xl hover:bg-zinc-800/40 transition cursor-pointer"
+              className="lg:hidden p-1.5 rounded-xl transition cursor-pointer"
+              style={{ color: "var(--theme-text-muted, #9CA3AF)" }}
               aria-label="إغلاق القائمة"
             >
               <X size={20} />
@@ -185,11 +194,11 @@ export default function Sidebar({ brandLogo, onClose }: SidebarProps) {
       {/* User Info Card */}
       {user ? (
         <div
-          className={`p-4 mx-3 my-3 rounded-2xl border ${
-            isDark
-              ? "bg-zinc-900/90 border-zinc-800"
-              : "bg-white border-zinc-200 shadow-sm"
-          }`}
+          className="p-4 mx-3 my-3 rounded-2xl border transition-colors shadow-sm"
+          style={{
+            backgroundColor: "var(--theme-card, #2D2D2D)",
+            borderColor: "var(--theme-border, rgba(200, 164, 92, 0.2))",
+          }}
         >
           <div className="flex items-center gap-3">
             <div className="relative">
@@ -197,10 +206,17 @@ export default function Sidebar({ brandLogo, onClose }: SidebarProps) {
                 <img
                   src={user.avatarUrl}
                   alt={displayName}
-                  className="w-12 h-12 rounded-2xl object-cover border border-[#C8A45C]/50 shadow-md bg-zinc-800"
+                  className="w-12 h-12 rounded-2xl object-cover border shadow-md"
+                  style={{ borderColor: "var(--theme-border, rgba(200, 164, 92, 0.4))" }}
                 />
               ) : (
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#C8A45C] to-[#B8954A] text-[#1A1A1A] font-black flex items-center justify-center text-xl shadow-md">
+                <div 
+                  className="w-12 h-12 rounded-2xl font-black flex items-center justify-center text-xl shadow-md"
+                  style={{
+                    backgroundColor: "var(--theme-primary, #C8A45C)",
+                    color: "#1A1A1A",
+                  }}
+                >
                   {displayName.charAt(0).toUpperCase()}
                 </div>
               )}
@@ -214,9 +230,8 @@ export default function Sidebar({ brandLogo, onClose }: SidebarProps) {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5">
                 <span
-                  className={`text-sm font-bold truncate ${
-                    isDark ? "text-white" : "text-zinc-900"
-                  }`}
+                  className="text-sm font-bold truncate"
+                  style={{ color: "var(--theme-text-primary, #FFFFFF)" }}
                 >
                   {displayName}
                 </span>
@@ -236,45 +251,57 @@ export default function Sidebar({ brandLogo, onClose }: SidebarProps) {
                   {vipBadgeName}
                 </span>
               </div>
-              <div className="flex items-center gap-2 mt-0.5 text-xs text-zinc-400">
+              <div className="flex items-center gap-2 mt-0.5 text-xs" style={{ color: "var(--theme-text-muted, #9CA3AF)" }}>
                 <span>المعرف:</span>
-                <span className="font-mono text-[#C8A45C] font-semibold">{displayId}</span>
+                <span className="font-mono font-semibold" style={{ color: "var(--theme-primary, #C8A45C)" }}>
+                  {displayId}
+                </span>
               </div>
             </div>
           </div>
 
           {/* Quick Balance */}
           <div
-            className={`mt-3 pt-3 border-t flex items-center justify-between text-xs ${
-              isDark ? "border-zinc-800/80" : "border-zinc-100"
-            }`}
+            className="mt-3 pt-3 border-t flex items-center justify-between text-xs"
+            style={{ borderColor: "var(--theme-border, rgba(200, 164, 92, 0.15))" }}
           >
-            <span className="text-zinc-400 font-medium">الرصيد المتاح:</span>
-            <span className="text-sm font-extrabold text-[#C8A45C]">
+            <span className="font-medium" style={{ color: "var(--theme-text-muted, #9CA3AF)" }}>الرصيد المتاح:</span>
+            <span className="text-sm font-extrabold" style={{ color: "var(--theme-accent, var(--theme-primary, #C8A45C))" }}>
               ${Number(user.balanceUsd || 0).toFixed(2)}
             </span>
           </div>
         </div>
       ) : (
         <div
-          className={`p-4 mx-3 my-3 rounded-2xl border text-center ${
-            isDark ? "bg-zinc-900/90 border-zinc-800" : "bg-white border-zinc-200 shadow-sm"
-          }`}
+          className="p-4 mx-3 my-3 rounded-2xl border text-center transition-colors shadow-sm"
+          style={{
+            backgroundColor: "var(--theme-card, #2D2D2D)",
+            borderColor: "var(--theme-border, rgba(200, 164, 92, 0.2))",
+          }}
         >
-          <p className="text-xs text-zinc-400 mb-3">سجل الدخول للوصول لكافة الميزات</p>
+          <p className="text-xs mb-3" style={{ color: "var(--theme-text-muted, #9CA3AF)" }}>
+            سجل الدخول للوصول لكافة الميزات
+          </p>
           <div className="flex gap-2">
             <Link href="/login" className="flex-1" onClick={() => onClose && onClose()}>
-              <button className="w-full bg-[#C8A45C] hover:bg-[#B8954A] text-[#1A1A1A] font-bold text-xs py-2 rounded-xl transition cursor-pointer">
+              <button 
+                className="w-full font-bold text-xs py-2 rounded-xl transition cursor-pointer shadow-sm"
+                style={{
+                  backgroundColor: "var(--theme-primary, #C8A45C)",
+                  color: "#1A1A1A",
+                }}
+              >
                 {storeSettings.guestPreviewLoginButton || "تسجيل الدخول"}
               </button>
             </Link>
             <Link href="/register" className="flex-1" onClick={() => onClose && onClose()}>
               <button
-                className={`w-full font-bold text-xs py-2 rounded-xl border transition cursor-pointer ${
-                  isDark
-                    ? "bg-zinc-800 text-white border-zinc-700 hover:bg-zinc-700"
-                    : "bg-zinc-100 text-zinc-800 border-zinc-300 hover:bg-zinc-200"
-                }`}
+                className="w-full font-bold text-xs py-2 rounded-xl border transition cursor-pointer"
+                style={{
+                  backgroundColor: "var(--theme-background, #1A1A1A)",
+                  borderColor: "var(--theme-border, rgba(200, 164, 92, 0.3))",
+                  color: "var(--theme-text-primary, #FFFFFF)",
+                }}
               >
                 {storeSettings.guestPreviewRegisterButton || "إنشاء حساب"}
               </button>
@@ -294,37 +321,37 @@ export default function Sidebar({ brandLogo, onClose }: SidebarProps) {
           return (
             <Link key={item.href} href={item.href} onClick={(e) => handleLinkClick(e, item.href)}>
               <div
-                className={`flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-semibold transition-all cursor-pointer select-none ${
-                  isActive
-                    ? "bg-[#C8A45C] text-[#1A1A1A] font-bold shadow-md shadow-[#C8A45C]/30"
-                    : isDark
-                    ? "text-zinc-200 hover:bg-[#C8A45C]/15 hover:text-[#C8A45C] active:scale-[0.98]"
-                    : "text-zinc-700 hover:bg-[#C8A45C]/15 hover:text-[#B8954A] active:scale-[0.98]"
-                }`}
+                className="flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-semibold transition-all cursor-pointer select-none"
+                style={{
+                  backgroundColor: isActive ? "var(--theme-primary, #C8A45C)" : "transparent",
+                  color: isActive ? "#1A1A1A" : "var(--theme-text-primary, #FFFFFF)",
+                  fontWeight: isActive ? 700 : 500,
+                  boxShadow: isActive ? "0 4px 12px rgba(200, 164, 92, 0.25)" : "none",
+                }}
               >
                 <div className="flex items-center gap-3">
                   <item.icon
                     size={18}
-                    className={isActive ? "text-[#1A1A1A]" : "text-[#C8A45C]"}
+                    style={{ color: isActive ? "#1A1A1A" : "var(--theme-primary, #C8A45C)" }}
                   />
                   <span>{item.label}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   {item.badge && (
                     <span
-                      className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
-                        isActive
-                          ? "bg-[#1A1A1A] text-[#FDE68A]"
-                          : "bg-[#C8A45C] text-[#1A1A1A] shadow-xs shadow-[#C8A45C]/40 animate-pulse"
-                      }`}
+                      className="text-[10px] font-black px-2 py-0.5 rounded-full"
+                      style={{
+                        backgroundColor: isActive ? "#1A1A1A" : "var(--theme-primary, #C8A45C)",
+                        color: isActive ? "var(--theme-accent, #FDE68A)" : "#1A1A1A",
+                      }}
                     >
                       {item.badge}
                     </span>
                   )}
                   <ChevronLeft
                     size={16}
-                    className={`opacity-40 transition-transform ${
-                      isActive ? "opacity-90 -translate-x-1" : ""
+                    className={`transition-transform ${
+                      isActive ? "opacity-90 -translate-x-1" : "opacity-40"
                     }`}
                   />
                 </div>
