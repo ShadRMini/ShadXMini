@@ -212,7 +212,14 @@ export default function About() {
   // Legacy Static Design Mode
   if (useLegacy) {
     return (
-      <div className="p-4 sm:p-6 min-h-screen bg-[#1A1A1A] text-white pb-24 animate-in fade-in duration-300" dir="rtl">
+      <div
+        className="p-4 sm:p-6 min-h-screen pb-24 animate-in fade-in duration-300"
+        dir="rtl"
+        style={{
+          backgroundColor: "var(--about-bg-color, var(--theme-background, #1A1A1A))",
+          color: "var(--about-text-color, var(--theme-text-primary, #FFFFFF))",
+        }}
+      >
         {/* Top Header */}
         <div className="flex items-center justify-between mb-6 max-w-2xl mx-auto">
           <div className="flex items-center gap-3">
@@ -225,7 +232,10 @@ export default function About() {
             </div>
           </div>
           <Link href="/">
-            <button className="flex items-center gap-1 text-xs font-bold text-[#C8A45C] hover:text-[#FDE68A] bg-[#2D2D2D] border border-zinc-700 hover:border-[#C8A45C] px-3.5 py-2 rounded-xl shadow-xs transition cursor-pointer">
+            <button
+              className="flex items-center gap-1 text-xs font-bold text-[#C8A45C] hover:text-[#FDE68A] border border-zinc-700 hover:border-[#C8A45C] px-3.5 py-2 rounded-xl shadow-xs transition cursor-pointer"
+              style={{ backgroundColor: "var(--about-card-color, var(--theme-card, #2D2D2D))" }}
+            >
               <span>الرئيسية</span>
               <ArrowRight size={14} />
             </button>
@@ -234,7 +244,10 @@ export default function About() {
 
         <div className="space-y-4 max-w-2xl mx-auto">
           {/* Hero Card */}
-          <div className="bg-[#2D2D2D] border border-[#C8A45C]/40 text-white rounded-3xl p-6 sm:p-8 text-center shadow-xl relative overflow-hidden">
+          <div
+            className="border border-[#C8A45C]/40 text-white rounded-3xl p-6 sm:p-8 text-center shadow-xl relative overflow-hidden"
+            style={{ backgroundColor: "var(--about-card-color, var(--theme-card, #2D2D2D))" }}
+          >
             <div className="absolute top-0 right-0 w-40 h-40 bg-[#C8A45C]/10 rounded-full blur-3xl pointer-events-none" />
             <h2 className="text-xl sm:text-2xl font-black text-[#FDE68A] mb-2">
               منصة ShadMini للخدمات الرقمية
@@ -246,7 +259,10 @@ export default function About() {
 
           {/* Feature Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-            <div className="bg-[#2D2D2D] border border-[#C8A45C]/30 rounded-2xl p-4 shadow-md hover:border-[#C8A45C] transition">
+            <div
+              className="border border-[#C8A45C]/30 rounded-2xl p-4 shadow-md hover:border-[#C8A45C] transition"
+              style={{ backgroundColor: "var(--about-card-color, var(--theme-card, #2D2D2D))" }}
+            >
               <div className="w-10 h-10 rounded-xl bg-[#1A1A1A] border border-[#C8A45C]/40 text-[#C8A45C] flex items-center justify-center mb-3">
                 <Zap size={20} />
               </div>
@@ -256,7 +272,10 @@ export default function About() {
               </p>
             </div>
 
-            <div className="bg-[#2D2D2D] border border-[#C8A45C]/30 rounded-2xl p-4 shadow-md hover:border-[#C8A45C] transition">
+            <div
+              className="border border-[#C8A45C]/30 rounded-2xl p-4 shadow-md hover:border-[#C8A45C] transition"
+              style={{ backgroundColor: "var(--about-card-color, var(--theme-card, #2D2D2D))" }}
+            >
               <div className="w-10 h-10 rounded-xl bg-[#1A1A1A] border border-[#C8A45C]/40 text-[#C8A45C] flex items-center justify-center mb-3">
                 <ShieldCheck size={20} />
               </div>
@@ -266,7 +285,10 @@ export default function About() {
               </p>
             </div>
 
-            <div className="bg-[#2D2D2D] border border-[#C8A45C]/30 rounded-2xl p-4 shadow-md hover:border-[#C8A45C] transition">
+            <div
+              className="border border-[#C8A45C]/30 rounded-2xl p-4 shadow-md hover:border-[#C8A45C] transition"
+              style={{ backgroundColor: "var(--about-card-color, var(--theme-card, #2D2D2D))" }}
+            >
               <div className="w-10 h-10 rounded-xl bg-[#1A1A1A] border border-[#C8A45C]/40 text-[#C8A45C] flex items-center justify-center mb-3">
                 <Globe size={20} />
               </div>
@@ -276,7 +298,10 @@ export default function About() {
               </p>
             </div>
 
-            <div className="bg-[#2D2D2D] border border-[#C8A45C]/30 rounded-2xl p-4 shadow-md hover:border-[#C8A45C] transition">
+            <div
+              className="border border-[#C8A45C]/30 rounded-2xl p-4 shadow-md hover:border-[#C8A45C] transition"
+              style={{ backgroundColor: "var(--about-card-color, var(--theme-card, #2D2D2D))" }}
+            >
               <div className="w-10 h-10 rounded-xl bg-[#1A1A1A] border border-[#C8A45C]/40 text-[#C8A45C] flex items-center justify-center mb-3">
                 <Headphones size={20} />
               </div>
@@ -303,9 +328,9 @@ export default function About() {
       className="p-4 sm:p-6 min-h-screen pb-24 animate-in fade-in duration-300"
       dir="rtl"
       style={{
-        backgroundColor: style.bg_color || "#1A1A1A",
-        color: style.text_color || "#FFFFFF",
-        fontFamily: style.font_family || "Cairo",
+        backgroundColor: style.bg_color || "var(--about-bg-color, var(--theme-background, #1A1A1A))",
+        color: style.text_color || "var(--about-text-color, var(--theme-text-primary, #FFFFFF))",
+        fontFamily: style.font_family || "var(--theme-font-arabic, 'Cairo', sans-serif)",
       }}
     >
       {/* Top Bar Header */}
@@ -338,7 +363,7 @@ export default function About() {
           <button
             className="flex items-center gap-1.5 text-xs font-bold px-3.5 py-2 rounded-xl shadow-xs transition border cursor-pointer hover:opacity-90"
             style={{
-              backgroundColor: style.section_bg || "#2D2D2D",
+              backgroundColor: style.section_bg || "var(--about-card-color, var(--theme-card, #2D2D2D))",
               borderColor: `${style.title_color || "#C8A45C"}50`,
               color: style.title_color || "#C8A45C",
             }}
@@ -356,7 +381,7 @@ export default function About() {
             key={section.id}
             className="p-5 sm:p-6 border shadow-xl transition relative overflow-hidden"
             style={{
-              backgroundColor: style.section_bg || "#2D2D2D",
+              backgroundColor: style.section_bg || "var(--about-card-color, var(--theme-card, #2D2D2D))",
               borderRadius: style.border_radius || "16px",
               borderColor: `${style.title_color || "#C8A45C"}35`,
             }}

@@ -159,8 +159,20 @@ export default function Login() {
   // --- LEGACY SINGLE CARD LAYOUT (Fallback if use_legacy_auth_pages is true) ---
   if (useLegacyLayout) {
     return (
-      <div className="min-h-[100dvh] flex flex-col justify-center items-center p-4 sm:p-6 bg-[#1A1A1A] text-white" dir="rtl">
-        <div className="w-full max-w-md bg-[#2D2D2D] rounded-3xl p-6 sm:p-8 shadow-2xl border border-[var(--theme-primary,#C8A45C)]/40 relative overflow-hidden">
+      <div
+        className="min-h-[100dvh] flex flex-col justify-center items-center p-4 sm:p-6 transition-colors duration-200"
+        style={{
+          backgroundColor: "var(--auth-bg-color, var(--theme-background, #1A1A1A))",
+          color: "var(--auth-text-color, var(--theme-text-primary, #FFFFFF))",
+        }}
+        dir="rtl"
+      >
+        <div
+          className="w-full max-w-md rounded-3xl p-6 sm:p-8 shadow-2xl border border-[var(--theme-primary,#C8A45C)]/40 relative overflow-hidden"
+          style={{
+            backgroundColor: "var(--auth-card-color, var(--theme-card, #2D2D2D))",
+          }}
+        >
           <div className="text-center mb-6 relative z-10 flex flex-col items-center">
             {brandLogo ? (
               <Link href="/" className="mb-4 inline-block hover:opacity-90 transition">
@@ -261,17 +273,20 @@ export default function Login() {
   return (
     <div
       id="login-page-container"
-      className="min-h-[100dvh] w-full flex items-center justify-center p-3 sm:p-6 lg:p-10 bg-zinc-100 dark:bg-[#121212] transition-colors duration-200"
+      className="min-h-[100dvh] w-full flex items-center justify-center p-3 sm:p-6 lg:p-10 transition-colors duration-200"
       dir="rtl"
       style={{
+        backgroundColor: "var(--auth-bg-color, var(--theme-background, #121212))",
+        color: "var(--auth-text-color, var(--theme-text-primary, inherit))",
         fontFamily: "var(--theme-font-arabic, 'Cairo', sans-serif)",
       }}
     >
       {/* Outer Card Container */}
       <div
         id="login-card"
-        className="w-full max-w-4xl bg-white dark:bg-[#1E1E1E] shadow-2xl rounded-3xl overflow-hidden border border-zinc-200/80 dark:border-zinc-800 flex flex-col lg:flex-row transition-all duration-200"
+        className="w-full max-w-4xl shadow-2xl rounded-3xl overflow-hidden border border-zinc-200/80 dark:border-zinc-800 flex flex-col lg:flex-row transition-all duration-200"
         style={{
+          backgroundColor: "var(--auth-card-color, var(--theme-card, #1E1E1E))",
           borderRadius: "var(--theme-border-radius, 24px)",
         }}
       >
@@ -281,7 +296,7 @@ export default function Login() {
           id="login-branding-panel"
           className="w-full lg:w-1/2 p-6 sm:p-8 lg:p-12 flex flex-col justify-between items-center text-center relative overflow-hidden transition-colors duration-200"
           style={{
-            backgroundColor: authConfig.common.styles.brandingBgColor || "var(--theme-primary, #C8A45C)",
+            backgroundColor: authConfig.common.styles.brandingBgColor || "var(--auth-button-color, var(--theme-primary, #C8A45C))",
             color: authConfig.common.styles.brandingTextColor || "#FFFFFF",
           }}
         >
@@ -327,7 +342,11 @@ export default function Login() {
         {/* Form area: Left on desktop (second child in RTL flex-row), bottom on mobile */}
         <div
           id="login-form-panel"
-          className="w-full lg:w-1/2 p-6 sm:p-8 lg:p-12 flex flex-col justify-center bg-white dark:bg-[#1E1E1E] text-zinc-900 dark:text-zinc-100"
+          className="w-full lg:w-1/2 p-6 sm:p-8 lg:p-12 flex flex-col justify-center text-zinc-900 dark:text-zinc-100"
+          style={{
+            backgroundColor: "var(--auth-card-color, var(--theme-card, #1E1E1E))",
+            color: "var(--auth-text-color, var(--theme-text-primary, inherit))",
+          }}
         >
           <div className="w-full max-w-md mx-auto">
             {/* Header */}
@@ -427,7 +446,7 @@ export default function Login() {
                 disabled={loading}
                 className="w-full min-h-[48px] sm:min-h-[52px] font-black py-3 px-5 rounded-xl sm:rounded-2xl shadow-lg flex items-center justify-center gap-2 text-sm sm:text-base transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:brightness-95 active:scale-[0.99] mt-2"
                 style={{
-                  backgroundColor: authConfig.common.styles.buttonBgColor || "var(--theme-primary, #C8A45C)",
+                  backgroundColor: authConfig.common.styles.buttonBgColor || "var(--auth-button-color, var(--theme-primary, #C8A45C))",
                   color: authConfig.common.styles.buttonTextColor || "#1A1A1A",
                   boxShadow: "0 10px 20px -5px rgba(200, 164, 92, 0.35)",
                 }}

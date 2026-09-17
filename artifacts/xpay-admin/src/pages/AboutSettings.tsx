@@ -633,7 +633,18 @@ export default function AboutSettings() {
         config,
         use_legacy_about_page: useLegacy,
       });
-      toast.success("تم حفظ إعدادات صفحة من نحن بنجاح");
+
+      try {
+        await put("/admin/theme-settings", {
+          about_bg_color: config.style.bg_color || "#1A1A1A",
+          about_card_color: config.style.section_bg || "#2D2D2D",
+          about_text_color: config.style.text_color || "#FFFFFF",
+        });
+      } catch (themeErr) {
+        console.warn("[AboutSettings] Theme settings sync failed:", themeErr);
+      }
+
+      toast.success("تم حفظ إعدادات صفحة من نحن وتوحيد الألوان بنجاح");
     } catch (err: any) {
       toast.error("حدث خطأ أثناء حفظ الإعدادات");
     } finally {

@@ -428,10 +428,12 @@ export default function ProductPageSettings() {
 
       await put("/admin/theme-settings", {
         product_image_size: customization.image_size,
-        product_bg_color: customization.bg_color,
-        product_button_color: customization.button_color,
-        product_text_color: customization.text_color,
-        product_border_color: customization.border_color,
+        product_bg_color: customization.bg_color || "#1A1A1A",
+        product_card_color: customization.info_box_bg_color || "#242424",
+        product_button_color: customization.button_color || "#C8A45C",
+        product_text_color: customization.text_color || "#FFFFFF",
+        product_price_color: customization.price_color || "#FDE68A",
+        product_border_color: customization.border_color || "#C8A45C",
         product_legacy_mode: useLegacy,
         use_legacy_product_page: useLegacy,
       });
@@ -595,6 +597,44 @@ export default function ProductPageSettings() {
                       {sz.label}
                     </button>
                   ))}
+                </div>
+              </div>
+
+              {/* Product Page Background Color */}
+              <div className="space-y-1.5 p-3 bg-[#1A1A1A] rounded-xl border border-[#C8A45C]/30">
+                <label className="block text-[#FDE68A] font-bold text-xs">لون خلفية صفحة المنتج الأساسية (Page BG Color)</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={customization.bg_color || "#1A1A1A"}
+                    onChange={(e) => handleCustomizationChange("bg_color", e.target.value)}
+                    className="w-8 h-8 rounded-lg border border-zinc-700 bg-transparent cursor-pointer"
+                  />
+                  <input
+                    type="text"
+                    value={customization.bg_color || "#1A1A1A"}
+                    onChange={(e) => handleCustomizationChange("bg_color", e.target.value)}
+                    className="flex-1 bg-[#242424] border border-zinc-700 text-white font-mono px-2.5 py-1 rounded-lg text-xs uppercase"
+                  />
+                </div>
+              </div>
+
+              {/* General Text Color */}
+              <div className="space-y-1.5 p-3 bg-[#1A1A1A] rounded-xl border border-zinc-800">
+                <label className="block text-zinc-300 font-semibold text-xs">لون النصوص العامة بالصفحة (Page Text Color)</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={customization.text_color || "#FFFFFF"}
+                    onChange={(e) => handleCustomizationChange("text_color", e.target.value)}
+                    className="w-8 h-8 rounded-lg border border-zinc-700 bg-transparent cursor-pointer"
+                  />
+                  <input
+                    type="text"
+                    value={customization.text_color || "#FFFFFF"}
+                    onChange={(e) => handleCustomizationChange("text_color", e.target.value)}
+                    className="flex-1 bg-[#242424] border border-zinc-700 text-white font-mono px-2.5 py-1 rounded-lg text-xs uppercase"
+                  />
                 </div>
               </div>
 

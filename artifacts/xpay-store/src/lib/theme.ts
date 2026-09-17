@@ -25,6 +25,21 @@ export interface StoreThemeSettings {
   theme_shadow?: string;
   theme_default_mode?: string;
   theme_logo_size?: string;
+  auth_bg_color?: string;
+  auth_card_color?: string;
+  auth_text_color?: string;
+  auth_button_color?: string;
+  product_bg_color?: string;
+  product_card_color?: string;
+  product_text_color?: string;
+  product_price_color?: string;
+  about_bg_color?: string;
+  about_card_color?: string;
+  about_text_color?: string;
+  contact_bg_color?: string;
+  contact_card_color?: string;
+  contact_text_color?: string;
+  [key: string]: any;
 }
 
 export const DEFAULT_STORE_THEME: StoreThemeSettings = {
@@ -272,6 +287,43 @@ export function applyStoreTheme(theme?: Partial<StoreThemeSettings> | null | und
   root.style.setProperty("--font-english", `'${fontEnglish}', sans-serif`);
   root.style.setProperty("--app-font-sans", `'${fontArabic}', '${fontEnglish}', sans-serif`);
 
+  // Section specific variables
+  const authBg = currentTheme.auth_bg_color;
+  const authCard = currentTheme.auth_card_color;
+  const authText = currentTheme.auth_text_color;
+  const authButton = currentTheme.auth_button_color;
+  if (authBg) root.style.setProperty("--auth-bg-color", authBg);
+  if (authCard) root.style.setProperty("--auth-card-color", authCard);
+  if (authText) root.style.setProperty("--auth-text-color", authText);
+  if (authButton) root.style.setProperty("--auth-button-color", authButton);
+
+  const productBg = currentTheme.product_bg_color;
+  const productCard = currentTheme.product_card_color;
+  const productText = currentTheme.product_text_color;
+  const productPrice = currentTheme.product_price_color;
+  const productButton = currentTheme.product_button_color;
+  const productBorder = currentTheme.product_border_color;
+  if (productBg) root.style.setProperty("--product-bg-color", productBg);
+  if (productCard) root.style.setProperty("--product-card-color", productCard);
+  if (productText) root.style.setProperty("--product-text-color", productText);
+  if (productPrice) root.style.setProperty("--product-price-color", productPrice);
+  if (productButton) root.style.setProperty("--product-button-color", productButton);
+  if (productBorder) root.style.setProperty("--product-border-color", productBorder);
+
+  const aboutBg = currentTheme.about_bg_color;
+  const aboutCard = currentTheme.about_card_color;
+  const aboutText = currentTheme.about_text_color;
+  if (aboutBg) root.style.setProperty("--about-bg-color", aboutBg);
+  if (aboutCard) root.style.setProperty("--about-card-color", aboutCard);
+  if (aboutText) root.style.setProperty("--about-text-color", aboutText);
+
+  const contactBg = currentTheme.contact_bg_color;
+  const contactCard = currentTheme.contact_card_color;
+  const contactText = currentTheme.contact_text_color;
+  if (contactBg) root.style.setProperty("--contact-bg-color", contactBg);
+  if (contactCard) root.style.setProperty("--contact-card-color", contactCard);
+  if (contactText) root.style.setProperty("--contact-text-color", contactText);
+
   // 3. Inject Comprehensive Dynamic Style Tag
   let styleTag = document.getElementById("xpay-dynamic-store-theme") as HTMLStyleElement | null;
   if (!styleTag) {
@@ -292,9 +344,14 @@ export function applyStoreTheme(theme?: Partial<StoreThemeSettings> | null | und
       --theme-background: ${bgPrimary} !important;
       --theme-card: ${bgCard} !important;
       --theme-sidebar-bg: ${bgPrimary} !important;
+      --theme-header-bg: ${bgPrimary} !important;
+      --theme-footer-bg: ${bgPrimary} !important;
       --theme-border: ${isLight ? "rgba(0, 0, 0, 0.1)" : primaryAlpha20} !important;
       --theme-input: ${bgInput} !important;
+      --theme-input-bg: ${bgInput} !important;
+      --theme-input-border: ${borderColor} !important;
       --theme-text-primary: ${textPrimary} !important;
+      --theme-text-secondary: ${textSecondary} !important;
       --theme-text-muted: ${textMuted} !important;
       --theme-font-arabic: '${fontArabic}', sans-serif !important;
       --theme-font-english: '${fontEnglish}', sans-serif !important;
@@ -315,6 +372,24 @@ export function applyStoreTheme(theme?: Partial<StoreThemeSettings> | null | und
       --font-arabic: '${fontArabic}', sans-serif !important;
       --font-english: '${fontEnglish}', sans-serif !important;
       --app-font-sans: '${fontArabic}', '${fontEnglish}', sans-serif !important;
+
+      ${authBg ? `--auth-bg-color: ${authBg} !important;` : ""}
+      ${authCard ? `--auth-card-color: ${authCard} !important;` : ""}
+      ${authText ? `--auth-text-color: ${authText} !important;` : ""}
+      ${authButton ? `--auth-button-color: ${authButton} !important;` : ""}
+
+      ${productBg ? `--product-bg-color: ${productBg} !important;` : ""}
+      ${productCard ? `--product-card-color: ${productCard} !important;` : ""}
+      ${productText ? `--product-text-color: ${productText} !important;` : ""}
+      ${productPrice ? `--product-price-color: ${productPrice} !important;` : ""}
+
+      ${aboutBg ? `--about-bg-color: ${aboutBg} !important;` : ""}
+      ${aboutCard ? `--about-card-color: ${aboutCard} !important;` : ""}
+      ${aboutText ? `--about-text-color: ${aboutText} !important;` : ""}
+
+      ${contactBg ? `--contact-bg-color: ${contactBg} !important;` : ""}
+      ${contactCard ? `--contact-card-color: ${contactCard} !important;` : ""}
+      ${contactText ? `--contact-text-color: ${contactText} !important;` : ""}
     }
 
     body {
@@ -328,11 +403,15 @@ export function applyStoreTheme(theme?: Partial<StoreThemeSettings> | null | und
     }
 
     /* Helper theme classes */
-    .bg-theme-primary { background-color: ${bgPrimary} !important; }
-    .bg-theme-secondary { background-color: ${bgSecondary} !important; }
+    .bg-theme-primary { background-color: ${primary} !important; }
+    .bg-theme-secondary { background-color: ${secondary} !important; }
+    .bg-theme-accent { background-color: ${accent} !important; }
+    .bg-theme-background { background-color: ${bgPrimary} !important; }
     .bg-theme-card { background-color: ${bgCard} !important; }
+    .bg-theme-sidebar { background-color: ${bgPrimary} !important; }
     .bg-theme-input { background-color: ${bgInput} !important; }
-    .text-theme-primary { color: ${textPrimary} !important; }
+    .text-theme-primary { color: ${primary} !important; }
+    .text-theme-text { color: ${textPrimary} !important; }
     .text-theme-secondary { color: ${textSecondary} !important; }
     .text-theme-muted { color: ${textMuted} !important; }
     .border-theme { border-color: ${borderColor} !important; }

@@ -635,8 +635,18 @@ export default function ContactSettings() {
         use_legacy_contact_page: legacyValue,
       });
 
+      try {
+        await put("/admin/theme-settings", {
+          contact_bg_color: config.styles.bg_color || "#1A1A1A",
+          contact_card_color: config.styles.card_bg || "#2D2D2D",
+          contact_text_color: config.styles.text_color || "#E5E7EB",
+        });
+      } catch (themeErr) {
+        console.warn("[ContactSettings] Theme settings sync failed:", themeErr);
+      }
+
       if (res && res.success) {
-        toast.success("تم حفظ إعدادات صفحة تواصل معنا بنجاح");
+        toast.success("تم حفظ إعدادات صفحة تواصل معنا وتوحيد الألوان بنجاح");
       } else {
         toast.success("تم حفظ التعديلات بنجاح");
       }

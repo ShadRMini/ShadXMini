@@ -491,3 +491,18 @@
   }
 }
 
+/* ==== Global Theme Utility Classes ==== */
+.bg-theme-primary { background-color: var(--theme-primary); }
+.bg-theme-secondary { background-color: var(--theme-secondary); }
+.bg-theme-accent { background-color: var(--theme-accent); }
+.bg-theme-background { background-color: var(--theme-background); }
+.bg-theme-card { background-color: var(--theme-card); }
+.bg-theme-sidebar { background-color: var(--theme-sidebar-bg); }
+
+.text-theme-primary { color: var(--theme-primary); }
+.text-theme-text { color: var(--theme-text-primary); }
+.text-theme-muted { color: var(--theme-text-muted); }
+
+.border-theme { border-color: var(--theme-border); }
+
+

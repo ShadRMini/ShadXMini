@@ -490,11 +490,18 @@ export default function ContactPage() {
 
     return (
       <div
-        className="min-h-screen bg-[#1A1A1A] text-white pb-24 p-4 max-w-5xl mx-auto selection:bg-[#C8A45C] selection:text-black space-y-8"
+        className="min-h-screen pb-24 p-4 max-w-5xl mx-auto selection:bg-[#C8A45C] selection:text-black space-y-8"
         dir="rtl"
+        style={{
+          backgroundColor: "var(--contact-bg-color, var(--theme-background, #1A1A1A))",
+          color: "var(--contact-text-color, var(--theme-text-primary, #FFFFFF))",
+        }}
       >
         <div className="text-center pt-4 pb-2">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-3xl bg-[#2D2D2D] border border-[#C8A45C]/40 shadow-xl shadow-[#C8A45C]/10 mb-4 text-[#C8A45C]">
+          <div
+            className="inline-flex items-center justify-center w-16 h-16 rounded-3xl border border-[#C8A45C]/40 shadow-xl shadow-[#C8A45C]/10 mb-4 text-[#C8A45C]"
+            style={{ backgroundColor: "var(--contact-card-color, var(--theme-card, #2D2D2D))" }}
+          >
             <Headphones size={32} />
           </div>
           <h1 className="text-2xl sm:text-3xl font-black text-[#C8A45C] mb-2 tracking-wide">
@@ -515,7 +522,8 @@ export default function ContactPage() {
                 key={card.key}
                 whileHover={{ y: -4 }}
                 transition={{ duration: 0.2 }}
-                className="w-full max-w-[280px] sm:w-[calc(50%-0.75rem)] sm:max-w-[320px] lg:w-[calc(25%-0.75rem)] bg-[#2D2D2D] border border-[#C8A45C]/20 hover:border-[#C8A45C]/60 rounded-3xl p-6 flex flex-col items-center text-center justify-between shadow-xl relative overflow-hidden group"
+                className="w-full max-w-[280px] sm:w-[calc(50%-0.75rem)] sm:max-w-[320px] lg:w-[calc(25%-0.75rem)] border border-[#C8A45C]/20 hover:border-[#C8A45C]/60 rounded-3xl p-6 flex flex-col items-center text-center justify-between shadow-xl relative overflow-hidden group"
+                style={{ backgroundColor: "var(--contact-card-color, var(--theme-card, #2D2D2D))" }}
               >
                 <div
                   className={`absolute -top-12 -left-12 w-28 h-28 rounded-full blur-2xl pointer-events-none opacity-40 group-hover:opacity-100 transition-opacity ${card.bgGlow}`}
@@ -751,8 +759,8 @@ export default function ContactPage() {
     <div
       className="min-h-screen pb-24 p-4 selection:bg-[#C8A45C] selection:text-black transition-colors"
       style={{
-        backgroundColor: styles.bg_color || "#1A1A1A",
-        color: styles.text_color || "#E5E7EB",
+        backgroundColor: styles.bg_color || "var(--contact-bg-color, var(--theme-background, #1A1A1A))",
+        color: styles.text_color || "var(--contact-text-color, var(--theme-text-primary, #E5E7EB))",
       }}
       dir="rtl"
     >
@@ -762,7 +770,7 @@ export default function ContactPage() {
           <div
             className="inline-flex items-center justify-center w-16 h-16 rounded-3xl mb-4 shadow-xl border"
             style={{
-              backgroundColor: styles.card_bg || "#2D2D2D",
+              backgroundColor: styles.card_bg || "var(--contact-card-color, var(--theme-card, #2D2D2D))",
               borderColor: styles.border_color || "#C8A45C",
               color: styles.title_color || "#C8A45C",
             }}
@@ -814,7 +822,7 @@ export default function ContactPage() {
                     transition={{ duration: 0.2 }}
                     className="w-full max-w-[280px] sm:w-[calc(50%-0.75rem)] sm:max-w-[320px] lg:w-[calc(25%-0.75rem)] rounded-3xl p-6 flex flex-col items-center text-center justify-between shadow-xl relative overflow-hidden group border"
                     style={{
-                      backgroundColor: styles.card_bg || "#2D2D2D",
+                      backgroundColor: styles.card_bg || "var(--contact-card-color, var(--theme-card, #2D2D2D))",
                       borderColor: `${channelColor}40`,
                     }}
                   >
@@ -907,7 +915,7 @@ export default function ContactPage() {
                   sections.map.visible ? "lg:col-span-2" : "w-full"
                 } rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden border`}
                 style={{
-                  backgroundColor: styles.card_bg || "#2D2D2D",
+                  backgroundColor: styles.card_bg || "var(--contact-card-color, var(--theme-card, #2D2D2D))",
                   borderColor: `${styles.border_color || "#C8A45C"}40`,
                 }}
               >
@@ -1096,7 +1104,7 @@ export default function ContactPage() {
                     disabled={submitting}
                     className="w-full inline-flex items-center justify-center gap-2 font-black text-sm py-3.5 rounded-xl shadow-lg transition active:scale-[0.98] cursor-pointer disabled:opacity-50"
                     style={{
-                      backgroundColor: styles.title_color || "#C8A45C",
+                      backgroundColor: styles.title_color || "var(--contact-button-color, var(--theme-primary, #C8A45C))",
                       color: styles.bg_color || "#1A1A1A",
                     }}
                   >
@@ -1112,7 +1120,7 @@ export default function ContactPage() {
               <div
                 className="rounded-3xl p-6 shadow-xl space-y-4 border"
                 style={{
-                  backgroundColor: styles.card_bg || "#2D2D2D",
+                  backgroundColor: styles.card_bg || "var(--contact-card-color, var(--theme-card, #2D2D2D))",
                   borderColor: `${styles.border_color || "#C8A45C"}30`,
                 }}
               >
@@ -1167,7 +1175,7 @@ export default function ContactPage() {
           <div
             className="rounded-3xl p-6 sm:p-8 shadow-2xl border"
             style={{
-              backgroundColor: styles.card_bg || "#2D2D2D",
+              backgroundColor: styles.card_bg || "var(--contact-card-color, var(--theme-card, #2D2D2D))",
               borderColor: `${styles.border_color || "#C8A45C"}30`,
             }}
           >

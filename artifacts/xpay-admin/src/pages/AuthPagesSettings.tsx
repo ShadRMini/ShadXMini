@@ -114,6 +114,8 @@ export interface AuthPagesConfig {
   common: {
     backToHomeText: string;
     styles: {
+      pageBgColor?: string;
+      cardBgColor?: string;
       titleColor: string;
       subtitleColor: string;
       labelColor: string;
@@ -215,6 +217,8 @@ export const DEFAULT_AUTH_PAGES_CONFIG: AuthPagesConfig = {
   common: {
     backToHomeText: "العودة للصفحة الرئيسية",
     styles: {
+      pageBgColor: "#1A1A1A",
+      cardBgColor: "#242424",
       titleColor: "#C8A45C",
       subtitleColor: "#9CA3AF",
       labelColor: "#E5E7EB",
@@ -409,7 +413,19 @@ export default function AuthPagesSettings() {
         config,
         use_legacy_auth_pages: useLegacy,
       });
-      toast.success("تم حفظ إعدادات صفحات الدخول والتسجيل بنجاح!");
+
+      try {
+        await put("/admin/theme-settings", {
+          auth_bg_color: config.common.styles.pageBgColor || "#1A1A1A",
+          auth_card_color: config.common.styles.cardBgColor || "#242424",
+          auth_text_color: config.common.styles.inputTextColor || "#FFFFFF",
+          auth_button_color: config.common.styles.buttonBgColor || "#C8A45C",
+        });
+      } catch (themeErr) {
+        console.warn("[AuthSettings] Theme settings sync failed:", themeErr);
+      }
+
+      toast.success("تم حفظ إعدادات صفحات الدخول والتسجيل وتوحيد الألوان بنجاح!");
     } catch (err: any) {
       toast.error(err?.message || "فشل حفظ إعدادات صفحات الدخول والتسجيل");
     } finally {
@@ -1585,6 +1601,62 @@ export default function AuthPagesSettings() {
 
           {/* Custom Color Palette Form */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* Color 0A: Page Background Color */}
+            <div className="bg-[#242424] p-4 rounded-2xl border border-[#C8A45C]/30 space-y-2">
+              <div className="flex items-center justify-between">
+                <div>
+                  <label className="text-xs font-bold text-[#FDE68A]">لون خلفية الصفحة الأساسي</label>
+                  <span className="block text-[10px] text-zinc-400">Page Background Color</span>
+                </div>
+                <div
+                  className="w-6 h-6 rounded-lg border border-zinc-600 shadow-sm"
+                  style={{ backgroundColor: config.common.styles.pageBgColor || "#1A1A1A" }}
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="color"
+                  value={config.common.styles.pageBgColor || "#1A1A1A"}
+                  onChange={(e) => updateStyles("pageBgColor", e.target.value)}
+                  className="w-9 h-9 rounded-lg cursor-pointer bg-transparent border-0 p-0"
+                />
+                <input
+                  type="text"
+                  value={config.common.styles.pageBgColor || "#1A1A1A"}
+                  onChange={(e) => updateStyles("pageBgColor", e.target.value)}
+                  className="flex-1 bg-[#1E1E1E] border border-zinc-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono uppercase"
+                />
+              </div>
+            </div>
+
+            {/* Color 0B: Card / Form Background Color */}
+            <div className="bg-[#242424] p-4 rounded-2xl border border-[#C8A45C]/30 space-y-2">
+              <div className="flex items-center justify-between">
+                <div>
+                  <label className="text-xs font-bold text-[#FDE68A]">لون خلفية بطاقة النموذج</label>
+                  <span className="block text-[10px] text-zinc-400">Card / Form Container BG</span>
+                </div>
+                <div
+                  className="w-6 h-6 rounded-lg border border-zinc-600 shadow-sm"
+                  style={{ backgroundColor: config.common.styles.cardBgColor || "#242424" }}
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="color"
+                  value={config.common.styles.cardBgColor || "#242424"}
+                  onChange={(e) => updateStyles("cardBgColor", e.target.value)}
+                  className="w-9 h-9 rounded-lg cursor-pointer bg-transparent border-0 p-0"
+                />
+                <input
+                  type="text"
+                  value={config.common.styles.cardBgColor || "#242424"}
+                  onChange={(e) => updateStyles("cardBgColor", e.target.value)}
+                  className="flex-1 bg-[#1E1E1E] border border-zinc-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono uppercase"
+                />
+              </div>
+            </div>
+
             {/* Color 1: Title Color */}
             <div className="bg-[#242424] p-4 rounded-2xl border border-zinc-800 space-y-2">
               <div className="flex items-center justify-between">

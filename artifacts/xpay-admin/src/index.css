@@ -273,3 +273,18 @@ html.admin-dark ::-webkit-scrollbar-thumb {
 html.admin-dark ::-webkit-scrollbar-thumb:hover {
   background: #C8A45C;
 }
+
+/* ==== Global Theme Utility Classes ==== */
+.bg-theme-primary { background-color: var(--theme-primary, var(--primary, #C8A45C)); }
+.bg-theme-secondary { background-color: var(--theme-secondary, var(--primary-dark, #B8954A)); }
+.bg-theme-accent { background-color: var(--theme-accent, var(--accent, #FDE68A)); }
+.bg-theme-background { background-color: var(--theme-background, var(--background, #1A1A1A)); }
+.bg-theme-card { background-color: var(--theme-card, var(--card, #2D2D2D)); }
+.bg-theme-sidebar { background-color: var(--theme-sidebar-bg, var(--background, #1A1A1A)); }
+
+.text-theme-primary { color: var(--theme-primary, var(--primary, #C8A45C)); }
+.text-theme-text { color: var(--theme-text-primary, var(--text-dark, #FFFFFF)); }
+.text-theme-muted { color: var(--theme-text-muted, #9CA3AF); }
+
+.border-theme { border-color: var(--theme-border, rgba(200, 164, 92, 0.2)); }
+

@@ -682,9 +682,9 @@ export default function ProductDetail() {
   };
 
   const customBgStyle = {
-    backgroundColor: customization.page_bg_color || customization.bg_color || settings.product_bg_color || "#1A1A1A",
-    color: customization.general_text_color || customization.text_color || settings.product_text_color || "#FFFFFF",
-    fontFamily: customization.font_family || "Cairo, sans-serif",
+    backgroundColor: customization.page_bg_color || customization.bg_color || settings.product_bg_color || "var(--product-bg-color, var(--theme-background, #1A1A1A))",
+    color: customization.general_text_color || customization.text_color || settings.product_text_color || "var(--product-text-color, var(--theme-text-primary, #FFFFFF))",
+    fontFamily: customization.font_family || "var(--theme-font-arabic, 'Cairo', sans-serif)",
   };
 
   const renderSection = (sec: SectionConfig) => {
@@ -693,7 +693,11 @@ export default function ProductDetail() {
     switch (sec.id) {
       case "image":
         return (
-          <div key={sec.id} className="bg-[#242424] border border-[#C8A45C]/35 rounded-3xl p-6 shadow-2xl flex flex-col items-center justify-center relative group overflow-hidden">
+          <div
+            key={sec.id}
+            className="border border-[#C8A45C]/35 rounded-3xl p-6 shadow-2xl flex flex-col items-center justify-center relative group overflow-hidden"
+            style={{ backgroundColor: "var(--product-card-color, var(--theme-card, #242424))" }}
+          >
             <div className="absolute top-4 right-4 z-10">
               {product.available ? (
                 <span className="text-[10px] font-bold bg-emerald-950/90 text-emerald-400 border border-emerald-500/40 px-2.5 py-1 rounded-full flex items-center gap-1 shadow-md backdrop-blur-md">
@@ -1230,7 +1234,11 @@ export default function ProductDetail() {
 
       case "reviews":
         return (
-          <div key={sec.id} className="bg-[#242424] border border-[#C8A45C]/25 rounded-3xl p-6 shadow-xl space-y-4">
+          <div
+            key={sec.id}
+            className="border border-[#C8A45C]/25 rounded-3xl p-6 shadow-xl space-y-4"
+            style={{ backgroundColor: "var(--product-card-color, var(--theme-card, #242424))" }}
+          >
             <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
               <h3 className="text-sm font-bold text-[#FDE68A] flex items-center gap-2">
                 <Star size={18} className="text-[#C8A45C] fill-[#C8A45C]" />
@@ -1396,7 +1404,10 @@ export default function ProductDetail() {
           <h1 className="text-2xl font-black text-white leading-tight mb-1">{product.name}</h1>
           <div className="text-xs text-[#C8A45C] font-semibold">{product.categoryName}</div>
 
-          <div className="space-y-6 bg-[#2D2D2D] border border-[#C8A45C]/35 p-5 rounded-3xl shadow-xl">
+          <div
+            className="space-y-6 border border-[#C8A45C]/35 p-5 rounded-3xl shadow-xl"
+            style={{ backgroundColor: "var(--product-card-color, var(--theme-card, #2D2D2D))" }}
+          >
             {/* Purchase Form Elements */}
             <div>
               <div className="flex justify-between items-center mb-3">
@@ -1663,7 +1674,7 @@ export default function ProductDetail() {
           <div className="md:col-span-7 space-y-5">
             <div
               className="border border-[#C8A45C]/30 rounded-3xl p-6 shadow-2xl space-y-6"
-              style={{ backgroundColor: customization.info_box_bg_color || "#242424" }}
+              style={{ backgroundColor: customization.info_box_bg_color || "var(--product-card-color, var(--theme-card, #242424))" }}
             >
               {sections
                 .filter(

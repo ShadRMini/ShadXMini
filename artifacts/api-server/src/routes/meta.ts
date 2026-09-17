@@ -69,6 +69,27 @@ router.get(["/theme", "/theme-settings", "/public/theme-settings", "/admin/theme
     const themeFontSize = String(map.get("theme_font_size") || "14").trim();
     const themeLogoSize = String(map.get("theme_logo_size") || map.get("logo_size") || "80px").trim();
 
+    // Section-specific theme colors
+    const authBgColor = String(map.get("auth_bg_color") || "").trim();
+    const authCardColor = String(map.get("auth_card_color") || "").trim();
+    const authTextColor = String(map.get("auth_text_color") || "").trim();
+    const authButtonColor = String(map.get("auth_button_color") || "").trim();
+
+    const productBgColor = String(map.get("product_bg_color") || "").trim();
+    const productCardColor = String(map.get("product_card_color") || "").trim();
+    const productTextColor = String(map.get("product_text_color") || "").trim();
+    const productPriceColor = String(map.get("product_price_color") || "").trim();
+    const productButtonColor = String(map.get("product_button_color") || "").trim();
+    const productBorderColor = String(map.get("product_border_color") || "").trim();
+
+    const aboutBgColor = String(map.get("about_bg_color") || "").trim();
+    const aboutCardColor = String(map.get("about_card_color") || "").trim();
+    const aboutTextColor = String(map.get("about_text_color") || "").trim();
+
+    const contactBgColor = String(map.get("contact_bg_color") || "").trim();
+    const contactCardColor = String(map.get("contact_card_color") || "").trim();
+    const contactTextColor = String(map.get("contact_text_color") || "").trim();
+
     const responseData = {
       // Full raw keys
       theme_primary: themePrimary,
@@ -83,6 +104,23 @@ router.get(["/theme", "/theme-settings", "/public/theme-settings", "/admin/theme
       theme_shadow: themeShadow,
       theme_default_mode: themeDefaultMode,
       theme_logo_size: themeLogoSize,
+      // Section Colors
+      auth_bg_color: authBgColor,
+      auth_card_color: authCardColor,
+      auth_text_color: authTextColor,
+      auth_button_color: authButtonColor,
+      product_bg_color: productBgColor,
+      product_card_color: productCardColor,
+      product_text_color: productTextColor,
+      product_price_color: productPriceColor,
+      product_button_color: productButtonColor,
+      product_border_color: productBorderColor,
+      about_bg_color: aboutBgColor,
+      about_card_color: aboutCardColor,
+      about_text_color: aboutTextColor,
+      contact_bg_color: contactBgColor,
+      contact_card_color: contactCardColor,
+      contact_text_color: contactTextColor,
       // Direct alias properties
       primary: themePrimary,
       secondary: themeSecondary,
@@ -162,6 +200,31 @@ router.put(["/admin/theme-settings", "/theme-settings"], async (req, res) => {
       const rawLogoSize = String(body.theme_logo_size ?? body.logoSize ?? body.logo_size).trim();
       const val = rawLogoSize.includes("px") || rawLogoSize.includes("%") || rawLogoSize.includes("rem") ? rawLogoSize : `${rawLogoSize}px`;
       updates.push({ key: "theme_logo_size", value: val });
+    }
+
+    // Section Colors
+    const sectionKeys = [
+      "auth_bg_color",
+      "auth_card_color",
+      "auth_text_color",
+      "auth_button_color",
+      "product_bg_color",
+      "product_card_color",
+      "product_text_color",
+      "product_price_color",
+      "product_button_color",
+      "product_border_color",
+      "about_bg_color",
+      "about_card_color",
+      "about_text_color",
+      "contact_bg_color",
+      "contact_card_color",
+      "contact_text_color",
+    ];
+    for (const sk of sectionKeys) {
+      if (body[sk] !== undefined) {
+        updates.push({ key: sk, value: String(body[sk]).trim() });
+      }
     }
 
     // Save all to database
