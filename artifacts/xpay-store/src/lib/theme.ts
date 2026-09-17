@@ -213,12 +213,13 @@ export function applyStoreTheme(theme?: Partial<StoreThemeSettings> | null | und
   const root = document.documentElement;
   root.classList.remove("light", "dark");
   root.classList.add(isLight ? "light" : "dark");
+  root.setAttribute("data-theme", isLight ? "light" : "dark");
 
   const primary = String(currentTheme.primary || currentTheme.theme_primary || DEFAULT_STORE_THEME.primary).trim();
   const secondary = String(currentTheme.secondary || currentTheme.theme_secondary || DEFAULT_STORE_THEME.secondary).trim();
   const accent = String(currentTheme.accent || currentTheme.theme_accent || DEFAULT_STORE_THEME.accent).trim();
 
-  // Custom palette or mode fallbacks
+  // Custom dark/light palette resolution
   const customDarkBg = String(currentTheme.theme_background || currentTheme.background || "").trim();
   const customCardBg = String(currentTheme.theme_card || currentTheme.card || "").trim();
   const customTextPrimary = String(currentTheme.theme_text_primary || currentTheme.textPrimary || "").trim();
@@ -227,14 +228,41 @@ export function applyStoreTheme(theme?: Partial<StoreThemeSettings> | null | und
   const customBorder = String(currentTheme.theme_border || currentTheme.border || "").trim();
   const customInputBg = String(currentTheme.theme_input_bg || currentTheme.inputBg || "").trim();
 
-  const bgPrimary = isLight ? (customDarkBg && isLight ? customDarkBg : "#F5F2EB") : (customDarkBg || "#1A1A1A");
+  const customLightBg = String(currentTheme.light_background || currentTheme.lightBg || "").trim();
+  const customLightCard = String(currentTheme.light_card || currentTheme.lightCard || "").trim();
+  const customLightText = String(currentTheme.light_text_primary || currentTheme.lightTextPrimary || "").trim();
+
+  // Distinct Light vs Dark mode palettes
+  const bgPrimary = isLight
+    ? (customLightBg || "#F5F2EB")
+    : (customDarkBg || "#1A1A1A");
+
   const bgSecondary = isLight ? "#FFFFFF" : "#242424";
-  const bgCard = customCardBg || (isLight ? "#FFFFFF" : "#2D2D2D");
-  const bgInput = customInputBg || (isLight ? "#EFECE6" : "#3D3D3D");
-  const textPrimary = customTextPrimary || (isLight ? "#111827" : "#FFFFFF");
-  const textSecondary = customTextSecondary || (isLight ? "#374151" : "#E5E7EB");
-  const textMuted = customTextMuted || (isLight ? "#6B7280" : "#9CA3AF");
-  const borderColor = customBorder || (isLight ? "rgba(0,0,0,0.12)" : "rgba(200, 164, 92, 0.25)");
+
+  const bgCard = isLight
+    ? (customLightCard || "#FFFFFF")
+    : (customCardBg || "#2D2D2D");
+
+  const bgInput = isLight
+    ? "#EFECE6"
+    : (customInputBg || "#3D3D3D");
+
+  const textPrimary = isLight
+    ? (customLightText || "#111827")
+    : (customTextPrimary || "#FFFFFF");
+
+  const textSecondary = isLight
+    ? "#374151"
+    : (customTextSecondary || "#E5E7EB");
+
+  const textMuted = isLight
+    ? "#6B7280"
+    : (customTextMuted || "#9CA3AF");
+
+  const borderColor = isLight
+    ? "rgba(0, 0, 0, 0.12)"
+    : (customBorder || "rgba(200, 164, 92, 0.25)");
+
   const shadowColor = isLight ? "rgba(0, 0, 0, 0.08)" : "rgba(0, 0, 0, 0.35)";
 
   const fontArabic = String(currentTheme.fontArabic || currentTheme.theme_font_arabic || currentTheme.font || DEFAULT_STORE_THEME.fontArabic).trim();
