@@ -347,9 +347,9 @@
 .light input,
 .light select,
 .light textarea {
-  background-color: var(--bg-input) !important;
-  border-color: var(--border-color) !important;
-  color: var(--text-primary) !important;
+  background-color: var(--theme-input-bg, var(--bg-input)) !important;
+  border-color: var(--theme-input-border, var(--border-color)) !important;
+  color: var(--theme-text-primary, var(--text-primary));
 }
 
 .light input::placeholder,

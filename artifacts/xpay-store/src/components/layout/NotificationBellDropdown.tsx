@@ -130,16 +130,42 @@ export default function NotificationBellDropdown() {
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute left-0 sm:right-auto sm:left-0 mt-2 w-80 sm:w-96 bg-[var(--bg-card,#242424)] border border-[#C8A45C]/40 rounded-2xl shadow-2xl z-50 overflow-hidden text-right">
+        <div
+          className="absolute left-0 sm:right-auto sm:left-0 mt-2 w-80 sm:w-96 border rounded-2xl shadow-2xl z-50 overflow-hidden text-right"
+          style={{
+            backgroundColor: "var(--theme-card, #242424)",
+            borderColor: "var(--theme-border, rgba(200,164,92,0.4))",
+          }}
+        >
           {/* Header */}
-          <div className="p-3.5 bg-gradient-to-l from-[#C8A45C]/15 to-[var(--bg-secondary)] border-b border-[var(--border-color,rgba(200,164,92,0.2))] flex items-center justify-between">
+          <div
+            className="p-3.5 border-b flex items-center justify-between"
+            style={{
+              backgroundColor: "rgba(200,164,92,0.1)",
+              borderColor: "var(--theme-border, rgba(200,164,92,0.2))",
+            }}
+          >
             <div className="flex items-center gap-2">
-              <div className="p-1.5 rounded-lg bg-[#C8A45C]/20 text-[#C8A45C]">
+              <div
+                className="p-1.5 rounded-lg"
+                style={{
+                  backgroundColor: "rgba(200,164,92,0.15)",
+                  color: "var(--theme-primary, #C8A45C)",
+                }}
+              >
                 <Bell size={15} />
               </div>
-              <span className="text-xs font-bold text-[#C8A45C]">التنبيهات والإشعارات</span>
+              <span className="text-xs font-bold" style={{ color: "var(--theme-primary, #C8A45C)" }}>
+                التنبيهات والإشعارات
+              </span>
               {unreadCount > 0 && (
-                <span className="text-[10px] bg-[#C8A45C]/20 text-[#C8A45C] px-2 py-0.5 rounded-full font-bold">
+                <span
+                  className="text-[10px] px-2 py-0.5 rounded-full font-bold"
+                  style={{
+                    backgroundColor: "rgba(200,164,92,0.2)",
+                    color: "var(--theme-primary, #C8A45C)",
+                  }}
+                >
                   {unreadCount} جديد
                 </span>
               )}
@@ -148,7 +174,8 @@ export default function NotificationBellDropdown() {
             {unreadCount > 0 && (
               <button
                 onClick={handleMarkAllAsRead}
-                className="text-[11px] text-[#C8A45C] hover:text-[#B8954A] flex items-center gap-1 transition cursor-pointer font-medium"
+                className="text-[11px] flex items-center gap-1 transition cursor-pointer font-medium"
+                style={{ color: "var(--theme-primary, #C8A45C)" }}
               >
                 <CheckCheck size={13} />
                 <span>قراءة الكل</span>
@@ -160,7 +187,10 @@ export default function NotificationBellDropdown() {
           <div className="max-h-80 overflow-y-auto divide-y divide-[var(--border-color,rgba(255,255,255,0.06))] custom-scrollbar">
             {loading ? (
               <div className="p-6 text-center text-xs text-[var(--text-muted)]">
-                <div className="inline-block w-5 h-5 border-2 border-[#C8A45C] border-t-transparent rounded-full animate-spin mb-2" />
+                <div
+                  className="inline-block w-5 h-5 border-2 border-t-transparent rounded-full animate-spin mb-2"
+                  style={{ borderColor: "var(--theme-primary, #C8A45C)" }}
+                />
                 <p>جاري تحميل الإشعارات...</p>
               </div>
             ) : notifications.length === 0 ? (
@@ -186,19 +216,21 @@ export default function NotificationBellDropdown() {
                 return (
                   <div
                     key={item.id}
-                    className={`p-3 transition-colors ${
-                      isUnread
-                        ? "bg-[#C8A45C]/10 hover:bg-[#C8A45C]/15 border-r-2 border-[#C8A45C]"
-                        : "hover:bg-[var(--bg-secondary)]"
-                    }`}
+                    className="p-3 transition-colors"
+                    style={{
+                      backgroundColor: isUnread ? "rgba(200,164,92,0.1)" : "transparent",
+                      borderRightWidth: isUnread ? "2px" : "0px",
+                      borderRightColor: "var(--theme-primary, #C8A45C)",
+                    }}
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1">
                         {item.title && (
                           <h4
-                            className={`text-xs font-bold mb-1 leading-snug ${
-                              isUnread ? "text-[#C8A45C]" : "text-[var(--text-primary)]"
-                            }`}
+                            className="text-xs font-bold mb-1 leading-snug"
+                            style={{
+                              color: isUnread ? "var(--theme-primary, #C8A45C)" : "var(--theme-text-primary, #FFFFFF)",
+                            }}
                           >
                             {item.title}
                           </h4>
@@ -207,7 +239,7 @@ export default function NotificationBellDropdown() {
                           {item.content}
                         </p>
                         <div className="flex items-center gap-1.5 mt-2 text-[10px] text-[var(--text-muted)]">
-                          <Clock size={11} className="text-[#C8A45C]" />
+                          <Clock size={11} style={{ color: "var(--theme-primary, #C8A45C)" }} />
                           <span>{formattedDate}</span>
                         </div>
                       </div>
@@ -215,7 +247,8 @@ export default function NotificationBellDropdown() {
                       {isUnread && (
                         <button
                           onClick={(e) => handleMarkAsRead(item.id, e)}
-                          className="p-1 rounded-md text-[#C8A45C] hover:bg-[#C8A45C]/20 transition shrink-0"
+                          className="p-1 rounded-md transition shrink-0"
+                          style={{ color: "var(--theme-primary, #C8A45C)" }}
                           title="تحديد كمقروء"
                         >
                           <Check size={13} />
@@ -229,11 +262,22 @@ export default function NotificationBellDropdown() {
           </div>
 
           {/* Footer View All Link */}
-          <div className="p-2.5 bg-[var(--bg-secondary)] border-t border-[var(--border-color,rgba(200,164,92,0.2))] text-center">
+          <div
+            className="p-2.5 border-t text-center"
+            style={{
+              backgroundColor: "var(--theme-card, #242424)",
+              borderColor: "var(--theme-border, rgba(200,164,92,0.2))",
+            }}
+          >
             <Link
               href="/notifications"
               onClick={() => setIsOpen(false)}
-              className="w-full flex items-center justify-center gap-1.5 py-2 text-xs font-bold text-[#C8A45C] bg-[#C8A45C]/20 hover:bg-[#C8A45C]/30 border border-[#C8A45C]/30 rounded-xl transition cursor-pointer"
+              className="w-full flex items-center justify-center gap-1.5 py-2 text-xs font-bold border rounded-xl transition cursor-pointer"
+              style={{
+                color: "var(--theme-primary, #C8A45C)",
+                backgroundColor: "rgba(200, 164, 92, 0.15)",
+                borderColor: "var(--theme-border, rgba(200, 164, 92, 0.3))",
+              }}
             >
               <span>عرض جميع الإشعارات</span>
               <ExternalLink size={13} />

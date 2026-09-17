@@ -70,13 +70,25 @@ export default function AnnouncementBar() {
 
   return (
     <div
-      className="bg-[#2D2D2D] border border-[#C8A45C]/35 px-4 py-3 rounded-2xl text-xs text-[#FDE68A] shadow-xl relative z-10 transition-all duration-300 select-none my-4"
+      className="border px-4 py-3 rounded-2xl text-xs shadow-xl relative z-10 transition-all duration-300 select-none my-4"
+      style={{
+        backgroundColor: "var(--theme-card, #2D2D2D)",
+        borderColor: "var(--theme-border, rgba(200, 164, 92, 0.35))",
+        color: "var(--theme-accent, #FDE68A)",
+      }}
       dir="rtl"
     >
       <div className="flex items-center justify-between gap-3">
         {/* News Icon Badge */}
-        <div className="flex items-center gap-2 bg-[#C8A45C]/20 border border-[#C8A45C]/40 text-[#FDE68A] font-bold px-2.5 py-1.5 rounded-xl shrink-0 shadow-xs">
-          <Megaphone className="w-4 h-4 text-[#C8A45C] animate-pulse" />
+        <div
+          className="flex items-center gap-2 font-bold px-2.5 py-1.5 rounded-xl shrink-0 shadow-xs border"
+          style={{
+            backgroundColor: "rgba(200, 164, 92, 0.15)",
+            borderColor: "var(--theme-border, rgba(200, 164, 92, 0.4))",
+            color: "var(--theme-accent, #FDE68A)",
+          }}
+        >
+          <Megaphone className="w-4 h-4 animate-pulse" style={{ color: "var(--theme-primary, #C8A45C)" }} />
           <span className="text-[11px] hidden xs:inline tracking-wide font-black">أخبار متجددة</span>
         </div>
 
@@ -89,11 +101,12 @@ export default function AnnouncementBar() {
             {news.map((item, idx) => (
               <span
                 key={item.id || idx}
-                className="font-bold text-[#FDE68A] hover:text-white transition-colors mr-12 inline-flex items-center gap-2 text-xs sm:text-sm"
+                className="font-bold transition-colors mr-12 inline-flex items-center gap-2 text-xs sm:text-sm"
+                style={{ color: "var(--theme-accent, #FDE68A)" }}
               >
                 <span>{item.content}</span>
                 {idx < news.length - 1 && (
-                  <span className="text-[#C8A45C] opacity-80 text-sm font-mono mr-2">•</span>
+                  <span className="opacity-80 text-sm font-mono mr-2" style={{ color: "var(--theme-primary, #C8A45C)" }}>•</span>
                 )}
               </span>
             ))}
@@ -103,7 +116,11 @@ export default function AnnouncementBar() {
         {/* Close Button in Gold */}
         <button
           onClick={handleDismiss}
-          className="text-[#C8A45C] hover:text-[#FDE68A] hover:bg-zinc-800/80 p-1.5 rounded-xl border border-[#C8A45C]/25 hover:border-[#C8A45C]/60 transition-all shrink-0 cursor-pointer"
+          className="p-1.5 rounded-xl border transition-all shrink-0 cursor-pointer"
+          style={{
+            color: "var(--theme-primary, #C8A45C)",
+            borderColor: "var(--theme-border, rgba(200, 164, 92, 0.25))",
+          }}
           title="إغلاق التنبيه"
           aria-label="إغلاق شريط الأخبار"
           type="button"

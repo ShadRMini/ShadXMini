@@ -187,6 +187,17 @@ export function toggleStoreThemeMode(): "dark" | "light" {
   return next;
 }
 
+function getHexRgbString(hexStr: string): string {
+  let c = (hexStr || "#C8A45C").replace(/^#/, "").trim();
+  if (c.length === 3) {
+    c = c.split("").map((x) => x + x).join("");
+  }
+  if (c.length !== 6) return "200, 164, 92";
+  const num = parseInt(c, 16);
+  if (isNaN(num)) return "200, 164, 92";
+  return `${(num >> 16) & 255}, ${(num >> 8) & 255}, ${num & 255}`;
+}
+
 /**
  * Applies dynamic CSS variables and style overrides to the document
  */
@@ -651,6 +662,26 @@ export function applyStoreTheme(theme?: Partial<StoreThemeSettings> | null | und
     .bg-amber-500\\/20 {
       background-color: ${primaryAlpha10} !important;
     }
+
+    ${[5, 10, 12, 15, 20, 25, 30, 35, 40, 50, 60, 70, 75, 80, 85, 90, 95]
+      .map((op) => {
+        const alpha = (op / 100).toFixed(2);
+        const pRgb = getHexRgbString(primary);
+        const aRgb = getHexRgbString(accent);
+        const bgRgb = getHexRgbString(bgPrimary);
+        const cardRgb = getHexRgbString(bgCard);
+        return `
+          .bg-\\[\\#C8A45C\\]\\/${op}, .bg-\\[\\#c8a45c\\]\\/${op} { background-color: rgba(${pRgb}, ${alpha}) !important; }
+          .text-\\[\\#C8A45C\\]\\/${op}, .text-\\[\\#c8a45c\\]\\/${op} { color: rgba(${pRgb}, ${alpha}) !important; }
+          .border-\\[\\#C8A45C\\]\\/${op}, .border-\\[\\#c8a45c\\]\\/${op} { border-color: rgba(${pRgb}, ${alpha}) !important; }
+          .bg-\\[\\#FDE68A\\]\\/${op}, .bg-\\[\\#fde68a\\]\\/${op} { background-color: rgba(${aRgb}, ${alpha}) !important; }
+          .text-\\[\\#FDE68A\\]\\/${op}, .text-\\[\\#fde68a\\]\\/${op} { color: rgba(${aRgb}, ${alpha}) !important; }
+          .border-\\[\\#FDE68A\\]\\/${op}, .border-\\[\\#fde68a\\]\\/${op} { border-color: rgba(${aRgb}, ${alpha}) !important; }
+          .bg-\\[\\#1A1A1A\\]\\/${op}, .bg-\\[\\#1a1a1a\\]\\/${op} { background-color: rgba(${bgRgb}, ${alpha}) !important; }
+          .bg-\\[\\#2D2D2D\\]\\/${op}, .bg-\\[\\#2d2d2d\\]\\/${op} { background-color: rgba(${cardRgb}, ${alpha}) !important; }
+        `;
+      })
+      .join("\n")}
 
     /* Card & Box Styling */
     .rounded-theme,

@@ -76,8 +76,10 @@ export default function Sidebar({ brandLogo, onClose }: SidebarProps) {
   }, []);
 
   const handleToggleMode = () => {
-    const next = toggleStoreThemeMode();
-    setMode(next);
+    const nextMode = mode === "dark" ? "light" : "dark";
+    setStoreThemeMode(nextMode);
+    applyStoreTheme({ mode: nextMode });
+    setMode(nextMode);
   };
 
   const isDark = mode === "dark";
@@ -363,17 +365,19 @@ export default function Sidebar({ brandLogo, onClose }: SidebarProps) {
 
       {/* Dark / Light Mode Switcher & Theme Control Section */}
       <div
-        className={`p-3 border-t ${
-          isDark ? "border-zinc-800 bg-zinc-900/40" : "border-zinc-200 bg-zinc-50"
-        }`}
+        className="p-3 border-t"
+        style={{
+          borderColor: "var(--theme-border, rgba(200, 164, 92, 0.2))",
+          backgroundColor: "var(--theme-card, rgba(255, 255, 255, 0.03))",
+        }}
       >
         <div
           onClick={handleToggleMode}
-          className={`flex items-center justify-between p-3 rounded-xl border transition-all cursor-pointer select-none ${
-            isDark
-              ? "bg-[#242424] hover:bg-[#2d2d2d] border-zinc-800 hover:border-[#C8A45C]/50"
-              : "bg-white hover:bg-zinc-100 border-zinc-200 hover:border-[#C8A45C]/50 shadow-xs"
-          }`}
+          className="flex items-center justify-between p-3 rounded-xl border transition-all cursor-pointer select-none shadow-xs"
+          style={{
+            backgroundColor: "var(--theme-card, #2D2D2D)",
+            borderColor: "var(--theme-border, rgba(200, 164, 92, 0.25))",
+          }}
           role="button"
           tabIndex={0}
           onKeyDown={(e) => {
@@ -386,23 +390,25 @@ export default function Sidebar({ brandLogo, onClose }: SidebarProps) {
         >
           <div className="flex items-center gap-3">
             <div
-              className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${
-                isDark
-                  ? "bg-amber-400/15 text-[#FDE68A]"
-                  : "bg-amber-500/15 text-[#B8954A]"
-              }`}
+              className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
+              style={{
+                backgroundColor: "rgba(200, 164, 92, 0.15)",
+                color: "var(--theme-primary, #C8A45C)",
+              }}
             >
-              {isDark ? <Moon size={17} className="text-[#C8A45C]" /> : <Sun size={17} className="text-[#B8954A]" />}
+              {isDark ? <Moon size={17} style={{ color: "var(--theme-primary, #C8A45C)" }} /> : <Sun size={17} style={{ color: "var(--theme-primary, #C8A45C)" }} />}
             </div>
             <div>
               <div
-                className={`text-xs font-bold ${
-                  isDark ? "text-zinc-100" : "text-zinc-800"
-                }`}
+                className="text-xs font-bold"
+                style={{ color: "var(--theme-text-primary, #FFFFFF)" }}
               >
                 {isDark ? "الوضع الداكن" : "الوضع الفاتح"}
               </div>
-              <div className="text-[10px] text-zinc-400">
+              <div
+                className="text-[10px]"
+                style={{ color: "var(--theme-text-muted, #9CA3AF)" }}
+              >
                 {isDark ? "انقر للتبديل للوضع الفاتح" : "انقر للتبديل للوضع الداكن"}
               </div>
             </div>
@@ -410,17 +416,18 @@ export default function Sidebar({ brandLogo, onClose }: SidebarProps) {
 
           {/* Toggle Switch Component */}
           <div
-            className={`w-11 h-6 flex items-center rounded-full p-1 transition-colors duration-300 ${
-              isDark ? "bg-[#C8A45C]" : "bg-zinc-300"
-            }`}
+            className="w-11 h-6 flex items-center rounded-full p-1 transition-colors duration-300"
+            style={{
+              backgroundColor: isDark ? "var(--theme-primary, #C8A45C)" : "#D1D5DB",
+            }}
           >
             <div
-              className={`bg-zinc-950 w-4 h-4 rounded-full shadow-md transform transition-transform duration-300 flex items-center justify-center ${
-                isDark ? "translate-x-0" : "-translate-x-5 bg-white"
+              className={`w-4 h-4 rounded-full shadow-md transform transition-transform duration-300 flex items-center justify-center ${
+                isDark ? "translate-x-0 bg-zinc-950" : "-translate-x-5 bg-white"
               }`}
             >
               {isDark ? (
-                <Moon size={9} className="text-[#FDE68A]" />
+                <Moon size={9} style={{ color: "var(--theme-accent, #FDE68A)" }} />
               ) : (
                 <Sun size={9} className="text-amber-500" />
               )}

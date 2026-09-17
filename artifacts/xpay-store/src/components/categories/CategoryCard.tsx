@@ -81,7 +81,13 @@ export default function CategoryCard({
           className="flex flex-col items-center gap-2 cursor-pointer group select-none relative"
         >
           {/* Category Image Container */}
-          <div className="w-full aspect-square rounded-2xl bg-[#1A1A1A] border border-[#C8A45C]/20 shadow-md group-hover:border-[#C8A45C] group-hover:shadow-lg group-hover:shadow-[#C8A45C]/15 transition-all duration-300 overflow-hidden relative flex items-center justify-center">
+          <div
+            className="w-full aspect-square rounded-2xl border shadow-md group-hover:shadow-lg transition-all duration-300 overflow-hidden relative flex items-center justify-center"
+            style={{
+              backgroundColor: "var(--theme-card, #1A1A1A)",
+              borderColor: "var(--theme-border, rgba(200, 164, 92, 0.2))",
+            }}
+          >
             {!imgError && finalImageUrl ? (
               <img
                 src={finalImageUrl}
@@ -91,13 +97,29 @@ export default function CategoryCard({
                 className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-500 will-change-transform"
               />
             ) : (
-              /* Elegant Dark & Gold Placeholder when image is missing or failed */
-              <div className="w-full h-full bg-gradient-to-br from-[#241D12] via-[#1A1A1A] to-[#12100C] border border-[#C8A45C]/30 flex flex-col items-center justify-center p-2.5 text-center relative overflow-hidden group-hover:scale-105 transition-transform duration-300">
-                <div className="absolute -top-3 -right-3 w-12 h-12 bg-[#C8A45C]/15 rounded-full blur-lg pointer-events-none" />
-                <div className="w-9 h-9 rounded-xl bg-[#C8A45C]/20 border border-[#C8A45C]/40 flex items-center justify-center text-[#C8A45C] mb-1.5 shadow-xs">
+              /* Elegant Placeholder when image is missing or failed */
+              <div
+                className="w-full h-full border flex flex-col items-center justify-center p-2.5 text-center relative overflow-hidden group-hover:scale-105 transition-transform duration-300"
+                style={{
+                  backgroundColor: "var(--theme-card, #1A1A1A)",
+                  borderColor: "var(--theme-border, rgba(200, 164, 92, 0.3))",
+                }}
+              >
+                <div className="absolute -top-3 -right-3 w-12 h-12 bg-amber-500/10 rounded-full blur-lg pointer-events-none" />
+                <div
+                  className="w-9 h-9 rounded-xl border flex items-center justify-center mb-1.5 shadow-xs"
+                  style={{
+                    backgroundColor: "rgba(200, 164, 92, 0.2)",
+                    borderColor: "var(--theme-border, rgba(200, 164, 92, 0.4))",
+                    color: "var(--theme-primary, #C8A45C)",
+                  }}
+                >
                   <FolderTree size={18} />
                 </div>
-                <span className="text-[10px] font-bold text-[#FDE68A] line-clamp-1 leading-tight px-1">
+                <span
+                  className="text-[10px] font-bold line-clamp-1 leading-tight px-1"
+                  style={{ color: "var(--theme-accent, #FDE68A)" }}
+                >
                   {name}
                 </span>
               </div>
@@ -108,25 +130,48 @@ export default function CategoryCard({
 
             {/* Guest Lock Overlay on Hover */}
             {isGuest && (
-              <div className="absolute inset-0 bg-[#1A1A1A]/80 backdrop-blur-xs flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 p-2 text-center">
-                <div className="w-8 h-8 rounded-full bg-[#C8A45C]/20 border border-[#C8A45C] flex items-center justify-center text-[#C8A45C] mb-1 shadow-sm">
+              <div
+                className="absolute inset-0 backdrop-blur-xs flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 p-2 text-center"
+                style={{ backgroundColor: "rgba(26, 26, 26, 0.85)" }}
+              >
+                <div
+                  className="w-8 h-8 rounded-full border flex items-center justify-center mb-1 shadow-sm"
+                  style={{
+                    backgroundColor: "rgba(200, 164, 92, 0.2)",
+                    borderColor: "var(--theme-primary, #C8A45C)",
+                    color: "var(--theme-primary, #C8A45C)",
+                  }}
+                >
                   <Lock size={15} />
                 </div>
-                <span className="text-[10px] font-bold text-[#FDE68A] line-clamp-1">
+                <span
+                  className="text-[10px] font-bold line-clamp-1"
+                  style={{ color: "var(--theme-accent, #FDE68A)" }}
+                >
                   سجّل دخولك للعرض
                 </span>
               </div>
             )}
             
             {productCount !== undefined && productCount > 0 && (
-              <span className="absolute bottom-1.5 left-1.5 text-[9px] font-bold bg-[#1A1A1A]/85 text-[#FDE68A] px-1.5 py-0.5 rounded-md border border-[#C8A45C]/30 shadow-xs pointer-events-none z-10">
+              <span
+                className="absolute bottom-1.5 left-1.5 text-[9px] font-bold px-1.5 py-0.5 rounded-md border shadow-xs pointer-events-none z-10"
+                style={{
+                  backgroundColor: "rgba(26, 26, 26, 0.85)",
+                  color: "var(--theme-accent, #FDE68A)",
+                  borderColor: "var(--theme-border, rgba(200, 164, 92, 0.3))",
+                }}
+              >
                 {productCount}
               </span>
             )}
           </div>
 
           {/* Category Label */}
-          <span className="text-xs font-bold text-center text-zinc-200 group-hover:text-[#FDE68A] transition-colors leading-tight line-clamp-1 px-1">
+          <span
+            className="text-xs font-bold text-center transition-colors leading-tight line-clamp-1 px-1"
+            style={{ color: "var(--theme-text-primary, #E5E7EB)" }}
+          >
             {name}
           </span>
         </motion.div>

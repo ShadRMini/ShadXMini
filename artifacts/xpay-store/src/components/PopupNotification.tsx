@@ -78,11 +78,22 @@ export function PopupNotification() {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/75 p-4 backdrop-blur-md animate-in fade-in duration-200" dir="rtl">
-      <div className="w-full max-w-lg rounded-2xl border border-[#C8A45C] bg-[#1A1A1A] p-6 text-right shadow-2xl relative overflow-hidden">
+      <div
+        className="w-full max-w-lg rounded-2xl border p-6 text-right shadow-2xl relative overflow-hidden"
+        style={{
+          backgroundColor: "var(--theme-card, #1A1A1A)",
+          borderColor: "var(--theme-border, #C8A45C)",
+        }}
+      >
         {/* Top absolute close icon */}
         <button
           onClick={handleCloseAll}
-          className="absolute top-4 left-4 h-9 w-9 rounded-full bg-[#2D2D2D] border border-[#C8A45C]/30 flex items-center justify-center text-[#E5E7EB] hover:bg-[#C8A45C]/20 hover:text-[#C8A45C] transition-all"
+          className="absolute top-4 left-4 h-9 w-9 rounded-full border flex items-center justify-center transition-all cursor-pointer"
+          style={{
+            backgroundColor: "var(--theme-card, #2D2D2D)",
+            borderColor: "var(--theme-border, rgba(200, 164, 92, 0.3))",
+            color: "var(--theme-text-primary, #E5E7EB)",
+          }}
           aria-label="إغلاق"
         >
           <X className="w-5 h-5" />
@@ -90,26 +101,47 @@ export function PopupNotification() {
 
         {/* Icon / Badge */}
         <div className="flex items-center gap-3 mb-4">
-          <div className="h-12 w-12 rounded-2xl bg-[#C8A45C]/15 border border-[#C8A45C]/40 flex items-center justify-center text-[#C8A45C] shadow-inner">
+          <div
+            className="h-12 w-12 rounded-2xl border flex items-center justify-center shadow-inner"
+            style={{
+              backgroundColor: "rgba(200, 164, 92, 0.15)",
+              borderColor: "var(--theme-border, rgba(200, 164, 92, 0.4))",
+              color: "var(--theme-primary, #C8A45C)",
+            }}
+          >
             <Bell className="w-6 h-6 animate-bounce" />
           </div>
           <div>
-            <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-[#C8A45C]/20 border border-[#C8A45C]/30 text-[#FDE68A] font-bold">
+            <span
+              className="text-[11px] px-2.5 py-0.5 rounded-full border font-bold"
+              style={{
+                backgroundColor: "rgba(200, 164, 92, 0.2)",
+                borderColor: "var(--theme-border, rgba(200, 164, 92, 0.3))",
+                color: "var(--theme-accent, #FDE68A)",
+              }}
+            >
               إشعار هام للمستخدمين
             </span>
-            <h3 className="text-xl font-black text-[#C8A45C] mt-1">{settings.popupTitle}</h3>
+            <h3 className="text-xl font-black mt-1" style={{ color: "var(--theme-primary, #C8A45C)" }}>{settings.popupTitle}</h3>
           </div>
         </div>
 
         {/* Optional Image */}
         {settings.popupImage && (
-          <div className="mb-4 rounded-xl overflow-hidden border border-[#C8A45C]/30 max-h-56 bg-black/40 flex items-center justify-center">
+          <div className="mb-4 rounded-xl overflow-hidden border max-h-56 bg-black/40 flex items-center justify-center" style={{ borderColor: "var(--theme-border, rgba(200,164,92,0.3))" }}>
             <img src={settings.popupImage} alt="Popup" className="w-full h-full object-cover max-h-56" />
           </div>
         )}
 
         {/* Content Description */}
-        <div className="text-sm sm:text-base text-[#E5E7EB] leading-relaxed whitespace-pre-line bg-[#2D2D2D]/60 p-4 rounded-xl border border-zinc-700/50 mb-5">
+        <div
+          className="text-sm sm:text-base leading-relaxed whitespace-pre-line p-4 rounded-xl border mb-5"
+          style={{
+            backgroundColor: "rgba(255,255,255,0.03)",
+            borderColor: "var(--theme-border, rgba(255,255,255,0.1))",
+            color: "var(--theme-text-primary, #E5E7EB)",
+          }}
+        >
           {settings.popupContent}
         </div>
 
@@ -121,7 +153,10 @@ export function PopupNotification() {
               target="_blank"
               rel="noreferrer"
               onClick={handleView}
-              className="flex items-center justify-center gap-2 w-full py-3 px-4 rounded-xl bg-gradient-to-r from-[#C8A45C] to-[#B8954A] text-black font-extrabold shadow-lg hover:opacity-90 transition-all text-sm"
+              className="flex items-center justify-center gap-2 w-full py-3 px-4 rounded-xl text-black font-extrabold shadow-lg hover:opacity-90 transition-all text-sm"
+              style={{
+                backgroundColor: "var(--theme-primary, #C8A45C)",
+              }}
             >
               <span>{settings.popupLinkText}</span>
               <ExternalLink className="w-4 h-4" />
@@ -130,23 +165,36 @@ export function PopupNotification() {
         )}
 
         {/* Action Buttons */}
-        <div className="grid grid-cols-3 gap-2.5 pt-2 border-t border-zinc-800">
+        <div className="grid grid-cols-3 gap-2.5 pt-2 border-t" style={{ borderColor: "var(--theme-border, rgba(255,255,255,0.1))" }}>
           <button
             onClick={handleCloseAll}
-            className="py-2.5 px-3 rounded-xl bg-[#2D2D2D] border border-zinc-700 text-xs sm:text-sm font-bold text-zinc-300 hover:bg-zinc-800 hover:text-white transition-all text-center"
+            className="py-2.5 px-3 rounded-xl border text-xs sm:text-sm font-bold transition-all text-center cursor-pointer"
+            style={{
+              backgroundColor: "var(--theme-card, #2D2D2D)",
+              borderColor: "var(--theme-border, rgba(255,255,255,0.1))",
+              color: "var(--theme-text-muted, #9CA3AF)",
+            }}
           >
             {settings.popupButtonCloseText || "إغلاق الكل"}
           </button>
           <button
             onClick={handleRead}
-            className="py-2.5 px-3 rounded-xl bg-[#2D2D2D] border border-[#C8A45C]/40 text-xs sm:text-sm font-bold text-[#C8A45C] hover:bg-[#C8A45C]/15 transition-all text-center flex items-center justify-center gap-1.5"
+            className="py-2.5 px-3 rounded-xl border text-xs sm:text-sm font-bold transition-all text-center flex items-center justify-center gap-1.5 cursor-pointer"
+            style={{
+              backgroundColor: "var(--theme-card, #2D2D2D)",
+              borderColor: "var(--theme-border, rgba(200, 164, 92, 0.4))",
+              color: "var(--theme-primary, #C8A45C)",
+            }}
           >
             <CheckCircle2 className="w-4 h-4" />
             <span>{settings.popupButtonReadText || "قراءة الكل"}</span>
           </button>
           <button
             onClick={settings.popupLinkUrl ? handleView : handleCloseAll}
-            className="py-2.5 px-3 rounded-xl bg-[#C8A45C] text-black text-xs sm:text-sm font-black hover:bg-[#D9B56D] transition-all text-center shadow-md"
+            className="py-2.5 px-3 rounded-xl text-black text-xs sm:text-sm font-black transition-all text-center shadow-md cursor-pointer"
+            style={{
+              backgroundColor: "var(--theme-primary, #C8A45C)",
+            }}
           >
             {settings.popupButtonViewText || "عرض الكل"}
           </button>

@@ -85,7 +85,13 @@ export default function ProductCard({
           className="w-full flex flex-col items-center gap-2 cursor-pointer group select-none"
         >
           {/* 1:1 Aspect Ratio Square Card */}
-          <div className="w-full aspect-square rounded-2xl bg-[#1A1A1A] border border-[#C8A45C]/30 shadow-md group-hover:border-[#C8A45C] group-hover:shadow-[0_0_15px_rgba(200,164,92,0.25)] transition-all duration-300 overflow-hidden relative flex items-center justify-center">
+          <div
+            className="w-full aspect-square rounded-2xl border shadow-md group-hover:shadow-[0_0_15px_rgba(200,164,92,0.25)] transition-all duration-300 overflow-hidden relative flex items-center justify-center"
+            style={{
+              backgroundColor: "var(--theme-card, #1A1A1A)",
+              borderColor: "var(--theme-border, rgba(200, 164, 92, 0.3))",
+            }}
+          >
             {!imgError && finalImageUrl ? (
               <img
                 src={finalImageUrl}
@@ -96,11 +102,27 @@ export default function ProductCard({
               />
             ) : (
               /* Elegant Placeholder when image is missing or loading fails */
-              <div className="w-full h-full bg-gradient-to-br from-[#241D12] via-[#1A1A1A] to-[#12100C] border border-[#C8A45C]/20 flex flex-col items-center justify-center p-3 text-center relative overflow-hidden group-hover:scale-105 transition-transform duration-300">
-                <div className="w-10 h-10 rounded-2xl bg-[#C8A45C]/20 border border-[#C8A45C]/40 flex items-center justify-center text-[#C8A45C] mb-2 shadow-xs">
+              <div
+                className="w-full h-full border flex flex-col items-center justify-center p-3 text-center relative overflow-hidden group-hover:scale-105 transition-transform duration-300"
+                style={{
+                  backgroundColor: "var(--theme-card, #1A1A1A)",
+                  borderColor: "var(--theme-border, rgba(200, 164, 92, 0.2))",
+                }}
+              >
+                <div
+                  className="w-10 h-10 rounded-2xl border flex items-center justify-center mb-2 shadow-xs"
+                  style={{
+                    backgroundColor: "rgba(200, 164, 92, 0.15)",
+                    borderColor: "var(--theme-border, rgba(200, 164, 92, 0.4))",
+                    color: "var(--theme-primary, #C8A45C)",
+                  }}
+                >
                   <PackageOpen size={20} />
                 </div>
-                <span className="text-xs font-bold text-[#FDE68A] line-clamp-2 leading-tight px-1">
+                <span
+                  className="text-xs font-bold line-clamp-2 leading-tight px-1"
+                  style={{ color: "var(--theme-accent, #FDE68A)" }}
+                >
                   {name}
                 </span>
               </div>
@@ -111,11 +133,24 @@ export default function ProductCard({
 
             {/* Guest Lock Overlay on Hover */}
             {isGuest && (
-              <div className="absolute inset-0 bg-[#1A1A1A]/80 backdrop-blur-xs flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 p-2 text-center">
-                <div className="w-8 h-8 rounded-full bg-[#C8A45C]/20 border border-[#C8A45C] flex items-center justify-center text-[#C8A45C] mb-1 shadow-sm">
+              <div
+                className="absolute inset-0 backdrop-blur-xs flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 p-2 text-center"
+                style={{ backgroundColor: "rgba(26, 26, 26, 0.85)" }}
+              >
+                <div
+                  className="w-8 h-8 rounded-full border flex items-center justify-center mb-1 shadow-sm"
+                  style={{
+                    backgroundColor: "rgba(200, 164, 92, 0.2)",
+                    borderColor: "var(--theme-primary, #C8A45C)",
+                    color: "var(--theme-primary, #C8A45C)",
+                  }}
+                >
                   <Lock size={15} />
                 </div>
-                <span className="text-[10px] font-bold text-[#FDE68A] line-clamp-1">
+                <span
+                  className="text-[10px] font-bold line-clamp-1"
+                  style={{ color: "var(--theme-accent, #FDE68A)" }}
+                >
                   سجّل دخولك للعرض
                 </span>
               </div>
@@ -123,14 +158,28 @@ export default function ProductCard({
 
             {/* Category Tag Badge */}
             {categoryName && (
-              <span className="absolute top-2 right-2 text-[9px] font-bold bg-[#1A1A1A]/85 text-[#C8A45C] px-2 py-0.5 rounded-lg border border-[#C8A45C]/30 shadow-xs pointer-events-none backdrop-blur-xs z-10">
+              <span
+                className="absolute top-2 right-2 text-[9px] font-bold px-2 py-0.5 rounded-lg border shadow-xs pointer-events-none backdrop-blur-xs z-10"
+                style={{
+                  backgroundColor: "rgba(26, 26, 26, 0.85)",
+                  color: "var(--theme-primary, #C8A45C)",
+                  borderColor: "var(--theme-border, rgba(200, 164, 92, 0.3))",
+                }}
+              >
                 {categoryName}
               </span>
             )}
 
             {/* Product Count Badge (for groups) */}
             {productCount !== undefined && productCount > 0 && (
-              <span className="absolute top-2 left-2 text-[9px] font-bold bg-[#1A1A1A]/85 text-[#FDE68A] px-2 py-0.5 rounded-lg border border-[#C8A45C]/30 shadow-xs pointer-events-none z-10">
+              <span
+                className="absolute top-2 left-2 text-[9px] font-bold px-2 py-0.5 rounded-lg border shadow-xs pointer-events-none z-10"
+                style={{
+                  backgroundColor: "rgba(26, 26, 26, 0.85)",
+                  color: "var(--theme-accent, #FDE68A)",
+                  borderColor: "var(--theme-border, rgba(200, 164, 92, 0.3))",
+                }}
+              >
                 {productCount} منتج
               </span>
             )}
@@ -138,7 +187,14 @@ export default function ProductCard({
             {/* Bottom Floating Price Badge if price provided */}
             {priceUsd !== undefined && (
               <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between pointer-events-none z-10">
-                <span className="text-[10px] sm:text-xs font-black text-[#FDE68A] bg-[#1A1A1A]/90 px-2 py-0.5 rounded-lg border border-[#C8A45C]/40 shadow-xs">
+                <span
+                  className="text-[10px] sm:text-xs font-black px-2 py-0.5 rounded-lg border shadow-xs"
+                  style={{
+                    backgroundColor: "rgba(26, 26, 26, 0.9)",
+                    color: "var(--theme-accent, #FDE68A)",
+                    borderColor: "var(--theme-border, rgba(200, 164, 92, 0.4))",
+                  }}
+                >
                   {formattedPrice}
                 </span>
               </div>
@@ -147,7 +203,10 @@ export default function ProductCard({
 
           {/* Product / Item Title Below Card */}
           <div className="w-full text-center px-1">
-            <h3 className="text-xs font-bold text-zinc-200 group-hover:text-[#FDE68A] transition-colors leading-tight line-clamp-1">
+            <h3
+              className="text-xs font-bold transition-colors leading-tight line-clamp-1"
+              style={{ color: "var(--theme-text-primary, #E5E7EB)" }}
+            >
               {name}
             </h3>
           </div>
