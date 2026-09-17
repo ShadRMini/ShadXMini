@@ -71,23 +71,40 @@ router.get(["/theme", "/theme-settings", "/public/theme-settings", "/admin/theme
 
     // Helper to get string setting with fallback
     const getSettingStr = (key: string, fallback: string = "") => {
-      const val = map.get(key);
-      if (val !== undefined && val !== null && String(val).trim() !== "") {
-        return typeof val === "string" ? val.trim() : String(val).trim();
+      let val = map.get(key);
+      if (typeof val === "string") {
+        try {
+          const parsed = JSON.parse(val);
+          if (typeof parsed === "string") val = parsed;
+        } catch {}
+      }
+      if (val !== undefined && val !== null) {
+        const s = String(val).trim().replace(/^"|"$/g, "");
+        if (s !== "") return s;
       }
       return fallback;
     };
 
-    // Parse legacy JSON configs if present for fallback
-    const authPagesConfig = (map.get("auth_pages_config") || {}) as any;
+    const parseJsonSetting = (key: string) => {
+      let val = map.get(key);
+      if (typeof val === "string") {
+        try {
+          val = JSON.parse(val);
+        } catch {}
+      }
+      return val && typeof val === "object" ? val : {};
+    };
+
+    // Parse legacy/section JSON configs if present for fallback
+    const authPagesConfig = parseJsonSetting("auth_pages_config");
     const authStyles = authPagesConfig?.common?.styles || {};
 
-    const productPageStyle = (map.get("product_page_style") || {}) as any;
+    const productPageStyle = parseJsonSetting("product_page_style");
 
-    const aboutPageConfig = (map.get("about_page_config") || {}) as any;
+    const aboutPageConfig = { ...parseJsonSetting("about_page_config"), ...parseJsonSetting("about_us_config") };
     const aboutStyle = aboutPageConfig?.style || {};
 
-    const contactPageConfig = (map.get("contact_page_config") || {}) as any;
+    const contactPageConfig = parseJsonSetting("contact_page_config");
     const contactStyles = contactPageConfig?.styles || {};
 
     // Section-specific theme colors

@@ -1235,6 +1235,40 @@ export async function ensureDatabaseSchema() {
         `);
       }
     }
+
+    // Sync section flat colors from about_us_config/about_page_config if present
+    try {
+      const aboutConfigRow: any = await db.execute(sql`SELECT value FROM settings WHERE key IN ('about_us_config', 'about_page_config') LIMIT 1`);
+      const aboutRows = aboutConfigRow?.rows || aboutConfigRow;
+      if (aboutRows && aboutRows.length > 0) {
+        let cfg = aboutRows[0]?.value;
+        if (typeof cfg === "string") { try { cfg = JSON.parse(cfg); } catch {} }
+        if (cfg?.style?.bg_color) {
+          await db.execute(sql`
+            INSERT INTO settings (key, value)
+            VALUES ('about_bg_color', ${JSON.stringify(cfg.style.bg_color)}::jsonb)
+            ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value;
+          `);
+        }
+        if (cfg?.style?.section_bg) {
+          await db.execute(sql`
+            INSERT INTO settings (key, value)
+            VALUES ('about_card_color', ${JSON.stringify(cfg.style.section_bg)}::jsonb)
+            ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value;
+          `);
+        }
+        if (cfg?.style?.text_color) {
+          await db.execute(sql`
+            INSERT INTO settings (key, value)
+            VALUES ('about_text_color', ${JSON.stringify(cfg.style.text_color)}::jsonb)
+            ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value;
+          `);
+        }
+      }
+    } catch (e) {
+      console.warn("[ensureSchema] Section color sync warning:", e);
+    }
+
     console.log("[ensureSchema] ✅ Default flat color settings ensured in Neon DB");
 
     schemaEnsured = true;
