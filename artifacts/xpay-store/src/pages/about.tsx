@@ -328,8 +328,8 @@ export default function About() {
       className="p-4 sm:p-6 min-h-screen pb-24 animate-in fade-in duration-300"
       dir="rtl"
       style={{
-        backgroundColor: style.bg_color || "var(--about-bg-color, var(--theme-background, #1A1A1A))",
-        color: style.text_color || "var(--about-text-color, var(--theme-text-primary, #FFFFFF))",
+        backgroundColor: "var(--about-bg-color, var(--theme-background, #1A1A1A))",
+        color: "var(--about-text-color, var(--theme-text-primary, #FFFFFF))",
         fontFamily: style.font_family || "var(--theme-font-arabic, 'Cairo', sans-serif)",
       }}
     >
@@ -363,7 +363,7 @@ export default function About() {
           <button
             className="flex items-center gap-1.5 text-xs font-bold px-3.5 py-2 rounded-xl shadow-xs transition border cursor-pointer hover:opacity-90"
             style={{
-              backgroundColor: style.section_bg || "var(--about-card-color, var(--theme-card, #2D2D2D))",
+              backgroundColor: "var(--about-card-color, var(--theme-card, #2D2D2D))",
               borderColor: `${style.title_color || "#C8A45C"}50`,
               color: style.title_color || "#C8A45C",
             }}
@@ -381,7 +381,7 @@ export default function About() {
             key={section.id}
             className="p-5 sm:p-6 border shadow-xl transition relative overflow-hidden"
             style={{
-              backgroundColor: style.section_bg || "var(--about-card-color, var(--theme-card, #2D2D2D))",
+              backgroundColor: "var(--about-card-color, var(--theme-card, #2D2D2D))",
               borderRadius: style.border_radius || "16px",
               borderColor: `${style.title_color || "#C8A45C"}35`,
             }}

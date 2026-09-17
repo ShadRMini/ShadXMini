@@ -759,8 +759,8 @@ export default function ContactPage() {
     <div
       className="min-h-screen pb-24 p-4 selection:bg-[#C8A45C] selection:text-black transition-colors"
       style={{
-        backgroundColor: styles.bg_color || "var(--contact-bg-color, var(--theme-background, #1A1A1A))",
-        color: styles.text_color || "var(--contact-text-color, var(--theme-text-primary, #E5E7EB))",
+        backgroundColor: "var(--contact-bg-color, var(--theme-background, #1A1A1A))",
+        color: "var(--contact-text-color, var(--theme-text-primary, #E5E7EB))",
       }}
       dir="rtl"
     >
@@ -770,7 +770,7 @@ export default function ContactPage() {
           <div
             className="inline-flex items-center justify-center w-16 h-16 rounded-3xl mb-4 shadow-xl border"
             style={{
-              backgroundColor: styles.card_bg || "var(--contact-card-color, var(--theme-card, #2D2D2D))",
+              backgroundColor: "var(--contact-card-color, var(--theme-card, #2D2D2D))",
               borderColor: styles.border_color || "#C8A45C",
               color: styles.title_color || "#C8A45C",
             }}

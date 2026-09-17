@@ -313,6 +313,7 @@ export function applyStoreTheme(theme?: Partial<StoreThemeSettings> | null | und
   const aboutBg = currentTheme.about_bg_color || currentTheme.aboutBgColor || "#1A1A1A";
   const aboutCard = currentTheme.about_card_color || currentTheme.aboutCardColor || "#2D2D2D";
   const aboutText = currentTheme.about_text_color || currentTheme.aboutTextColor || "#FFFFFF";
+  console.log("[Theme] Setting CSS vars - About BG:", aboutBg, "Card:", aboutCard, "Text:", aboutText);
   root.style.setProperty("--about-bg-color", aboutBg);
   root.style.setProperty("--about-card-color", aboutCard);
   root.style.setProperty("--about-text-color", aboutText);
@@ -520,11 +521,13 @@ export async function loadAndApplyStoreTheme(apiBase = ""): Promise<StoreThemeSe
     `${apiBase}/api/theme`,
   ];
 
+  console.log("[Theme] Fetching theme settings...");
   for (const endpoint of endpoints) {
     try {
       const res = await fetch(endpoint);
       if (res.ok) {
         const data: StoreThemeSettings = await res.json();
+        console.log("[Theme] Received from endpoint:", endpoint, data);
         applyStoreTheme(data);
         return data;
       }
