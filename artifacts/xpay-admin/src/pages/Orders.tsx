@@ -38,6 +38,7 @@ type OrderItem = {
   createdAt: string;
   costUsd?: number | string;
   providerOrderId?: string;
+  meta?: any;
 };
 
 export default function Orders() {
@@ -541,6 +542,21 @@ export default function Orders() {
                   <span className="text-slate-400 block mb-1">الرابط / المعرف المدخل:</span>
                   <div className="font-mono text-blue-400 select-all break-all bg-slate-950 p-2 rounded-lg border border-slate-800">
                     {selectedOrder.userIdentifier}
+                  </div>
+                </div>
+              )}
+
+              {/* Dynamic Custom Params / Meta Fields */}
+              {selectedOrder.meta?.customParams && Object.keys(selectedOrder.meta.customParams).length > 0 && (
+                <div className="bg-[#14171f] p-3 rounded-xl border border-slate-800 space-y-2">
+                  <span className="text-slate-400 block font-medium">البيانات الإضافية المدخلة من العميل:</span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {Object.entries(selectedOrder.meta.customParams).map(([k, v]) => (
+                      <div key={k} className="bg-slate-950 p-2.5 rounded-lg border border-slate-800 flex flex-col">
+                        <span className="text-[11px] text-amber-400 font-bold mb-0.5">{k}</span>
+                        <span className="font-mono text-xs text-white select-all break-all">{String(v)}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}

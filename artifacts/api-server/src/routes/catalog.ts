@@ -27,6 +27,18 @@ function productRow(p: typeof productsTable.$inferSelect, categoryName: string) 
         .sort((a, b) => a - b)
     : undefined;
 
+  let productParams: string[] | undefined = undefined;
+  if (Array.isArray((p as any).params)) {
+    productParams = (p as any).params.map(String).map((s: string) => s.trim()).filter(Boolean);
+  } else if (typeof (p as any).params === "string") {
+    try {
+      const parsed = JSON.parse((p as any).params);
+      if (Array.isArray(parsed)) {
+        productParams = parsed.map(String).map((s: string) => s.trim()).filter(Boolean);
+      }
+    } catch {}
+  }
+
   return {
     id: String(p.id),
     name: p.name,
@@ -44,6 +56,7 @@ function productRow(p: typeof productsTable.$inferSelect, categoryName: string) 
     maxQty: p.maxQuantity ?? (p.maxQty != null ? Number(p.maxQty) : undefined),
     quantityType: p.quantityType,
     quantityValues,
+    params: productParams && productParams.length > 0 ? productParams : undefined,
     description: p.description ?? undefined,
     featured: p.featured,
   };

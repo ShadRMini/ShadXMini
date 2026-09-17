@@ -94,6 +94,7 @@ export async function ensureDatabaseSchema() {
       ALTER TABLE products ADD COLUMN IF NOT EXISTS provider_id INTEGER;
       ALTER TABLE products ADD COLUMN IF NOT EXISTS source TEXT DEFAULT 'manual';
       ALTER TABLE products ADD COLUMN IF NOT EXISTS provider_product_id INTEGER;
+      ALTER TABLE products ADD COLUMN IF NOT EXISTS params JSONB;
       ALTER TABLE products ADD COLUMN IF NOT EXISTS featured BOOLEAN DEFAULT false;
     `);
 

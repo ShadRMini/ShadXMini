@@ -4846,6 +4846,7 @@ router.post("/admin/provider-products/import", requireAdmin, async (req, res) =>
         quantityType: item.quantityType || "fixed",
         quantityValues: item.quantityValues || null,
         productType: item.productType || "amount",
+        params: Array.isArray(item.params) ? item.params : (item.rawData?.params || null),
         description: item.description || (Array.isArray(item.params) ? item.params.join(", ") : ""),
       };
 

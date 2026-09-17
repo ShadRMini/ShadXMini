@@ -506,7 +506,28 @@ router.post("/orders", async (req, res) => {
     }
 
     const orderNumber = `ID_${randomUUID().replace(/-/g, "").slice(0, 16)}`;
-    const playerId = body.userIdentifier || `user_${user.id}`;
+
+    // Resolve primary identifier (playerId/phone/identifier) from userIdentifier or customParams
+    let resolvedIdentifier = body.userIdentifier?.trim() || "";
+    if (!resolvedIdentifier && body.customParams && typeof body.customParams === "object") {
+      const keys = Object.keys(body.customParams);
+      const primaryKey = keys.find((k) => {
+        const lower = k.toLowerCase();
+        return (
+          lower.includes("player") ||
+          lower.includes("معرف") ||
+          lower.includes("id") ||
+          lower.includes("phone") ||
+          lower.includes("هاتف") ||
+          lower.includes("خط")
+        );
+      }) || keys[0];
+      if (primaryKey && body.customParams[primaryKey]) {
+        resolvedIdentifier = String(body.customParams[primaryKey]).trim();
+      }
+    }
+
+    const playerId = resolvedIdentifier || `user_${user.id}`;
 
     if (product.providerId && providerForOrder && adapterForOrder) {
       try {
@@ -517,6 +538,7 @@ router.post("/orders", async (req, res) => {
           body.quantity,
           playerId,
           randomUUID(),
+          body.customParams,
         );
       } catch (error: any) {
         console.error("Provider order error:", error);
@@ -561,6 +583,10 @@ router.post("/orders", async (req, res) => {
       },
     };
 
+    if (body.customParams && typeof body.customParams === "object" && Object.keys(body.customParams).length > 0) {
+      meta.customParams = body.customParams;
+    }
+
     if (providerOrderResult) {
       meta.provider = {
         providerOrderId: providerOrderResult.providerOrderId,
@@ -601,7 +627,7 @@ router.post("/orders", async (req, res) => {
           userId: user.id,
           productId: product.id,
           quantity: String(body.quantity),
-          userIdentifier: body.userIdentifier ?? null,
+          userIdentifier: resolvedIdentifier || null,
           totalUsd,
           totalSyp: String(totalSyp),
           status: finalOrderStatus,

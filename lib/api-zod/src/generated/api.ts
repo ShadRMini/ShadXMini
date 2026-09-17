@@ -65,6 +65,9 @@ export const ListProductsResponseItem = zod.object({
   available: zod.boolean(),
   minQty: zod.number().optional(),
   maxQty: zod.number().optional(),
+  quantityType: zod.string().optional(),
+  quantityValues: zod.array(zod.number()).optional(),
+  params: zod.array(zod.string()).optional(),
   description: zod.string().optional(),
   featured: zod.boolean(),
 });
@@ -88,6 +91,9 @@ export const ListFeaturedProductsResponseItem = zod.object({
   available: zod.boolean(),
   minQty: zod.number().optional(),
   maxQty: zod.number().optional(),
+  quantityType: zod.string().optional(),
+  quantityValues: zod.array(zod.number()).optional(),
+  params: zod.array(zod.string()).optional(),
   description: zod.string().optional(),
   featured: zod.boolean(),
 });
@@ -114,6 +120,9 @@ export const GetProductResponse = zod.object({
   available: zod.boolean(),
   minQty: zod.number().optional(),
   maxQty: zod.number().optional(),
+  quantityType: zod.string().optional(),
+  quantityValues: zod.array(zod.number()).optional(),
+  params: zod.array(zod.string()).optional(),
   description: zod.string().optional(),
   featured: zod.boolean(),
 });
@@ -200,6 +209,7 @@ export const CreateOrderBody = zod.object({
   productId: zod.string(),
   quantity: zod.number(),
   userIdentifier: zod.string().optional(),
+  customParams: zod.record(zod.string(), zod.string()).optional(),
 });
 
 export const CreateOrderResponse = zod.object({

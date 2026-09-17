@@ -86,6 +86,7 @@ export const productsTable = pgTable("products", {
   maxQuantity: integer("max_quantity"),
   quantityType: quantityTypeEnum("quantity_type").notNull().default("fixed"),
   quantityValues: jsonb("quantity_values"),
+  params: jsonb("params"),
   description: text("description"),
   featured: boolean("featured").notNull().default(false),
   providerId: integer("provider_id"),

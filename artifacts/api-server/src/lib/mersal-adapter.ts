@@ -1,6 +1,96 @@
 import { ProviderAdapter, ProviderProduct, ProviderOrderResult, ProviderCheckResult } from "./provider-adapters";
 import { parseProviderQuantityValues } from "./pricing.js";
 
+export function mapParamToKey(param: string): string {
+  const clean = param.trim().toLowerCase();
+  
+  if (
+    clean === "player id" ||
+    clean === "playerid" ||
+    clean === "player_id" ||
+    clean.includes("معرف اللاعب") ||
+    clean.includes("معرف الحساب") ||
+    clean.includes("ايدي اللاعب") ||
+    clean.includes("آيدي اللاعب") ||
+    clean === "id"
+  ) {
+    return "playerId";
+  }
+
+  if (
+    clean === "zone id" ||
+    clean === "zoneid" ||
+    clean === "zone_id" ||
+    clean.includes("سيرفر") ||
+    clean.includes("منطقة") ||
+    clean.includes("زون")
+  ) {
+    return "zoneId";
+  }
+
+  if (
+    clean === "server id" ||
+    clean === "serverid" ||
+    clean === "server_id"
+  ) {
+    return "serverId";
+  }
+
+  if (
+    clean.includes("هاتف") ||
+    clean.includes("موبايل") ||
+    clean.includes("جوال") ||
+    clean.includes("خط") ||
+    clean === "phone" ||
+    clean === "phone number" ||
+    clean === "phonenumber"
+  ) {
+    return "phoneNumber";
+  }
+
+  if (
+    clean.includes("بريد") ||
+    clean.includes("إيميل") ||
+    clean.includes("ايميل") ||
+    clean === "email"
+  ) {
+    return "email";
+  }
+
+  if (
+    clean.includes("كلمة المرور") ||
+    clean.includes("باسورد") ||
+    clean === "password"
+  ) {
+    return "password";
+  }
+
+  if (
+    clean.includes("شخصية") ||
+    clean.includes("اسم اللاعب") ||
+    clean === "character name" ||
+    clean === "character"
+  ) {
+    return "characterName";
+  }
+
+  if (
+    clean.includes("هدية") ||
+    clean.includes("كود") ||
+    clean === "gift code" ||
+    clean === "giftcode"
+  ) {
+    return "giftCode";
+  }
+
+  return param
+    .replace(/[^a-zA-Z0-9_\u0600-\u06FF]/g, " ")
+    .trim()
+    .split(/\s+/)
+    .map((word, idx) => (idx === 0 ? word.toLowerCase() : word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()))
+    .join("");
+}
+
 const DEFAULT_API_URL = "https://api.mersal-card.com";
 
 async function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutMs = 60000): Promise<Response> {
@@ -61,6 +151,7 @@ export class MersalAdapter implements ProviderAdapter {
         quantityType: quantityInfo.quantityType,
         quantityValues: quantityInfo.quantityValues ?? null,
         productType: p.product_type,
+        params: Array.isArray(p.params) ? p.params : undefined,
         description: p.params?.join(", "),
         rawData: p,
       };
@@ -81,8 +172,17 @@ export class MersalAdapter implements ProviderAdapter {
     url.searchParams.set("playerId", playerId);
     url.searchParams.set("order_uuid", orderUuid);
     
-    if (extraParams) {
-      Object.entries(extraParams).forEach(([k, v]) => url.searchParams.set(k, v));
+    if (extraParams && typeof extraParams === "object") {
+      Object.entries(extraParams).forEach(([k, v]) => {
+        if (v == null) return;
+        const valStr = String(v).trim();
+        if (!valStr) return;
+        const mappedKey = mapParamToKey(k);
+        url.searchParams.set(mappedKey, valStr);
+        if (mappedKey !== k) {
+          url.searchParams.set(k, valStr);
+        }
+      });
     }
 
     const res = await fetchWithTimeout(url.toString(), {

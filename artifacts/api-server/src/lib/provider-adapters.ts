@@ -40,6 +40,7 @@ export interface ProviderAdapter {
     maxQty?: number;
     quantityType?: 'fixed' | 'range' | 'list';
     quantityValues?: number[] | null;
+    params?: string[];
     productType: 'amount' | 'package';
     description?: string;
     rawData?: any; // لحفظ البيانات الأصلية

@@ -18,6 +18,17 @@ import {
   Sparkles,
   LayoutGrid,
   Crown,
+  User,
+  Phone,
+  Mail,
+  Lock,
+  Server,
+  Globe,
+  Gift,
+  Gamepad2,
+  Hash,
+  Key,
+  Check,
 } from "lucide-react";
 import { useEffect, useState, useMemo } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -53,6 +64,112 @@ function detectPurchaseMode(categoryName: string, productType: string): Purchase
   }
 
   return productType === "amount" ? "balance" : "games";
+}
+
+function getParamConfig(param: string) {
+  const clean = param.trim().toLowerCase();
+
+  if (
+    clean.includes("هاتف") ||
+    clean.includes("phone") ||
+    clean.includes("mobile") ||
+    clean.includes("جوال") ||
+    clean.includes("خط")
+  ) {
+    return {
+      icon: Phone,
+      label: param,
+      placeholder: "أدخل رقم الهاتف (مثال: 09XXXXXXXX)",
+      type: "tel",
+      help: "مطلوب لشحن الخط مباشرة",
+    };
+  }
+
+  if (
+    clean.includes("zone") ||
+    clean.includes("منطقة") ||
+    clean.includes("زون") ||
+    clean.includes("سيرفر") ||
+    clean.includes("server")
+  ) {
+    return {
+      icon: Server,
+      label: param,
+      placeholder: "أدخل معرف السيرفر / المنطقة (Zone ID)",
+      type: "text",
+      help: "معرف السيرفر أو المنطقة الخاصة بحسابك",
+    };
+  }
+
+  if (
+    clean.includes("email") ||
+    clean.includes("بريد") ||
+    clean.includes("إيميل") ||
+    clean.includes("ايميل")
+  ) {
+    return {
+      icon: Mail,
+      label: param,
+      placeholder: "example@domain.com",
+      type: "email",
+      help: "البريد الإلكتروني المرتبط بالخدمة",
+    };
+  }
+
+  if (
+    clean.includes("pass") ||
+    clean.includes("كلمة المرور") ||
+    clean.includes("سر") ||
+    clean.includes("رمز")
+  ) {
+    return {
+      icon: Lock,
+      label: param,
+      placeholder: "أدخل كلمة المرور",
+      type: "password",
+      help: "كلمة مرور الحساب بشكل آمن",
+    };
+  }
+
+  if (
+    clean.includes("gift") ||
+    clean.includes("هدية") ||
+    clean.includes("كود") ||
+    clean.includes("قسيمة")
+  ) {
+    return {
+      icon: Gift,
+      label: param,
+      placeholder: "أدخل كود الهدية / القسيمة",
+      type: "text",
+      help: "كود القسيمة أو التفعيل",
+    };
+  }
+
+  if (
+    clean.includes("player") ||
+    clean.includes("معرف") ||
+    clean.includes("id") ||
+    clean.includes("حساب") ||
+    clean.includes("آيدي") ||
+    clean.includes("ايدي")
+  ) {
+    return {
+      icon: Gamepad2,
+      label: param,
+      placeholder: "أدخل معرف الحساب (مثال: 123456789)",
+      type: "text",
+      help: "معرف اللاعب أو الحساب المعتمد",
+    };
+  }
+
+  return {
+    icon: User,
+    label: param,
+    placeholder: `أدخل ${param}`,
+    type: "text",
+    help: "مطلوب لإتمام تنفيذ الطلب",
+  };
 }
 
 interface SectionConfig {
@@ -227,8 +344,17 @@ export default function ProductDetail() {
   const [quantityInput, setQuantityInput] = useState("1");
   const [accountId, setAccountId] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [customFieldValues, setCustomFieldValues] = useState<Record<string, string>>({});
   const [isFavorite, setIsFavorite] = useState(false);
   const [favLoading, setFavLoading] = useState(false);
+
+  const dynamicParams = useMemo(() => {
+    const p = product as any;
+    if (Array.isArray(p?.params) && p.params.length > 0) {
+      return p.params.map(String).map((s: string) => s.trim()).filter(Boolean);
+    }
+    return [];
+  }, [product]);
 
   // Fetch product page config from API
   useEffect(() => {
@@ -485,14 +611,44 @@ export default function ProductDetail() {
   const handlePurchase = () => {
     const finalQuantity = commitQuantityInput();
 
-    if (purchaseMode === "balance") {
-      if (!phoneNumber.trim()) {
-        toast.error("يرجى إدخال رقم الخط بشكل صحيح");
+    if (dynamicParams.length > 0) {
+      for (const param of dynamicParams) {
+        const val = (customFieldValues[param] || "").trim();
+        if (!val) {
+          toast.error(`يرجى إدخال ${param} للمتابعة`);
+          return;
+        }
+      }
+    } else {
+      if (purchaseMode === "balance") {
+        if (!phoneNumber.trim()) {
+          toast.error("يرجى إدخال رقم الخط بشكل صحيح");
+          return;
+        }
+      } else if (!accountId.trim()) {
+        toast.error("يرجى إدخال معرف المستخدم (Player ID) بشكل صحيح");
         return;
       }
-    } else if (!accountId.trim()) {
-      toast.error("يرجى إدخال معرف المستخدم (Player ID) بشكل صحيح");
-      return;
+    }
+
+    let primaryIdentifier = "";
+    if (dynamicParams.length > 0) {
+      const keys = Object.keys(customFieldValues);
+      const primaryKey =
+        keys.find((k) => {
+          const lower = k.toLowerCase();
+          return (
+            lower.includes("player") ||
+            lower.includes("معرف") ||
+            lower.includes("id") ||
+            lower.includes("phone") ||
+            lower.includes("هاتف") ||
+            lower.includes("خط")
+          );
+        }) || keys[0];
+      primaryIdentifier = primaryKey ? (customFieldValues[primaryKey] || "").trim() : "";
+    } else {
+      primaryIdentifier = purchaseMode === "balance" ? phoneNumber.trim() : accountId.trim();
     }
 
     createOrder.mutate(
@@ -500,7 +656,8 @@ export default function ProductDetail() {
         data: {
           productId: product.id,
           quantity: finalQuantity,
-          userIdentifier: purchaseMode === "balance" ? phoneNumber.trim() : accountId.trim(),
+          userIdentifier: primaryIdentifier,
+          customParams: Object.keys(customFieldValues).length > 0 ? customFieldValues : undefined,
         },
       },
       {
@@ -880,65 +1037,118 @@ export default function ProductDetail() {
               </div>
             )}
 
-            {/* Account ID / Phone Number Inputs */}
-            {(purchaseMode === "apps" || purchaseMode === "games") && (
-              <div className="pt-2">
-                <label className="text-xs font-bold mb-2 block flex items-center justify-between" style={{ color: customization.player_id_label_color || "#E5E7EB" }}>
-                  <span>معرّف الحساب (Player ID) *</span>
-                  <span className="text-[10px]" style={{ color: customization.breadcrumb_active_color || "#C8A45C" }}>
-                    {customization.direct_shipping_label || "مطلوب للشحن المباشر"}
-                  </span>
-                </label>
-                <Input
-                  value={accountId}
-                  onChange={(e) => setAccountId(e.target.value)}
-                  placeholder="أدخل معرّف الحساب (مثال: 123456789)"
-                  className="h-13 rounded-2xl px-4 text-base placeholder:text-zinc-500 font-mono transition-all"
-                  style={{
-                    backgroundColor: customization.player_id_input_bg || "#1A1A1A",
-                    borderColor: customization.player_id_input_border || "#4B5563",
-                    color: customization.player_id_input_text || "#FFFFFF",
-                  }}
-                  onFocus={(e) => {
-                    e.currentTarget.style.borderColor = customization.player_id_input_focus || "#C8A45C";
-                  }}
-                  onBlur={(e) => {
-                    e.currentTarget.style.borderColor = customization.player_id_input_border || "#4B5563";
-                  }}
-                />
-              </div>
-            )}
-
-            {purchaseMode === "balance" && (
+            {/* Dynamic Inputs or Fallback Account ID / Phone Number Inputs */}
+            {dynamicParams.length > 0 ? (
               <div className="space-y-3 pt-2">
-                <div className="rounded-2xl border border-[#C8A45C]/40 bg-[#C8A45C]/10 px-4 py-2.5 text-[#FDE68A] font-bold text-xs flex items-center justify-between">
-                  <span>الكمية المحددة للشحن:</span>
-                  <span className="font-mono text-base">{quantity} وحدة</span>
-                </div>
-                <div>
-                  <label className="text-xs font-bold mb-2 block flex items-center justify-between" style={{ color: customization.player_id_label_color || "#E5E7EB" }}>
-                    <span>رقم الخط المطلوب شحنه *</span>
-                    <span className="text-[10px]" style={{ color: customization.breadcrumb_active_color || "#C8A45C" }}>مثال: 09XXXXXXXX</span>
-                  </label>
-                  <Input
-                    value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(e.target.value)}
-                    placeholder="أدخل رقم الخط (09XXXXXXXX)"
-                    className="h-13 rounded-2xl px-4 text-base placeholder:text-zinc-500 font-mono transition-all"
-                    style={{
-                      backgroundColor: customization.player_id_input_bg || "#1A1A1A",
-                      borderColor: customization.player_id_input_border || "#4B5563",
-                      color: customization.player_id_input_text || "#FFFFFF",
-                    }}
-                    onFocus={(e) => {
-                      e.currentTarget.style.borderColor = customization.player_id_input_focus || "#C8A45C";
-                    }}
-                    onBlur={(e) => {
-                      e.currentTarget.style.borderColor = customization.player_id_input_border || "#4B5563";
-                    }}
-                  />
-                </div>
+                {dynamicParams.map((param) => {
+                  const cfg = getParamConfig(param);
+                  const Icon = cfg.icon;
+                  return (
+                    <div key={param} className="space-y-1.5">
+                      <label
+                        className="text-xs font-bold block flex items-center justify-between"
+                        style={{ color: customization.player_id_label_color || "#E5E7EB" }}
+                      >
+                        <span className="flex items-center gap-1.5">
+                          <Icon size={14} style={{ color: customization.breadcrumb_active_color || "#C8A45C" }} />
+                          <span>{param} *</span>
+                        </span>
+                        <span className="text-[10px]" style={{ color: customization.breadcrumb_active_color || "#C8A45C" }}>
+                          {cfg.help}
+                        </span>
+                      </label>
+                      <Input
+                        type={cfg.type}
+                        value={customFieldValues[param] || ""}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setCustomFieldValues((prev) => ({ ...prev, [param]: val }));
+                          if (cfg.type === "tel" || param.includes("هاتف") || param.includes("خط")) {
+                            setPhoneNumber(val);
+                          } else {
+                            setAccountId(val);
+                          }
+                        }}
+                        placeholder={cfg.placeholder}
+                        className="h-13 rounded-2xl px-4 text-base placeholder:text-zinc-500 font-mono transition-all"
+                        style={{
+                          backgroundColor: customization.player_id_input_bg || "#1A1A1A",
+                          borderColor: customization.player_id_input_border || "#4B5563",
+                          color: customization.player_id_input_text || "#FFFFFF",
+                        }}
+                        onFocus={(e) => {
+                          e.currentTarget.style.borderColor = customization.player_id_input_focus || "#C8A45C";
+                        }}
+                        onBlur={(e) => {
+                          e.currentTarget.style.borderColor = customization.player_id_input_border || "#4B5563";
+                        }}
+                      />
+                    </div>
+                  );
+                })}
               </div>
+            ) : (
+              <>
+                {(purchaseMode === "apps" || purchaseMode === "games") && (
+                  <div className="pt-2">
+                    <label className="text-xs font-bold mb-2 block flex items-center justify-between" style={{ color: customization.player_id_label_color || "#E5E7EB" }}>
+                      <span>معرّف الحساب (Player ID) *</span>
+                      <span className="text-[10px]" style={{ color: customization.breadcrumb_active_color || "#C8A45C" }}>
+                        {customization.direct_shipping_label || "مطلوب للشحن المباشر"}
+                      </span>
+                    </label>
+                    <Input
+                      value={accountId}
+                      onChange={(e) => setAccountId(e.target.value)}
+                      placeholder="أدخل معرّف الحساب (مثال: 123456789)"
+                      className="h-13 rounded-2xl px-4 text-base placeholder:text-zinc-500 font-mono transition-all"
+                      style={{
+                        backgroundColor: customization.player_id_input_bg || "#1A1A1A",
+                        borderColor: customization.player_id_input_border || "#4B5563",
+                        color: customization.player_id_input_text || "#FFFFFF",
+                      }}
+                      onFocus={(e) => {
+                        e.currentTarget.style.borderColor = customization.player_id_input_focus || "#C8A45C";
+                      }}
+                      onBlur={(e) => {
+                        e.currentTarget.style.borderColor = customization.player_id_input_border || "#4B5563";
+                      }}
+                    />
+                  </div>
+                )}
+
+                {purchaseMode === "balance" && (
+                  <div className="space-y-3 pt-2">
+                    <div className="rounded-2xl border border-[#C8A45C]/40 bg-[#C8A45C]/10 px-4 py-2.5 text-[#FDE68A] font-bold text-xs flex items-center justify-between">
+                      <span>الكمية المحددة للشحن:</span>
+                      <span className="font-mono text-base">{quantity} وحدة</span>
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold mb-2 block flex items-center justify-between" style={{ color: customization.player_id_label_color || "#E5E7EB" }}>
+                        <span>رقم الخط المطلوب شحنه *</span>
+                        <span className="text-[10px]" style={{ color: customization.breadcrumb_active_color || "#C8A45C" }}>مثال: 09XXXXXXXX</span>
+                      </label>
+                      <Input
+                        value={phoneNumber}
+                        onChange={(e) => setPhoneNumber(e.target.value)}
+                        placeholder="أدخل رقم الخط (09XXXXXXXX)"
+                        className="h-13 rounded-2xl px-4 text-base placeholder:text-zinc-500 font-mono transition-all"
+                        style={{
+                          backgroundColor: customization.player_id_input_bg || "#1A1A1A",
+                          borderColor: customization.player_id_input_border || "#4B5563",
+                          color: customization.player_id_input_text || "#FFFFFF",
+                        }}
+                        onFocus={(e) => {
+                          e.currentTarget.style.borderColor = customization.player_id_input_focus || "#C8A45C";
+                        }}
+                        onBlur={(e) => {
+                          e.currentTarget.style.borderColor = customization.player_id_input_border || "#4B5563";
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
+              </>
             )}
 
             <p className="text-[11px] bg-amber-950/40 border border-amber-500/30 p-3 rounded-2xl flex items-center gap-2 font-medium" style={{ color: customization.disclaimer_text_color || "#9CA3AF" }}>
@@ -1234,33 +1444,70 @@ export default function ProductDetail() {
               )}
             </div>
 
-            {(purchaseMode === "apps" || purchaseMode === "games") && (
-              <div>
-                <label className="text-sm font-bold text-white mb-2 block">معرّف الحساب (ID) *</label>
-                <Input
-                  value={accountId}
-                  onChange={(e) => setAccountId(e.target.value)}
-                  placeholder="أدخل معرّف الحساب (Player ID)"
-                  className="h-12 bg-[#3D3D3D] border-[#4B5563] text-white rounded-2xl px-4 focus-visible:ring-[#C8A45C] focus-visible:border-[#C8A45C] text-base placeholder:text-zinc-400"
-                />
-              </div>
-            )}
-
-            {purchaseMode === "balance" && (
+            {dynamicParams.length > 0 ? (
               <div className="space-y-3">
-                <div className="rounded-2xl border border-[#C8A45C]/40 bg-[#C8A45C]/10 px-4 py-3 text-[#FDE68A] font-bold text-sm">
-                  الكمية المحددة: {quantity} وحدة
-                </div>
-                <div>
-                  <label className="text-sm font-bold text-white mb-2 block">رقم الخط *</label>
-                  <Input
-                    value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(e.target.value)}
-                    placeholder="09XXXXXXXX"
-                    className="h-12 bg-[#3D3D3D] border-[#4B5563] text-white rounded-2xl px-4 focus-visible:ring-[#C8A45C] focus-visible:border-[#C8A45C] text-base placeholder:text-zinc-400"
-                  />
-                </div>
+                {dynamicParams.map((param) => {
+                  const cfg = getParamConfig(param);
+                  const Icon = cfg.icon;
+                  return (
+                    <div key={param} className="space-y-1.5">
+                      <label className="text-sm font-bold text-white mb-1 flex items-center justify-between">
+                        <span className="flex items-center gap-1.5">
+                          <Icon size={15} className="text-[#C8A45C]" />
+                          <span>{param} *</span>
+                        </span>
+                        <span className="text-xs text-[#C8A45C] font-normal">{cfg.help}</span>
+                      </label>
+                      <Input
+                        type={cfg.type}
+                        value={customFieldValues[param] || ""}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setCustomFieldValues((prev) => ({ ...prev, [param]: val }));
+                          if (cfg.type === "tel" || param.includes("هاتف") || param.includes("خط")) {
+                            setPhoneNumber(val);
+                          } else {
+                            setAccountId(val);
+                          }
+                        }}
+                        placeholder={cfg.placeholder}
+                        className="h-12 bg-[#3D3D3D] border-[#4B5563] text-white rounded-2xl px-4 focus-visible:ring-[#C8A45C] focus-visible:border-[#C8A45C] text-base placeholder:text-zinc-400"
+                      />
+                    </div>
+                  );
+                })}
               </div>
+            ) : (
+              <>
+                {(purchaseMode === "apps" || purchaseMode === "games") && (
+                  <div>
+                    <label className="text-sm font-bold text-white mb-2 block">معرّف الحساب (ID) *</label>
+                    <Input
+                      value={accountId}
+                      onChange={(e) => setAccountId(e.target.value)}
+                      placeholder="أدخل معرّف الحساب (Player ID)"
+                      className="h-12 bg-[#3D3D3D] border-[#4B5563] text-white rounded-2xl px-4 focus-visible:ring-[#C8A45C] focus-visible:border-[#C8A45C] text-base placeholder:text-zinc-400"
+                    />
+                  </div>
+                )}
+
+                {purchaseMode === "balance" && (
+                  <div className="space-y-3">
+                    <div className="rounded-2xl border border-[#C8A45C]/40 bg-[#C8A45C]/10 px-4 py-3 text-[#FDE68A] font-bold text-sm">
+                      الكمية المحددة: {quantity} وحدة
+                    </div>
+                    <div>
+                      <label className="text-sm font-bold text-white mb-2 block">رقم الخط *</label>
+                      <Input
+                        value={phoneNumber}
+                        onChange={(e) => setPhoneNumber(e.target.value)}
+                        placeholder="09XXXXXXXX"
+                        className="h-12 bg-[#3D3D3D] border-[#4B5563] text-white rounded-2xl px-4 focus-visible:ring-[#C8A45C] focus-visible:border-[#C8A45C] text-base placeholder:text-zinc-400"
+                      />
+                    </div>
+                  </div>
+                )}
+              </>
             )}
 
             <div className="rounded-2xl bg-[#1A1A1A] border border-[#C8A45C]/30 p-4 text-center space-y-2">

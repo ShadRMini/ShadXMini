@@ -60,6 +60,9 @@ export interface Product {
   available: boolean;
   minQty?: number;
   maxQty?: number;
+  quantityType?: string;
+  quantityValues?: number[];
+  params?: string[];
   description?: string;
   featured: boolean;
 }
@@ -144,6 +147,7 @@ export interface CreateOrderBody {
   productId: string;
   quantity: number;
   userIdentifier?: string;
+  customParams?: Record<string, string>;
 }
 
 export interface OrdersSummary {
