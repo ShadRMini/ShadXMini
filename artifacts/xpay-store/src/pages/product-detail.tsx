@@ -17,6 +17,7 @@ import {
   CheckCircle2,
   Sparkles,
   LayoutGrid,
+  Crown,
 } from "lucide-react";
 import { useEffect, useState, useMemo } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -26,6 +27,7 @@ import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import ProductCard from "@/components/product/ProductCard";
 import { useCurrency } from "@/lib/currency-context";
+import { useAuth } from "@/lib/auth-context";
 
 type PurchaseMode = "apps" | "games" | "balance";
 
@@ -189,12 +191,16 @@ export default function ProductDetail() {
   const id = params?.id;
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   const [settings, setSettings] = useState<ProductPageSettings>(DEFAULT_SETTINGS);
   const [sections, setSections] = useState<SectionConfig[]>(DEFAULT_SECTIONS);
   const [customization, setCustomization] = useState<CustomizationConfig>(DEFAULT_CUSTOMIZATION);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [legacyOverride, setLegacyOverride] = useState<boolean | null>(null);
+  const [vipDiscountPercent, setVipDiscountPercent] = useState<number>(0);
+  const [vipBadgeName, setVipBadgeName] = useState<string>("");
+  const [vipBadgeColor, setVipBadgeColor] = useState<string>("#C8A45C");
 
   const { formatPrice, formatPriceWithSyp } = useCurrency();
 
@@ -272,6 +278,37 @@ export default function ProductDetail() {
       .catch(() => {});
   }, [id]);
 
+  // Fetch VIP level discount details
+  useEffect(() => {
+    const token = localStorage.getItem("xpay_store_auth_token");
+    if (!token) {
+      setVipDiscountPercent(0);
+      setVipBadgeName("");
+      return;
+    }
+
+    const baseUrl = (import.meta.env.VITE_API_URL || "").replace(/\/+$/, "");
+    fetch(`${baseUrl}/api/me/vip-details?_=${Date.now()}`, {
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      credentials: "include",
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data && typeof data === "object") {
+          const discount = Number(data.discountPercent ?? data.discount_percent ?? data.currentLevel?.discountPercent ?? data.currentLevel?.discount_percent ?? 0);
+          setVipDiscountPercent(discount);
+          const badgeName = data.currentLevel?.nameAr || data.currentLevel?.name_ar || data.currentLevel?.name || (user?.vipBadge?.name) || "";
+          setVipBadgeName(badgeName);
+          const badgeColor = data.currentLevel?.badgeColor || data.currentLevel?.badge_color || (user?.vipBadge?.color) || "#C8A45C";
+          setVipBadgeColor(badgeColor);
+        }
+      })
+      .catch(() => {});
+  }, [user?.vipLevel, user?.id]);
+
   const toggleFavorite = async () => {
     if (!id || favLoading) return;
     setFavLoading(true);
@@ -344,12 +381,18 @@ export default function ProductDetail() {
   const usesOfficialQuantityList = quantityType === "list" && officialQuantityValues.length > 0;
   const usesFixedQuantity = quantityType === "fixed";
   const purchaseMode = detectPurchaseMode(product.categoryName, product.productType);
-  const unitPrice = (customization.default_unit_price && Number(customization.default_unit_price) > 0)
+  const baseUnitPrice = (customization.default_unit_price && Number(customization.default_unit_price) > 0)
     ? Number(customization.default_unit_price)
     : product.priceUsd;
+  const hasVipDiscount = vipDiscountPercent > 0;
+  const unitPrice = hasVipDiscount
+    ? Number((baseUnitPrice * (1 - vipDiscountPercent / 100)).toFixed(8))
+    : baseUnitPrice;
   const totalUsd = (customization.total_amount && Number(customization.total_amount) > 0)
     ? Number(customization.total_amount)
     : unitPrice * quantity;
+  const baseTotalUsd = baseUnitPrice * quantity;
+  const totalSavingsUsd = hasVipDiscount ? Math.max(0, baseTotalUsd - totalUsd) : 0;
 
   const isLegacy = legacyOverride !== null ? legacyOverride : settings.product_legacy_mode;
 
@@ -565,34 +608,66 @@ export default function ProductDetail() {
       case "price":
         const unitFormatted = formatPriceWithSyp(unitPrice);
         const totalFormatted = formatPriceWithSyp(totalUsd);
+        const baseUnitFormatted = formatPriceWithSyp(baseUnitPrice);
+        const baseTotalFormatted = formatPriceWithSyp(baseTotalUsd);
         return (
           <div
             key={sec.id}
-            className="border border-[#C8A45C]/40 p-4 rounded-2xl flex items-center justify-between shadow-inner"
+            className="border border-[#C8A45C]/40 p-4 rounded-2xl shadow-inner space-y-3"
             style={{ backgroundColor: customization.info_box_bg_color || "#1A1A1A" }}
           >
-            <div>
-              <div className="text-xs font-semibold mb-0.5" style={{ color: customization.unit_price_color || "#E5E7EB" }}>سعر الوحدة</div>
-              <div className="text-2xl font-black font-mono" style={{ color: customization.unit_price_color || customization.price_color || "#FDE68A" }}>
-                {unitFormatted.primary}
-              </div>
-              {unitFormatted.secondary && (
-                <div className="text-[11px] text-zinc-400 font-normal">
-                  {unitFormatted.secondary}
+            {hasVipDiscount && (
+              <div className="flex items-center justify-between bg-gradient-to-r from-[#C8A45C]/20 via-[#C8A45C]/10 to-transparent border border-[#C8A45C]/40 px-3 py-1.5 rounded-xl text-xs">
+                <div className="flex items-center gap-1.5 font-bold" style={{ color: vipBadgeColor }}>
+                  <Crown size={15} />
+                  <span>خصم عضوية {vipBadgeName || "VIP"} ({vipDiscountPercent}%)</span>
                 </div>
-              )}
-            </div>
+                {totalSavingsUsd > 0 && (
+                  <span className="text-[11px] text-emerald-400 font-mono font-bold">
+                    وفرت {formatPrice(totalSavingsUsd)}
+                  </span>
+                )}
+              </div>
+            )}
 
-            <div className="text-left border-r border-zinc-700/80 pr-4">
-              <div className="text-xs font-semibold" style={{ color: customization.total_price_color || "#C8A45C" }}>المجموع الكلي</div>
-              <div className="text-2xl font-black font-mono" style={{ color: customization.total_price_color || customization.price_color || "#FDE68A" }}>
-                {totalFormatted.primary}
-              </div>
-              {totalFormatted.secondary && (
-                <div className="text-[11px] text-zinc-400 font-normal">
-                  {totalFormatted.secondary}
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-xs font-semibold mb-0.5" style={{ color: customization.unit_price_color || "#E5E7EB" }}>سعر الوحدة</div>
+                <div className="flex items-baseline gap-2">
+                  <div className="text-2xl font-black font-mono" style={{ color: customization.unit_price_color || customization.price_color || "#FDE68A" }}>
+                    {unitFormatted.primary}
+                  </div>
+                  {hasVipDiscount && (
+                    <span className="text-xs line-through text-zinc-500 font-mono">
+                      {baseUnitFormatted.primary}
+                    </span>
+                  )}
                 </div>
-              )}
+                {unitFormatted.secondary && (
+                  <div className="text-[11px] text-zinc-400 font-normal">
+                    {unitFormatted.secondary}
+                  </div>
+                )}
+              </div>
+
+              <div className="text-left border-r border-zinc-700/80 pr-4">
+                <div className="text-xs font-semibold" style={{ color: customization.total_price_color || "#C8A45C" }}>المجموع الكلي</div>
+                <div className="flex items-baseline justify-end gap-2">
+                  {hasVipDiscount && (
+                    <span className="text-xs line-through text-zinc-500 font-mono">
+                      {baseTotalFormatted.primary}
+                    </span>
+                  )}
+                  <div className="text-2xl font-black font-mono" style={{ color: customization.total_price_color || customization.price_color || "#FDE68A" }}>
+                    {totalFormatted.primary}
+                  </div>
+                </div>
+                {totalFormatted.secondary && (
+                  <div className="text-[11px] text-zinc-400 font-normal">
+                    {totalFormatted.secondary}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         );
@@ -1173,11 +1248,25 @@ export default function ProductDetail() {
               </div>
             )}
 
-            <div className="rounded-2xl bg-[#1A1A1A] border border-[#C8A45C]/30 p-4 text-center">
+            <div className="rounded-2xl bg-[#1A1A1A] border border-[#C8A45C]/30 p-4 text-center space-y-2">
+              {hasVipDiscount && (
+                <div className="flex items-center justify-center gap-1.5 text-xs font-bold py-1 px-3 rounded-full bg-[#C8A45C]/15 border border-[#C8A45C]/30 mx-auto w-fit" style={{ color: vipBadgeColor }}>
+                  <Crown size={14} />
+                  <span>خصم {vipBadgeName || "VIP"} ({vipDiscountPercent}%)</span>
+                  {totalSavingsUsd > 0 && <span className="text-emerald-400 font-mono">وفرت {formatPrice(totalSavingsUsd)}</span>}
+                </div>
+              )}
               <div className="text-xs text-zinc-400 font-semibold">السعر الإجمالي</div>
-              <div className="text-3xl font-black text-[#FDE68A] mt-1">{formatPrice(totalUsd)}</div>
+              <div className="flex items-baseline justify-center gap-2">
+                {hasVipDiscount && (
+                  <span className="text-sm line-through text-zinc-500 font-mono">
+                    {formatPrice(baseTotalUsd)}
+                  </span>
+                )}
+                <div className="text-3xl font-black text-[#FDE68A]">{formatPrice(totalUsd)}</div>
+              </div>
               {formatPriceWithSyp(totalUsd).secondary && (
-                <div className="text-xs text-zinc-400 mt-1 font-medium">{formatPriceWithSyp(totalUsd).secondary}</div>
+                <div className="text-xs text-zinc-400 font-medium">{formatPriceWithSyp(totalUsd).secondary}</div>
               )}
             </div>
 
