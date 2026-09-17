@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useStoreSettings } from "@/lib/store-settings-context";
-import { getStoreThemeMode, toggleStoreThemeMode } from "@/lib/theme";
+import { getStoreThemeMode, setStoreThemeMode, toggleStoreThemeMode, applyStoreTheme } from "@/lib/theme";
 import { getPublicJson } from "@/lib/public-api";
 import { toast } from "sonner";
 
