@@ -846,6 +846,11 @@ export async function ensureDatabaseSchema() {
         ON CONFLICT (id) DO UPDATE SET
           discount_fixed_amount = EXCLUDED.discount_fixed_amount
         WHERE vip_memberships.discount_fixed_amount IS NULL OR vip_memberships.discount_fixed_amount = 0;
+
+        UPDATE vip_memberships SET discount_fixed_amount = 0.01000000 WHERE (level_order = 2 OR id = 2) AND (discount_fixed_amount IS NULL OR discount_fixed_amount = 0);
+        UPDATE vip_memberships SET discount_fixed_amount = 0.02000000 WHERE (level_order = 3 OR id = 3) AND (discount_fixed_amount IS NULL OR discount_fixed_amount = 0);
+        UPDATE vip_memberships SET discount_fixed_amount = 0.03000000 WHERE (level_order = 4 OR id = 4) AND (discount_fixed_amount IS NULL OR discount_fixed_amount = 0);
+        UPDATE vip_memberships SET discount_fixed_amount = 0.04000000 WHERE (level_order = 5 OR id = 5) AND (discount_fixed_amount IS NULL OR discount_fixed_amount = 0);
       `);
 
       // Sync sequence to avoid collision when creating new levels

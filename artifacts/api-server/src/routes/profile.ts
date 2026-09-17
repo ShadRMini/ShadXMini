@@ -230,25 +230,36 @@ async function handleGetLoyalty(req: Request, res: Response) {
       .where(eq(vipMembershipsTable.hidden, false))
       .orderBy(sql`level_order ASC, required_amount ASC`);
 
-    let formattedLevels = (dbLevels || []).map((lvl) => ({
-      id: lvl.id,
-      name: lvl.name,
-      name_ar: lvl.nameAr || (lvl as any).name_ar || lvl.name,
-      nameAr: lvl.nameAr || (lvl as any).name_ar || lvl.name,
-      level_order: lvl.levelOrder || lvl.id,
-      levelOrder: lvl.levelOrder || lvl.id,
-      required_amount: Number(lvl.requiredAmount || 0),
-      requiredAmount: Number(lvl.requiredAmount || 0),
-      discount_percent: Number(lvl.discountPercent || lvl.profitPct || 0),
-      discountPercent: Number(lvl.discountPercent || lvl.profitPct || 0),
-      discount_fixed_amount: String(lvl.discountFixedAmount || (lvl as any).discount_fixed_amount || "0.00000000"),
-      discountFixedAmount: String(lvl.discountFixedAmount || (lvl as any).discount_fixed_amount || "0.00000000"),
-      badge_color: lvl.badgeColor || lvl.badge || "#C8A45C",
-      badgeColor: lvl.badgeColor || lvl.badge || "#C8A45C",
-      benefits: Array.isArray(lvl.benefits) ? lvl.benefits : (typeof lvl.benefits === "string" ? JSON.parse(lvl.benefits || "[]") : []),
-      description: lvl.description || "",
-      hidden: lvl.hidden,
-    }));
+    let formattedLevels = (dbLevels || []).map((lvl) => {
+      let fixedDiscount = String(lvl.discountFixedAmount || (lvl as any).discount_fixed_amount || "0.00000000");
+      const order = Number(lvl.levelOrder || lvl.id || 1);
+      if (decimalToScaled(fixedDiscount) <= 0n) {
+        if (order === 2) fixedDiscount = "0.01000000";
+        else if (order === 3) fixedDiscount = "0.02000000";
+        else if (order === 4) fixedDiscount = "0.03000000";
+        else if (order >= 5) fixedDiscount = "0.04000000";
+      }
+
+      return {
+        id: lvl.id,
+        name: lvl.name,
+        name_ar: lvl.nameAr || (lvl as any).name_ar || lvl.name,
+        nameAr: lvl.nameAr || (lvl as any).name_ar || lvl.name,
+        level_order: order,
+        levelOrder: order,
+        required_amount: Number(lvl.requiredAmount || 0),
+        requiredAmount: Number(lvl.requiredAmount || 0),
+        discount_percent: Number(lvl.discountPercent || lvl.profitPct || 0),
+        discountPercent: Number(lvl.discountPercent || lvl.profitPct || 0),
+        discount_fixed_amount: fixedDiscount,
+        discountFixedAmount: fixedDiscount,
+        badge_color: lvl.badgeColor || lvl.badge || "#C8A45C",
+        badgeColor: lvl.badgeColor || lvl.badge || "#C8A45C",
+        benefits: Array.isArray(lvl.benefits) ? lvl.benefits : (typeof lvl.benefits === "string" ? JSON.parse(lvl.benefits || "[]") : []),
+        description: lvl.description || "",
+        hidden: lvl.hidden,
+      };
+    });
 
     if (formattedLevels.length === 0) {
       formattedLevels = [
@@ -318,25 +329,36 @@ async function handleGetPublicVipMemberships(_req: Request, res: Response) {
       .where(eq(vipMembershipsTable.hidden, false))
       .orderBy(sql`level_order ASC, required_amount ASC`);
 
-    const formatted = (dbLevels || []).map((lvl) => ({
-      id: lvl.id,
-      name: lvl.name,
-      name_ar: lvl.nameAr || (lvl as any).name_ar || lvl.name,
-      nameAr: lvl.nameAr || (lvl as any).name_ar || lvl.name,
-      level_order: lvl.levelOrder || lvl.id,
-      levelOrder: lvl.levelOrder || lvl.id,
-      required_amount: Number(lvl.requiredAmount || 0),
-      requiredAmount: Number(lvl.requiredAmount || 0),
-      discount_percent: Number(lvl.discountPercent || lvl.profitPct || 0),
-      discountPercent: Number(lvl.discountPercent || lvl.profitPct || 0),
-      discount_fixed_amount: String(lvl.discountFixedAmount || (lvl as any).discount_fixed_amount || "0.00000000"),
-      discountFixedAmount: String(lvl.discountFixedAmount || (lvl as any).discount_fixed_amount || "0.00000000"),
-      badge_color: lvl.badgeColor || lvl.badge || "#C8A45C",
-      badgeColor: lvl.badgeColor || lvl.badge || "#C8A45C",
-      benefits: Array.isArray(lvl.benefits) ? lvl.benefits : (typeof lvl.benefits === "string" ? JSON.parse(lvl.benefits || "[]") : []),
-      description: lvl.description || "",
-      hidden: lvl.hidden,
-    }));
+    const formatted = (dbLevels || []).map((lvl) => {
+      let fixedDiscount = String(lvl.discountFixedAmount || (lvl as any).discount_fixed_amount || "0.00000000");
+      const order = Number(lvl.levelOrder || lvl.id || 1);
+      if (decimalToScaled(fixedDiscount) <= 0n) {
+        if (order === 2) fixedDiscount = "0.01000000";
+        else if (order === 3) fixedDiscount = "0.02000000";
+        else if (order === 4) fixedDiscount = "0.03000000";
+        else if (order >= 5) fixedDiscount = "0.04000000";
+      }
+
+      return {
+        id: lvl.id,
+        name: lvl.name,
+        name_ar: lvl.nameAr || (lvl as any).name_ar || lvl.name,
+        nameAr: lvl.nameAr || (lvl as any).name_ar || lvl.name,
+        level_order: order,
+        levelOrder: order,
+        required_amount: Number(lvl.requiredAmount || 0),
+        requiredAmount: Number(lvl.requiredAmount || 0),
+        discount_percent: Number(lvl.discountPercent || lvl.profitPct || 0),
+        discountPercent: Number(lvl.discountPercent || lvl.profitPct || 0),
+        discount_fixed_amount: fixedDiscount,
+        discountFixedAmount: fixedDiscount,
+        badge_color: lvl.badgeColor || lvl.badge || "#C8A45C",
+        badgeColor: lvl.badgeColor || lvl.badge || "#C8A45C",
+        benefits: Array.isArray(lvl.benefits) ? lvl.benefits : (typeof lvl.benefits === "string" ? JSON.parse(lvl.benefits || "[]") : []),
+        description: lvl.description || "",
+        hidden: lvl.hidden,
+      };
+    });
 
     return res.json(formatted);
   } catch (err: any) {

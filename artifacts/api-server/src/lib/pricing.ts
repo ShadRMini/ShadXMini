@@ -46,69 +46,58 @@ export function multiplyUnitPriceByQuantity(finalUnitPrice: unknown, quantity: u
 export function calculateVipFixedDiscount(
   originalUnitPrice: unknown,
   providerUnitPrice: unknown,
-  discountFixedAmount: unknown,
-  discountPercent?: unknown
+  discountFixedAmount: unknown
 ): {
   finalUnitPrice: string;
   appliedDiscount: string;
   discountFixedAmount: string;
-  discountPercent: number;
+  discountPercent: null;
 } {
   const baseScaled = decimalToScaled(originalUnitPrice);
   const providerScaled = decimalToScaled(providerUnitPrice || "0");
   const fixedScaled = decimalToScaled(discountFixedAmount || "0");
-  const pct = Math.max(0, Math.min(100, Number(discountPercent) || 0));
 
-  let discountScaled = 0n;
-
-  if (fixedScaled > 0n) {
-    discountScaled = fixedScaled;
-  } else if (pct > 0) {
-    const pctBigInt = BigInt(Math.round(pct * 1000000));
-    discountScaled = (baseScaled * pctBigInt) / 100000000n;
-  }
-
-  if (discountScaled <= 0n) {
+  if (fixedScaled <= 0n) {
     return {
       finalUnitPrice: scaledToDecimal(baseScaled),
       appliedDiscount: "0.00000000",
       discountFixedAmount: "0.00000000",
-      discountPercent: 0,
+      discountPercent: null,
     };
   }
 
-  // Golden Rule: Final unit price must never drop below provider unit price
-  const targetScaled = baseScaled - discountScaled;
-  const finalScaled = targetScaled < providerScaled ? providerScaled : targetScaled;
+  // Golden Rule: Final unit price must never drop below provider unit price (or 0)
+  const targetScaled = baseScaled - fixedScaled;
+  const floorScaled = providerScaled > 0n ? providerScaled : 0n;
+  const finalScaled = targetScaled < floorScaled ? floorScaled : targetScaled;
   const actualDiscountScaled = baseScaled - finalScaled;
 
   return {
     finalUnitPrice: scaledToDecimal(finalScaled),
     appliedDiscount: scaledToDecimal(actualDiscountScaled > 0n ? actualDiscountScaled : 0n),
     discountFixedAmount: scaledToDecimal(fixedScaled),
-    discountPercent: pct,
+    discountPercent: null,
   };
 }
 
 export function calculateVipDiscountedPrice(
   originalUnitPrice: unknown,
-  discountPercent: unknown,
+  discountFixedAmount: unknown,
   providerUnitPrice?: unknown
 ): {
   finalUnitPrice: string;
   discountAmount: string;
-  discountPercent: number;
+  discountFixedAmount: string;
 } {
   const res = calculateVipFixedDiscount(
     originalUnitPrice,
     providerUnitPrice || "0",
-    "0",
-    discountPercent
+    discountFixedAmount
   );
   return {
     finalUnitPrice: res.finalUnitPrice,
     discountAmount: res.appliedDiscount,
-    discountPercent: res.discountPercent,
+    discountFixedAmount: res.discountFixedAmount,
   };
 }
 

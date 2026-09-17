@@ -299,9 +299,14 @@ export default function ProductDetail() {
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (data && typeof data === "object") {
-          const discount = Number(data.discountPercent ?? data.discount_percent ?? data.currentLevel?.discountPercent ?? data.currentLevel?.discount_percent ?? 0);
-          const fixedDiscount = Number(data.discountFixedAmount ?? data.discount_fixed_amount ?? data.currentLevel?.discountFixedAmount ?? data.currentLevel?.discount_fixed_amount ?? 0);
-          setVipDiscountPercent(discount);
+          let fixedDiscount = Number(data.discountFixedAmount ?? data.discount_fixed_amount ?? data.currentLevel?.discountFixedAmount ?? data.currentLevel?.discount_fixed_amount ?? 0);
+          const lvl = Number(user?.vipLevel || data.currentLevel?.levelOrder || data.currentLevel?.level_order || 1);
+          if (fixedDiscount <= 0 && lvl > 1) {
+            if (lvl === 2) fixedDiscount = 0.01;
+            else if (lvl === 3) fixedDiscount = 0.02;
+            else if (lvl === 4) fixedDiscount = 0.03;
+            else if (lvl >= 5) fixedDiscount = 0.04;
+          }
           setVipDiscountFixedAmount(fixedDiscount);
           const badgeName = data.currentLevel?.nameAr || data.currentLevel?.name_ar || data.currentLevel?.name || (user?.vipBadge?.name) || "";
           setVipBadgeName(badgeName);
@@ -389,14 +394,11 @@ export default function ProductDetail() {
     : product.priceUsd;
   const providerPriceFloor = Number((product as any).providerPrice || (product as any).costPriceUsd || (product as any).providerUnitPrice || 0);
   const hasFixedDiscount = vipDiscountFixedAmount > 0;
-  const hasPercentDiscount = vipDiscountPercent > 0;
-  const hasVipDiscount = hasFixedDiscount || hasPercentDiscount;
+  const hasVipDiscount = hasFixedDiscount;
 
   let calculatedUnitPrice = baseUnitPrice;
   if (hasFixedDiscount) {
     calculatedUnitPrice = Math.max(providerPriceFloor, baseUnitPrice - vipDiscountFixedAmount);
-  } else if (hasPercentDiscount) {
-    calculatedUnitPrice = Math.max(providerPriceFloor, baseUnitPrice * (1 - vipDiscountPercent / 100));
   }
   const unitPrice = Number(calculatedUnitPrice.toFixed(8));
   const totalUsd = (customization.total_amount && Number(customization.total_amount) > 0)
@@ -632,7 +634,7 @@ export default function ProductDetail() {
                 <div className="flex items-center gap-1.5 font-bold" style={{ color: vipBadgeColor }}>
                   <Crown size={15} />
                   <span>
-                    خصم عضوية {vipBadgeName || "VIP"} {hasFixedDiscount ? `($${vipDiscountFixedAmount} لكل وحدة)` : `(${vipDiscountPercent}%)`}
+                    خصم عضوية {vipBadgeName || "VIP"} (${vipDiscountFixedAmount} لكل وحدة)
                   </span>
                 </div>
                 {totalSavingsUsd > 0 && (

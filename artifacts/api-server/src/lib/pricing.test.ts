@@ -103,3 +103,12 @@ test("calculateVipFixedDiscount with 8 decimals micro-pricing", () => {
   assert.equal(result.finalUnitPrice, "0.00010300");
   assert.equal(result.appliedDiscount, "0.00000500");
 });
+
+test("calculateVipFixedDiscount with large fixed discount capped at provider unit price floor", () => {
+  // User scenario: Original: 0.00010800, Provider: 0.00010150, Fixed Discount: 0.01000000
+  const result = calculateVipFixedDiscount("0.00010800", "0.00010150", "0.01000000");
+  assert.equal(result.finalUnitPrice, "0.00010150");
+  assert.equal(result.appliedDiscount, "0.00000650");
+  assert.equal(result.discountFixedAmount, "0.01000000");
+  assert.equal(result.discountPercent, null);
+});
