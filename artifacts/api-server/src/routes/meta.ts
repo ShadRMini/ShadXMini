@@ -60,14 +60,34 @@ router.get(["/theme", "/theme-settings", "/public/theme-settings", "/admin/theme
     const themeSecondary = String(map.get("theme_secondary") || "#B8954A").trim();
     const themeAccent = String(map.get("theme_accent") || "#FDE68A").trim();
     const themeBackground = String(map.get("theme_background") || map.get("theme_bg") || "#1A1A1A").trim();
+    const themeCard = String(map.get("theme_card") || "#2D2D2D").trim();
     const themeTextPrimary = String(map.get("theme_text_primary") || "#FFFFFF").trim();
+    const themeTextSecondary = String(map.get("theme_text_secondary") || "#E5E7EB").trim();
+    const themeTextMuted = String(map.get("theme_text_muted") || "#9CA3AF").trim();
+    const themeBorder = String(map.get("theme_border") || "rgba(200, 164, 92, 0.25)").trim();
+    const themeInputBg = String(map.get("theme_input_bg") || "#3D3D3D").trim();
+
+    const themeHeaderGradientStart = String(map.get("theme_header_gradient_start") || "#1A1A1A").trim();
+    const themeHeaderGradientEnd = String(map.get("theme_header_gradient_end") || "#2D2D2D").trim();
+    const themeBottomNav = String(map.get("theme_bottom_nav") || "#1A1A1A").trim();
+    const themeBottomNavActive = String(map.get("theme_bottom_nav_active") || "#C8A45C").trim();
+    const themeSidebarBg = String(map.get("theme_sidebar_bg") || "#1A1A1A").trim();
+
     const themeFontArabic = String(map.get("theme_font_arabic") || map.get("theme_font") || "Cairo").trim();
     const themeFontEnglish = String(map.get("theme_font_english") || "Inter").trim();
+    const themeFontSize = String(map.get("theme_font_size") || "14").trim();
+    const themeHeadingSize = String(map.get("theme_heading_size") || "20").trim();
+
     const themeBorderRadius = String(map.get("theme_border_radius") || map.get("theme_radius") || "16").trim();
     const themeShadow = String(map.get("theme_shadow") || "medium").trim();
-    const themeDefaultMode = String(map.get("theme_default_mode") || "dark").trim();
-    const themeFontSize = String(map.get("theme_font_size") || "14").trim();
+    const themePadding = String(map.get("theme_padding") || "24").trim();
+    const themeMode = String(map.get("theme_mode") || map.get("theme_default_mode") || "dark").trim();
+    const themeDefaultMode = themeMode;
+    const themeActivePreset = String(map.get("theme_active_preset") || "gold").trim();
+
     const themeLogoSize = String(map.get("theme_logo_size") || map.get("logo_size") || "80px").trim();
+    const themeLogoUrl = String(map.get("theme_logo_url") || map.get("brand_logo_url") || map.get("site_logo") || "").trim();
+    const themeLogoTextColor = String(map.get("theme_logo_text_color") || "#C8A45C").trim();
 
     // Helper to get string setting with fallback
     const getSettingStr = (key: string, fallback: string = "") => {
@@ -347,7 +367,37 @@ router.get(["/theme", "/theme-settings", "/public/theme-settings", "/admin/theme
       balanceShadow,
       balanceGlowEnabled,
       balanceGlowColor,
-      // Direct alias properties
+      // Direct alias & structured theme properties
+      theme_mode: themeMode,
+      theme_active_preset: themeActivePreset,
+      theme_card: themeCard,
+      theme_text_secondary: themeTextSecondary,
+      theme_text_muted: themeTextMuted,
+      theme_border: themeBorder,
+      theme_input_bg: themeInputBg,
+      theme_header_gradient_start: themeHeaderGradientStart,
+      theme_header_gradient_end: themeHeaderGradientEnd,
+      theme_bottom_nav: themeBottomNav,
+      theme_bottom_nav_active: themeBottomNavActive,
+      theme_sidebar_bg: themeSidebarBg,
+      theme_padding: themePadding,
+      theme_heading_size: themeHeadingSize,
+      theme_logo_url: themeLogoUrl,
+      theme_logo_text_color: themeLogoTextColor,
+      theme_presets: parseJsonSetting("theme_presets"),
+      mode: themeMode,
+      card: themeCard,
+      textSecondary: themeTextSecondary,
+      textMuted: themeTextMuted,
+      border: themeBorder,
+      inputBg: themeInputBg,
+      headerGradientStart: themeHeaderGradientStart,
+      headerGradientEnd: themeHeaderGradientEnd,
+      bottomNav: themeBottomNav,
+      bottomNavActive: themeBottomNavActive,
+      sidebar: themeSidebarBg,
+      padding: themePadding,
+      headingSize: themeHeadingSize,
       primary: themePrimary,
       secondary: themeSecondary,
       accent: themeAccent,
@@ -494,6 +544,24 @@ router.put(["/admin/theme-settings", "/theme-settings"], async (req, res) => {
       { key: "contact_radius", aliases: ["contact_radius", "contactRadius"] },
       { key: "contact_padding", aliases: ["contact_padding", "contactPadding"] },
       { key: "contact_shadow", aliases: ["contact_shadow", "contactShadow"] },
+
+      // Theme Core & Presets
+      { key: "theme_mode", aliases: ["theme_mode", "mode", "theme_default_mode"] },
+      { key: "theme_active_preset", aliases: ["theme_active_preset", "activePreset"] },
+      { key: "theme_card", aliases: ["theme_card", "card"] },
+      { key: "theme_text_secondary", aliases: ["theme_text_secondary", "textSecondary"] },
+      { key: "theme_text_muted", aliases: ["theme_text_muted", "textMuted"] },
+      { key: "theme_border", aliases: ["theme_border", "border"] },
+      { key: "theme_input_bg", aliases: ["theme_input_bg", "inputBg"] },
+      { key: "theme_header_gradient_start", aliases: ["theme_header_gradient_start", "headerGradientStart"] },
+      { key: "theme_header_gradient_end", aliases: ["theme_header_gradient_end", "headerGradientEnd"] },
+      { key: "theme_bottom_nav", aliases: ["theme_bottom_nav", "bottomNav"] },
+      { key: "theme_bottom_nav_active", aliases: ["theme_bottom_nav_active", "bottomNavActive"] },
+      { key: "theme_sidebar_bg", aliases: ["theme_sidebar_bg", "sidebar"] },
+      { key: "theme_padding", aliases: ["theme_padding", "padding"] },
+      { key: "theme_heading_size", aliases: ["theme_heading_size", "headingSize"] },
+      { key: "theme_logo_url", aliases: ["theme_logo_url", "logoUrl", "brand_logo_url"] },
+      { key: "theme_logo_text_color", aliases: ["theme_logo_text_color", "logoTextColor"] },
 
       // Balance
       { key: "balance_gradient_start", aliases: ["balance_gradient_start", "balanceGradientStart"] },

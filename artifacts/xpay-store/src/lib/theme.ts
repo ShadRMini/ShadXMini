@@ -149,17 +149,23 @@ export function getStoreThemeMode(): "dark" | "light" {
     if (saved === "light" || saved === "dark") {
       return saved;
     }
+    if (saved === "auto") {
+      return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    }
   } catch {
     // Ignore storage restrictions
   }
-  const defaultMode = cachedThemeSettings?.theme_default_mode || cachedThemeSettings?.defaultMode || "dark";
+  const defaultMode = cachedThemeSettings?.theme_mode || cachedThemeSettings?.theme_default_mode || cachedThemeSettings?.defaultMode || "dark";
+  if (defaultMode === "auto") {
+    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  }
   return defaultMode === "light" ? "light" : "dark";
 }
 
 /**
  * Sets the active theme mode preference
  */
-export function setStoreThemeMode(mode: "dark" | "light") {
+export function setStoreThemeMode(mode: "dark" | "light" | "auto") {
   try {
     localStorage.setItem("theme-preference", mode);
     localStorage.setItem("theme_mode", mode);
@@ -193,31 +199,74 @@ export function applyStoreTheme(theme?: Partial<StoreThemeSettings> | null | und
   const currentMode = getStoreThemeMode();
   const isLight = currentMode === "light";
 
+  const root = document.documentElement;
+  root.classList.remove("light", "dark");
+  root.classList.add(isLight ? "light" : "dark");
+
   const primary = String(currentTheme.primary || currentTheme.theme_primary || DEFAULT_STORE_THEME.primary).trim();
   const secondary = String(currentTheme.secondary || currentTheme.theme_secondary || DEFAULT_STORE_THEME.secondary).trim();
   const accent = String(currentTheme.accent || currentTheme.theme_accent || DEFAULT_STORE_THEME.accent).trim();
 
-  // Dark & Light customized / standard palettes
+  // Custom palette or mode fallbacks
   const customDarkBg = String(currentTheme.theme_background || currentTheme.background || "").trim();
+  const customCardBg = String(currentTheme.theme_card || currentTheme.card || "").trim();
   const customTextPrimary = String(currentTheme.theme_text_primary || currentTheme.textPrimary || "").trim();
+  const customTextSecondary = String(currentTheme.theme_text_secondary || currentTheme.textSecondary || "").trim();
+  const customTextMuted = String(currentTheme.theme_text_muted || currentTheme.textMuted || "").trim();
+  const customBorder = String(currentTheme.theme_border || currentTheme.border || "").trim();
+  const customInputBg = String(currentTheme.theme_input_bg || currentTheme.inputBg || "").trim();
 
-  const bgPrimary = isLight ? "#F5F2EB" : (customDarkBg || "#1A1A1A");
+  const bgPrimary = isLight ? (customDarkBg && isLight ? customDarkBg : "#F5F2EB") : (customDarkBg || "#1A1A1A");
   const bgSecondary = isLight ? "#FFFFFF" : "#242424";
-  const bgCard = isLight ? "#FFFFFF" : "#2D2D2D";
-  const bgInput = isLight ? "#F9FAFB" : "#3D3D3D";
-  const textPrimary = isLight ? "#111827" : (customTextPrimary || "#FFFFFF");
-  const textSecondary = isLight ? "#374151" : "#E5E7EB";
-  const textMuted = isLight ? "#6B7280" : "#9CA3AF";
-  const borderColor = isLight ? "#D1D5DB" : "#4B5563";
+  const bgCard = customCardBg || (isLight ? "#FFFFFF" : "#2D2D2D");
+  const bgInput = customInputBg || (isLight ? "#EFECE6" : "#3D3D3D");
+  const textPrimary = customTextPrimary || (isLight ? "#111827" : "#FFFFFF");
+  const textSecondary = customTextSecondary || (isLight ? "#374151" : "#E5E7EB");
+  const textMuted = customTextMuted || (isLight ? "#6B7280" : "#9CA3AF");
+  const borderColor = customBorder || (isLight ? "rgba(0,0,0,0.12)" : "rgba(200, 164, 92, 0.25)");
   const shadowColor = isLight ? "rgba(0, 0, 0, 0.08)" : "rgba(0, 0, 0, 0.35)";
 
   const fontArabic = String(currentTheme.fontArabic || currentTheme.theme_font_arabic || currentTheme.font || DEFAULT_STORE_THEME.fontArabic).trim();
   const fontEnglish = String(currentTheme.fontEnglish || currentTheme.theme_font_english || DEFAULT_STORE_THEME.fontEnglish).trim();
-  const rawRadius = currentTheme.radius ?? currentTheme.theme_border_radius ?? DEFAULT_STORE_THEME.radius;
+  const rawRadius = currentTheme.radius ?? currentTheme.theme_border_radius ?? currentTheme.borderRadius ?? DEFAULT_STORE_THEME.radius;
   const radiusNum = Number(rawRadius);
   const radiusPx = Number.isFinite(radiusNum) && radiusNum >= 0 ? `${radiusNum}px` : "16px";
   const rawShadow = String(currentTheme.shadow || currentTheme.theme_shadow || "medium").trim();
   const shadowCss = getShadowCss(rawShadow, primary, isLight);
+
+  const headerGradStart = currentTheme.theme_header_gradient_start || currentTheme.headerGradientStart || bgPrimary;
+  const headerGradEnd = currentTheme.theme_header_gradient_end || currentTheme.headerGradientEnd || bgCard;
+  const bottomNavBg = currentTheme.theme_bottom_nav || currentTheme.bottomNav || bgPrimary;
+  const bottomNavActive = currentTheme.theme_bottom_nav_active || currentTheme.bottomNavActive || primary;
+  const sidebarBg = currentTheme.theme_sidebar_bg || currentTheme.sidebar || bgPrimary;
+  const paddingPx = `${currentTheme.theme_padding || currentTheme.padding || 24}px`;
+  const headingSizePx = `${currentTheme.theme_heading_size || currentTheme.headingSize || 20}px`;
+
+  // Set Core CSS variables
+  root.style.setProperty("--theme-mode", currentMode);
+  root.style.setProperty("--theme-primary", primary);
+  root.style.setProperty("--theme-secondary", secondary);
+  root.style.setProperty("--theme-accent", accent);
+  root.style.setProperty("--theme-background", bgPrimary);
+  root.style.setProperty("--theme-bg", bgPrimary);
+  root.style.setProperty("--theme-card", bgCard);
+  root.style.setProperty("--theme-text-primary", textPrimary);
+  root.style.setProperty("--theme-text-secondary", textSecondary);
+  root.style.setProperty("--theme-text-muted", textMuted);
+  root.style.setProperty("--theme-border", borderColor);
+  root.style.setProperty("--theme-input-bg", bgInput);
+  root.style.setProperty("--theme-header-gradient", `linear-gradient(90deg, ${headerGradStart} 0%, ${headerGradEnd} 100%)`);
+  root.style.setProperty("--theme-bottom-nav", bottomNavBg);
+  root.style.setProperty("--theme-bottom-nav-active", bottomNavActive);
+  root.style.setProperty("--theme-sidebar-bg", sidebarBg);
+  root.style.setProperty("--theme-font-arabic", fontArabic);
+  root.style.setProperty("--theme-font-english", fontEnglish);
+  root.style.setProperty("--theme-font-size", `${currentTheme.theme_font_size || currentTheme.fontSize || 14}px`);
+  root.style.setProperty("--theme-heading-size", headingSizePx);
+  root.style.setProperty("--theme-border-radius", radiusPx);
+  root.style.setProperty("--theme-shadow", shadowCss);
+  root.style.setProperty("--theme-padding", paddingPx);
+  root.style.setProperty("--theme-logo-size", currentTheme.theme_logo_size || currentTheme.logoSize || "80px");
 
   const rawLogoSize = String(currentTheme.theme_logo_size || currentTheme.logoSize || DEFAULT_STORE_THEME.theme_logo_size).trim();
   const logoSizePx = rawLogoSize.includes("px") || rawLogoSize.includes("%") || rawLogoSize.includes("rem") ? rawLogoSize : `${rawLogoSize}px`;
@@ -226,8 +275,6 @@ export function applyStoreTheme(theme?: Partial<StoreThemeSettings> | null | und
   ensureGoogleFontsLoaded(fontArabic, fontEnglish);
 
   // 2. Set root CSS variables & class
-  const root = document.documentElement;
-
   if (isLight) {
     root.classList.remove("dark");
     root.classList.add("light");

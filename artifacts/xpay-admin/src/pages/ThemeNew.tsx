@@ -1,149 +1,50 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
-import { get, put } from "../lib/api";
+import { get, put, del, post } from "../lib/api";
 import { applyAdminTheme, broadcastThemeChange, ensureGoogleFontsLoaded, DEFAULT_ADMIN_THEME } from "../lib/theme";
+import { THEME_PRESETS, ThemePreset } from "../lib/theme-presets";
+import ThemePresetCard from "../components/ThemePresetCard";
+import ColorPickerField from "../components/ColorPickerField";
+
 import AuthPagesSettings from "./AuthPagesSettings";
 import ProductPageSettings from "./ProductPageSettings";
 import AboutSettings from "./AboutSettings";
 import ContactSettings from "./ContactSettings";
 import BalanceCardSettings from "./BalanceCardSettings";
+
 import {
   Palette,
   Sparkles,
   Save,
   RefreshCw,
-  CheckCircle2,
-  AlertCircle,
-  Eye,
-  Type,
-  Maximize2,
   Sun,
   Moon,
   Sliders,
   Layers,
   Check,
-  Info,
   ImageIcon,
-  Maximize,
-  Sparkle,
   LogIn,
   Package,
   Headphones,
-  Wallet
+  Wallet,
+  Type,
+  Maximize,
+  Eye,
+  Plus,
+  Monitor,
+  CheckCircle2,
+  AlertCircle
 } from "lucide-react";
 
-type PalettePreset = {
-  id: string;
-  name: string;
-  nameEn: string;
-  primary: string;
-  secondary: string;
-  accent: string;
-  background: string;
-  textPrimary: string;
-  description: string;
-};
-
-const PRESET_PALETTES: PalettePreset[] = [
-  {
-    id: "gold",
-    name: "الذهبي الفاخر (الافتراضي)",
-    nameEn: "Luxury Gold",
-    primary: "#C8A45C",
-    secondary: "#B8954A",
-    accent: "#FDE68A",
-    background: "#1A1A1A",
-    textPrimary: "#FFFFFF",
-    description: "الأناقة والفخامة الداكنة الكلاسيكية",
-  },
-  {
-    id: "royal-blue",
-    name: "الأزرق الملكي",
-    nameEn: "Royal Blue",
-    primary: "#3B82F6",
-    secondary: "#2563EB",
-    accent: "#93C5FD",
-    background: "#0F172A",
-    textPrimary: "#FFFFFF",
-    description: "طابع رقمي احترافي وعصري",
-  },
-  {
-    id: "imperial-emerald",
-    name: "الزمردي الإمبراطوري",
-    nameEn: "Imperial Emerald",
-    primary: "#10B981",
-    secondary: "#059669",
-    accent: "#6EE7B7",
-    background: "#064E3B",
-    textPrimary: "#FFFFFF",
-    description: "حيوية، نمو وثقة متناهية",
-  },
-  {
-    id: "classic-violet",
-    name: "البنفسجي الكلاسيكي",
-    nameEn: "Classic Violet",
-    primary: "#8B5CF6",
-    secondary: "#7C3AED",
-    accent: "#C4B5FD",
-    background: "#2E1065",
-    textPrimary: "#FFFFFF",
-    description: "إبداع وسحر بصري عميق",
-  },
-  {
-    id: "ruby-pink",
-    name: "الوردي الياقوتي",
-    nameEn: "Ruby Pink",
-    primary: "#EC4899",
-    secondary: "#DB2777",
-    accent: "#F9A8D4",
-    background: "#4C0519",
-    textPrimary: "#FFFFFF",
-    description: "جرأة، تميز، وطاقة بصرية لافتة",
-  },
-  {
-    id: "fire-red",
-    name: "الأحمر الناري",
-    nameEn: "Fire Red",
-    primary: "#EF4444",
-    secondary: "#DC2626",
-    accent: "#FCA5A5",
-    background: "#450A0A",
-    textPrimary: "#FFFFFF",
-    description: "قوة، ديناميكية وحضور استثنائي",
-  },
-  {
-    id: "calm-indigo",
-    name: "النيلي الهادئ",
-    nameEn: "Calm Indigo",
-    primary: "#4F46E5",
-    secondary: "#4338CA",
-    accent: "#A5B4FC",
-    background: "#1E1B4B",
-    textPrimary: "#FFFFFF",
-    description: "هدوء تقني وأناقة سيبرانية متطورة",
-  },
-  {
-    id: "modern-teal",
-    name: "التركوازي العصري",
-    nameEn: "Modern Teal",
-    primary: "#14B8A6",
-    secondary: "#0D9488",
-    accent: "#99F6E4",
-    background: "#042F2E",
-    textPrimary: "#FFFFFF",
-    description: "نضارة فائقة وحداثة متجددة",
-  },
-];
-
-const GOOGLE_FONTS_ARABIC = ["Changa", "Cairo", "Almarai", "Tajawal", "Noto Kufi Arabic"];
-const GOOGLE_FONTS_ENGLISH = ["Inter", "Poppins", "Roboto", "Montserrat", "Open Sans"];
+const GOOGLE_FONTS_ARABIC = ["Cairo", "Changa", "Almarai", "Tajawal", "Noto Kufi Arabic", "Readex Pro", "Alex Brush"];
+const GOOGLE_FONTS_ENGLISH = ["Inter", "Poppins", "Roboto", "Montserrat", "Open Sans", "Lato"];
 
 export const THEME_TABS = [
-  { id: "general", label: "الهوية والمظهر", icon: Palette, badge: "الأساسي", desc: "الألوان، الخطوط، الشعار، الحواف والظلال" },
-  { id: "balance", label: "بطاقة الرصيد والمحفظة", icon: Wallet, desc: "التحكم الكامل بتصميم وشكل بطاقة الرصيد" },
+  { id: "general", label: "الهوية والمظهر (عام)", icon: Palette, badge: "الأساسي", desc: "أنماط جاهزة، ألوان، خطوط وشعار" },
+  { id: "balance", label: "💳 بطاقة الرصيد والمحفظة", icon: Wallet, desc: "التحكم الكامل بتصميم وشكل بطاقة الرصيد" },
   { id: "auth", label: "صفحات الدخول والتسجيل", icon: LogIn, desc: "خلفيات ونصوص ومميزات شاشات الدخول" },
   { id: "product", label: "صفحة المنتج", icon: Package, desc: "ترتيب الأقسام، معاينة الشراء، وأزرار الطلب" },
-  { id: "about", label: "صفحة من نحن", icon: Info, desc: "نصوص وأقسام ومعلومات المتجر" },
+  { id: "about", label: "صفحة من نحن", icon: Headphones, desc: "نصوص وأقسام ومعلومات المتجر" },
   { id: "contact", label: "تواصل معنا", icon: Headphones, desc: "قنوات الدعم الفني، وسائل التواصل والروابط" },
 ] as const;
 
@@ -167,26 +68,49 @@ export default function ThemeNew() {
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<{ text: string; type: "success" | "error" } | null>(null);
 
-  // Theme State
+  // Theme Presets list
+  const [presets, setPresets] = useState<ThemePreset[]>(THEME_PRESETS);
+  const [activePresetId, setActivePresetId] = useState<string>("gold");
+
+  // Mode state: 'dark' | 'light' | 'auto'
+  const [themeMode, setThemeMode] = useState<"dark" | "light" | "auto">("dark");
+
+  // Core Theme Variables State
   const [theme, setTheme] = useState({
     theme_primary: "#C8A45C",
     theme_secondary: "#B8954A",
     theme_accent: "#FDE68A",
     theme_background: "#1A1A1A",
+    theme_card: "#2D2D2D",
     theme_text_primary: "#FFFFFF",
-    theme_font_arabic: "Changa",
+    theme_text_secondary: "#E5E7EB",
+    theme_text_muted: "#9CA3AF",
+    theme_border: "rgba(200, 164, 92, 0.25)",
+    theme_input_bg: "#3D3D3D",
+
+    // Header & Nav
+    theme_header_gradient_start: "#1A1A1A",
+    theme_header_gradient_end: "#2D2D2D",
+    theme_bottom_nav: "#1A1A1A",
+    theme_bottom_nav_active: "#C8A45C",
+    theme_sidebar_bg: "#1A1A1A",
+
+    // Fonts
+    theme_font_arabic: "Cairo",
     theme_font_english: "Inter",
     theme_font_size: "14",
+    theme_heading_size: "20",
+
+    // Shape & Effects
     theme_border_radius: "16",
     theme_shadow: "medium",
-    theme_default_mode: "dark",
+    theme_padding: "24",
+
+    // Logo
+    theme_logo_url: "",
     theme_logo_size: "80px",
+    theme_logo_text_color: "#C8A45C",
   });
-
-  const [brandLogo, setBrandLogo] = useState<string>("");
-
-  // Preview Mode Toggle (Temporary Light/Dark for Live Preview)
-  const [previewMode, setPreviewMode] = useState<"dark" | "light">("dark");
 
   const showToastMsg = useCallback((text: string, type: "success" | "error" = "success") => {
     setToast({ text, type });
@@ -195,7 +119,7 @@ export default function ThemeNew() {
     }, 4000);
   }, []);
 
-  // Fetch Theme Settings
+  // Fetch Theme & Presets
   const fetchThemeSettings = useCallback(async () => {
     setLoading(true);
     try {
@@ -211,13 +135,20 @@ export default function ThemeNew() {
         }
       }
 
-      // Fetch public settings for brand logo
+      // Fetch custom presets
       try {
-        const publicSettings = await get<any>("/settings/public");
-        const logo = publicSettings?.brand_logo_url || publicSettings?.brandLogoUrl || publicSettings?.site_logo || publicSettings?.siteLogo || "";
-        if (logo) setBrandLogo(logo);
+        const serverPresets = await get<ThemePreset[]>("/admin/theme-presets");
+        if (Array.isArray(serverPresets) && serverPresets.length > 0) {
+          const merged = [...THEME_PRESETS];
+          serverPresets.forEach((sp) => {
+            if (!merged.some((p) => p.id === sp.id)) {
+              merged.push(sp);
+            }
+          });
+          setPresets(merged);
+        }
       } catch {
-        // Fallback
+        // Fallback to static presets
       }
 
       const mergedTheme = {
@@ -226,12 +157,10 @@ export default function ThemeNew() {
       };
 
       setTheme(mergedTheme);
-      applyAdminTheme(mergedTheme);
+      setActivePresetId(data.theme_active_preset || "gold");
+      setThemeMode((data.theme_mode as any) || "dark");
 
-      if (data.theme_default_mode === "light") {
-        setPreviewMode("light");
-      }
-      console.log("[Theme Admin] Loaded and applied theme settings:", mergedTheme);
+      applyAdminTheme(mergedTheme);
     } catch (err: any) {
       console.error("Failed to load theme settings:", err);
       showToastMsg("فشل جلب إعدادات التصميم من السيرفر", "error");
@@ -253,37 +182,81 @@ export default function ThemeNew() {
     applyAdminTheme(updated);
   };
 
-  const applyPreset = (preset: PalettePreset) => {
+  // Apply a preset
+  const handleApplyPreset = (presetId: string) => {
+    const found = presets.find((p) => p.id === presetId);
+    if (!found) return;
+
+    setActivePresetId(presetId);
+
+    const modeKey = themeMode === "light" ? "light" : "dark";
+    const palette = found[modeKey] || found.dark;
+
     const updated = {
       ...theme,
-      theme_primary: preset.primary,
-      theme_secondary: preset.secondary,
-      theme_accent: preset.accent,
-      theme_background: preset.background,
-      theme_text_primary: preset.textPrimary,
+      theme_primary: palette.primary,
+      theme_secondary: palette.secondary,
+      theme_accent: palette.accent,
+      theme_background: palette.background,
+      theme_card: palette.card,
+      theme_text_primary: palette.textPrimary,
+      theme_text_secondary: palette.textSecondary,
+      theme_text_muted: palette.textMuted,
+      theme_border: palette.border,
+      theme_input_bg: palette.inputBg,
     };
+
     setTheme(updated);
     applyAdminTheme(updated);
-    showToastMsg(`تم تطبيق لوحة الألوان "${preset.name}" بنجاح! المعاينة حية الآن.`);
+    showToastMsg(`تم تطبيق النمط "${found.name}" بنجاح! والمعاينة محدثة الآن.`);
   };
 
+  // Change Mode (Dark / Light / Auto)
+  const handleModeChange = (mode: "dark" | "light" | "auto") => {
+    setThemeMode(mode);
+
+    // If current preset exists, update colors to reflect light/dark variant of that preset
+    const currentPreset = presets.find((p) => p.id === activePresetId);
+    if (currentPreset) {
+      const modeKey = mode === "light" ? "light" : "dark";
+      const palette = currentPreset[modeKey] || currentPreset.dark;
+
+      const updated = {
+        ...theme,
+        theme_primary: palette.primary,
+        theme_secondary: palette.secondary,
+        theme_accent: palette.accent,
+        theme_background: palette.background,
+        theme_card: palette.card,
+        theme_text_primary: palette.textPrimary,
+        theme_text_secondary: palette.textSecondary,
+        theme_text_muted: palette.textMuted,
+        theme_border: palette.border,
+        theme_input_bg: palette.inputBg,
+      };
+
+      setTheme(updated);
+      applyAdminTheme(updated);
+    }
+  };
+
+  // Save Settings to Server
   const handleSave = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     setSaving(true);
     try {
-      console.log("[Theme Admin] Saving theme settings to server:", theme);
-      try {
-        await put("/admin/theme-settings", theme);
-      } catch {
-        const items = Object.entries(theme).map(([k, v]) => ({ key: k, value: v }));
-        await put("/settings/items", { items });
-      }
+      const payload = {
+        ...theme,
+        theme_active_preset: activePresetId,
+        theme_mode: themeMode,
+      };
 
-      // Apply immediately to current admin panel & broadcast to storefront
-      applyAdminTheme(theme);
-      broadcastThemeChange(theme);
+      await put("/admin/theme-settings", payload);
 
-      showToastMsg("تم حفظ وتطبيق إعدادات التصميم بنجاح على النظام والمتجر!", "success");
+      applyAdminTheme(payload);
+      broadcastThemeChange(payload);
+
+      showToastMsg("تم حفظ وتطبيق إعدادات الثيم بنجاح على المتجر ولوحة التحكم!", "success");
     } catch (err: any) {
       console.error("Failed to save theme settings:", err);
       showToastMsg(err?.message || "حدث خطأ أثناء حفظ التصميم", "error");
@@ -292,45 +265,91 @@ export default function ThemeNew() {
     }
   };
 
-  // Shadow class mapping for preview
-  const getShadowClass = (type: string) => {
-    switch (type) {
-      case "none":
-        return "shadow-none";
-      case "light":
-        return "shadow-sm";
-      case "dark":
-        return "shadow-2xl";
-      case "medium":
-      default:
-        return "shadow-lg";
-    }
-  };
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[500px] gap-3 text-zinc-400">
+        <RefreshCw className="w-8 h-8 animate-spin text-[#C8A45C]" />
+        <p className="text-sm font-bold">جاري تحميل إعدادات الهوية والمظهر...</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-6 text-zinc-100" dir="rtl">
-      {/* Top Level Customization Tabs */}
-      <div className="bg-[#242424] p-2 rounded-2xl border border-[#C8A45C]/20 shadow-xl flex items-center gap-2 overflow-x-auto scrollbar-hide">
+    <div className="space-y-6 pb-20 dir-rtl text-right">
+      {/* Toast Notification */}
+      {toast && (
+        <div
+          className={`fixed top-5 left-5 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-2xl border text-sm font-bold animate-in fade-in slide-in-from-top-4 ${
+            toast.type === "success"
+              ? "bg-[#1E2923] border-emerald-500/40 text-emerald-300"
+              : "bg-[#291E1E] border-rose-500/40 text-rose-300"
+          }`}
+        >
+          {toast.type === "success" ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
+          <span>{toast.text}</span>
+        </div>
+      )}
+
+      {/* Header Bar */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 bg-[#1A1A1A] border border-zinc-800/90 rounded-3xl shadow-xl">
+        <div>
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-[#2D2D2D] rounded-2xl border border-zinc-700/60 text-[#C8A45C]">
+              <Palette size={24} />
+            </div>
+            <div>
+              <h1 className="text-xl font-black text-white tracking-wide">تخصيص الهوية والمظهر</h1>
+              <p className="text-xs text-zinc-400 mt-0.5">
+                إدارة شاملة لنظام الألوان والأنماط والخطوط مع معاينة حية فورية
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => fetchThemeSettings()}
+            disabled={saving}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-bold transition border border-zinc-700 cursor-pointer"
+          >
+            <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
+            إعادة تعيين
+          </button>
+
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={saving}
+            className="flex items-center gap-2 px-6 py-2.5 rounded-2xl bg-[#C8A45C] hover:bg-[#B8954A] text-black text-xs font-black transition shadow-lg shadow-[#C8A45C]/20 hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+          >
+            {saving ? <RefreshCw size={14} className="animate-spin" /> : <Save size={14} />}
+            حفظ التغييرات
+          </button>
+        </div>
+      </div>
+
+      {/* Navigation Tabs Bar */}
+      <div className="flex items-center gap-2 p-2 bg-[#1A1A1A] border border-zinc-800/90 rounded-2xl overflow-x-auto scrollbar-none">
         {THEME_TABS.map((tab) => {
-          const isActive = currentTab === tab.id;
           const Icon = tab.icon;
+          const isActive = currentTab === tab.id;
           return (
             <button
               key={tab.id}
-              type="button"
               onClick={() => handleTabChange(tab.id)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
+              className={`flex items-center gap-2.5 px-4 py-3 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer ${
                 isActive
-                  ? "bg-[#C8A45C] text-[#1A1A1A] shadow-md shadow-[#C8A45C]/20"
-                  : "text-zinc-400 hover:text-white hover:bg-zinc-800"
+                  ? "bg-[#C8A45C] text-black shadow-md shadow-[#C8A45C]/20"
+                  : "text-zinc-400 hover:text-white hover:bg-zinc-800/60"
               }`}
             >
-              <Icon size={16} className={isActive ? "text-[#1A1A1A]" : "text-[#C8A45C]"} />
+              <Icon size={16} />
               <span>{tab.label}</span>
-              {tab.badge && (
+              {"badge" in tab && tab.badge && (
                 <span
-                  className={`text-[10px] px-1.5 py-0.5 rounded-full font-black ${
-                    isActive ? "bg-[#1A1A1A] text-[#FDE68A]" : "bg-[#C8A45C]/15 text-[#C8A45C]"
+                  className={`px-2 py-0.5 text-[10px] rounded-md font-extrabold ${
+                    isActive ? "bg-black/20 text-black" : "bg-zinc-800 text-zinc-400 border border-zinc-700"
                   }`}
                 >
                   {tab.badge}
@@ -341,749 +360,558 @@ export default function ThemeNew() {
         })}
       </div>
 
+      {/* TAB CONTENT SWITCHER */}
+      {currentTab === "balance" && <BalanceCardSettings />}
+      {currentTab === "auth" && <AuthPagesSettings />}
+      {currentTab === "product" && <ProductPageSettings />}
+      {currentTab === "about" && <AboutSettings />}
+      {currentTab === "contact" && <ContactSettings />}
+
+      {/* GENERAL THEME TAB CONTENT (9 SECTIONS) */}
       {currentTab === "general" && (
-        <>
-          {/* Toast Feedback */}
-          {toast && (
-            <div
-              className={`fixed top-5 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-2xl border shadow-2xl text-xs font-bold flex items-center gap-2 animate-bounce transition-all ${
-                toast.type === "success"
-                  ? "bg-emerald-950 border-emerald-500/50 text-emerald-300"
-                  : "bg-red-950 border-red-500/50 text-red-300"
-              }`}
-            >
-              {toast.type === "success" ? <CheckCircle2 size={16} /> : <AlertCircle size={16} />}
-              <span>{toast.text}</span>
+        <div className="space-y-8">
+          {/* 1. SECTION 1: PRESETS (8 Cards 4x2) */}
+          <div className="p-6 bg-[#1A1A1A] border border-zinc-800/90 rounded-3xl space-y-5">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-base font-bold text-white flex items-center gap-2">
+                  <Sparkles size={18} className="text-[#C8A45C]" />
+                  1. الأنماط الجاهزة (Presets)
+                </h3>
+                <p className="text-xs text-zinc-400 mt-1">
+                  اختر نمطك المفضل لتطبيقه بنقرة واحدة على جميع عناصر المتجر
+                </p>
+              </div>
             </div>
-          )}
 
-          {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#242424] p-5 rounded-2xl border border-[#C8A45C]/20 shadow-xl">
-        <div className="flex items-center gap-3.5">
-          <div className="w-12 h-12 rounded-xl bg-[#C8A45C]/10 border border-[#C8A45C]/30 flex items-center justify-center text-[#C8A45C]">
-            <Palette size={26} />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {presets.map((preset) => (
+                <ThemePresetCard
+                  key={preset.id}
+                  preset={preset}
+                  isActive={activePresetId === preset.id}
+                  currentMode={themeMode}
+                  onApply={handleApplyPreset}
+                  onEdit={(p) => {
+                    handleApplyPreset(p.id);
+                    showToastMsg(`يمكنك الآن تعديل متغيرات ${p.name} أدناه`);
+                  }}
+                />
+              ))}
+            </div>
           </div>
-          <div>
-            <h1 className="text-2xl font-black text-[#FDE68A] flex items-center gap-2">
-              تخصيص الهوية والمظهر (Theme Customization)
-            </h1>
-            <p className="text-xs text-zinc-400 mt-1">
-              التحكم في الألوان، الخطوط العربية والأجنبية، حواف البطاقات، والوضع الافتراضي مع معاينة حية
+
+          {/* 2. SECTION 2: MODE (Dark / Light / Auto) */}
+          <div className="p-6 bg-[#1A1A1A] border border-zinc-800/90 rounded-3xl space-y-4">
+            <h3 className="text-base font-bold text-white flex items-center gap-2">
+              <Sun size={18} className="text-[#C8A45C]" />
+              2. الوضع (Mode)
+            </h3>
+            <p className="text-xs text-zinc-400">
+              حدد الوضع اللوني التلقائي أو الداكن أو الفاتح للمتجر
             </p>
+
+            <div className="grid grid-cols-3 gap-3 max-w-md">
+              {[
+                { id: "dark", label: "داكن (Dark)", icon: Moon },
+                { id: "light", label: "فاتح (Light)", icon: Sun },
+                { id: "auto", label: "تلقائي (Auto)", icon: Monitor },
+              ].map((m) => {
+                const Icon = m.icon;
+                const active = themeMode === m.id;
+                return (
+                  <button
+                    key={m.id}
+                    type="button"
+                    onClick={() => handleModeChange(m.id as any)}
+                    className={`flex items-center justify-center gap-2 py-3 px-4 rounded-2xl text-xs font-bold transition border cursor-pointer ${
+                      active
+                        ? "bg-[#C8A45C] text-black border-[#C8A45C] shadow-lg shadow-[#C8A45C]/20"
+                        : "bg-[#252525] text-zinc-300 border-zinc-700/80 hover:bg-zinc-700"
+                    }`}
+                  >
+                    <Icon size={16} />
+                    <span>{m.label}</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
-        </div>
 
-        <div className="flex items-center gap-2.5">
-          <button
-            onClick={fetchThemeSettings}
-            className="p-2.5 text-zinc-300 hover:text-white bg-zinc-800 hover:bg-zinc-700 rounded-xl transition border border-zinc-700 cursor-pointer"
-            title="إعادة جلب الإعدادات"
-          >
-            <RefreshCw size={18} className={loading ? "animate-spin" : ""} />
-          </button>
+          {/* 3. SECTION 3: PRIMARY COLORS */}
+          <div className="p-6 bg-[#1A1A1A] border border-zinc-800/90 rounded-3xl space-y-4">
+            <h3 className="text-base font-bold text-white flex items-center gap-2">
+              <Palette size={18} className="text-[#C8A45C]" />
+              3. الألوان الأساسية (Primary Colors)
+            </h3>
+            <p className="text-xs text-zinc-400">
+              تحديد الألوان الرئيسية للمتجر والعناصر التفاعلية
+            </p>
 
-          <button
-            onClick={() => handleSave()}
-            disabled={saving || loading}
-            className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#C8A45C] to-[#B38F46] text-black font-bold rounded-xl hover:brightness-110 transition shadow-lg cursor-pointer disabled:opacity-50 text-xs"
-          >
-            <Save size={16} />
-            <span>{saving ? "جاري الحفظ..." : "حفظ التغييرات"}</span>
-          </button>
-        </div>
-      </div>
-
-      {loading ? (
-        <div className="bg-[#242424] p-8 rounded-2xl border border-zinc-800 space-y-6 animate-pulse">
-          <div className="h-8 bg-zinc-800 rounded-lg w-1/3" />
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="h-64 bg-zinc-800 rounded-2xl" />
-            <div className="h-64 bg-zinc-800 rounded-2xl" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <ColorPickerField
+                label="اللون الرئيسي (Primary)"
+                value={theme.theme_primary}
+                onChange={(v) => handleFieldChange("theme_primary", v)}
+                description="أزرار الشراء، الأيقونات النشطة والنصوص البارزة"
+              />
+              <ColorPickerField
+                label="اللون الثانوي (Secondary)"
+                value={theme.theme_secondary}
+                onChange={(v) => handleFieldChange("theme_secondary", v)}
+                description="حالات التحويم وأزرار الإجراءات الثانوية"
+              />
+              <ColorPickerField
+                label="لون التمييز (Accent)"
+                value={theme.theme_accent}
+                onChange={(v) => handleFieldChange("theme_accent", v)}
+                description="شارات الخصم، التنبيهات والنقاط البارزة"
+              />
+              <ColorPickerField
+                label="خلفية المتجر (Background)"
+                value={theme.theme_background}
+                onChange={(v) => handleFieldChange("theme_background", v)}
+                description="الخلفية العامة لجميع الصفحات"
+              />
+            </div>
           </div>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* LEFT SIDE: CONTROLS (lg:col-span-7) */}
-          <div className="lg:col-span-7 space-y-6">
-            {/* Presets Bar / Color Palette Grid */}
-            <div className="bg-[#242424] p-5 rounded-2xl border border-[#C8A45C]/20 shadow-xl space-y-4">
-              <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-[#C8A45C]/15 border border-[#C8A45C]/30 flex items-center justify-center text-[#C8A45C]">
-                    <Sparkles size={16} />
-                  </div>
-                  <div>
-                    <h2 className="text-sm font-bold text-[#FDE68A]">لوحة الألوان السريعة (Color Presets)</h2>
-                    <p className="text-[10px] text-zinc-400">اختر نمطاً متكاملاً أو لونا سريعاً لتطبيقه ومعاينته فوراً</p>
-                  </div>
-                </div>
-                <span className="text-[10px] bg-[#1A1A1A] border border-zinc-800 text-zinc-300 px-2.5 py-1 rounded-full font-mono">
-                  8 أنماط جاهزة
-                </span>
+
+          {/* 4. SECTION 4: DETAILED COLORS */}
+          <div className="p-6 bg-[#1A1A1A] border border-zinc-800/90 rounded-3xl space-y-4">
+            <h3 className="text-base font-bold text-white flex items-center gap-2">
+              <Layers size={18} className="text-[#C8A45C]" />
+              4. الألوان التفصيلية (Detailed Colors)
+            </h3>
+            <p className="text-xs text-zinc-400">
+              التحكم بخلفيات البطاقات والنصوص الحرة والحدود وحقول الإدخال
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <ColorPickerField
+                label="لون الكروت والبطاقات (Card Bg)"
+                value={theme.theme_card}
+                onChange={(v) => handleFieldChange("theme_card", v)}
+                description="خلفية بطاقات المنتجات والحاويات"
+              />
+              <ColorPickerField
+                label="النص الرئيسي (Text Primary)"
+                value={theme.theme_text_primary}
+                onChange={(v) => handleFieldChange("theme_text_primary", v)}
+                description="العناوين والنصوص الأساسية"
+              />
+              <ColorPickerField
+                label="النص الثانوي (Text Secondary)"
+                value={theme.theme_text_secondary}
+                onChange={(v) => handleFieldChange("theme_text_secondary", v)}
+                description="النصوص الفرعية والفقرات"
+              />
+              <ColorPickerField
+                label="النص الباهت (Text Muted)"
+                value={theme.theme_text_muted}
+                onChange={(v) => handleFieldChange("theme_text_muted", v)}
+                description="شروحات المنتج والتلميحات"
+              />
+              <ColorPickerField
+                label="الحدود والتقسيمات (Border)"
+                value={theme.theme_border}
+                onChange={(v) => handleFieldChange("theme_border", v)}
+                description="خطوط الفصل وحواف البطاقات"
+              />
+              <ColorPickerField
+                label="خلفية حقول الإدخال (Input Bg)"
+                value={theme.theme_input_bg}
+                onChange={(v) => handleFieldChange("theme_input_bg", v)}
+                description="خلفية مربعات البحث والحقول"
+              />
+            </div>
+          </div>
+
+          {/* 5. SECTION 5: HEADER & NAVIGATION */}
+          <div className="p-6 bg-[#1A1A1A] border border-zinc-800/90 rounded-3xl space-y-4">
+            <h3 className="text-base font-bold text-white flex items-center gap-2">
+              <Sliders size={18} className="text-[#C8A45C]" />
+              5. الهيدر والتنقل (Header & Navigation)
+            </h3>
+            <p className="text-xs text-zinc-400">
+              تخصيص ألوان الهيدر العلوي، شريط التنقل السفلي والقائمة الجانبية
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <ColorPickerField
+                label="بداية تدرج الهيدر"
+                value={theme.theme_header_gradient_start}
+                onChange={(v) => handleFieldChange("theme_header_gradient_start", v)}
+                description="بداية اللون العلوي للـ Header"
+              />
+              <ColorPickerField
+                label="نهاية تدرج الهيدر"
+                value={theme.theme_header_gradient_end}
+                onChange={(v) => handleFieldChange("theme_header_gradient_end", v)}
+                description="نهاية اللون العلوي للـ Header"
+              />
+              <ColorPickerField
+                label="شريط التنقل السفلي"
+                value={theme.theme_bottom_nav}
+                onChange={(v) => handleFieldChange("theme_bottom_nav", v)}
+                description="خلفية شريط التنقل في الجوال"
+              />
+              <ColorPickerField
+                label="الزر النشط في التنقل"
+                value={theme.theme_bottom_nav_active}
+                onChange={(v) => handleFieldChange("theme_bottom_nav_active", v)}
+                description="لون التمييز للأيقونة النشطة"
+              />
+              <ColorPickerField
+                label="القائمة الجانبية (Sidebar)"
+                value={theme.theme_sidebar_bg}
+                onChange={(v) => handleFieldChange("theme_sidebar_bg", v)}
+                description="خلفية القائمة الجانبية للشاشات الكبيرة"
+              />
+            </div>
+          </div>
+
+          {/* 6. SECTION 6: TYPOGRAPHY (Fonts & Sizes) */}
+          <div className="p-6 bg-[#1A1A1A] border border-zinc-800/90 rounded-3xl space-y-5">
+            <h3 className="text-base font-bold text-white flex items-center gap-2">
+              <Type size={18} className="text-[#C8A45C]" />
+              6. الخطوط والاحجام (Typography)
+            </h3>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              {/* Arabic Font Dropdown */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-zinc-300">الخط العربي (Arabic Font)</label>
+                <select
+                  value={theme.theme_font_arabic}
+                  onChange={(e) => handleFieldChange("theme_font_arabic", e.target.value)}
+                  className="w-full bg-[#121212] border border-zinc-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#C8A45C]"
+                >
+                  {GOOGLE_FONTS_ARABIC.map((f) => (
+                    <option key={f} value={f}>
+                      {f}
+                    </option>
+                  ))}
+                </select>
               </div>
 
-              {/* 8 Preset Cards Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {PRESET_PALETTES.map((preset) => {
-                  const isPrimaryMatch = theme.theme_primary.toLowerCase() === preset.primary.toLowerCase();
-                  const isBackgroundMatch = theme.theme_background.toLowerCase() === preset.background.toLowerCase();
-                  const isActive = isPrimaryMatch && isBackgroundMatch;
+              {/* English Font Dropdown */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-zinc-300">الخط الإنجليزي (English Font)</label>
+                <select
+                  value={theme.theme_font_english}
+                  onChange={(e) => handleFieldChange("theme_font_english", e.target.value)}
+                  className="w-full bg-[#121212] border border-zinc-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#C8A45C]"
+                >
+                  {GOOGLE_FONTS_ENGLISH.map((f) => (
+                    <option key={f} value={f}>
+                      {f}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-                  return (
-                    <div
-                      key={preset.id}
-                      onClick={() => applyPreset(preset)}
-                      className={`p-3.5 rounded-2xl border transition-all duration-200 cursor-pointer flex flex-col justify-between gap-3 relative overflow-hidden group ${
-                        isActive
-                          ? "bg-[#1F1F1F] ring-2"
-                          : "bg-[#1A1A1A] border-zinc-800 hover:border-zinc-600 hover:bg-[#202020]"
-                      }`}
+              {/* Font Size Slider */}
+              <div className="space-y-2">
+                <div className="flex justify-between items-center text-xs font-bold text-zinc-300">
+                  <span>حجم النص الرئيسي</span>
+                  <span className="text-[#C8A45C] font-mono">{theme.theme_font_size}px</span>
+                </div>
+                <input
+                  type="range"
+                  min="10"
+                  max="24"
+                  value={parseInt(theme.theme_font_size) || 14}
+                  onChange={(e) => handleFieldChange("theme_font_size", e.target.value)}
+                  className="w-full accent-[#C8A45C]"
+                />
+              </div>
+
+              {/* Heading Size Slider */}
+              <div className="space-y-2">
+                <div className="flex justify-between items-center text-xs font-bold text-zinc-300">
+                  <span>حجم العناوين</span>
+                  <span className="text-[#C8A45C] font-mono">{theme.theme_heading_size}px</span>
+                </div>
+                <input
+                  type="range"
+                  min="16"
+                  max="36"
+                  value={parseInt(theme.theme_heading_size) || 20}
+                  onChange={(e) => handleFieldChange("theme_heading_size", e.target.value)}
+                  className="w-full accent-[#C8A45C]"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* 7. SECTION 7: SHAPE & EFFECTS */}
+          <div className="p-6 bg-[#1A1A1A] border border-zinc-800/90 rounded-3xl space-y-5">
+            <h3 className="text-base font-bold text-white flex items-center gap-2">
+              <Maximize size={18} className="text-[#C8A45C]" />
+              7. الشكل والمؤثرات (Shape & Effects)
+            </h3>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+              {/* Border Radius */}
+              <div className="space-y-2">
+                <div className="flex justify-between items-center text-xs font-bold text-zinc-300">
+                  <span>انحناء الحواف (Border Radius)</span>
+                  <span className="text-[#C8A45C] font-mono">{theme.theme_border_radius}px</span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="32"
+                  value={parseInt(theme.theme_border_radius) || 16}
+                  onChange={(e) => handleFieldChange("theme_border_radius", e.target.value)}
+                  className="w-full accent-[#C8A45C]"
+                />
+              </div>
+
+              {/* Shadow Style Dropdown */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-zinc-300">نمط الظلال (Shadow Style)</label>
+                <select
+                  value={theme.theme_shadow}
+                  onChange={(e) => handleFieldChange("theme_shadow", e.target.value)}
+                  className="w-full bg-[#121212] border border-zinc-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#C8A45C]"
+                >
+                  <option value="none">بدون ظلال (None)</option>
+                  <option value="soft">خفيف (Soft)</option>
+                  <option value="medium">متوسط (Medium)</option>
+                  <option value="large">عميق (Large)</option>
+                  <option value="glow">توهج ذهبي (Glow)</option>
+                </select>
+              </div>
+
+              {/* Padding */}
+              <div className="space-y-2">
+                <div className="flex justify-between items-center text-xs font-bold text-zinc-300">
+                  <span>الحشو الداخلي (Padding)</span>
+                  <span className="text-[#C8A45C] font-mono">{theme.theme_padding}px</span>
+                </div>
+                <input
+                  type="range"
+                  min="8"
+                  max="48"
+                  value={parseInt(theme.theme_padding) || 24}
+                  onChange={(e) => handleFieldChange("theme_padding", e.target.value)}
+                  className="w-full accent-[#C8A45C]"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* 8. SECTION 8: LOGO */}
+          <div className="p-6 bg-[#1A1A1A] border border-zinc-800/90 rounded-3xl space-y-4">
+            <h3 className="text-base font-bold text-white flex items-center gap-2">
+              <ImageIcon size={18} className="text-[#C8A45C]" />
+              8. الشعار (Logo)
+            </h3>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-zinc-300">رابط الشعار (URL)</label>
+                <input
+                  type="text"
+                  value={theme.theme_logo_url}
+                  onChange={(e) => handleFieldChange("theme_logo_url", e.target.value)}
+                  placeholder="https://example.com/logo.png"
+                  className="w-full bg-[#121212] border border-zinc-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#C8A45C] dir-ltr text-left"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex justify-between items-center text-xs font-bold text-zinc-300">
+                  <span>حجم الشعار</span>
+                  <span className="text-[#C8A45C] font-mono">{theme.theme_logo_size}</span>
+                </div>
+                <input
+                  type="range"
+                  min="30"
+                  max="200"
+                  value={parseInt(theme.theme_logo_size) || 80}
+                  onChange={(e) => handleFieldChange("theme_logo_size", `${e.target.value}px`)}
+                  className="w-full accent-[#C8A45C]"
+                />
+              </div>
+
+              <ColorPickerField
+                label="لون نص اسم المتجر"
+                value={theme.theme_logo_text_color}
+                onChange={(v) => handleFieldChange("theme_logo_text_color", v)}
+                description="يظهر عند عدم توفر صورة الشعار"
+              />
+            </div>
+          </div>
+
+          {/* 9. SECTION 9: LIVE PREVIEW */}
+          <div className="p-6 bg-[#1A1A1A] border border-zinc-800/90 rounded-3xl space-y-4">
+            <div className="flex items-center justify-between border-b border-zinc-800 pb-4">
+              <div>
+                <h3 className="text-base font-bold text-white flex items-center gap-2">
+                  <Eye size={18} className="text-[#C8A45C]" />
+                  9. المعاينة الحية (Live Preview)
+                </h3>
+                <p className="text-xs text-zinc-400 mt-0.5">
+                  معاينة فورية حية لمظهر العناصر بالشكل والنمط المحدد حالياً
+                </p>
+              </div>
+
+              <div className="px-3 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full text-[11px] font-bold flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                تزامن فوري
+              </div>
+            </div>
+
+            {/* Simulated Store UI Box */}
+            <div
+              className="p-6 rounded-2xl border transition-all duration-300 space-y-6"
+              style={{
+                backgroundColor: theme.theme_background,
+                borderColor: theme.theme_border,
+                fontFamily: theme.theme_font_arabic,
+              }}
+            >
+              {/* Header preview */}
+              <div
+                className="p-4 rounded-xl flex items-center justify-between border shadow-sm"
+                style={{
+                  background: `linear-gradient(90deg, ${theme.theme_header_gradient_start} 0%, ${theme.theme_header_gradient_end} 100%)`,
+                  borderColor: theme.theme_border,
+                }}
+              >
+                <div className="flex items-center gap-3">
+                  {theme.theme_logo_url ? (
+                    <img
+                      src={theme.theme_logo_url}
+                      alt="Logo"
+                      style={{ height: theme.theme_logo_size }}
+                      className="object-contain"
+                    />
+                  ) : (
+                    <span
+                      className="font-black text-lg"
+                      style={{ color: theme.theme_logo_text_color }}
+                    >
+                      متجري الإكتروني
+                    </span>
+                  )}
+                </div>
+                <div
+                  className="px-3 py-1.5 rounded-lg text-xs font-bold"
+                  style={{
+                    backgroundColor: theme.theme_primary,
+                    color: "#000",
+                  }}
+                >
+                  تسجيل الدخول
+                </div>
+              </div>
+
+              {/* Cards Grid preview */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Balance Card Sample */}
+                <div
+                  className="p-5 rounded-2xl border space-y-2 text-white"
+                  style={{
+                    background: `linear-gradient(135deg, ${theme.theme_primary} 0%, ${theme.theme_secondary} 100%)`,
+                    borderRadius: `${theme.theme_border_radius}px`,
+                  }}
+                >
+                  <p className="text-xs opacity-80">الرصيد المتاح</p>
+                  <h2 className="text-2xl font-black">$1,450.00 USD</h2>
+                  <div className="pt-2 flex gap-2">
+                    <span className="px-3 py-1 bg-black/20 rounded-lg text-[10px] font-bold">
+                      + إيداع سريع
+                    </span>
+                  </div>
+                </div>
+
+                {/* Product Card Sample */}
+                <div
+                  className="p-4 rounded-2xl border space-y-3"
+                  style={{
+                    backgroundColor: theme.theme_card,
+                    borderColor: theme.theme_border,
+                    borderRadius: `${theme.theme_border_radius}px`,
+                  }}
+                >
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h4
+                        className="font-bold text-sm"
+                        style={{ color: theme.theme_text_primary }}
+                      >
+                        بطاقة شحن رقمية VIP
+                      </h4>
+                      <p
+                        className="text-xs mt-0.5"
+                        style={{ color: theme.theme_text_muted }}
+                      >
+                        تفعيل فوري تلقائي
+                      </p>
+                    </div>
+                    <span
+                      className="px-2 py-0.5 text-[10px] font-extrabold rounded-md"
                       style={{
-                        borderColor: isActive ? preset.primary : undefined,
-                        boxShadow: isActive ? `0 0 20px ${preset.primary}33` : undefined,
+                        backgroundColor: theme.theme_accent,
+                        color: "#000",
                       }}
                     >
-                      {/* Active Accent Top Indicator */}
-                      {isActive && (
-                        <div
-                          className="absolute top-0 right-0 left-0 h-1"
-                          style={{ backgroundColor: preset.primary }}
-                        />
-                      )}
+                      خصم 15%
+                    </span>
+                  </div>
 
-                      {/* Card Header */}
-                      <div className="flex items-start justify-between gap-2">
-                        <div>
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-xs font-bold text-white group-hover:text-[#FDE68A] transition-colors">
-                              {preset.name}
-                            </span>
-                          </div>
-                          <span className="text-[10px] text-zinc-400 font-mono block mt-0.5">
-                            {preset.nameEn} • {preset.description}
-                          </span>
-                        </div>
+                  <div className="flex items-center justify-between pt-2">
+                    <span
+                      className="font-black text-base"
+                      style={{ color: theme.theme_primary }}
+                    >
+                      $25.00
+                    </span>
+                    <button
+                      type="button"
+                      className="px-4 py-2 rounded-xl text-xs font-extrabold shadow-sm"
+                      style={{
+                        backgroundColor: theme.theme_primary,
+                        color: "#000",
+                        borderRadius: `${Math.max(4, parseInt(theme.theme_border_radius) - 4)}px`,
+                      }}
+                    >
+                      شراء الآن
+                    </button>
+                  </div>
+                </div>
+              </div>
 
-                        {isActive ? (
-                          <span
-                            className="px-2 py-0.5 text-[9px] font-bold rounded-full flex items-center gap-1 shrink-0"
-                            style={{
-                              backgroundColor: `${preset.primary}25`,
-                              color: preset.accent,
-                              border: `1px solid ${preset.primary}60`,
-                            }}
-                          >
-                            <Check size={10} /> نشط الآن
-                          </span>
-                        ) : (
-                          <span className="text-[10px] text-zinc-400 group-hover:text-white transition-colors bg-zinc-800/80 px-2 py-0.5 rounded-lg">
-                            تطبيق
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Visual 4-Color Swatch Display */}
-                      <div className="space-y-1.5 bg-[#141414] p-2.5 rounded-xl border border-zinc-800/80">
-                        {/* Gradient Bar */}
-                        <div
-                          className="h-2 rounded-full w-full shadow-inner"
-                          style={{
-                            background: `linear-gradient(to right, ${preset.background}, ${preset.primary}, ${preset.secondary}, ${preset.accent})`,
-                          }}
-                        />
-
-                        {/* Color Blocks */}
-                        <div className="grid grid-cols-4 gap-1.5 pt-1">
-                          <div className="flex flex-col items-center gap-1">
-                            <span
-                              className="w-full h-5 rounded-lg border border-white/10 shadow-sm transition-transform group-hover:scale-105"
-                              style={{ backgroundColor: preset.primary }}
-                              title={`الأساسي: ${preset.primary}`}
-                            />
-                            <span className="text-[8px] text-zinc-400 font-mono">{preset.primary}</span>
-                          </div>
-
-                          <div className="flex flex-col items-center gap-1">
-                            <span
-                              className="w-full h-5 rounded-lg border border-white/10 shadow-sm transition-transform group-hover:scale-105"
-                              style={{ backgroundColor: preset.secondary }}
-                              title={`الثانوي: ${preset.secondary}`}
-                            />
-                            <span className="text-[8px] text-zinc-400 font-mono">{preset.secondary}</span>
-                          </div>
-
-                          <div className="flex flex-col items-center gap-1">
-                            <span
-                              className="w-full h-5 rounded-lg border border-white/10 shadow-sm transition-transform group-hover:scale-105"
-                              style={{ backgroundColor: preset.accent }}
-                              title={`المميز: ${preset.accent}`}
-                            />
-                            <span className="text-[8px] text-zinc-400 font-mono">{preset.accent}</span>
-                          </div>
-
-                          <div className="flex flex-col items-center gap-1">
-                            <span
-                              className="w-full h-5 rounded-lg border border-white/10 shadow-sm transition-transform group-hover:scale-105"
-                              style={{ backgroundColor: preset.background }}
-                              title={`الخلفية: ${preset.background}`}
-                            />
-                            <span className="text-[8px] text-zinc-400 font-mono">{preset.background}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+              {/* Bottom Nav preview */}
+              <div
+                className="p-3 rounded-xl flex items-center justify-around border"
+                style={{
+                  backgroundColor: theme.theme_bottom_nav,
+                  borderColor: theme.theme_border,
+                }}
+              >
+                {["الرئيسية", "المحفظة", "مشترياتي", "حسابي"].map((navItem, idx) => {
+                  const isNavActive = idx === 0;
+                  return (
+                    <span
+                      key={navItem}
+                      className="text-xs font-bold transition"
+                      style={{
+                        color: isNavActive ? theme.theme_bottom_nav_active : theme.theme_text_muted,
+                      }}
+                    >
+                      {navItem}
+                    </span>
                   );
                 })}
               </div>
-
-              {/* Quick Single-Color Swatches */}
-              <div className="pt-2 border-t border-zinc-800/80 flex flex-wrap items-center justify-between gap-2">
-                <span className="text-[11px] font-semibold text-zinc-400 flex items-center gap-1.5">
-                  <Palette size={14} className="text-[#C8A45C]" />
-                  تغيير سريع للون الأساسي فقط:
-                </span>
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  {PRESET_PALETTES.map((p) => (
-                    <button
-                      key={`single-${p.id}`}
-                      type="button"
-                      onClick={() => {
-                        handleFieldChange("theme_primary", p.primary);
-                        handleFieldChange("theme_secondary", p.secondary);
-                        handleFieldChange("theme_accent", p.accent);
-                        showToastMsg(`تم ضبط اللون الأساسي على "${p.name}"`);
-                      }}
-                      className="w-6 h-6 rounded-full border border-white/20 hover:scale-115 transition-transform cursor-pointer shadow"
-                      style={{ backgroundColor: p.primary }}
-                      title={`تطبيق اللون الأساسي: ${p.name}`}
-                    />
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Colors Section */}
-            <div className="bg-[#242424] p-5 rounded-2xl border border-[#C8A45C]/20 shadow-xl space-y-4">
-              <h2 className="text-sm font-bold text-[#FDE68A] flex items-center gap-2 border-b border-zinc-800 pb-3">
-                <Palette size={18} className="text-[#C8A45C]" />
-                إعدادات الألوان التفصيلية
-              </h2>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-                {/* Primary Color */}
-                <div className="space-y-1.5 p-3 bg-[#1A1A1A] rounded-xl border border-zinc-800">
-                  <label className="block font-semibold text-zinc-300">اللون الأساسي (Primary)</label>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="color"
-                      value={theme.theme_primary}
-                      onChange={(e) => handleFieldChange("theme_primary", e.target.value)}
-                      className="w-10 h-9 rounded-lg border border-zinc-700 bg-transparent cursor-pointer"
-                    />
-                    <input
-                      type="text"
-                      value={theme.theme_primary}
-                      onChange={(e) => handleFieldChange("theme_primary", e.target.value)}
-                      className="flex-1 bg-[#242424] border border-zinc-700 text-white font-mono px-3 py-1.5 rounded-lg outline-none uppercase text-xs"
-                    />
-                  </div>
-                </div>
-
-                {/* Secondary Color */}
-                <div className="space-y-1.5 p-3 bg-[#1A1A1A] rounded-xl border border-zinc-800">
-                  <label className="block font-semibold text-zinc-300">اللون الثانوي (Secondary)</label>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="color"
-                      value={theme.theme_secondary}
-                      onChange={(e) => handleFieldChange("theme_secondary", e.target.value)}
-                      className="w-10 h-9 rounded-lg border border-zinc-700 bg-transparent cursor-pointer"
-                    />
-                    <input
-                      type="text"
-                      value={theme.theme_secondary}
-                      onChange={(e) => handleFieldChange("theme_secondary", e.target.value)}
-                      className="flex-1 bg-[#242424] border border-zinc-700 text-white font-mono px-3 py-1.5 rounded-lg outline-none uppercase text-xs"
-                    />
-                  </div>
-                </div>
-
-                {/* Accent Color */}
-                <div className="space-y-1.5 p-3 bg-[#1A1A1A] rounded-xl border border-zinc-800">
-                  <label className="block font-semibold text-zinc-300">اللون المميز (Accent)</label>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="color"
-                      value={theme.theme_accent}
-                      onChange={(e) => handleFieldChange("theme_accent", e.target.value)}
-                      className="w-10 h-9 rounded-lg border border-zinc-700 bg-transparent cursor-pointer"
-                    />
-                    <input
-                      type="text"
-                      value={theme.theme_accent}
-                      onChange={(e) => handleFieldChange("theme_accent", e.target.value)}
-                      className="flex-1 bg-[#242424] border border-zinc-700 text-white font-mono px-3 py-1.5 rounded-lg outline-none uppercase text-xs"
-                    />
-                  </div>
-                </div>
-
-                {/* Background Color */}
-                <div className="space-y-1.5 p-3 bg-[#1A1A1A] rounded-xl border border-zinc-800">
-                  <label className="block font-semibold text-zinc-300">لون خلفية المتجر (Background)</label>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="color"
-                      value={theme.theme_background}
-                      onChange={(e) => handleFieldChange("theme_background", e.target.value)}
-                      className="w-10 h-9 rounded-lg border border-zinc-700 bg-transparent cursor-pointer"
-                    />
-                    <input
-                      type="text"
-                      value={theme.theme_background}
-                      onChange={(e) => handleFieldChange("theme_background", e.target.value)}
-                      className="flex-1 bg-[#242424] border border-zinc-700 text-white font-mono px-3 py-1.5 rounded-lg outline-none uppercase text-xs"
-                    />
-                  </div>
-                </div>
-
-                {/* Text Primary Color */}
-                <div className="space-y-1.5 p-3 bg-[#1A1A1A] rounded-xl border border-zinc-800 md:col-span-2">
-                  <label className="block font-semibold text-zinc-300">لون النص الأساسي (Text Primary)</label>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="color"
-                      value={theme.theme_text_primary}
-                      onChange={(e) => handleFieldChange("theme_text_primary", e.target.value)}
-                      className="w-10 h-9 rounded-lg border border-zinc-700 bg-transparent cursor-pointer"
-                    />
-                    <input
-                      type="text"
-                      value={theme.theme_text_primary}
-                      onChange={(e) => handleFieldChange("theme_text_primary", e.target.value)}
-                      className="flex-1 bg-[#242424] border border-zinc-700 text-white font-mono px-3 py-1.5 rounded-lg outline-none uppercase text-xs"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Typography Section */}
-            <div className="bg-[#242424] p-5 rounded-2xl border border-[#C8A45C]/20 shadow-xl space-y-4">
-              <h2 className="text-sm font-bold text-[#FDE68A] flex items-center gap-2 border-b border-zinc-800 pb-3">
-                <Type size={18} className="text-[#C8A45C]" />
-                التحكم بالخطوط والطباعة (Typography)
-              </h2>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-                {/* Arabic Font */}
-                <div>
-                  <label className="block font-semibold text-zinc-300 mb-1">الخط العربي الرئيسي</label>
-                  <select
-                    value={theme.theme_font_arabic}
-                    onChange={(e) => handleFieldChange("theme_font_arabic", e.target.value)}
-                    className="w-full bg-[#1A1A1A] border border-zinc-700 focus:border-[#C8A45C] text-white px-3.5 py-2.5 rounded-xl outline-none cursor-pointer"
-                  >
-                    {GOOGLE_FONTS_ARABIC.map((f) => (
-                      <option key={f} value={f}>
-                        {f}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* English Font */}
-                <div>
-                  <label className="block font-semibold text-zinc-300 mb-1">الخط الإنجليزي والأرقام</label>
-                  <select
-                    value={theme.theme_font_english}
-                    onChange={(e) => handleFieldChange("theme_font_english", e.target.value)}
-                    className="w-full bg-[#1A1A1A] border border-zinc-700 focus:border-[#C8A45C] text-white px-3.5 py-2.5 rounded-xl outline-none cursor-pointer"
-                  >
-                    {GOOGLE_FONTS_ENGLISH.map((f) => (
-                      <option key={f} value={f}>
-                        {f}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Font Size Slider */}
-                <div className="md:col-span-2 space-y-2 p-3 bg-[#1A1A1A] rounded-xl border border-zinc-800">
-                  <div className="flex items-center justify-between">
-                    <label className="font-semibold text-zinc-300">حجم النص الأساسي</label>
-                    <span className="font-mono text-[#FDE68A] font-bold">{theme.theme_font_size || "14"}px</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="12"
-                    max="20"
-                    step="1"
-                    value={theme.theme_font_size || "14"}
-                    onChange={(e) => handleFieldChange("theme_font_size", e.target.value)}
-                    className="w-full accent-[#C8A45C] cursor-pointer"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Shapes & Mode Section */}
-            <div className="bg-[#242424] p-5 rounded-2xl border border-[#C8A45C]/20 shadow-xl space-y-4">
-              <h2 className="text-sm font-bold text-[#FDE68A] flex items-center gap-2 border-b border-zinc-800 pb-3">
-                <Sliders size={18} className="text-[#C8A45C]" />
-                الحواف، الظلال، والوضع الافتراضي
-              </h2>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-                {/* Border Radius */}
-                <div className="space-y-2 p-3 bg-[#1A1A1A] rounded-xl border border-zinc-800">
-                  <div className="flex items-center justify-between">
-                    <label className="font-semibold text-zinc-300">نصف قطر زوايا البطاقات (Border Radius)</label>
-                    <span className="font-mono text-[#FDE68A] font-bold">{theme.theme_border_radius || "16"}px</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="0"
-                    max="32"
-                    step="2"
-                    value={theme.theme_border_radius || "16"}
-                    onChange={(e) => handleFieldChange("theme_border_radius", e.target.value)}
-                    className="w-full accent-[#C8A45C] cursor-pointer"
-                  />
-                </div>
-
-                {/* Shadows */}
-                <div className="space-y-1.5 p-3 bg-[#1A1A1A] rounded-xl border border-zinc-800">
-                  <label className="block font-semibold text-zinc-300">شدة الظلال (Shadows)</label>
-                  <select
-                    value={theme.theme_shadow || "medium"}
-                    onChange={(e) => handleFieldChange("theme_shadow", e.target.value)}
-                    className="w-full bg-[#242424] border border-zinc-700 focus:border-[#C8A45C] text-white px-3.5 py-2 rounded-xl outline-none cursor-pointer"
-                  >
-                    <option value="none">بدون ظل (None)</option>
-                    <option value="light">ظل خفيف (Light)</option>
-                    <option value="medium">ظل متوسط (Medium)</option>
-                    <option value="dark">ظل غامق (Dark / Deep)</option>
-                  </select>
-                </div>
-
-                {/* Default Mode */}
-                <div className="md:col-span-2 space-y-1.5 p-3 bg-[#1A1A1A] rounded-xl border border-zinc-800">
-                  <label className="block font-semibold text-zinc-300">الوضع الافتراضي عند فتح المتجر</label>
-                  <div className="grid grid-cols-3 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => handleFieldChange("theme_default_mode", "dark")}
-                      className={`py-2 px-3 rounded-xl border text-center font-bold transition flex items-center justify-center gap-1.5 cursor-pointer ${
-                        theme.theme_default_mode === "dark"
-                          ? "bg-[#C8A45C]/20 border-[#C8A45C] text-[#FDE68A]"
-                          : "bg-[#242424] border-zinc-800 text-zinc-400"
-                      }`}
-                    >
-                      <Moon size={14} />
-                      <span>داكن (Dark)</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => handleFieldChange("theme_default_mode", "light")}
-                      className={`py-2 px-3 rounded-xl border text-center font-bold transition flex items-center justify-center gap-1.5 cursor-pointer ${
-                        theme.theme_default_mode === "light"
-                          ? "bg-[#C8A45C]/20 border-[#C8A45C] text-[#FDE68A]"
-                          : "bg-[#242424] border-zinc-800 text-zinc-400"
-                      }`}
-                    >
-                      <Sun size={14} />
-                      <span>فاتح (Light)</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => handleFieldChange("theme_default_mode", "system")}
-                      className={`py-2 px-3 rounded-xl border text-center font-bold transition flex items-center justify-center gap-1.5 cursor-pointer ${
-                        theme.theme_default_mode === "system"
-                          ? "bg-[#C8A45C]/20 border-[#C8A45C] text-[#FDE68A]"
-                          : "bg-[#242424] border-zinc-800 text-zinc-400"
-                      }`}
-                    >
-                      <Layers size={14} />
-                      <span>تلقائي (System)</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Logo Size & Brand Identity Section */}
-            <div className="bg-[#242424] p-5 rounded-2xl border border-[#C8A45C]/20 shadow-xl space-y-4">
-              <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
-                <h2 className="text-sm font-bold text-[#FDE68A] flex items-center gap-2">
-                  <ImageIcon size={18} className="text-[#C8A45C]" />
-                  الهوية البصرية وحجم الشعار في المتجر (Logo Size)
-                </h2>
-                <span className="font-mono text-xs font-bold text-[#C8A45C] bg-[#1A1A1A] border border-[#C8A45C]/30 px-2.5 py-1 rounded-lg">
-                  {parseInt(String(theme.theme_logo_size || "80")) || 80}px
-                </span>
-              </div>
-
-              <div className="space-y-4 text-xs">
-                {/* Logo Size Slider */}
-                <div className="space-y-2 p-4 bg-[#1A1A1A] rounded-xl border border-zinc-800">
-                  <div className="flex items-center justify-between">
-                    <label className="font-semibold text-zinc-300 flex items-center gap-1.5">
-                      <Maximize size={14} className="text-[#C8A45C]" />
-                      التحكم بحجم الشعار (العرض / الارتفاع التناسبي)
-                    </label>
-                    <span className="font-mono text-[#FDE68A] font-bold text-sm">
-                      {parseInt(String(theme.theme_logo_size || "80")) || 80}px
-                    </span>
-                  </div>
-
-                  <input
-                    type="range"
-                    min="40"
-                    max="160"
-                    step="2"
-                    value={parseInt(String(theme.theme_logo_size || "80")) || 80}
-                    onChange={(e) => handleFieldChange("theme_logo_size", `${e.target.value}px`)}
-                    className="w-full accent-[#C8A45C] cursor-pointer h-2 bg-zinc-800 rounded-lg"
-                  />
-
-                  {/* Preset Pills */}
-                  <div className="pt-2 flex flex-wrap items-center gap-2">
-                    <span className="text-[11px] text-zinc-400 font-medium">أحجام جاهزة:</span>
-                    {[
-                      { label: "صغير", size: "50px" },
-                      { label: "متوسط (افتراضي)", size: "80px" },
-                      { label: "كبير", size: "110px" },
-                      { label: "جامبو", size: "140px" },
-                    ].map((preset) => {
-                      const isCurrent = (parseInt(String(theme.theme_logo_size || "80")) || 80) === parseInt(preset.size);
-                      return (
-                        <button
-                          key={preset.size}
-                          type="button"
-                          onClick={() => handleFieldChange("theme_logo_size", preset.size)}
-                          className={`px-2.5 py-1 rounded-lg text-[11px] font-bold border transition cursor-pointer ${
-                            isCurrent
-                              ? "bg-[#C8A45C] text-black border-[#C8A45C] shadow-xs"
-                              : "bg-[#242424] text-zinc-300 border-zinc-700 hover:border-[#C8A45C] hover:text-white"
-                          }`}
-                        >
-                          {preset.label} ({preset.size})
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                <div className="p-3 bg-[#1A1A1A] rounded-xl border border-zinc-800/80 flex items-start gap-2.5 text-zinc-400 text-[11px] leading-relaxed">
-                  <Info size={16} className="text-[#C8A45C] shrink-0 mt-0.5" />
-                  <span>
-                    يُطبق هذا الخيار تلقائياً وفوراً على كافة أماكن ظهور الشعار في واجهة المتجر:
-                    الهيدر العلوي، القائمة الجانبية (Sidebar)، الفوتر، وشاشات تسجيل الدخول وإنشاء الحساب.
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Navigation Banner for Product Page Settings */}
-            <div className="bg-[#242424] p-5 rounded-2xl border border-blue-500/30 shadow-xl space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-blue-500/15 border border-blue-500/30 flex items-center justify-center text-blue-400 font-bold">
-                    📦
-                  </div>
-                  <div>
-                    <h2 className="text-sm font-bold text-white">تخصيص صفحة تفاصيل المنتج (Product Page Settings)</h2>
-                    <p className="text-[11px] text-zinc-400 mt-0.5">
-                      تم تجميع ونقل كافة إعدادات ترتيب العناصر، السحب والإفلات، وإظهار/إخفاء أقسام صفحة المنتج إلى الصفحة المستقلة المخصصة لها.
-                    </p>
-                  </div>
-                </div>
-                <a
-                  href="/product-page-settings"
-                  className="px-4 py-2 bg-gradient-to-r from-[#C8A45C] to-[#B38F46] text-black text-xs font-bold rounded-xl hover:brightness-110 transition shadow-md shrink-0"
-                >
-                  الانتقال لتخصيص صفحة المنتج ←
-                </a>
-              </div>
-            </div>
-          </div>
-
-          {/* RIGHT SIDE: LIVE PREVIEW (lg:col-span-5) */}
-          <div className="lg:col-span-5 space-y-4 lg:sticky lg:top-6">
-            <div className="bg-[#242424] p-5 rounded-2xl border border-[#C8A45C]/30 shadow-2xl space-y-4">
-              <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
-                <div className="flex items-center gap-2">
-                  <Eye size={18} className="text-[#C8A45C]" />
-                  <h2 className="text-sm font-bold text-[#FDE68A]">المعاينة الحية التفاعلية</h2>
-                </div>
-
-                {/* Preview Light/Dark toggle */}
-                <div className="flex items-center gap-1 bg-[#1A1A1A] p-1 rounded-xl border border-zinc-800">
-                  <button
-                    type="button"
-                    onClick={() => setPreviewMode("dark")}
-                    className={`p-1.5 rounded-lg text-xs transition cursor-pointer ${
-                      previewMode === "dark" ? "bg-[#C8A45C] text-black font-bold" : "text-zinc-400 hover:text-white"
-                    }`}
-                    title="معاينة الوضع الداكن"
-                  >
-                    <Moon size={14} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setPreviewMode("light")}
-                    className={`p-1.5 rounded-lg text-xs transition cursor-pointer ${
-                      previewMode === "light" ? "bg-[#C8A45C] text-black font-bold" : "text-zinc-400 hover:text-white"
-                    }`}
-                    title="معاينة الوضع الفاتح"
-                  >
-                    <Sun size={14} />
-                  </button>
-                </div>
-              </div>
-
-              {/* LIVE PREVIEW CANVAS */}
-              <div
-                className={`p-5 transition-all border ${getShadowClass(theme.theme_shadow)} space-y-4 relative overflow-hidden`}
-                style={{
-                  backgroundColor: previewMode === "light" ? "#F8FAFC" : theme.theme_background,
-                  color: previewMode === "light" ? "#0F172A" : theme.theme_text_primary,
-                  borderRadius: `${theme.theme_border_radius || 16}px`,
-                  fontFamily: `${theme.theme_font_arabic}, sans-serif`,
-                  fontSize: `${theme.theme_font_size || 14}px`,
-                  borderColor: `${theme.theme_primary}40`,
-                }}
-              >
-                {/* Header Preview with Dynamic Logo */}
-                <div className="flex items-center justify-between border-b pb-3 gap-3" style={{ borderColor: `${theme.theme_primary}30` }}>
-                  <div className="flex items-center gap-3 min-w-0">
-                    {brandLogo ? (
-                      <img
-                        src={brandLogo}
-                        alt="Brand Logo"
-                        style={{
-                          height: `${Math.min(64, Math.max(28, Math.round((parseInt(String(theme.theme_logo_size || "80")) || 80) * 0.45)))}px`,
-                          maxWidth: `${Math.min(160, Math.max(70, Math.round((parseInt(String(theme.theme_logo_size || "80")) || 80) * 1.5)))}px`,
-                          objectFit: "contain",
-                          borderRadius: `${Math.max(4, Number(theme.theme_border_radius) - 6)}px`,
-                        }}
-                      />
-                    ) : (
-                      <div
-                        className="flex items-center justify-center font-black transition-all shadow-sm shrink-0"
-                        style={{
-                          width: `${Math.min(48, Math.max(28, Math.round((parseInt(String(theme.theme_logo_size || "80")) || 80) * 0.45)))}px`,
-                          height: `${Math.min(48, Math.max(28, Math.round((parseInt(String(theme.theme_logo_size || "80")) || 80) * 0.45)))}px`,
-                          backgroundColor: theme.theme_primary,
-                          color: "#000000",
-                          borderRadius: `${Math.max(4, Number(theme.theme_border_radius) - 4)}px`,
-                          fontSize: `${Math.min(20, Math.max(12, Math.round((parseInt(String(theme.theme_logo_size || "80")) || 80) * 0.2)))}px`,
-                        }}
-                      >
-                        XP
-                      </div>
-                    )}
-                    <div className="truncate">
-                      <div className="font-extrabold truncate" style={{ color: theme.theme_accent }}>
-                        ShadMini Store
-                      </div>
-                      <div className="text-[10px] opacity-70 truncate">شعار المتجر الحجم: {parseInt(String(theme.theme_logo_size || "80")) || 80}px</div>
-                    </div>
-                  </div>
-
-                  <span
-                    className="px-2 py-0.5 text-[10px] font-bold shrink-0"
-                    style={{
-                      backgroundColor: `${theme.theme_primary}20`,
-                      color: theme.theme_accent,
-                      borderRadius: `${Math.max(4, Number(theme.theme_border_radius) - 6)}px`,
-                    }}
-                  >
-                    معاينة حية
-                  </span>
-                </div>
-
-                {/* Sample Card */}
-                <div
-                  className="p-4 border space-y-3"
-                  style={{
-                    backgroundColor: previewMode === "light" ? "#FFFFFF" : "#242424",
-                    borderRadius: `${Math.max(6, Number(theme.theme_border_radius) - 2)}px`,
-                    borderColor: `${theme.theme_primary}30`,
-                  }}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold">بطاقة منتج تجريبية</span>
-                    <span className="font-mono text-xs font-bold" style={{ color: theme.theme_primary }}>
-                      $25.00 USD
-                    </span>
-                  </div>
-
-                  <p className="opacity-80 text-xs leading-relaxed">
-                    جملة تجريبية بالخط العربي المختار ({theme.theme_font_arabic}): تمتع بتجربة تسوق سريعة وآمنة.
-                  </p>
-
-                  <div className="flex items-center gap-2 pt-1">
-                    <button
-                      type="button"
-                      className="flex-1 py-2 font-bold text-xs shadow transition hover:brightness-110 cursor-pointer"
-                      style={{
-                        backgroundColor: theme.theme_primary,
-                        color: "#000000",
-                        borderRadius: `${Math.max(4, Number(theme.theme_border_radius) - 6)}px`,
-                      }}
-                    >
-                      شراء الآن (CTA)
-                    </button>
-
-                    <button
-                      type="button"
-                      className="px-3 py-2 font-bold text-xs border transition cursor-pointer"
-                      style={{
-                        backgroundColor: `${theme.theme_secondary}20`,
-                        color: theme.theme_accent,
-                        borderColor: theme.theme_secondary,
-                        borderRadius: `${Math.max(4, Number(theme.theme_border_radius) - 6)}px`,
-                      }}
-                    >
-                      تفاصيل
-                    </button>
-                  </div>
-                </div>
-
-                {/* English Text Sample */}
-                <div className="text-[11px] font-mono opacity-60 text-left dir-ltr" style={{ fontFamily: `${theme.theme_font_english}, sans-serif` }}>
-                  Sample English Font ({theme.theme_font_english}) • Logo Size: {theme.theme_logo_size || "80px"}
-                </div>
-              </div>
-
-              <div className="text-[11px] text-zinc-500 flex items-center gap-1.5 pt-2">
-                <Info size={14} className="text-[#C8A45C]" />
-                <span>المعاينة تتحدث فوراً عند تغيير أي خيار أو حجم الشعار. اضغط حفظ لتطبيقها نهائياً.</span>
-              </div>
             </div>
           </div>
         </div>
       )}
-        </>
-      )}
-
-      {/* Balance Card Settings Tab */}
-      {currentTab === "balance" && <BalanceCardSettings />}
-
-      {/* Auth Pages Settings Tab */}
-      {currentTab === "auth" && <AuthPagesSettings />}
-
-      {/* Product Page Settings Tab */}
-      {currentTab === "product" && <ProductPageSettings />}
-
-      {/* About Us Page Settings Tab */}
-      {currentTab === "about" && <AboutSettings />}
-
-      {/* Contact Us Page Settings Tab */}
-      {currentTab === "contact" && <ContactSettings />}
     </div>
   );
 }

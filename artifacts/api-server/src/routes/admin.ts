@@ -6246,4 +6246,121 @@ router.put("/admin/permissions/matrix", requireAdmin, async (req, res) => {
   }
 });
 
+// ========== THEME PRESETS ENDPOINTS ==========
+router.get("/admin/theme-presets", requireAdmin, async (_req, res) => {
+  try {
+    const [row] = await db
+      .select()
+      .from(settingsTable)
+      .where(eq(settingsTable.key, "theme_presets"))
+      .limit(1);
+
+    const presets = row?.value || [];
+    return res.json(Array.isArray(presets) ? presets : []);
+  } catch (err: any) {
+    console.error("[Admin GET Theme Presets Error]:", err);
+    return res.status(500).json({ error: err.message || "فشل جلب الأنماط" });
+  }
+});
+
+router.post("/admin/theme-presets", requireAdmin, async (req, res) => {
+  try {
+    const newPreset = req.body;
+    if (!newPreset || !newPreset.id || !newPreset.name) {
+      return res.status(400).json({ error: "بيانات النمط غير صالحة" });
+    }
+
+    const [row] = await db
+      .select()
+      .from(settingsTable)
+      .where(eq(settingsTable.key, "theme_presets"))
+      .limit(1);
+
+    let existing: any[] = [];
+    if (row?.value && Array.isArray(row.value)) {
+      existing = row.value;
+    }
+
+    const updatedPresets = [...existing.filter((p) => p.id !== newPreset.id), { ...newPreset, isCustom: true }];
+
+    await db
+      .insert(settingsTable)
+      .values({ key: "theme_presets", value: updatedPresets })
+      .onConflictDoUpdate({
+        target: settingsTable.key,
+        set: { value: updatedPresets },
+      });
+
+    return res.json({ success: true, presets: updatedPresets });
+  } catch (err: any) {
+    console.error("[Admin POST Theme Preset Error]:", err);
+    return res.status(500).json({ error: err.message || "فشل إضافة النمط المخصص" });
+  }
+});
+
+router.put("/admin/theme-presets/:id", requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updatedData = req.body;
+
+    const [row] = await db
+      .select()
+      .from(settingsTable)
+      .where(eq(settingsTable.key, "theme_presets"))
+      .limit(1);
+
+    let existing: any[] = [];
+    if (row?.value && Array.isArray(row.value)) {
+      existing = row.value;
+    }
+
+    const updatedPresets = existing.map((p) => (p.id === id ? { ...p, ...updatedData } : p));
+
+    await db
+      .insert(settingsTable)
+      .values({ key: "theme_presets", value: updatedPresets })
+      .onConflictDoUpdate({
+        target: settingsTable.key,
+        set: { value: updatedPresets },
+      });
+
+    return res.json({ success: true, presets: updatedPresets });
+  } catch (err: any) {
+    console.error("[Admin PUT Theme Preset Error]:", err);
+    return res.status(500).json({ error: err.message || "فشل تعديل النمط" });
+  }
+});
+
+router.delete("/admin/theme-presets/:id", requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const [row] = await db
+      .select()
+      .from(settingsTable)
+      .where(eq(settingsTable.key, "theme_presets"))
+      .limit(1);
+
+    let existing: any[] = [];
+    if (row?.value && Array.isArray(row.value)) {
+      existing = row.value;
+    }
+
+    const updatedPresets = existing.filter((p) => p.id !== id);
+
+    await db
+      .insert(settingsTable)
+      .values({ key: "theme_presets", value: updatedPresets })
+      .onConflictDoUpdate({
+        target: settingsTable.key,
+        set: { value: updatedPresets },
+      });
+
+    return res.json({ success: true, presets: updatedPresets });
+  } catch (err: any) {
+    console.error("[Admin DELETE Theme Preset Error]:", err);
+    return res.status(500).json({ error: err.message || "فشل حذف النمط" });
+  }
+});
+
 export default router;
