@@ -419,6 +419,33 @@ export function applyStoreTheme(theme?: Partial<StoreThemeSettings> | null | und
   root.style.setProperty("--contact-padding", contactPadding);
   root.style.setProperty("--contact-shadow", contactShadow);
 
+  // --- Balance Card Section Variables ---
+  const balanceGradStart = currentTheme.balance_gradient_start || currentTheme.balanceGradientStart || "#1E40AF";
+  const balanceGradMid = currentTheme.balance_gradient_mid || currentTheme.balanceGradientMid || "#3B82F6";
+  const balanceGradEnd = currentTheme.balance_gradient_end || currentTheme.balanceGradientEnd || "#60A5FA";
+  const balanceTextColor = currentTheme.balance_text_color || currentTheme.balanceTextColor || "#FFFFFF";
+  const balanceSubtextColor = currentTheme.balance_subtext_color || currentTheme.balanceSubtextColor || "#E0F2FE";
+  const balanceBadgeColor = currentTheme.balance_badge_color || currentTheme.balanceBadgeColor || "#FFFFFF";
+  const balanceCurrencyColor = currentTheme.balance_currency_color || currentTheme.balanceCurrencyColor || "#FFFFFF";
+  const balanceRadius = `${currentTheme.balance_radius ?? currentTheme.balanceRadius ?? 24}px`;
+  const balancePadding = `${currentTheme.balance_padding ?? currentTheme.balancePadding ?? 24}px`;
+  const balanceAmountSize = `${currentTheme.balance_amount_size ?? currentTheme.balanceAmountSize ?? 32}px`;
+  const balanceLabelSize = `${currentTheme.balance_label_size ?? currentTheme.balanceLabelSize ?? 14}px`;
+  const balanceShadow = formatShadow(currentTheme.balance_shadow || currentTheme.balanceShadow || "heavy");
+  const balanceGlowColor = currentTheme.balance_glow_color || currentTheme.balanceGlowColor || "#3B82F6";
+
+  root.style.setProperty("--balance-gradient", `linear-gradient(135deg, ${balanceGradStart} 0%, ${balanceGradMid} 50%, ${balanceGradEnd} 100%)`);
+  root.style.setProperty("--balance-text-color", balanceTextColor);
+  root.style.setProperty("--balance-subtext-color", balanceSubtextColor);
+  root.style.setProperty("--balance-badge-color", balanceBadgeColor);
+  root.style.setProperty("--balance-currency-color", balanceCurrencyColor);
+  root.style.setProperty("--balance-radius", balanceRadius);
+  root.style.setProperty("--balance-padding", balancePadding);
+  root.style.setProperty("--balance-amount-size", balanceAmountSize);
+  root.style.setProperty("--balance-label-size", balanceLabelSize);
+  root.style.setProperty("--balance-shadow", balanceShadow);
+  root.style.setProperty("--balance-glow-color", balanceGlowColor);
+
   // 3. Inject Comprehensive Dynamic Style Tag
   let styleTag = document.getElementById("xpay-dynamic-store-theme") as HTMLStyleElement | null;
   if (!styleTag) {

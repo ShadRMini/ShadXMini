@@ -240,24 +240,35 @@ export default function Home() {
             </div>
 
             {/* Balance Card */}
-            <div className="rounded-3xl bg-gradient-to-br from-[#2D2D2D] via-[#222222] to-[#1A1A1A] border border-[#C8A45C]/40 shadow-xl overflow-hidden relative p-5 sm:p-6 text-white">
-              <div className="absolute top-0 right-0 w-48 h-48 bg-[#C8A45C]/15 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-              <div className="absolute bottom-0 left-0 w-32 h-32 bg-[#C8A45C]/10 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2 pointer-events-none" />
+            <div 
+              className="overflow-hidden relative text-white transition-all shadow-xl"
+              style={{
+                background: "var(--balance-gradient, linear-gradient(135deg, #2D2D2D 0%, #222222 50%, #1A1A1A 100%))",
+                color: "var(--balance-text-color, #FFFFFF)",
+                borderRadius: "var(--balance-radius, 24px)",
+                padding: "var(--balance-padding, 20px)",
+                boxShadow: "var(--balance-shadow, 0 12px 32px rgba(0, 0, 0, 0.25))",
+              }}
+            >
+              <div 
+                className="absolute top-0 right-0 w-48 h-48 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"
+                style={{ backgroundColor: "var(--balance-glow-color, var(--theme-primary, #C8A45C))", opacity: 0.18 }}
+              />
 
               <div className="flex justify-between items-center relative z-10">
                 <div>
-                  <div className="flex items-center gap-2 text-zinc-400 mb-1">
-                    <Wallet className="w-4 h-4 text-[#C8A45C]" />
-                    <span className="text-xs sm:text-sm font-bold">الرصيد المتاح في المحفظة</span>
+                  <div className="flex items-center gap-2 mb-1" style={{ color: "var(--balance-subtext-color, #A1A1AA)" }}>
+                    <Wallet className="w-4 h-4" style={{ color: "var(--balance-badge-color, var(--theme-primary, #C8A45C))" }} />
+                    <span className="font-bold" style={{ fontSize: "var(--balance-label-size, 14px)" }}>الرصيد المتاح في المحفظة</span>
                   </div>
-                  <div className="text-2xl sm:text-4xl font-black text-white flex items-baseline gap-2 flex-wrap tracking-tight">
+                  <div className="font-black flex items-baseline gap-2 flex-wrap tracking-tight" style={{ color: "var(--balance-text-color, #FFFFFF)", fontSize: "var(--balance-amount-size, 32px)" }}>
                     {profileLoading ? (
                       <Skeleton className="h-9 w-28 bg-zinc-700" />
                     ) : (
                       <>
                         <span>{formatPrice(profile?.balanceUsd ?? user?.balanceUsd ?? 0)}</span>
                         {formatPriceWithSyp(profile?.balanceUsd ?? user?.balanceUsd ?? 0).secondary && (
-                          <span className="text-xs sm:text-sm text-zinc-300 font-medium">
+                          <span className="text-xs sm:text-sm font-medium" style={{ color: "var(--balance-currency-color, #D4D4D8)" }}>
                             {formatPriceWithSyp(profile?.balanceUsd ?? user?.balanceUsd ?? 0).secondary}
                           </span>
                         )}
@@ -267,7 +278,13 @@ export default function Home() {
                 </div>
 
                 <Link href="/deposit">
-                  <div className="bg-[#C8A45C] hover:bg-[#B8954A] text-[#1A1A1A] shadow-lg shadow-[#C8A45C]/25 rounded-2xl px-5 py-3 flex items-center gap-2 text-sm font-black transition-all active:scale-95 cursor-pointer">
+                  <div 
+                    className="shadow-lg rounded-2xl px-5 py-3 flex items-center gap-2 text-sm font-black transition-all active:scale-95 cursor-pointer"
+                    style={{
+                      backgroundColor: "var(--balance-badge-color, var(--theme-primary, #C8A45C))",
+                      color: "#1A1A1A",
+                    }}
+                  >
                     <Plus className="w-4 h-4 stroke-[3]" />
                     <span>شحن الرصيد</span>
                   </div>

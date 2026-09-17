@@ -328,54 +328,52 @@ export function WalletPage() {
 
       {/* 2. Current Balance Card */}
       <div 
-        className="relative overflow-hidden rounded-3xl p-6 sm:p-8 shadow-xl transition-all"
+        className="relative overflow-hidden transition-all shadow-xl"
         style={{
-          background: "linear-gradient(135deg, var(--theme-card) 0%, var(--theme-background) 100%)",
-          border: "1px solid var(--theme-border)",
-          color: "var(--theme-text-primary)",
+          background: "var(--balance-gradient, linear-gradient(135deg, var(--theme-card) 0%, var(--theme-background) 100%))",
+          color: "var(--balance-text-color, var(--theme-text-primary))",
+          borderRadius: "var(--balance-radius, 24px)",
+          padding: "var(--balance-padding, 24px)",
+          boxShadow: "var(--balance-shadow, 0 12px 32px rgba(0, 0, 0, 0.25))",
         }}
       >
-        {/* Subtle background glow effect using theme colors */}
+        {/* Glow effect */}
         <div 
           className="absolute -top-12 -left-12 w-44 h-44 rounded-full blur-2xl pointer-events-none"
-          style={{ backgroundColor: "var(--theme-primary)", opacity: 0.12 }}
-        />
-        <div 
-          className="absolute -bottom-12 -right-12 w-44 h-44 rounded-full blur-2xl pointer-events-none"
-          style={{ backgroundColor: "var(--theme-accent)", opacity: 0.08 }}
+          style={{ backgroundColor: "var(--balance-glow-color, var(--theme-primary))", opacity: 0.2 }}
         />
 
         <div className="relative z-10 flex flex-col justify-between h-full space-y-4">
           <div className="flex items-center justify-between">
-            <span className="font-medium text-sm sm:text-base" style={{ color: "var(--theme-text-muted)" }}>
+            <span className="font-medium" style={{ color: "var(--balance-subtext-color, var(--theme-text-muted))", fontSize: "var(--balance-label-size, 14px)" }}>
               رصيدك الحالي
             </span>
             <span 
               className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-xs"
               style={{
-                backgroundColor: "var(--theme-background)",
-                border: "1px solid var(--theme-border)",
-                color: "var(--theme-text-primary)",
+                backgroundColor: "color-mix(in srgb, var(--balance-badge-color, var(--theme-primary)) 15%, transparent)",
+                border: "1px solid color-mix(in srgb, var(--balance-badge-color, var(--theme-primary)) 30%, transparent)",
+                color: "var(--balance-badge-color, var(--theme-text-primary))",
               }}
             >
-              <ShieldCheck className="w-3.5 h-3.5" style={{ color: "var(--theme-primary)" }} />
+              <ShieldCheck className="w-3.5 h-3.5" style={{ color: "var(--balance-badge-color, var(--theme-primary))" }} />
               محفظة آمنة
             </span>
           </div>
 
           <div className="flex items-baseline gap-2 flex-wrap">
             <span 
-              className="text-4xl sm:text-5xl font-black tracking-tight font-mono"
-              style={{ color: "var(--theme-text-primary)" }}
+              className="font-black tracking-tight font-mono"
+              style={{ color: "var(--balance-text-color, var(--theme-text-primary))", fontSize: "var(--balance-amount-size, 36px)" }}
             >
               {formatPrice(balanceUsd)}
             </span>
             {formatPriceWithSyp(balanceUsd).secondary ? (
-              <span className="text-xs sm:text-sm font-medium" style={{ color: "var(--theme-text-muted)" }}>
+              <span className="text-xs sm:text-sm font-medium" style={{ color: "var(--balance-currency-color, var(--theme-text-muted))" }}>
                 {formatPriceWithSyp(balanceUsd).secondary}
               </span>
             ) : user?.balanceSyp && baseCurrency !== "SYP" ? (
-              <span className="text-xs mr-2" style={{ color: "var(--theme-text-muted)" }}>
+              <span className="text-xs mr-2" style={{ color: "var(--balance-currency-color, var(--theme-text-muted))" }}>
                 (≈ {Math.round(user.balanceSyp).toLocaleString()} ل.س)
               </span>
             ) : null}

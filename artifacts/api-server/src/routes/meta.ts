@@ -169,6 +169,22 @@ router.get(["/theme", "/theme-settings", "/public/theme-settings", "/admin/theme
     const contactPadding = getSettingStr("contact_padding", "24");
     const contactShadow = getSettingStr("contact_shadow", "medium");
 
+    // Balance Card Section
+    const balanceGradientStart = getSettingStr("balance_gradient_start", "#1E40AF");
+    const balanceGradientMid = getSettingStr("balance_gradient_mid", "#3B82F6");
+    const balanceGradientEnd = getSettingStr("balance_gradient_end", "#60A5FA");
+    const balanceTextColor = getSettingStr("balance_text_color", "#FFFFFF");
+    const balanceSubtextColor = getSettingStr("balance_subtext_color", "#E0F2FE");
+    const balanceBadgeColor = getSettingStr("balance_badge_color", "#FFFFFF");
+    const balanceCurrencyColor = getSettingStr("balance_currency_color", "#FFFFFF");
+    const balanceRadius = getSettingStr("balance_radius", "24");
+    const balancePadding = getSettingStr("balance_padding", "24");
+    const balanceAmountSize = getSettingStr("balance_amount_size", "32");
+    const balanceLabelSize = getSettingStr("balance_label_size", "14");
+    const balanceShadow = getSettingStr("balance_shadow", "heavy");
+    const balanceGlowEnabled = getSettingStr("balance_glow_enabled", "true");
+    const balanceGlowColor = getSettingStr("balance_glow_color", "#3B82F6");
+
     const responseData = {
       // Full raw keys
       theme_primary: themePrimary,
@@ -302,6 +318,35 @@ router.get(["/theme", "/theme-settings", "/public/theme-settings", "/admin/theme
       contactRadius,
       contactPadding,
       contactShadow,
+      // Balance Section
+      balance_gradient_start: balanceGradientStart,
+      balance_gradient_mid: balanceGradientMid,
+      balance_gradient_end: balanceGradientEnd,
+      balance_text_color: balanceTextColor,
+      balance_subtext_color: balanceSubtextColor,
+      balance_badge_color: balanceBadgeColor,
+      balance_currency_color: balanceCurrencyColor,
+      balance_radius: balanceRadius,
+      balance_padding: balancePadding,
+      balance_amount_size: balanceAmountSize,
+      balance_label_size: balanceLabelSize,
+      balance_shadow: balanceShadow,
+      balance_glow_enabled: balanceGlowEnabled,
+      balance_glow_color: balanceGlowColor,
+      balanceGradientStart,
+      balanceGradientMid,
+      balanceGradientEnd,
+      balanceTextColor,
+      balanceSubtextColor,
+      balanceBadgeColor,
+      balanceCurrencyColor,
+      balanceRadius,
+      balancePadding,
+      balanceAmountSize,
+      balanceLabelSize,
+      balanceShadow,
+      balanceGlowEnabled,
+      balanceGlowColor,
       // Direct alias properties
       primary: themePrimary,
       secondary: themeSecondary,
@@ -449,6 +494,22 @@ router.put(["/admin/theme-settings", "/theme-settings"], async (req, res) => {
       { key: "contact_radius", aliases: ["contact_radius", "contactRadius"] },
       { key: "contact_padding", aliases: ["contact_padding", "contactPadding"] },
       { key: "contact_shadow", aliases: ["contact_shadow", "contactShadow"] },
+
+      // Balance
+      { key: "balance_gradient_start", aliases: ["balance_gradient_start", "balanceGradientStart"] },
+      { key: "balance_gradient_mid", aliases: ["balance_gradient_mid", "balanceGradientMid"] },
+      { key: "balance_gradient_end", aliases: ["balance_gradient_end", "balanceGradientEnd"] },
+      { key: "balance_text_color", aliases: ["balance_text_color", "balanceTextColor"] },
+      { key: "balance_subtext_color", aliases: ["balance_subtext_color", "balanceSubtextColor"] },
+      { key: "balance_badge_color", aliases: ["balance_badge_color", "balanceBadgeColor"] },
+      { key: "balance_currency_color", aliases: ["balance_currency_color", "balanceCurrencyColor"] },
+      { key: "balance_radius", aliases: ["balance_radius", "balanceRadius"] },
+      { key: "balance_padding", aliases: ["balance_padding", "balancePadding"] },
+      { key: "balance_amount_size", aliases: ["balance_amount_size", "balanceAmountSize"] },
+      { key: "balance_label_size", aliases: ["balance_label_size", "balanceLabelSize"] },
+      { key: "balance_shadow", aliases: ["balance_shadow", "balanceShadow"] },
+      { key: "balance_glow_enabled", aliases: ["balance_glow_enabled", "balanceGlowEnabled"] },
+      { key: "balance_glow_color", aliases: ["balance_glow_color", "balanceGlowColor"] },
     ];
 
     for (const mapping of sectionMappings) {

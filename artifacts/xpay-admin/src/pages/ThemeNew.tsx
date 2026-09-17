@@ -6,6 +6,7 @@ import AuthPagesSettings from "./AuthPagesSettings";
 import ProductPageSettings from "./ProductPageSettings";
 import AboutSettings from "./AboutSettings";
 import ContactSettings from "./ContactSettings";
+import BalanceCardSettings from "./BalanceCardSettings";
 import {
   Palette,
   Sparkles,
@@ -27,7 +28,8 @@ import {
   Sparkle,
   LogIn,
   Package,
-  Headphones
+  Headphones,
+  Wallet
 } from "lucide-react";
 
 type PalettePreset = {
@@ -138,6 +140,7 @@ const GOOGLE_FONTS_ENGLISH = ["Inter", "Poppins", "Roboto", "Montserrat", "Open 
 
 export const THEME_TABS = [
   { id: "general", label: "الهوية والمظهر", icon: Palette, badge: "الأساسي", desc: "الألوان، الخطوط، الشعار، الحواف والظلال" },
+  { id: "balance", label: "بطاقة الرصيد والمحفظة", icon: Wallet, desc: "التحكم الكامل بتصميم وشكل بطاقة الرصيد" },
   { id: "auth", label: "صفحات الدخول والتسجيل", icon: LogIn, desc: "خلفيات ونصوص ومميزات شاشات الدخول" },
   { id: "product", label: "صفحة المنتج", icon: Package, desc: "ترتيب الأقسام، معاينة الشراء، وأزرار الطلب" },
   { id: "about", label: "صفحة من نحن", icon: Info, desc: "نصوص وأقسام ومعلومات المتجر" },
@@ -1066,6 +1069,9 @@ export default function ThemeNew() {
       )}
         </>
       )}
+
+      {/* Balance Card Settings Tab */}
+      {currentTab === "balance" && <BalanceCardSettings />}
 
       {/* Auth Pages Settings Tab */}
       {currentTab === "auth" && <AuthPagesSettings />}
