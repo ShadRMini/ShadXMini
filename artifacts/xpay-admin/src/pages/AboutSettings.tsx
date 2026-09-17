@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { get, put } from "../lib/api";
 import { toast } from "sonner";
+import SectionThemeControls, { SectionThemeData } from "../components/SectionThemeControls";
 import {
   Info,
   Save,
@@ -600,6 +601,23 @@ export default function AboutSettings() {
   const [saving, setSaving] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<"sections" | "style" | "preview">("sections");
 
+  const [aboutTheme, setAboutTheme] = useState<SectionThemeData>({
+    bg_color: "#1A1A1A",
+    card_color: "#2D2D2D",
+    text_color: "#FFFFFF",
+    title_color: "#C8A45C",
+    border_color: "#C8A45C",
+    button_color: "#C8A45C",
+    button_text_color: "#1A1A1A",
+    button_hover_color: "#B8954A",
+    font_family: "Cairo",
+    font_size: 14,
+    heading_size: 20,
+    radius: 16,
+    padding: 24,
+    shadow: "medium",
+  });
+
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
@@ -619,6 +637,30 @@ export default function AboutSettings() {
           setUseLegacy(Boolean(res.use_legacy_about_page));
         }
       }
+
+      try {
+        const themeRes = await get<any>("/admin/theme-settings");
+        if (themeRes) {
+          setAboutTheme({
+            bg_color: themeRes.about_bg_color || "#1A1A1A",
+            card_color: themeRes.about_card_color || "#2D2D2D",
+            text_color: themeRes.about_text_color || "#FFFFFF",
+            title_color: themeRes.about_title_color || "#C8A45C",
+            border_color: themeRes.about_border_color || "#C8A45C",
+            button_color: themeRes.about_button_color || "#C8A45C",
+            button_text_color: themeRes.about_button_text_color || "#1A1A1A",
+            button_hover_color: themeRes.about_button_hover_color || "#B8954A",
+            font_family: themeRes.about_font_family || "Cairo",
+            font_size: themeRes.about_font_size || 14,
+            heading_size: themeRes.about_heading_size || 20,
+            radius: themeRes.about_radius || 16,
+            padding: themeRes.about_padding || 24,
+            shadow: themeRes.about_shadow || "medium",
+          });
+        }
+      } catch (tErr) {
+        console.warn("Could not fetch about theme settings:", tErr);
+      }
     } catch (err: any) {
       toast.error("تعذر تحميل إعدادات صفحة من نحن");
     } finally {
@@ -630,15 +672,35 @@ export default function AboutSettings() {
     setSaving(true);
     try {
       await put("/admin/about-config", {
-        config,
+        config: {
+          ...config,
+          style: {
+            ...config.style,
+            bg_color: aboutTheme.bg_color,
+            section_bg: aboutTheme.card_color,
+            text_color: aboutTheme.text_color,
+            title_color: aboutTheme.title_color,
+          },
+        },
         use_legacy_about_page: useLegacy,
       });
 
       try {
         await put("/admin/theme-settings", {
-          about_bg_color: config.style.bg_color || "#1A1A1A",
-          about_card_color: config.style.section_bg || "#2D2D2D",
-          about_text_color: config.style.text_color || "#FFFFFF",
+          about_bg_color: aboutTheme.bg_color,
+          about_card_color: aboutTheme.card_color,
+          about_text_color: aboutTheme.text_color,
+          about_title_color: aboutTheme.title_color,
+          about_border_color: aboutTheme.border_color,
+          about_button_color: aboutTheme.button_color,
+          about_button_text_color: aboutTheme.button_text_color,
+          about_button_hover_color: aboutTheme.button_hover_color,
+          about_font_family: aboutTheme.font_family,
+          about_font_size: aboutTheme.font_size,
+          about_heading_size: aboutTheme.heading_size,
+          about_radius: aboutTheme.radius,
+          about_padding: aboutTheme.padding,
+          about_shadow: aboutTheme.shadow,
         });
       } catch (themeErr) {
         console.warn("[AboutSettings] Theme settings sync failed:", themeErr);
@@ -916,7 +978,17 @@ export default function AboutSettings() {
 
       {/* TAB 2: STYLE CUSTOMIZATION */}
       {activeTab === "style" && (
-        <div className="bg-[#2D2D2D] border border-[#C8A45C]/35 rounded-3xl p-6 shadow-xl space-y-6">
+        <div className="space-y-6">
+          <SectionThemeControls
+            title="تخصيص هوية ومظهر صفحة من نحن"
+            subtitle="التحكم الكامل بألوان المحتوى، الأزرار، الخطوط، والأبعاد الخاصة بصفحة من نحن فقط"
+            prefix="about"
+            data={aboutTheme}
+            onChange={(updated) => setAboutTheme(updated)}
+            onSave={handleSave}
+            saving={saving}
+          />
+          <div className="bg-[#2D2D2D] border border-[#C8A45C]/35 rounded-3xl p-6 shadow-xl space-y-6">
           <h2 className="font-black text-white text-base border-b border-zinc-700 pb-3 flex items-center gap-2">
             <Palette className="text-[#C8A45C]" size={20} />
             <span>إعدادات التصميم والألوان</span>
@@ -1086,6 +1158,7 @@ export default function AboutSettings() {
             </div>
           </div>
         </div>
+      </div>
       )}
 
       {/* TAB 3: LIVE PREVIEW */}

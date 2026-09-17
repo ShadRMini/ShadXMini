@@ -1,6 +1,7 @@
 import { useEffect, useState, useId } from "react";
 import { get, put } from "../lib/api";
 import { toast } from "sonner";
+import SectionThemeControls, { SectionThemeData } from "../components/SectionThemeControls";
 import {
   Save,
   RotateCcw,
@@ -563,6 +564,23 @@ export default function ContactSettings() {
   const [config, setConfig] = useState<ContactPageConfig>(DEFAULT_CONFIG);
   const [useLegacy, setUseLegacy] = useState(false);
 
+  const [contactTheme, setContactTheme] = useState<SectionThemeData>({
+    bg_color: "#1A1A1A",
+    card_color: "#2D2D2D",
+    text_color: "#E5E7EB",
+    title_color: "#FDE68A",
+    border_color: "#C8A45C",
+    button_color: "#C8A45C",
+    button_text_color: "#1A1A1A",
+    button_hover_color: "#B8954A",
+    font_family: "Cairo",
+    font_size: 14,
+    heading_size: 20,
+    radius: 16,
+    padding: 24,
+    shadow: "medium",
+  });
+
   // DnD sensors
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -579,6 +597,30 @@ export default function ContactSettings() {
   useEffect(() => {
     let active = true;
     setLoading(true);
+
+    get<any>("/admin/theme-settings")
+      .then((themeRes) => {
+        if (themeRes && active) {
+          setContactTheme({
+            bg_color: themeRes.contact_bg_color || "#1A1A1A",
+            card_color: themeRes.contact_card_color || "#2D2D2D",
+            text_color: themeRes.contact_text_color || "#E5E7EB",
+            title_color: themeRes.contact_title_color || "#FDE68A",
+            border_color: themeRes.contact_border_color || "#C8A45C",
+            button_color: themeRes.contact_button_color || "#C8A45C",
+            button_text_color: themeRes.contact_button_text_color || "#1A1A1A",
+            button_hover_color: themeRes.contact_button_hover_color || "#B8954A",
+            font_family: themeRes.contact_font_family || "Cairo",
+            font_size: themeRes.contact_font_size || 14,
+            heading_size: themeRes.contact_heading_size || 20,
+            radius: themeRes.contact_radius || 16,
+            padding: themeRes.contact_padding || 24,
+            shadow: themeRes.contact_shadow || "medium",
+          });
+        }
+      })
+      .catch((e) => console.warn("Could not fetch contact theme:", e));
+
     get<{ success: boolean; config: ContactPageConfig; use_legacy_contact_page: boolean }>(
       "/admin/contact-config"
     )
@@ -631,15 +673,35 @@ export default function ContactSettings() {
     const legacyValue = overrideLegacy !== undefined ? overrideLegacy : useLegacy;
     try {
       const res = await put<{ success: boolean; message?: string }>("/admin/contact-config", {
-        config,
+        config: {
+          ...config,
+          styles: {
+            ...config.styles,
+            bg_color: contactTheme.bg_color,
+            card_bg: contactTheme.card_color,
+            text_color: contactTheme.text_color,
+            title_color: contactTheme.title_color,
+          },
+        },
         use_legacy_contact_page: legacyValue,
       });
 
       try {
         await put("/admin/theme-settings", {
-          contact_bg_color: config.styles.bg_color || "#1A1A1A",
-          contact_card_color: config.styles.card_bg || "#2D2D2D",
-          contact_text_color: config.styles.text_color || "#E5E7EB",
+          contact_bg_color: contactTheme.bg_color,
+          contact_card_color: contactTheme.card_color,
+          contact_text_color: contactTheme.text_color,
+          contact_title_color: contactTheme.title_color,
+          contact_border_color: contactTheme.border_color,
+          contact_button_color: contactTheme.button_color,
+          contact_button_text_color: contactTheme.button_text_color,
+          contact_button_hover_color: contactTheme.button_hover_color,
+          contact_font_family: contactTheme.font_family,
+          contact_font_size: contactTheme.font_size,
+          contact_heading_size: contactTheme.heading_size,
+          contact_radius: contactTheme.radius,
+          contact_padding: contactTheme.padding,
+          contact_shadow: contactTheme.shadow,
         });
       } catch (themeErr) {
         console.warn("[ContactSettings] Theme settings sync failed:", themeErr);
@@ -1576,6 +1638,15 @@ export default function ContactSettings() {
       {/* TAB 5: STYLES & COLORS */}
       {activeTab === "styles" && (
         <div className="space-y-6">
+          <SectionThemeControls
+            title="تخصيص هوية ومظهر صفحة تواصل معنا"
+            subtitle="التحكم الكامل بألوان المحتوى، الأزرار، الخطوط، والأبعاد الخاصة بصفحة تواصل معنا فقط"
+            prefix="contact"
+            data={contactTheme}
+            onChange={(updated) => setContactTheme(updated)}
+            onSave={() => handleSave()}
+            saving={saving}
+          />
           <div className="bg-[#1A1A1A] border border-[#C8A45C]/20 rounded-2xl p-5 shadow-lg">
             <h2 className="text-base font-bold text-[#FDE68A] flex items-center gap-2">
               <Palette size={18} className="text-[#C8A45C]" />

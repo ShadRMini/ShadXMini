@@ -107,26 +107,67 @@ router.get(["/theme", "/theme-settings", "/public/theme-settings", "/admin/theme
     const contactPageConfig = parseJsonSetting("contact_page_config");
     const contactStyles = contactPageConfig?.styles || {};
 
-    // Section-specific theme colors
+    // Section-specific theme variables
     const authBgColor = getSettingStr("auth_bg_color", authStyles.pageBgColor || "#1A1A1A");
     const authCardColor = getSettingStr("auth_card_color", authStyles.cardBgColor || "#2D2D2D");
     const authTextColor = getSettingStr("auth_text_color", authStyles.inputTextColor || "#FFFFFF");
+    const authTitleColor = getSettingStr("auth_title_color", authStyles.titleColor || "#C8A45C");
+    const authBorderColor = getSettingStr("auth_border_color", "#C8A45C");
     const authButtonColor = getSettingStr("auth_button_color", authStyles.buttonBgColor || "#C8A45C");
+    const authButtonTextColor = getSettingStr("auth_button_text_color", "#1A1A1A");
+    const authButtonHoverColor = getSettingStr("auth_button_hover_color", "#B8954A");
+    const authFontFamily = getSettingStr("auth_font_family", "Cairo");
+    const authFontSize = getSettingStr("auth_font_size", "14");
+    const authHeadingSize = getSettingStr("auth_heading_size", "20");
+    const authRadius = getSettingStr("auth_radius", "16");
+    const authPadding = getSettingStr("auth_padding", "24");
+    const authShadow = getSettingStr("auth_shadow", "medium");
 
     const productBgColor = getSettingStr("product_bg_color", productPageStyle.bg_color || "#1A1A1A");
     const productCardColor = getSettingStr("product_card_color", productPageStyle.info_box_bg_color || "#2D2D2D");
     const productTextColor = getSettingStr("product_text_color", productPageStyle.text_color || "#FFFFFF");
+    const productTitleColor = getSettingStr("product_title_color", "#FDE68A");
     const productPriceColor = getSettingStr("product_price_color", productPageStyle.price_color || "#C8A45C");
-    const productButtonColor = getSettingStr("product_button_color", productPageStyle.button_color || "#C8A45C");
     const productBorderColor = getSettingStr("product_border_color", productPageStyle.border_color || "#C8A45C");
+    const productButtonColor = getSettingStr("product_button_color", productPageStyle.button_color || "#C8A45C");
+    const productButtonTextColor = getSettingStr("product_button_text_color", "#1A1A1A");
+    const productButtonHoverColor = getSettingStr("product_button_hover_color", "#B8954A");
+    const productFontFamily = getSettingStr("product_font_family", "Cairo");
+    const productFontSize = getSettingStr("product_font_size", "14");
+    const productHeadingSize = getSettingStr("product_heading_size", "20");
+    const productRadius = getSettingStr("product_radius", "16");
+    const productPadding = getSettingStr("product_padding", "24");
+    const productShadow = getSettingStr("product_shadow", "medium");
 
     const aboutBgColor = getSettingStr("about_bg_color", aboutStyle.bg_color || "#1A1A1A");
     const aboutCardColor = getSettingStr("about_card_color", aboutStyle.section_bg || "#2D2D2D");
     const aboutTextColor = getSettingStr("about_text_color", aboutStyle.text_color || "#FFFFFF");
+    const aboutTitleColor = getSettingStr("about_title_color", aboutStyle.title_color || "#C8A45C");
+    const aboutBorderColor = getSettingStr("about_border_color", "#C8A45C");
+    const aboutButtonColor = getSettingStr("about_button_color", "#C8A45C");
+    const aboutButtonTextColor = getSettingStr("about_button_text_color", "#1A1A1A");
+    const aboutButtonHoverColor = getSettingStr("about_button_hover_color", "#B8954A");
+    const aboutFontFamily = getSettingStr("about_font_family", "Cairo");
+    const aboutFontSize = getSettingStr("about_font_size", "14");
+    const aboutHeadingSize = getSettingStr("about_heading_size", "20");
+    const aboutRadius = getSettingStr("about_radius", "16");
+    const aboutPadding = getSettingStr("about_padding", "24");
+    const aboutShadow = getSettingStr("about_shadow", "medium");
 
     const contactBgColor = getSettingStr("contact_bg_color", contactStyles.bg_color || "#1A1A1A");
     const contactCardColor = getSettingStr("contact_card_color", contactStyles.card_bg || "#2D2D2D");
     const contactTextColor = getSettingStr("contact_text_color", contactStyles.text_color || "#FFFFFF");
+    const contactTitleColor = getSettingStr("contact_title_color", "#C8A45C");
+    const contactBorderColor = getSettingStr("contact_border_color", "#C8A45C");
+    const contactButtonColor = getSettingStr("contact_button_color", "#C8A45C");
+    const contactButtonTextColor = getSettingStr("contact_button_text_color", "#1A1A1A");
+    const contactButtonHoverColor = getSettingStr("contact_button_hover_color", "#B8954A");
+    const contactFontFamily = getSettingStr("contact_font_family", "Cairo");
+    const contactFontSize = getSettingStr("contact_font_size", "14");
+    const contactHeadingSize = getSettingStr("contact_heading_size", "20");
+    const contactRadius = getSettingStr("contact_radius", "16");
+    const contactPadding = getSettingStr("contact_padding", "24");
+    const contactShadow = getSettingStr("contact_shadow", "medium");
 
     const responseData = {
       // Full raw keys
@@ -142,40 +183,125 @@ router.get(["/theme", "/theme-settings", "/public/theme-settings", "/admin/theme
       theme_shadow: themeShadow,
       theme_default_mode: themeDefaultMode,
       theme_logo_size: themeLogoSize,
-      // Section Colors (snake_case)
+      // Auth Section
       auth_bg_color: authBgColor,
       auth_card_color: authCardColor,
       auth_text_color: authTextColor,
+      auth_title_color: authTitleColor,
+      auth_border_color: authBorderColor,
       auth_button_color: authButtonColor,
+      auth_button_text_color: authButtonTextColor,
+      auth_button_hover_color: authButtonHoverColor,
+      auth_font_family: authFontFamily,
+      auth_font_size: authFontSize,
+      auth_heading_size: authHeadingSize,
+      auth_radius: authRadius,
+      auth_padding: authPadding,
+      auth_shadow: authShadow,
+      // Product Section
       product_bg_color: productBgColor,
       product_card_color: productCardColor,
       product_text_color: productTextColor,
+      product_title_color: productTitleColor,
       product_price_color: productPriceColor,
-      product_button_color: productButtonColor,
       product_border_color: productBorderColor,
+      product_button_color: productButtonColor,
+      product_button_text_color: productButtonTextColor,
+      product_button_hover_color: productButtonHoverColor,
+      product_font_family: productFontFamily,
+      product_font_size: productFontSize,
+      product_heading_size: productHeadingSize,
+      product_radius: productRadius,
+      product_padding: productPadding,
+      product_shadow: productShadow,
+      // About Section
       about_bg_color: aboutBgColor,
       about_card_color: aboutCardColor,
       about_text_color: aboutTextColor,
+      about_title_color: aboutTitleColor,
+      about_border_color: aboutBorderColor,
+      about_button_color: aboutButtonColor,
+      about_button_text_color: aboutButtonTextColor,
+      about_button_hover_color: aboutButtonHoverColor,
+      about_font_family: aboutFontFamily,
+      about_font_size: aboutFontSize,
+      about_heading_size: aboutHeadingSize,
+      about_radius: aboutRadius,
+      about_padding: aboutPadding,
+      about_shadow: aboutShadow,
+      // Contact Section
       contact_bg_color: contactBgColor,
       contact_card_color: contactCardColor,
       contact_text_color: contactTextColor,
-      // Section Colors (camelCase)
+      contact_title_color: contactTitleColor,
+      contact_border_color: contactBorderColor,
+      contact_button_color: contactButtonColor,
+      contact_button_text_color: contactButtonTextColor,
+      contact_button_hover_color: contactButtonHoverColor,
+      contact_font_family: contactFontFamily,
+      contact_font_size: contactFontSize,
+      contact_heading_size: contactHeadingSize,
+      contact_radius: contactRadius,
+      contact_padding: contactPadding,
+      contact_shadow: contactShadow,
+      // CamelCase Aliases
       authBgColor,
       authCardColor,
       authTextColor,
+      authTitleColor,
+      authBorderColor,
       authButtonColor,
+      authButtonTextColor,
+      authButtonHoverColor,
+      authFontFamily,
+      authFontSize,
+      authHeadingSize,
+      authRadius,
+      authPadding,
+      authShadow,
       productBgColor,
       productCardColor,
       productTextColor,
+      productTitleColor,
       productPriceColor,
-      productButtonColor,
       productBorderColor,
+      productButtonColor,
+      productButtonTextColor,
+      productButtonHoverColor,
+      productFontFamily,
+      productFontSize,
+      productHeadingSize,
+      productRadius,
+      productPadding,
+      productShadow,
       aboutBgColor,
       aboutCardColor,
       aboutTextColor,
+      aboutTitleColor,
+      aboutBorderColor,
+      aboutButtonColor,
+      aboutButtonTextColor,
+      aboutButtonHoverColor,
+      aboutFontFamily,
+      aboutFontSize,
+      aboutHeadingSize,
+      aboutRadius,
+      aboutPadding,
+      aboutShadow,
       contactBgColor,
       contactCardColor,
       contactTextColor,
+      contactTitleColor,
+      contactBorderColor,
+      contactButtonColor,
+      contactButtonTextColor,
+      contactButtonHoverColor,
+      contactFontFamily,
+      contactFontSize,
+      contactHeadingSize,
+      contactRadius,
+      contactPadding,
+      contactShadow,
       // Direct alias properties
       primary: themePrimary,
       secondary: themeSecondary,
@@ -257,27 +383,72 @@ router.put(["/admin/theme-settings", "/theme-settings"], async (req, res) => {
       updates.push({ key: "theme_logo_size", value: val });
     }
 
-    // Section Colors (supports both snake_case and camelCase)
+    // Section Settings (supports both snake_case and camelCase)
     const sectionMappings: { key: string; aliases: string[] }[] = [
+      // Auth
       { key: "auth_bg_color", aliases: ["auth_bg_color", "authBgColor"] },
       { key: "auth_card_color", aliases: ["auth_card_color", "authCardColor"] },
       { key: "auth_text_color", aliases: ["auth_text_color", "authTextColor"] },
+      { key: "auth_title_color", aliases: ["auth_title_color", "authTitleColor"] },
+      { key: "auth_border_color", aliases: ["auth_border_color", "authBorderColor"] },
       { key: "auth_button_color", aliases: ["auth_button_color", "authButtonColor"] },
+      { key: "auth_button_text_color", aliases: ["auth_button_text_color", "authButtonTextColor"] },
+      { key: "auth_button_hover_color", aliases: ["auth_button_hover_color", "authButtonHoverColor"] },
+      { key: "auth_font_family", aliases: ["auth_font_family", "authFontFamily"] },
+      { key: "auth_font_size", aliases: ["auth_font_size", "authFontSize"] },
+      { key: "auth_heading_size", aliases: ["auth_heading_size", "authHeadingSize"] },
+      { key: "auth_radius", aliases: ["auth_radius", "authRadius"] },
+      { key: "auth_padding", aliases: ["auth_padding", "authPadding"] },
+      { key: "auth_shadow", aliases: ["auth_shadow", "authShadow"] },
 
+      // Product
       { key: "product_bg_color", aliases: ["product_bg_color", "productBgColor"] },
       { key: "product_card_color", aliases: ["product_card_color", "productCardColor"] },
       { key: "product_text_color", aliases: ["product_text_color", "productTextColor"] },
+      { key: "product_title_color", aliases: ["product_title_color", "productTitleColor"] },
       { key: "product_price_color", aliases: ["product_price_color", "productPriceColor"] },
-      { key: "product_button_color", aliases: ["product_button_color", "productButtonColor"] },
       { key: "product_border_color", aliases: ["product_border_color", "productBorderColor"] },
+      { key: "product_button_color", aliases: ["product_button_color", "productButtonColor"] },
+      { key: "product_button_text_color", aliases: ["product_button_text_color", "productButtonTextColor"] },
+      { key: "product_button_hover_color", aliases: ["product_button_hover_color", "productButtonHoverColor"] },
+      { key: "product_font_family", aliases: ["product_font_family", "productFontFamily"] },
+      { key: "product_font_size", aliases: ["product_font_size", "productFontSize"] },
+      { key: "product_heading_size", aliases: ["product_heading_size", "productHeadingSize"] },
+      { key: "product_radius", aliases: ["product_radius", "productRadius"] },
+      { key: "product_padding", aliases: ["product_padding", "productPadding"] },
+      { key: "product_shadow", aliases: ["product_shadow", "productShadow"] },
 
+      // About
       { key: "about_bg_color", aliases: ["about_bg_color", "aboutBgColor"] },
       { key: "about_card_color", aliases: ["about_card_color", "aboutCardColor"] },
       { key: "about_text_color", aliases: ["about_text_color", "aboutTextColor"] },
+      { key: "about_title_color", aliases: ["about_title_color", "aboutTitleColor"] },
+      { key: "about_border_color", aliases: ["about_border_color", "aboutBorderColor"] },
+      { key: "about_button_color", aliases: ["about_button_color", "aboutButtonColor"] },
+      { key: "about_button_text_color", aliases: ["about_button_text_color", "aboutButtonTextColor"] },
+      { key: "about_button_hover_color", aliases: ["about_button_hover_color", "aboutButtonHoverColor"] },
+      { key: "about_font_family", aliases: ["about_font_family", "aboutFontFamily"] },
+      { key: "about_font_size", aliases: ["about_font_size", "aboutFontSize"] },
+      { key: "about_heading_size", aliases: ["about_heading_size", "aboutHeadingSize"] },
+      { key: "about_radius", aliases: ["about_radius", "aboutRadius"] },
+      { key: "about_padding", aliases: ["about_padding", "aboutPadding"] },
+      { key: "about_shadow", aliases: ["about_shadow", "aboutShadow"] },
 
+      // Contact
       { key: "contact_bg_color", aliases: ["contact_bg_color", "contactBgColor"] },
       { key: "contact_card_color", aliases: ["contact_card_color", "contactCardColor"] },
       { key: "contact_text_color", aliases: ["contact_text_color", "contactTextColor"] },
+      { key: "contact_title_color", aliases: ["contact_title_color", "contactTitleColor"] },
+      { key: "contact_border_color", aliases: ["contact_border_color", "contactBorderColor"] },
+      { key: "contact_button_color", aliases: ["contact_button_color", "contactButtonColor"] },
+      { key: "contact_button_text_color", aliases: ["contact_button_text_color", "contactButtonTextColor"] },
+      { key: "contact_button_hover_color", aliases: ["contact_button_hover_color", "contactButtonHoverColor"] },
+      { key: "contact_font_family", aliases: ["contact_font_family", "contactFontFamily"] },
+      { key: "contact_font_size", aliases: ["contact_font_size", "contactFontSize"] },
+      { key: "contact_heading_size", aliases: ["contact_heading_size", "contactHeadingSize"] },
+      { key: "contact_radius", aliases: ["contact_radius", "contactRadius"] },
+      { key: "contact_padding", aliases: ["contact_padding", "contactPadding"] },
+      { key: "contact_shadow", aliases: ["contact_shadow", "contactShadow"] },
     ];
 
     for (const mapping of sectionMappings) {

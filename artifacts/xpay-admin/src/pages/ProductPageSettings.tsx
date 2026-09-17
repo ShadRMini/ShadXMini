@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { get, put } from "../lib/api";
 import { toast } from "sonner";
+import SectionThemeControls, { SectionThemeData } from "../components/SectionThemeControls";
 import {
   Package,
   Eye,
@@ -325,6 +326,23 @@ export default function ProductPageSettings() {
   const [loading, setLoading] = useState<boolean>(true);
   const [saving, setSaving] = useState<boolean>(false);
 
+  const [productTheme, setProductTheme] = useState<SectionThemeData>({
+    bg_color: "#1A1A1A",
+    card_color: "#242424",
+    text_color: "#FFFFFF",
+    title_color: "#FFFFFF",
+    border_color: "#C8A45C",
+    button_color: "#f5ca35",
+    button_text_color: "#1A1A1A",
+    button_hover_color: "#dcb220",
+    font_family: "Cairo",
+    font_size: 14,
+    heading_size: 20,
+    radius: 16,
+    padding: 24,
+    shadow: "medium",
+  });
+
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
@@ -354,6 +372,30 @@ export default function ProductPageSettings() {
         } else if (typeof data.useLegacy === "boolean") {
           setUseLegacy(data.useLegacy);
         }
+      }
+
+      try {
+        const themeRes = await get<any>("/admin/theme-settings");
+        if (themeRes) {
+          setProductTheme({
+            bg_color: themeRes.product_bg_color || "#1A1A1A",
+            card_color: themeRes.product_card_color || "#242424",
+            text_color: themeRes.product_text_color || "#FFFFFF",
+            title_color: themeRes.product_title_color || "#FFFFFF",
+            border_color: themeRes.product_border_color || "#C8A45C",
+            button_color: themeRes.product_button_color || "#f5ca35",
+            button_text_color: themeRes.product_button_text_color || "#1A1A1A",
+            button_hover_color: themeRes.product_button_hover_color || "#dcb220",
+            font_family: themeRes.product_font_family || "Cairo",
+            font_size: themeRes.product_font_size || 14,
+            heading_size: themeRes.product_heading_size || 20,
+            radius: themeRes.product_radius || 16,
+            padding: themeRes.product_padding || 24,
+            shadow: themeRes.product_shadow || "medium",
+          });
+        }
+      } catch (tErr) {
+        console.warn("Could not fetch product theme settings:", tErr);
       }
     } catch (err) {
       toast.error("فشل تحميل إعدادات صفحة المنتج");
@@ -428,12 +470,21 @@ export default function ProductPageSettings() {
 
       await put("/admin/theme-settings", {
         product_image_size: customization.image_size,
-        product_bg_color: customization.bg_color || "#1A1A1A",
-        product_card_color: customization.info_box_bg_color || "#242424",
-        product_button_color: customization.button_color || "#C8A45C",
-        product_text_color: customization.text_color || "#FFFFFF",
+        product_bg_color: productTheme.bg_color,
+        product_card_color: productTheme.card_color,
+        product_text_color: productTheme.text_color,
+        product_title_color: productTheme.title_color,
+        product_border_color: productTheme.border_color,
+        product_button_color: productTheme.button_color,
+        product_button_text_color: productTheme.button_text_color,
+        product_button_hover_color: productTheme.button_hover_color,
         product_price_color: customization.price_color || "#FDE68A",
-        product_border_color: customization.border_color || "#C8A45C",
+        product_font_family: productTheme.font_family,
+        product_font_size: productTheme.font_size,
+        product_heading_size: productTheme.heading_size,
+        product_radius: productTheme.radius,
+        product_padding: productTheme.padding,
+        product_shadow: productTheme.shadow,
         product_legacy_mode: useLegacy,
         use_legacy_product_page: useLegacy,
       });
@@ -544,7 +595,16 @@ export default function ProductPageSettings() {
             </DndContext>
           </div>
 
-          {/* 3. Style & Color Customization (Page Specific) */}
+          {/* 3. Style & Color Customization (Full Section Controls) */}
+          <SectionThemeControls
+            title="تخصيص هوية ومظهر صفحة تفاصيل المنتج"
+            subtitle="التحكم الكامل بألوان محتوى المنتج، الأزرار، الخطوط، والأبعاد الخاصة بصفحة المنتج فقط"
+            prefix="product"
+            data={productTheme}
+            onChange={(updated) => setProductTheme(updated)}
+            onSave={handleSave}
+            saving={saving}
+          />
           <div className="bg-[#242424] p-5 rounded-2xl border border-[#C8A45C]/30 shadow-xl space-y-4">
             <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
               <div className="flex items-center gap-2">

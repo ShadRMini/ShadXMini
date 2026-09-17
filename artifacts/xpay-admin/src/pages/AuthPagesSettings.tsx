@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { get, put } from "../lib/api";
 import { toast } from "sonner";
+import SectionThemeControls, { SectionThemeData } from "../components/SectionThemeControls";
 import {
   LogIn,
   UserPlus,
@@ -384,6 +385,23 @@ export default function AuthPagesSettings() {
   const [saving, setSaving] = useState<boolean>(false);
   const [previewMode, setPreviewMode] = useState<"login" | "register">("login");
 
+  const [authTheme, setAuthTheme] = useState<SectionThemeData>({
+    bg_color: "#1A1A1A",
+    card_color: "#242424",
+    text_color: "#FFFFFF",
+    title_color: "#C8A45C",
+    border_color: "#C8A45C",
+    button_color: "#C8A45C",
+    button_text_color: "#1A1A1A",
+    button_hover_color: "#B8954A",
+    font_family: "Cairo",
+    font_size: 14,
+    heading_size: 20,
+    radius: 16,
+    padding: 24,
+    shadow: "medium",
+  });
+
   // Load configuration
   const fetchConfig = async () => {
     setLoading(true);
@@ -394,6 +412,30 @@ export default function AuthPagesSettings() {
       }
       if (data && data.use_legacy_auth_pages !== undefined) {
         setUseLegacy(data.use_legacy_auth_pages === true || data.use_legacy_auth_pages === "true");
+      }
+
+      try {
+        const themeRes = await get<any>("/admin/theme-settings");
+        if (themeRes) {
+          setAuthTheme({
+            bg_color: themeRes.auth_bg_color || "#1A1A1A",
+            card_color: themeRes.auth_card_color || "#242424",
+            text_color: themeRes.auth_text_color || "#FFFFFF",
+            title_color: themeRes.auth_title_color || "#C8A45C",
+            border_color: themeRes.auth_border_color || "#C8A45C",
+            button_color: themeRes.auth_button_color || "#C8A45C",
+            button_text_color: themeRes.auth_button_text_color || "#1A1A1A",
+            button_hover_color: themeRes.auth_button_hover_color || "#B8954A",
+            font_family: themeRes.auth_font_family || "Cairo",
+            font_size: themeRes.auth_font_size || 14,
+            heading_size: themeRes.auth_heading_size || 20,
+            radius: themeRes.auth_radius || 16,
+            padding: themeRes.auth_padding || 24,
+            shadow: themeRes.auth_shadow || "medium",
+          });
+        }
+      } catch (tErr) {
+        console.warn("Could not fetch auth theme settings:", tErr);
       }
     } catch (err: any) {
       console.warn("Failed to fetch auth pages config, using defaults:", err);
@@ -416,10 +458,20 @@ export default function AuthPagesSettings() {
 
       try {
         await put("/admin/theme-settings", {
-          auth_bg_color: config.common.styles.pageBgColor || "#1A1A1A",
-          auth_card_color: config.common.styles.cardBgColor || "#242424",
-          auth_text_color: config.common.styles.inputTextColor || "#FFFFFF",
-          auth_button_color: config.common.styles.buttonBgColor || "#C8A45C",
+          auth_bg_color: authTheme.bg_color,
+          auth_card_color: authTheme.card_color,
+          auth_text_color: authTheme.text_color,
+          auth_title_color: authTheme.title_color,
+          auth_border_color: authTheme.border_color,
+          auth_button_color: authTheme.button_color,
+          auth_button_text_color: authTheme.button_text_color,
+          auth_button_hover_color: authTheme.button_hover_color,
+          auth_font_family: authTheme.font_family,
+          auth_font_size: authTheme.font_size,
+          auth_heading_size: authTheme.heading_size,
+          auth_radius: authTheme.radius,
+          auth_padding: authTheme.padding,
+          auth_shadow: authTheme.shadow,
         });
       } catch (themeErr) {
         console.warn("[AuthSettings] Theme settings sync failed:", themeErr);
@@ -1534,6 +1586,15 @@ export default function AuthPagesSettings() {
       {/* TAB 3: COLORS & STYLING */}
       {activeTab === "styles" && (
         <div className="space-y-6">
+          <SectionThemeControls
+            title="تخصيص هوية ومظهر صفحات الدخول والتسجيل"
+            subtitle="التحكم الكامل بألوان المحتوى، الأزرار، الخطوط، والأبعاد الخاصة بصفحات الدخول والتسجيل فقط"
+            prefix="auth"
+            data={authTheme}
+            onChange={(updated) => setAuthTheme(updated)}
+            onSave={handleSave}
+            saving={saving}
+          />
           {/* Presets Bar */}
           <div className="bg-[#242424] p-5 sm:p-6 rounded-2xl border border-zinc-800 space-y-3">
             <h3 className="text-sm font-bold text-white flex items-center gap-2">
