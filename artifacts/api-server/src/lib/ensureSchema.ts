@@ -1197,6 +1197,46 @@ export async function ensureDatabaseSchema() {
       console.error("[ensureSchema] shamcash_used_transaction_refs schema update failed:", e);
     }
 
+    // 12. Ensure default flat color settings in settings table
+    const DEFAULT_COLORS = [
+      // Auth Pages
+      { key: "auth_bg_color", val: "#1A1A1A" },
+      { key: "auth_card_color", val: "#2D2D2D" },
+      { key: "auth_text_color", val: "#FFFFFF" },
+      { key: "auth_button_color", val: "#C8A45C" },
+
+      // Product Page
+      { key: "product_bg_color", val: "#1A1A1A" },
+      { key: "product_card_color", val: "#2D2D2D" },
+      { key: "product_text_color", val: "#FFFFFF" },
+      { key: "product_price_color", val: "#C8A45C" },
+      { key: "product_button_color", val: "#C8A45C" },
+      { key: "product_border_color", val: "#C8A45C" },
+
+      // About Page
+      { key: "about_bg_color", val: "#1A1A1A" },
+      { key: "about_card_color", val: "#2D2D2D" },
+      { key: "about_text_color", val: "#FFFFFF" },
+
+      // Contact Page
+      { key: "contact_bg_color", val: "#1A1A1A" },
+      { key: "contact_card_color", val: "#2D2D2D" },
+      { key: "contact_text_color", val: "#FFFFFF" },
+    ];
+
+    for (const item of DEFAULT_COLORS) {
+      const existing: any = await db.execute(sql`SELECT key FROM settings WHERE key = ${item.key}`);
+      const rows = existing?.rows || existing;
+      if (!rows || rows.length === 0) {
+        await db.execute(sql`
+          INSERT INTO settings (key, value)
+          VALUES (${item.key}, ${JSON.stringify(item.val)}::jsonb)
+          ON CONFLICT (key) DO NOTHING
+        `);
+      }
+    }
+    console.log("[ensureSchema] ✅ Default flat color settings ensured in Neon DB");
+
     schemaEnsured = true;
     console.log("[DB Schema] Runtime schema verified and synchronized successfully.");
   } catch (error) {

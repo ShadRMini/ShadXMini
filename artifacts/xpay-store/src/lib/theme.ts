@@ -287,42 +287,42 @@ export function applyStoreTheme(theme?: Partial<StoreThemeSettings> | null | und
   root.style.setProperty("--font-english", `'${fontEnglish}', sans-serif`);
   root.style.setProperty("--app-font-sans", `'${fontArabic}', '${fontEnglish}', sans-serif`);
 
-  // Section specific variables
-  const authBg = currentTheme.auth_bg_color;
-  const authCard = currentTheme.auth_card_color;
-  const authText = currentTheme.auth_text_color;
-  const authButton = currentTheme.auth_button_color;
-  if (authBg) root.style.setProperty("--auth-bg-color", authBg);
-  if (authCard) root.style.setProperty("--auth-card-color", authCard);
-  if (authText) root.style.setProperty("--auth-text-color", authText);
-  if (authButton) root.style.setProperty("--auth-button-color", authButton);
+  // Section specific variables (supports snake_case & camelCase with fallbacks)
+  const authBg = currentTheme.auth_bg_color || currentTheme.authBgColor || "#1A1A1A";
+  const authCard = currentTheme.auth_card_color || currentTheme.authCardColor || "#2D2D2D";
+  const authText = currentTheme.auth_text_color || currentTheme.authTextColor || "#FFFFFF";
+  const authButton = currentTheme.auth_button_color || currentTheme.authButtonColor || "#C8A45C";
+  root.style.setProperty("--auth-bg-color", authBg);
+  root.style.setProperty("--auth-card-color", authCard);
+  root.style.setProperty("--auth-text-color", authText);
+  root.style.setProperty("--auth-button-color", authButton);
 
-  const productBg = currentTheme.product_bg_color;
-  const productCard = currentTheme.product_card_color;
-  const productText = currentTheme.product_text_color;
-  const productPrice = currentTheme.product_price_color;
-  const productButton = currentTheme.product_button_color;
-  const productBorder = currentTheme.product_border_color;
-  if (productBg) root.style.setProperty("--product-bg-color", productBg);
-  if (productCard) root.style.setProperty("--product-card-color", productCard);
-  if (productText) root.style.setProperty("--product-text-color", productText);
-  if (productPrice) root.style.setProperty("--product-price-color", productPrice);
-  if (productButton) root.style.setProperty("--product-button-color", productButton);
-  if (productBorder) root.style.setProperty("--product-border-color", productBorder);
+  const productBg = currentTheme.product_bg_color || currentTheme.productBgColor || "#1A1A1A";
+  const productCard = currentTheme.product_card_color || currentTheme.productCardColor || "#2D2D2D";
+  const productText = currentTheme.product_text_color || currentTheme.productTextColor || "#FFFFFF";
+  const productPrice = currentTheme.product_price_color || currentTheme.productPriceColor || "#C8A45C";
+  const productButton = currentTheme.product_button_color || currentTheme.productButtonColor || "#C8A45C";
+  const productBorder = currentTheme.product_border_color || currentTheme.productBorderColor || "#C8A45C";
+  root.style.setProperty("--product-bg-color", productBg);
+  root.style.setProperty("--product-card-color", productCard);
+  root.style.setProperty("--product-text-color", productText);
+  root.style.setProperty("--product-price-color", productPrice);
+  root.style.setProperty("--product-button-color", productButton);
+  root.style.setProperty("--product-border-color", productBorder);
 
-  const aboutBg = currentTheme.about_bg_color;
-  const aboutCard = currentTheme.about_card_color;
-  const aboutText = currentTheme.about_text_color;
-  if (aboutBg) root.style.setProperty("--about-bg-color", aboutBg);
-  if (aboutCard) root.style.setProperty("--about-card-color", aboutCard);
-  if (aboutText) root.style.setProperty("--about-text-color", aboutText);
+  const aboutBg = currentTheme.about_bg_color || currentTheme.aboutBgColor || "#1A1A1A";
+  const aboutCard = currentTheme.about_card_color || currentTheme.aboutCardColor || "#2D2D2D";
+  const aboutText = currentTheme.about_text_color || currentTheme.aboutTextColor || "#FFFFFF";
+  root.style.setProperty("--about-bg-color", aboutBg);
+  root.style.setProperty("--about-card-color", aboutCard);
+  root.style.setProperty("--about-text-color", aboutText);
 
-  const contactBg = currentTheme.contact_bg_color;
-  const contactCard = currentTheme.contact_card_color;
-  const contactText = currentTheme.contact_text_color;
-  if (contactBg) root.style.setProperty("--contact-bg-color", contactBg);
-  if (contactCard) root.style.setProperty("--contact-card-color", contactCard);
-  if (contactText) root.style.setProperty("--contact-text-color", contactText);
+  const contactBg = currentTheme.contact_bg_color || currentTheme.contactBgColor || "#1A1A1A";
+  const contactCard = currentTheme.contact_card_color || currentTheme.contactCardColor || "#2D2D2D";
+  const contactText = currentTheme.contact_text_color || currentTheme.contactTextColor || "#FFFFFF";
+  root.style.setProperty("--contact-bg-color", contactBg);
+  root.style.setProperty("--contact-card-color", contactCard);
+  root.style.setProperty("--contact-text-color", contactText);
 
   // 3. Inject Comprehensive Dynamic Style Tag
   let styleTag = document.getElementById("xpay-dynamic-store-theme") as HTMLStyleElement | null;

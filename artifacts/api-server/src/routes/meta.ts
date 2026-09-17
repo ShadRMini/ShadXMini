@@ -69,26 +69,47 @@ router.get(["/theme", "/theme-settings", "/public/theme-settings", "/admin/theme
     const themeFontSize = String(map.get("theme_font_size") || "14").trim();
     const themeLogoSize = String(map.get("theme_logo_size") || map.get("logo_size") || "80px").trim();
 
+    // Helper to get string setting with fallback
+    const getSettingStr = (key: string, fallback: string = "") => {
+      const val = map.get(key);
+      if (val !== undefined && val !== null && String(val).trim() !== "") {
+        return typeof val === "string" ? val.trim() : String(val).trim();
+      }
+      return fallback;
+    };
+
+    // Parse legacy JSON configs if present for fallback
+    const authPagesConfig = (map.get("auth_pages_config") || {}) as any;
+    const authStyles = authPagesConfig?.common?.styles || {};
+
+    const productPageStyle = (map.get("product_page_style") || {}) as any;
+
+    const aboutPageConfig = (map.get("about_page_config") || {}) as any;
+    const aboutStyle = aboutPageConfig?.style || {};
+
+    const contactPageConfig = (map.get("contact_page_config") || {}) as any;
+    const contactStyles = contactPageConfig?.styles || {};
+
     // Section-specific theme colors
-    const authBgColor = String(map.get("auth_bg_color") || "").trim();
-    const authCardColor = String(map.get("auth_card_color") || "").trim();
-    const authTextColor = String(map.get("auth_text_color") || "").trim();
-    const authButtonColor = String(map.get("auth_button_color") || "").trim();
+    const authBgColor = getSettingStr("auth_bg_color", authStyles.pageBgColor || "#1A1A1A");
+    const authCardColor = getSettingStr("auth_card_color", authStyles.cardBgColor || "#2D2D2D");
+    const authTextColor = getSettingStr("auth_text_color", authStyles.inputTextColor || "#FFFFFF");
+    const authButtonColor = getSettingStr("auth_button_color", authStyles.buttonBgColor || "#C8A45C");
 
-    const productBgColor = String(map.get("product_bg_color") || "").trim();
-    const productCardColor = String(map.get("product_card_color") || "").trim();
-    const productTextColor = String(map.get("product_text_color") || "").trim();
-    const productPriceColor = String(map.get("product_price_color") || "").trim();
-    const productButtonColor = String(map.get("product_button_color") || "").trim();
-    const productBorderColor = String(map.get("product_border_color") || "").trim();
+    const productBgColor = getSettingStr("product_bg_color", productPageStyle.bg_color || "#1A1A1A");
+    const productCardColor = getSettingStr("product_card_color", productPageStyle.info_box_bg_color || "#2D2D2D");
+    const productTextColor = getSettingStr("product_text_color", productPageStyle.text_color || "#FFFFFF");
+    const productPriceColor = getSettingStr("product_price_color", productPageStyle.price_color || "#C8A45C");
+    const productButtonColor = getSettingStr("product_button_color", productPageStyle.button_color || "#C8A45C");
+    const productBorderColor = getSettingStr("product_border_color", productPageStyle.border_color || "#C8A45C");
 
-    const aboutBgColor = String(map.get("about_bg_color") || "").trim();
-    const aboutCardColor = String(map.get("about_card_color") || "").trim();
-    const aboutTextColor = String(map.get("about_text_color") || "").trim();
+    const aboutBgColor = getSettingStr("about_bg_color", aboutStyle.bg_color || "#1A1A1A");
+    const aboutCardColor = getSettingStr("about_card_color", aboutStyle.section_bg || "#2D2D2D");
+    const aboutTextColor = getSettingStr("about_text_color", aboutStyle.text_color || "#FFFFFF");
 
-    const contactBgColor = String(map.get("contact_bg_color") || "").trim();
-    const contactCardColor = String(map.get("contact_card_color") || "").trim();
-    const contactTextColor = String(map.get("contact_text_color") || "").trim();
+    const contactBgColor = getSettingStr("contact_bg_color", contactStyles.bg_color || "#1A1A1A");
+    const contactCardColor = getSettingStr("contact_card_color", contactStyles.card_bg || "#2D2D2D");
+    const contactTextColor = getSettingStr("contact_text_color", contactStyles.text_color || "#FFFFFF");
 
     const responseData = {
       // Full raw keys
@@ -104,7 +125,7 @@ router.get(["/theme", "/theme-settings", "/public/theme-settings", "/admin/theme
       theme_shadow: themeShadow,
       theme_default_mode: themeDefaultMode,
       theme_logo_size: themeLogoSize,
-      // Section Colors
+      // Section Colors (snake_case)
       auth_bg_color: authBgColor,
       auth_card_color: authCardColor,
       auth_text_color: authTextColor,
@@ -121,6 +142,23 @@ router.get(["/theme", "/theme-settings", "/public/theme-settings", "/admin/theme
       contact_bg_color: contactBgColor,
       contact_card_color: contactCardColor,
       contact_text_color: contactTextColor,
+      // Section Colors (camelCase)
+      authBgColor,
+      authCardColor,
+      authTextColor,
+      authButtonColor,
+      productBgColor,
+      productCardColor,
+      productTextColor,
+      productPriceColor,
+      productButtonColor,
+      productBorderColor,
+      aboutBgColor,
+      aboutCardColor,
+      aboutTextColor,
+      contactBgColor,
+      contactCardColor,
+      contactTextColor,
       // Direct alias properties
       primary: themePrimary,
       secondary: themeSecondary,
@@ -202,28 +240,35 @@ router.put(["/admin/theme-settings", "/theme-settings"], async (req, res) => {
       updates.push({ key: "theme_logo_size", value: val });
     }
 
-    // Section Colors
-    const sectionKeys = [
-      "auth_bg_color",
-      "auth_card_color",
-      "auth_text_color",
-      "auth_button_color",
-      "product_bg_color",
-      "product_card_color",
-      "product_text_color",
-      "product_price_color",
-      "product_button_color",
-      "product_border_color",
-      "about_bg_color",
-      "about_card_color",
-      "about_text_color",
-      "contact_bg_color",
-      "contact_card_color",
-      "contact_text_color",
+    // Section Colors (supports both snake_case and camelCase)
+    const sectionMappings: { key: string; aliases: string[] }[] = [
+      { key: "auth_bg_color", aliases: ["auth_bg_color", "authBgColor"] },
+      { key: "auth_card_color", aliases: ["auth_card_color", "authCardColor"] },
+      { key: "auth_text_color", aliases: ["auth_text_color", "authTextColor"] },
+      { key: "auth_button_color", aliases: ["auth_button_color", "authButtonColor"] },
+
+      { key: "product_bg_color", aliases: ["product_bg_color", "productBgColor"] },
+      { key: "product_card_color", aliases: ["product_card_color", "productCardColor"] },
+      { key: "product_text_color", aliases: ["product_text_color", "productTextColor"] },
+      { key: "product_price_color", aliases: ["product_price_color", "productPriceColor"] },
+      { key: "product_button_color", aliases: ["product_button_color", "productButtonColor"] },
+      { key: "product_border_color", aliases: ["product_border_color", "productBorderColor"] },
+
+      { key: "about_bg_color", aliases: ["about_bg_color", "aboutBgColor"] },
+      { key: "about_card_color", aliases: ["about_card_color", "aboutCardColor"] },
+      { key: "about_text_color", aliases: ["about_text_color", "aboutTextColor"] },
+
+      { key: "contact_bg_color", aliases: ["contact_bg_color", "contactBgColor"] },
+      { key: "contact_card_color", aliases: ["contact_card_color", "contactCardColor"] },
+      { key: "contact_text_color", aliases: ["contact_text_color", "contactTextColor"] },
     ];
-    for (const sk of sectionKeys) {
-      if (body[sk] !== undefined) {
-        updates.push({ key: sk, value: String(body[sk]).trim() });
+
+    for (const mapping of sectionMappings) {
+      for (const alias of mapping.aliases) {
+        if (body[alias] !== undefined && body[alias] !== null && String(body[alias]).trim() !== "") {
+          updates.push({ key: mapping.key, value: String(body[alias]).trim() });
+          break;
+        }
       }
     }
 
