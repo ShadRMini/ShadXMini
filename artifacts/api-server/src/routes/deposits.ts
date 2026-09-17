@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { db, depositsTable, paymentMethodsTable, usersTable } from "@workspace/db";
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, or, sql } from "drizzle-orm";
 import {
   CreateDepositBody,
   CreateDepositResponse,
@@ -476,6 +476,16 @@ async function syncPendingShamCashDepositsForUser(userId: number): Promise<void>
 }
 
 function rowToDeposit(d: typeof depositsTable.$inferSelect) {
+  let mappedStatus: "pending" | "approved" | "rejected" = "pending";
+  const st = String(d.status || "").toLowerCase().trim();
+  if (st === "approved" || st === "accept" || st === "completed") {
+    mappedStatus = "approved";
+  } else if (st === "rejected" || st === "reject" || st === "cancelled" || st === "expired" || st === "failed") {
+    mappedStatus = "rejected";
+  } else {
+    mappedStatus = "pending";
+  }
+
   return {
     id: String(d.id),
     amountUsd: Number(d.amountUsd),
@@ -484,8 +494,8 @@ function rowToDeposit(d: typeof depositsTable.$inferSelect) {
     method: d.method,
     methodLabel: d.methodLabel,
     transactionId: d.transactionId,
-    status: d.status as "pending" | "approved" | "rejected",
-    createdAt: d.createdAt.toISOString(),
+    status: mappedStatus,
+    createdAt: (d.createdAt instanceof Date ? d.createdAt : new Date(d.createdAt || Date.now())).toISOString(),
   };
 }
 
@@ -493,11 +503,28 @@ router.get("/deposits", async (req, res) => {
   const user = await getOrCreateCurrentUserStrict(req);
   await ensureDepositsTelegramMessageColumn();
   await syncPendingShamCashDepositsForUser(user.id);
-  const status = (req.query.status as string | undefined) ?? "all";
-  const method = (req.query.method as string | undefined) ?? "all";
+  const status = typeof req.query.status === "string" ? req.query.status.trim() : undefined;
+  const method = typeof req.query.method === "string" ? req.query.method.trim() : undefined;
   const conds = [eq(depositsTable.userId, user.id)];
-  if (status && status !== "all") conds.push(eq(depositsTable.status, status));
-  if (method && method !== "all") conds.push(eq(depositsTable.method, method));
+
+  // فلترة الحالة - استبعاد "all" والقيم الفارغة بشكل صريح
+  if (status && typeof status === "string" && status !== "all" && status !== "") {
+    const s = status.toLowerCase();
+    if (s === "approved" || s === "accept" || s === "completed") {
+      conds.push(or(eq(depositsTable.status, "approved"), eq(depositsTable.status, "accept"), eq(depositsTable.status, "completed")));
+    } else if (s === "rejected" || s === "reject" || s === "cancelled" || s === "expired") {
+      conds.push(or(eq(depositsTable.status, "rejected"), eq(depositsTable.status, "reject"), eq(depositsTable.status, "cancelled"), eq(depositsTable.status, "expired"), eq(depositsTable.status, "failed")));
+    } else if (s === "pending" || s === "wait") {
+      conds.push(or(eq(depositsTable.status, "pending"), eq(depositsTable.status, "wait")));
+    } else {
+      conds.push(eq(depositsTable.status, status));
+    }
+  }
+
+  if (method && typeof method === "string" && method !== "all" && method !== "") {
+    conds.push(eq(depositsTable.method, method));
+  }
+
   const rows = await db
     .select()
     .from(depositsTable)
@@ -512,9 +539,9 @@ router.get("/deposits/summary", async (_req, res) => {
   await syncPendingShamCashDepositsForUser(user.id);
   const all = await db
     .select({
-      total: sql<number>`coalesce(sum(case when status='approved' then amount_usd else 0 end), 0)::float`,
-      pendingCount: sql<number>`count(*) filter (where status='pending')::int`,
-      approvedCount: sql<number>`count(*) filter (where status='approved')::int`,
+      total: sql<number>`coalesce(sum(case when status in ('approved', 'accept', 'completed') then amount_usd else 0 end), 0)::float`,
+      pendingCount: sql<number>`count(*) filter (where status in ('pending', 'wait'))::int`,
+      approvedCount: sql<number>`count(*) filter (where status in ('approved', 'accept', 'completed'))::int`,
       totalCount: sql<number>`count(*)::int`,
     })
     .from(depositsTable)

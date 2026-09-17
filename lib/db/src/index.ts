@@ -151,9 +151,31 @@ if (!db) {
 
     // Check queryChunks if it's a Drizzle SQL object
     if (Array.isArray(cond.queryChunks)) {
+      const chunks = cond.queryChunks;
+      for (const chunk of chunks) {
+        if (chunk && Array.isArray(chunk.queryChunks)) {
+          const inner = chunk.queryChunks;
+          const hasAnd = inner.some(
+            (c: any) => c?.value && Array.isArray(c.value) && c.value.some((v: any) => String(v).includes(" and "))
+          );
+          const hasOr = inner.some(
+            (c: any) => c?.value && Array.isArray(c.value) && c.value.some((v: any) => String(v).includes(" or "))
+          );
+          if (hasAnd) {
+            const subConds = inner.filter((c: any) => c && c.queryChunks);
+            return subConds.every((sub: any) => matchesCond(row, sub));
+          }
+          if (hasOr) {
+            const subConds = inner.filter((c: any) => c && c.queryChunks);
+            return subConds.some((sub: any) => matchesCond(row, sub));
+          }
+          return matchesCond(row, chunk);
+        }
+      }
+
       let colName = "";
       let targetVal: any = undefined;
-      for (const chunk of cond.queryChunks) {
+      for (const chunk of chunks) {
         if (chunk && typeof chunk === "object" && chunk.name) {
           colName = chunk.name;
         } else if (

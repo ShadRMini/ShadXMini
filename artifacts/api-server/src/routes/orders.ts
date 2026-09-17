@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { randomUUID } from "crypto";
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, or, sql } from "drizzle-orm";
 import { db, ordersTable, productsTable, providersTable, usersTable, vipMembershipsTable } from "@workspace/db";
 import {
   CreateOrderBody,
@@ -207,10 +207,11 @@ async function syncPendingProviderOrdersForUser(userId: number): Promise<void> {
     .where(and(eq(ordersTable.userId, userId), eq(ordersTable.status, "wait")));
 
   for (const row of pendingRows) {
-    const provider = row.provider;
-    const product = row.product;
-    const order = row.order;
-    const user = row.user;
+    const provider = (row as any)?.provider;
+    const product = (row as any)?.product;
+    const order = (row as any)?.order || ((row as any)?.productId ? row : null);
+    const user = (row as any)?.user;
+    if (!order) continue;
     const meta = (order.meta || {}) as any;
     const providerOrderId = String(meta?.provider?.providerOrderId || "").trim();
 
@@ -283,6 +284,16 @@ async function syncPendingProviderOrdersForUser(userId: number): Promise<void> {
 }
 
 function rowToOrder(o: typeof ordersTable.$inferSelect, p: typeof productsTable.$inferSelect | null) {
+  let mappedStatus: "wait" | "accept" | "reject" = "wait";
+  const st = String(o.status || "").toLowerCase().trim();
+  if (st === "accept" || st === "completed" || st === "approved") {
+    mappedStatus = "accept";
+  } else if (st === "reject" || st === "rejected" || st === "cancelled" || st === "failed") {
+    mappedStatus = "reject";
+  } else {
+    mappedStatus = "wait";
+  }
+
   return {
     id: String(o.id),
     orderNumber: o.orderNumber,
@@ -293,17 +304,30 @@ function rowToOrder(o: typeof ordersTable.$inferSelect, p: typeof productsTable.
     userIdentifier: o.userIdentifier ?? undefined,
     totalUsd: Number(o.totalUsd),
     totalSyp: Number(o.totalSyp),
-    status: o.status as "wait" | "accept" | "reject",
-    createdAt: o.createdAt.toISOString(),
+    status: mappedStatus,
+    createdAt: (o.createdAt instanceof Date ? o.createdAt : new Date(o.createdAt || Date.now())).toISOString(),
   };
 }
 
 router.get("/orders", async (req, res) => {
   const user = await getOrCreateCurrentUser(req);
   await syncPendingProviderOrdersForUser(user.id);
-  const status = (req.query.status as string | undefined) ?? "all";
+  const status = typeof req.query.status === "string" ? req.query.status.trim() : undefined;
   const conds = [eq(ordersTable.userId, user.id)];
-  if (status && status !== "all") conds.push(eq(ordersTable.status, status));
+
+  // فلترة الحالة - استبعاد "all" والقيم الفارغة بشكل صريح
+  if (status && typeof status === "string" && status !== "all" && status !== "") {
+    const s = status.toLowerCase();
+    if (s === "accept" || s === "completed") {
+      conds.push(or(eq(ordersTable.status, "accept"), eq(ordersTable.status, "completed"), eq(ordersTable.status, "approved")));
+    } else if (s === "reject" || s === "rejected" || s === "cancelled") {
+      conds.push(or(eq(ordersTable.status, "reject"), eq(ordersTable.status, "rejected"), eq(ordersTable.status, "cancelled"), eq(ordersTable.status, "failed")));
+    } else if (s === "wait" || s === "pending") {
+      conds.push(or(eq(ordersTable.status, "wait"), eq(ordersTable.status, "pending"), eq(ordersTable.status, "processing")));
+    } else {
+      conds.push(eq(ordersTable.status, status));
+    }
+  }
 
   const rows = await db
     .select({ o: ordersTable, p: productsTable })
@@ -312,7 +336,7 @@ router.get("/orders", async (req, res) => {
     .where(and(...conds))
     .orderBy(desc(ordersTable.createdAt));
 
-  res.json(ListMyOrdersResponse.parse(rows.map((r) => rowToOrder(r.o, r.p))));
+  res.json(ListMyOrdersResponse.parse(rows.map((r: any) => rowToOrder(r.o || r, r.p || null))));
 });
 
 router.get("/orders/summary", async (req, res) => {
@@ -320,9 +344,9 @@ router.get("/orders/summary", async (req, res) => {
   await syncPendingProviderOrdersForUser(user.id);
   const all = await db
     .select({
-      total: sql<number>`coalesce(sum(case when status='accept' then total_usd else 0 end), 0)::float`,
-      waitCount: sql<number>`count(*) filter (where status='wait')::int`,
-      acceptCount: sql<number>`count(*) filter (where status='accept')::int`,
+      total: sql<number>`coalesce(sum(case when status in ('accept', 'completed', 'approved') then total_usd else 0 end), 0)::float`,
+      waitCount: sql<number>`count(*) filter (where status in ('wait', 'pending', 'processing'))::int`,
+      acceptCount: sql<number>`count(*) filter (where status in ('accept', 'completed', 'approved'))::int`,
       totalCount: sql<number>`count(*)::int`,
     })
     .from(ordersTable)

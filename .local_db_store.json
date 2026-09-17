@@ -112,5 +112,78 @@
       "updatedAt": "2026-09-14T18:28:49.691Z",
       "banned": false
     }
+  ],
+  "orders": [
+    {
+      "id": 1,
+      "orderNumber": "ORD-101",
+      "userId": 1,
+      "productId": 1,
+      "quantity": 1,
+      "totalUsd": 10,
+      "totalSyp": 150000,
+      "status": "completed",
+      "createdAt": "2026-09-17T04:06:39.283Z"
+    },
+    {
+      "id": 2,
+      "orderNumber": "ORD-102",
+      "userId": 1,
+      "productId": 1,
+      "quantity": 2,
+      "totalUsd": 20,
+      "totalSyp": 300000,
+      "status": "wait",
+      "createdAt": "2026-09-17T04:06:39.283Z"
+    },
+    {
+      "id": 3,
+      "orderNumber": "ORD-103",
+      "userId": 1,
+      "productId": 1,
+      "quantity": 1,
+      "totalUsd": 15,
+      "totalSyp": 225000,
+      "status": "reject",
+      "createdAt": "2026-09-17T04:06:39.283Z"
+    }
+  ],
+  "deposits": [
+    {
+      "id": 1,
+      "userId": 1,
+      "amountUsd": 50,
+      "amountSyp": 750000,
+      "currency": "USD",
+      "method": "sham_cash",
+      "methodLabel": "شام كاش",
+      "transactionId": "TX123",
+      "status": "approved",
+      "createdAt": "2026-09-17T04:06:39.283Z"
+    },
+    {
+      "id": 2,
+      "userId": 1,
+      "amountUsd": 30,
+      "amountSyp": 450000,
+      "currency": "USD",
+      "method": "sham_cash",
+      "methodLabel": "شام كاش",
+      "transactionId": "TX124",
+      "status": "pending",
+      "createdAt": "2026-09-17T04:06:39.283Z"
+    },
+    {
+      "id": 3,
+      "userId": 1,
+      "amountUsd": 20,
+      "amountSyp": 300000,
+      "currency": "USD",
+      "method": "sham_cash",
+      "methodLabel": "شام كاش",
+      "transactionId": "TX125",
+      "status": "rejected",
+      "createdAt": "2026-09-17T04:06:39.283Z"
+    }
   ]
 }
