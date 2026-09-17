@@ -15,6 +15,7 @@ import {
   addUnitPrices,
   calculateVipDiscountedPrice,
   calculateVipFixedDiscount,
+  decimalToScaled,
   multiplyUnitPriceByQuantity,
   validateRequestedQuantity,
   type QuantityType,

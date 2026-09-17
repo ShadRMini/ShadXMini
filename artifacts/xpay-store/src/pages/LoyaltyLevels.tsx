@@ -47,6 +47,14 @@ interface LoyaltyData {
   levels?: LevelItem[];
 }
 
+const DEFAULT_LEVELS: LevelItem[] = [
+  { id: 1, name: "Pro", name_ar: "بروتو", nameAr: "بروتو", level_order: 1, levelOrder: 1, required_amount: 0, requiredAmount: 0, discount_percent: 0, discountPercent: 0, discount_fixed_amount: "0.00000000", discountFixedAmount: "0.00000000", badge_color: "#9CA3AF", badgeColor: "#9CA3AF", benefits: ["مستوى أساسي", "لا خصومات"], description: "المستوى الأساسي لجميع المستخدمين الجدد", hidden: false },
+  { id: 2, name: "Silver", name_ar: "فضي", nameAr: "فضي", level_order: 2, levelOrder: 2, required_amount: 300, requiredAmount: 300, discount_percent: 5, discountPercent: 5, discount_fixed_amount: "0.01000000", discountFixedAmount: "0.01000000", badge_color: "#C0C0C0", badgeColor: "#C0C0C0", benefits: ["خصم $0.01 للوحدة", "دعم أولوية"], description: "مستوى فضي مع خصومات ومزايا إضافية", hidden: false },
+  { id: 3, name: "Gold", name_ar: "ذهبي", nameAr: "ذهبي", level_order: 3, levelOrder: 3, required_amount: 500, requiredAmount: 500, discount_percent: 10, discountPercent: 10, discount_fixed_amount: "0.02000000", discountFixedAmount: "0.02000000", badge_color: "#C8A45C", badgeColor: "#C8A45C", benefits: ["خصم $0.02 للوحدة", "توصيل مجاني", "دعم أولوية"], description: "مستوى ذهبي مع خصومات ومزايا مميزة", hidden: false },
+  { id: 4, name: "Diamond", name_ar: "ماسي", nameAr: "ماسي", level_order: 4, levelOrder: 4, required_amount: 1000, requiredAmount: 1000, discount_percent: 15, discountPercent: 15, discount_fixed_amount: "0.03000000", discountFixedAmount: "0.03000000", badge_color: "#60A5FA", badgeColor: "#60A5FA", benefits: ["خصم $0.03 للوحدة", "توصيل مجاني", "دعم مباشر", "هدايا شهرية"], description: "مستوى ماسي مع خصومات ومزايا حصرية", hidden: false },
+  { id: 5, name: "VIP", name_ar: "VIP", nameAr: "VIP", level_order: 5, levelOrder: 5, required_amount: 2500, requiredAmount: 2500, discount_percent: 20, discountPercent: 20, discount_fixed_amount: "0.04000000", discountFixedAmount: "0.04000000", badge_color: "#A855F7", badgeColor: "#A855F7", benefits: ["خصم $0.04 للوحدة", "كل المزايا السابقة", "مدير حساب مخصص", "دخول مبكر للعروض"], description: "مستوى VIP مع كل المزايا الحصرية", hidden: false },
+];
+
 export default function LoyaltyLevels() {
   const [, setLocation] = useLocation();
   const [data, setData] = useState<LoyaltyData | null>(null);
@@ -58,19 +66,78 @@ export default function LoyaltyLevels() {
       if (isManual) setRefreshing(true);
       else setLoading(true);
 
-      const res = await getPublicJson<LoyaltyData>("/me/vip-details");
-      if (res) {
-        setData(res);
-      } else {
-        const fallback = await getPublicJson<LoyaltyData>("/me/loyalty");
-        if (fallback) setData(fallback);
+      let fetchedData: LoyaltyData | null = null;
+
+      // 1. Try personal loyalty details first
+      try {
+        const res = await getPublicJson<LoyaltyData>("/me/vip-details");
+        if (res && (res.allLevels?.length || res.levels?.length || res.currentLevel)) {
+          fetchedData = res;
+        }
+      } catch {
+        // Continue to fallback
       }
+
+      // 2. Try alternate /me/loyalty endpoint
+      if (!fetchedData) {
+        try {
+          const fallback = await getPublicJson<LoyaltyData>("/me/loyalty");
+          if (fallback && (fallback.allLevels?.length || fallback.levels?.length || fallback.currentLevel)) {
+            fetchedData = fallback;
+          }
+        } catch {
+          // Continue to fallback
+        }
+      }
+
+      // 3. Try public levels endpoint if guest or visitor
+      if (!fetchedData) {
+        try {
+          const publicLevels = await getPublicJson<LevelItem[]>("/public/vip-memberships");
+          if (Array.isArray(publicLevels) && publicLevels.length > 0) {
+            fetchedData = {
+              currentLevel: publicLevels[0],
+              totalSpent: 0,
+              nextLevel: publicLevels[1] || null,
+              progressPercent: 0,
+              amountToNextLevel: Number(publicLevels[1]?.required_amount ?? publicLevels[1]?.requiredAmount ?? 300),
+              allLevels: publicLevels,
+              levels: publicLevels,
+            };
+          }
+        } catch {
+          // Continue to local fallback
+        }
+      }
+
+      // 4. Default static fallback to guarantee page always renders cleanly
+      if (!fetchedData) {
+        fetchedData = {
+          currentLevel: DEFAULT_LEVELS[0],
+          totalSpent: 0,
+          nextLevel: DEFAULT_LEVELS[1],
+          progressPercent: 0,
+          amountToNextLevel: 300,
+          allLevels: DEFAULT_LEVELS,
+          levels: DEFAULT_LEVELS,
+        };
+      }
+
+      setData(fetchedData);
       if (isManual) {
         toast.success("تم تحديث بيانات المستويات");
       }
     } catch (err: any) {
       console.error("[fetchLoyaltyData Error]:", err);
-      toast.error("فشل تحميل بيانات مستويات الولاء والعضوية");
+      setData({
+        currentLevel: DEFAULT_LEVELS[0],
+        totalSpent: 0,
+        nextLevel: DEFAULT_LEVELS[1],
+        progressPercent: 0,
+        amountToNextLevel: 300,
+        allLevels: DEFAULT_LEVELS,
+        levels: DEFAULT_LEVELS,
+      });
     } finally {
       setLoading(false);
       setRefreshing(false);

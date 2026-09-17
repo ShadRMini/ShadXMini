@@ -8,6 +8,7 @@ import {
   calculateVipLevel,
   generateUserToken,
 } from "../lib/currentUser.js";
+import { decimalToScaled } from "../lib/pricing.js";
 
 const router: IRouter = Router();
 
@@ -221,14 +222,24 @@ router.get("/profile", handleGetProfile);
 
 async function handleGetLoyalty(req: Request, res: Response) {
   try {
-    const u = await getOrCreateCurrentUser(req);
+    let u: any = { id: 0, totalSpent: 0, vipLevel: 1 };
+    try {
+      u = await getOrCreateCurrentUser(req);
+    } catch {
+      // Fallback for guest/unauthenticated visitors
+    }
     const totalSpent = Number(u.totalSpent || 0);
 
-    const dbLevels = await db
-      .select()
-      .from(vipMembershipsTable)
-      .where(eq(vipMembershipsTable.hidden, false))
-      .orderBy(sql`level_order ASC, required_amount ASC`);
+    let dbLevels: any[] = [];
+    try {
+      dbLevels = await db
+        .select()
+        .from(vipMembershipsTable)
+        .where(eq(vipMembershipsTable.hidden, false))
+        .orderBy(sql`level_order ASC, required_amount ASC`);
+    } catch (dbErr: any) {
+      console.warn("[Get Loyalty DB Query Warning]:", dbErr?.message);
+    }
 
     let formattedLevels = (dbLevels || []).map((lvl) => {
       let fixedDiscount = String(lvl.discountFixedAmount || (lvl as any).discount_fixed_amount || "0.00000000");
@@ -323,13 +334,18 @@ async function handleGetLoyalty(req: Request, res: Response) {
 
 async function handleGetPublicVipMemberships(_req: Request, res: Response) {
   try {
-    const dbLevels = await db
-      .select()
-      .from(vipMembershipsTable)
-      .where(eq(vipMembershipsTable.hidden, false))
-      .orderBy(sql`level_order ASC, required_amount ASC`);
+    let dbLevels: any[] = [];
+    try {
+      dbLevels = await db
+        .select()
+        .from(vipMembershipsTable)
+        .where(eq(vipMembershipsTable.hidden, false))
+        .orderBy(sql`level_order ASC, required_amount ASC`);
+    } catch (dbErr: any) {
+      console.warn("[Get Public VIP Memberships DB Warning]:", dbErr?.message);
+    }
 
-    const formatted = (dbLevels || []).map((lvl) => {
+    let formatted = (dbLevels || []).map((lvl) => {
       let fixedDiscount = String(lvl.discountFixedAmount || (lvl as any).discount_fixed_amount || "0.00000000");
       const order = Number(lvl.levelOrder || lvl.id || 1);
       if (decimalToScaled(fixedDiscount) <= 0n) {
@@ -359,6 +375,16 @@ async function handleGetPublicVipMemberships(_req: Request, res: Response) {
         hidden: lvl.hidden,
       };
     });
+
+    if (formatted.length === 0) {
+      formatted = [
+        { id: 1, name: "Pro", name_ar: "بروتو", nameAr: "بروتو", level_order: 1, levelOrder: 1, required_amount: 0, requiredAmount: 0, discount_percent: 0, discountPercent: 0, discount_fixed_amount: "0.00000000", discountFixedAmount: "0.00000000", badge_color: "#9CA3AF", badgeColor: "#9CA3AF", benefits: ["مستوى أساسي", "لا خصومات"], description: "المستوى الأساسي لجميع المستخدمين الجدد", hidden: false },
+        { id: 2, name: "Silver", name_ar: "فضي", nameAr: "فضي", level_order: 2, levelOrder: 2, required_amount: 300, requiredAmount: 300, discount_percent: 5, discountPercent: 5, discount_fixed_amount: "0.01000000", discountFixedAmount: "0.01000000", badge_color: "#C0C0C0", badgeColor: "#C0C0C0", benefits: ["خصم $0.01 للوحدة", "دعم أولوية"], description: "مستوى فضي مع خصومات ومزايا إضافية", hidden: false },
+        { id: 3, name: "Gold", name_ar: "ذهبي", nameAr: "ذهبي", level_order: 3, levelOrder: 3, required_amount: 500, requiredAmount: 500, discount_percent: 10, discountPercent: 10, discount_fixed_amount: "0.02000000", discountFixedAmount: "0.02000000", badge_color: "#C8A45C", badgeColor: "#C8A45C", benefits: ["خصم $0.02 للوحدة", "توصيل مجاني", "دعم أولوية"], description: "مستوى ذهبي مع خصومات ومزايا مميزة", hidden: false },
+        { id: 4, name: "Diamond", name_ar: "ماسي", nameAr: "ماسي", level_order: 4, levelOrder: 4, required_amount: 1000, requiredAmount: 1000, discount_percent: 15, discountPercent: 15, discount_fixed_amount: "0.03000000", discountFixedAmount: "0.03000000", badge_color: "#60A5FA", badgeColor: "#60A5FA", benefits: ["خصم $0.03 للوحدة", "توصيل مجاني", "دعم مباشر", "هدايا شهرية"], description: "مستوى ماسي مع خصومات ومزايا حصرية", hidden: false },
+        { id: 5, name: "VIP", name_ar: "VIP", nameAr: "VIP", level_order: 5, levelOrder: 5, required_amount: 2500, requiredAmount: 2500, discount_percent: 20, discountPercent: 20, discount_fixed_amount: "0.04000000", discountFixedAmount: "0.04000000", badge_color: "#A855F7", badgeColor: "#A855F7", benefits: ["خصم $0.04 للوحدة", "كل المزايا السابقة", "مدير حساب مخصص", "دخول مبكر للعروض"], description: "مستوى VIP مع كل المزايا الحصرية", hidden: false },
+      ];
+    }
 
     return res.json(formatted);
   } catch (err: any) {
