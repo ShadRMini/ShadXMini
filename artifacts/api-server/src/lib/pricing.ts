@@ -43,34 +43,72 @@ export function multiplyUnitPriceByQuantity(finalUnitPrice: unknown, quantity: u
   return scaledToDecimal((decimalToScaled(finalUnitPrice) * qty) / FACTOR);
 }
 
+export function calculateVipFixedDiscount(
+  originalUnitPrice: unknown,
+  providerUnitPrice: unknown,
+  discountFixedAmount: unknown,
+  discountPercent?: unknown
+): {
+  finalUnitPrice: string;
+  appliedDiscount: string;
+  discountFixedAmount: string;
+  discountPercent: number;
+} {
+  const baseScaled = decimalToScaled(originalUnitPrice);
+  const providerScaled = decimalToScaled(providerUnitPrice || "0");
+  const fixedScaled = decimalToScaled(discountFixedAmount || "0");
+  const pct = Math.max(0, Math.min(100, Number(discountPercent) || 0));
+
+  let discountScaled = 0n;
+
+  if (fixedScaled > 0n) {
+    discountScaled = fixedScaled;
+  } else if (pct > 0) {
+    const pctBigInt = BigInt(Math.round(pct * 1000000));
+    discountScaled = (baseScaled * pctBigInt) / 100000000n;
+  }
+
+  if (discountScaled <= 0n) {
+    return {
+      finalUnitPrice: scaledToDecimal(baseScaled),
+      appliedDiscount: "0.00000000",
+      discountFixedAmount: "0.00000000",
+      discountPercent: 0,
+    };
+  }
+
+  // Golden Rule: Final unit price must never drop below provider unit price
+  const targetScaled = baseScaled - discountScaled;
+  const finalScaled = targetScaled < providerScaled ? providerScaled : targetScaled;
+  const actualDiscountScaled = baseScaled - finalScaled;
+
+  return {
+    finalUnitPrice: scaledToDecimal(finalScaled),
+    appliedDiscount: scaledToDecimal(actualDiscountScaled > 0n ? actualDiscountScaled : 0n),
+    discountFixedAmount: scaledToDecimal(fixedScaled),
+    discountPercent: pct,
+  };
+}
+
 export function calculateVipDiscountedPrice(
   originalUnitPrice: unknown,
-  discountPercent: unknown
+  discountPercent: unknown,
+  providerUnitPrice?: unknown
 ): {
   finalUnitPrice: string;
   discountAmount: string;
   discountPercent: number;
 } {
-  const pct = Math.max(0, Math.min(100, Number(discountPercent) || 0));
-  if (pct === 0) {
-    const clean = scaledToDecimal(decimalToScaled(originalUnitPrice));
-    return {
-      finalUnitPrice: clean,
-      discountAmount: "0.00000000",
-      discountPercent: 0,
-    };
-  }
-
-  const baseScaled = decimalToScaled(originalUnitPrice);
-  // Scale discount calculation: discountAmount = (baseScaled * pctScaled) / 100
-  const pctBigInt = BigInt(Math.round(pct * 1000000));
-  const discountScaled = (baseScaled * pctBigInt) / 100000000n;
-  const finalScaled = baseScaled - discountScaled;
-
+  const res = calculateVipFixedDiscount(
+    originalUnitPrice,
+    providerUnitPrice || "0",
+    "0",
+    discountPercent
+  );
   return {
-    finalUnitPrice: scaledToDecimal(finalScaled),
-    discountAmount: scaledToDecimal(discountScaled),
-    discountPercent: pct,
+    finalUnitPrice: res.finalUnitPrice,
+    discountAmount: res.appliedDiscount,
+    discountPercent: res.discountPercent,
   };
 }
 

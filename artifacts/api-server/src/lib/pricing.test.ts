@@ -4,6 +4,7 @@ import {
   addUnitPrices,
   multiplyUnitPriceByQuantity,
   subtractUnitPrices,
+  calculateVipFixedDiscount,
   parseProviderQuantityValues,
   validateRequestedQuantity,
 } from "./pricing.js";
@@ -80,4 +81,25 @@ test("admin maximum overrides provider maximum", () => {
     }),
     { ok: true },
   );
+});
+
+test("calculateVipFixedDiscount subtracts fixed amount per unit accurately", () => {
+  const result = calculateVipFixedDiscount("1.08000000", "0.90000000", "0.01000000");
+  assert.equal(result.finalUnitPrice, "1.07000000");
+  assert.equal(result.appliedDiscount, "0.01000000");
+});
+
+test("calculateVipFixedDiscount respects the Golden Rule and never drops below provider unit price", () => {
+  // Provider is 1.00, original is 1.02, VIP discount is 0.05
+  // Price cannot drop below 1.00, so discount is capped at 0.02
+  const result = calculateVipFixedDiscount("1.02000000", "1.00000000", "0.05000000");
+  assert.equal(result.finalUnitPrice, "1.00000000");
+  assert.equal(result.appliedDiscount, "0.02000000");
+});
+
+test("calculateVipFixedDiscount with 8 decimals micro-pricing", () => {
+  // Original: 0.00010800, Provider: 0.00010000, VIP discount: 0.00000500
+  const result = calculateVipFixedDiscount("0.00010800", "0.00010000", "0.00000500");
+  assert.equal(result.finalUnitPrice, "0.00010300");
+  assert.equal(result.appliedDiscount, "0.00000500");
 });

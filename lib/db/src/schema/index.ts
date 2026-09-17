@@ -258,6 +258,7 @@ export const vipMembershipsTable = pgTable("vip_memberships", {
   levelOrder: integer("level_order").notNull().default(1),
   requiredAmount: numeric("required_amount", { precision: 12, scale: 2 }).notNull().default("0"),
   discountPercent: numeric("discount_percent", { precision: 5, scale: 2 }).notNull().default("0"),
+  discountFixedAmount: numeric("discount_fixed_amount", { precision: 16, scale: 8 }).notNull().default("0"),
   profitPct: numeric("profit_pct", { precision: 5, scale: 2 }),
   badgeColor: text("badge_color").default("#C8A45C"),
   badge: text("badge"),

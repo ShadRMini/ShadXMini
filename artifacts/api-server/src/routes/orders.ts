@@ -14,6 +14,7 @@ import { getOrCreateCurrentUser, getOrCreateCurrentUserStrict } from "../lib/cur
 import {
   addUnitPrices,
   calculateVipDiscountedPrice,
+  calculateVipFixedDiscount,
   multiplyUnitPriceByQuantity,
   validateRequestedQuantity,
   type QuantityType,
@@ -444,6 +445,7 @@ router.post("/orders", async (req, res) => {
     const baseFinalUnitPriceUsd = resolveFinalUnitPrice(product);
 
     // Apply VIP Discount according to user's VIP level from vipMembershipsTable
+    let userVipDiscountFixed = "0.00000000";
     let userVipDiscountPercent = 0;
     const userVipLevelOrder = Number(user.vipLevel || 1);
     try {
@@ -454,6 +456,7 @@ router.post("/orders", async (req, res) => {
         .limit(1);
 
       if (userLevel) {
+        userVipDiscountFixed = String(userLevel.discountFixedAmount || (userLevel as any).discount_fixed_amount || "0.00000000");
         userVipDiscountPercent = Number(userLevel.discountPercent || userLevel.profitPct || 0);
       }
     } catch (vipErr) {
@@ -462,13 +465,18 @@ router.post("/orders", async (req, res) => {
 
     const {
       finalUnitPrice: finalUnitPriceUsd,
-      discountAmount: unitDiscountUsd,
+      appliedDiscount: unitDiscountUsd,
       discountPercent: appliedDiscountPercent,
-    } = calculateVipDiscountedPrice(baseFinalUnitPriceUsd, userVipDiscountPercent);
+    } = calculateVipFixedDiscount(
+      baseFinalUnitPriceUsd,
+      providerUnitPriceUsd,
+      userVipDiscountFixed,
+      userVipDiscountPercent
+    );
 
-    if (appliedDiscountPercent > 0) {
+    if (Number(unitDiscountUsd) > 0) {
       console.log(
-        `[Pricing] User #${user.id} (VIP Level ${userVipLevelOrder}): Base $${baseFinalUnitPriceUsd}, Discount ${appliedDiscountPercent}%, Final Unit $${finalUnitPriceUsd}`
+        `[Pricing] User #${user.id} (VIP Level ${userVipLevelOrder}): Base $${baseFinalUnitPriceUsd}, Discount Fixed $${userVipDiscountFixed}, Percent ${appliedDiscountPercent}%, Final Unit $${finalUnitPriceUsd} (Provider Floor $${providerUnitPriceUsd})`
       );
     }
 
@@ -537,6 +545,7 @@ router.post("/orders", async (req, res) => {
         finalUnitPriceUsd,
         unitDiscountUsd,
         vipLevel: userVipLevelOrder,
+        vipDiscountFixed: userVipDiscountFixed,
         vipDiscountPercent: appliedDiscountPercent,
       },
     };

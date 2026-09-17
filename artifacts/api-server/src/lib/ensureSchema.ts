@@ -809,6 +809,7 @@ export async function ensureDatabaseSchema() {
           level_order INTEGER NOT NULL DEFAULT 1,
           required_amount NUMERIC(12, 2) NOT NULL DEFAULT 0,
           discount_percent NUMERIC(5, 2) NOT NULL DEFAULT 0,
+          discount_fixed_amount NUMERIC(16, 8) NOT NULL DEFAULT 0,
           profit_pct NUMERIC(5, 2) NOT NULL DEFAULT 0,
           badge_color TEXT DEFAULT '#C8A45C',
           badge TEXT,
@@ -822,6 +823,7 @@ export async function ensureDatabaseSchema() {
         ALTER TABLE vip_memberships ADD COLUMN IF NOT EXISTS name_ar TEXT DEFAULT '';
         ALTER TABLE vip_memberships ADD COLUMN IF NOT EXISTS level_order INTEGER DEFAULT 1;
         ALTER TABLE vip_memberships ADD COLUMN IF NOT EXISTS discount_percent NUMERIC(5, 2) DEFAULT 0;
+        ALTER TABLE vip_memberships ADD COLUMN IF NOT EXISTS discount_fixed_amount NUMERIC(16, 8) DEFAULT 0;
         ALTER TABLE vip_memberships ADD COLUMN IF NOT EXISTS profit_pct NUMERIC(5, 2) DEFAULT 0;
         ALTER TABLE vip_memberships ADD COLUMN IF NOT EXISTS badge_color TEXT DEFAULT '#C8A45C';
         ALTER TABLE vip_memberships ADD COLUMN IF NOT EXISTS badge TEXT;
@@ -834,14 +836,16 @@ export async function ensureDatabaseSchema() {
 
       // Insert or update the 5 standard ready-made VIP levels
       await db.execute(sql`
-        INSERT INTO vip_memberships (id, name, name_ar, level_order, required_amount, discount_percent, profit_pct, badge_color, benefits, description, hidden)
+        INSERT INTO vip_memberships (id, name, name_ar, level_order, required_amount, discount_percent, discount_fixed_amount, profit_pct, badge_color, benefits, description, hidden)
         VALUES 
-          (1, 'Pro', 'بروتو', 1, 0, 0.00, 0.00, '#9CA3AF', '["مستوى أساسي", "لا خصومات"]'::jsonb, 'المستوى الأساسي لجميع المستخدمين الجدد', false),
-          (2, 'Silver', 'فضي', 2, 300, 5.00, 5.00, '#C0C0C0', '["خصم 5%", "دعم أولوية"]'::jsonb, 'مستوى فضي مع خصومات ومزايا إضافية', false),
-          (3, 'Gold', 'ذهبي', 3, 500, 10.00, 10.00, '#C8A45C', '["خصم 10%", "توصيل مجاني", "دعم أولوية"]'::jsonb, 'مستوى ذهبي مع خصومات ومزايا مميزة', false),
-          (4, 'Diamond', 'ماسي', 4, 1000, 15.00, 15.00, '#60A5FA', '["خصم 15%", "توصيل مجاني", "دعم مباشر", "هدايا شهرية"]'::jsonb, 'مستوى ماسي مع خصومات ومزايا حصرية', false),
-          (5, 'VIP', 'VIP', 5, 2500, 20.00, 20.00, '#A855F7', '["خصم 20%", "كل المزايا السابقة", "مدير حساب مخصص", "دخول مبكر للعروض"]'::jsonb, 'مستوى VIP مع كل المزايا الحصرية', false)
-        ON CONFLICT (id) DO NOTHING;
+          (1, 'Pro', 'بروتو', 1, 0, 0.00, 0.00000000, 0.00, '#9CA3AF', '["مستوى أساسي", "لا خصومات"]'::jsonb, 'المستوى الأساسي لجميع المستخدمين الجدد', false),
+          (2, 'Silver', 'فضي', 2, 300, 5.00, 0.01000000, 5.00, '#C0C0C0', '["خصم $0.01 للوحدة", "دعم أولوية"]'::jsonb, 'مستوى فضي مع خصومات ومزايا إضافية', false),
+          (3, 'Gold', 'ذهبي', 3, 500, 10.00, 0.02000000, 10.00, '#C8A45C', '["خصم $0.02 للوحدة", "توصيل مجاني", "دعم أولوية"]'::jsonb, 'مستوى ذهبي مع خصومات ومزايا مميزة', false),
+          (4, 'Diamond', 'ماسي', 4, 1000, 15.00, 0.03000000, 15.00, '#60A5FA', '["خصم $0.03 للوحدة", "توصيل مجاني", "دعم مباشر", "هدايا شهرية"]'::jsonb, 'مستوى ماسي مع خصومات ومزايا حصرية', false),
+          (5, 'VIP', 'VIP', 5, 2500, 20.00, 0.04000000, 20.00, '#A855F7', '["خصم $0.04 للوحدة", "كل المزايا السابقة", "مدير حساب مخصص", "دخول مبكر للعروض"]'::jsonb, 'مستوى VIP مع كل المزايا الحصرية', false)
+        ON CONFLICT (id) DO UPDATE SET
+          discount_fixed_amount = EXCLUDED.discount_fixed_amount
+        WHERE vip_memberships.discount_fixed_amount IS NULL OR vip_memberships.discount_fixed_amount = 0;
       `);
 
       // Sync sequence to avoid collision when creating new levels

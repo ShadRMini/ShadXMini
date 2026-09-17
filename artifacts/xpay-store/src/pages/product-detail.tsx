@@ -199,6 +199,7 @@ export default function ProductDetail() {
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [legacyOverride, setLegacyOverride] = useState<boolean | null>(null);
   const [vipDiscountPercent, setVipDiscountPercent] = useState<number>(0);
+  const [vipDiscountFixedAmount, setVipDiscountFixedAmount] = useState<number>(0);
   const [vipBadgeName, setVipBadgeName] = useState<string>("");
   const [vipBadgeColor, setVipBadgeColor] = useState<string>("#C8A45C");
 
@@ -299,7 +300,9 @@ export default function ProductDetail() {
       .then((data) => {
         if (data && typeof data === "object") {
           const discount = Number(data.discountPercent ?? data.discount_percent ?? data.currentLevel?.discountPercent ?? data.currentLevel?.discount_percent ?? 0);
+          const fixedDiscount = Number(data.discountFixedAmount ?? data.discount_fixed_amount ?? data.currentLevel?.discountFixedAmount ?? data.currentLevel?.discount_fixed_amount ?? 0);
           setVipDiscountPercent(discount);
+          setVipDiscountFixedAmount(fixedDiscount);
           const badgeName = data.currentLevel?.nameAr || data.currentLevel?.name_ar || data.currentLevel?.name || (user?.vipBadge?.name) || "";
           setVipBadgeName(badgeName);
           const badgeColor = data.currentLevel?.badgeColor || data.currentLevel?.badge_color || (user?.vipBadge?.color) || "#C8A45C";
@@ -384,14 +387,22 @@ export default function ProductDetail() {
   const baseUnitPrice = (customization.default_unit_price && Number(customization.default_unit_price) > 0)
     ? Number(customization.default_unit_price)
     : product.priceUsd;
-  const hasVipDiscount = vipDiscountPercent > 0;
-  const unitPrice = hasVipDiscount
-    ? Number((baseUnitPrice * (1 - vipDiscountPercent / 100)).toFixed(8))
-    : baseUnitPrice;
+  const providerPriceFloor = Number((product as any).providerPrice || (product as any).costPriceUsd || (product as any).providerUnitPrice || 0);
+  const hasFixedDiscount = vipDiscountFixedAmount > 0;
+  const hasPercentDiscount = vipDiscountPercent > 0;
+  const hasVipDiscount = hasFixedDiscount || hasPercentDiscount;
+
+  let calculatedUnitPrice = baseUnitPrice;
+  if (hasFixedDiscount) {
+    calculatedUnitPrice = Math.max(providerPriceFloor, baseUnitPrice - vipDiscountFixedAmount);
+  } else if (hasPercentDiscount) {
+    calculatedUnitPrice = Math.max(providerPriceFloor, baseUnitPrice * (1 - vipDiscountPercent / 100));
+  }
+  const unitPrice = Number(calculatedUnitPrice.toFixed(8));
   const totalUsd = (customization.total_amount && Number(customization.total_amount) > 0)
     ? Number(customization.total_amount)
-    : unitPrice * quantity;
-  const baseTotalUsd = baseUnitPrice * quantity;
+    : Number((unitPrice * quantity).toFixed(8));
+  const baseTotalUsd = Number((baseUnitPrice * quantity).toFixed(8));
   const totalSavingsUsd = hasVipDiscount ? Math.max(0, baseTotalUsd - totalUsd) : 0;
 
   const isLegacy = legacyOverride !== null ? legacyOverride : settings.product_legacy_mode;
@@ -620,7 +631,9 @@ export default function ProductDetail() {
               <div className="flex items-center justify-between bg-gradient-to-r from-[#C8A45C]/20 via-[#C8A45C]/10 to-transparent border border-[#C8A45C]/40 px-3 py-1.5 rounded-xl text-xs">
                 <div className="flex items-center gap-1.5 font-bold" style={{ color: vipBadgeColor }}>
                   <Crown size={15} />
-                  <span>خصم عضوية {vipBadgeName || "VIP"} ({vipDiscountPercent}%)</span>
+                  <span>
+                    خصم عضوية {vipBadgeName || "VIP"} {hasFixedDiscount ? `($${vipDiscountFixedAmount} لكل وحدة)` : `(${vipDiscountPercent}%)`}
+                  </span>
                 </div>
                 {totalSavingsUsd > 0 && (
                   <span className="text-[11px] text-emerald-400 font-mono font-bold">

@@ -39,6 +39,8 @@ interface VipLevel {
   required_amount?: string | number;
   discountPercent?: string | number;
   discount_percent?: string | number;
+  discountFixedAmount?: string | number;
+  discount_fixed_amount?: string | number;
   profitPct?: string | number;
   badgeColor?: string;
   badge_color?: string;
@@ -83,6 +85,8 @@ export default function VipMemberships() {
     required_amount: "0",
     discountPercent: "0",
     discount_percent: "0",
+    discountFixedAmount: "0",
+    discount_fixed_amount: "0",
     badgeColor: "#C8A45C",
     badge_color: "#C8A45C",
     description: "",
@@ -174,6 +178,8 @@ export default function VipMemberships() {
       required_amount: "0",
       discountPercent: "0",
       discount_percent: "0",
+      discountFixedAmount: "0",
+      discount_fixed_amount: "0",
       badgeColor: "#C8A45C",
       badge_color: "#C8A45C",
       description: "",
@@ -202,6 +208,7 @@ export default function VipMemberships() {
     const orderVal = Number(lvl.level_order ?? lvl.levelOrder ?? lvl.id);
     const reqAmtVal = String(lvl.required_amount ?? lvl.requiredAmount ?? 0);
     const discVal = String(lvl.discount_percent ?? lvl.discountPercent ?? lvl.profitPct ?? 0);
+    const fixedVal = String(lvl.discount_fixed_amount ?? lvl.discountFixedAmount ?? "0");
     const colorVal = lvl.badge_color || lvl.badgeColor || lvl.badge || "#C8A45C";
 
     setFormData({
@@ -214,6 +221,8 @@ export default function VipMemberships() {
       required_amount: reqAmtVal,
       discountPercent: discVal,
       discount_percent: discVal,
+      discountFixedAmount: fixedVal,
+      discount_fixed_amount: fixedVal,
       badgeColor: colorVal,
       badge_color: colorVal,
       description: lvl.description || "",
@@ -274,6 +283,8 @@ export default function VipMemberships() {
         required_amount: String(formData.requiredAmount ?? formData.required_amount ?? 0),
         discountPercent: String(formData.discountPercent ?? formData.discount_percent ?? 0),
         discount_percent: String(formData.discountPercent ?? formData.discount_percent ?? 0),
+        discountFixedAmount: String(formData.discountFixedAmount ?? formData.discount_fixed_amount ?? "0"),
+        discount_fixed_amount: String(formData.discountFixedAmount ?? formData.discount_fixed_amount ?? "0"),
         badgeColor: formData.badgeColor || formData.badge_color || "#C8A45C",
         badge_color: formData.badgeColor || formData.badge_color || "#C8A45C",
         benefits,
@@ -502,6 +513,8 @@ export default function VipMemberships() {
                   ? (lvl.name && lvl.name !== (lvl.name_ar || lvl.nameAr) ? `${lvl.name_ar || lvl.nameAr} (${lvl.name})` : (lvl.name_ar || lvl.nameAr))
                   : lvl.name;
                 const discPct = Number(lvl.discount_percent ?? lvl.discountPercent ?? lvl.profitPct ?? 0);
+                const discFixed = Number(lvl.discount_fixed_amount ?? lvl.discountFixedAmount ?? 0);
+                const discountDisplay = discFixed > 0 ? `خصم $${discFixed} / وحدة` : `خصم ${discPct}%`;
 
                 return (
                   <div
@@ -525,7 +538,7 @@ export default function VipMemberships() {
                         {lvlDisplayName}
                       </h4>
                       <div className="flex items-center gap-1 text-[11px] text-[#C8A45C] font-semibold">
-                        <span>خصم {discPct}%</span>
+                        <span>{discountDisplay}</span>
                       </div>
                     </div>
 
@@ -576,6 +589,8 @@ export default function VipMemberships() {
               {levels.map((lvl, index) => {
                 const reqAmt = Number(lvl.required_amount ?? lvl.requiredAmount ?? 0);
                 const discPct = Number(lvl.discount_percent ?? lvl.discountPercent ?? lvl.profitPct ?? 0);
+                const discFixed = Number(lvl.discount_fixed_amount ?? lvl.discountFixedAmount ?? 0);
+                const discountDisplay = discFixed > 0 ? `خصم $${discFixed} لكل وحدة` : `خصم ${discPct}%`;
                 const color = lvl.badge_color || lvl.badgeColor || lvl.badge || "#C8A45C";
                 const isHidden = Boolean(lvl.hidden);
                 const order = Number(lvl.level_order ?? lvl.levelOrder ?? index + 1);
@@ -648,7 +663,7 @@ export default function VipMemberships() {
                               color: color,
                             }}
                           >
-                            خصم {discPct}%
+                            {discountDisplay}
                           </span>
 
                           <button
@@ -972,23 +987,39 @@ export default function VipMemberships() {
                   <p className="text-xs text-zinc-500 mt-1">المبلغ الذي يجب أن ينفقه المستخدم للوصول لهذا المستوى</p>
                 </div>
 
-                {/* نسبة الخصم - مهم */}
+                {/* خصم ثابت للوحدة ($/وحدة) - النظام الجديد */}
+                <div>
+                  <label className="block text-[#C8A45C] font-bold mb-1">
+                    خصم ثابت لكل وحدة ($) <span className="text-zinc-400 font-normal text-[11px]">(النظام المباشر)</span>
+                  </label>
+                  <input
+                    type="number"
+                    step="0.00000001"
+                    min="0"
+                    value={formData.discountFixedAmount ?? formData.discount_fixed_amount ?? 0}
+                    onChange={(e) => setFormData({ ...formData, discountFixedAmount: e.target.value, discount_fixed_amount: e.target.value })}
+                    placeholder="مثال: 0.01000000"
+                    className="w-full bg-[#1A1A1A] border border-[#C8A45C]/50 focus:border-[#C8A45C] text-[#C8A45C] font-bold px-3.5 py-2.5 rounded-xl outline-none font-mono"
+                  />
+                  <p className="text-[10px] text-zinc-400 mt-1">مبلغ يُطرح مباشرة من سعر الوحدة (مع ضمان عدم النزول عن سعر المزود)</p>
+                </div>
+
+                {/* نسبة الخصم (%) - للتوافق */}
                 <div>
                   <label className="block text-zinc-300 font-semibold mb-1">
-                    نسبة الخصم (%) <span className="text-red-400">*</span>
+                    نسبة الخصم (%) <span className="text-zinc-500 font-normal text-[11px]">(اختياري)</span>
                   </label>
                   <input
                     type="number"
                     step="0.01"
                     min="0"
                     max="100"
-                    required
                     value={formData.discountPercent ?? formData.discount_percent ?? 0}
                     onChange={(e) => setFormData({ ...formData, discountPercent: e.target.value, discount_percent: e.target.value })}
-                    placeholder="مثال: 10"
+                    placeholder="مثال: 5"
                     className="w-full bg-[#1A1A1A] border border-zinc-700 focus:border-[#C8A45C] text-white px-3.5 py-2.5 rounded-xl outline-none font-mono"
                   />
-                  <p className="text-xs text-zinc-500 mt-1">نسبة الخصم المطبقة على مشتريات المستخدم في هذا المستوى</p>
+                  <p className="text-xs text-zinc-500 mt-1">تُطبق إذا لم يتم تحديد خصم ثابت</p>
                 </div>
 
                 {/* لون الشارة */}

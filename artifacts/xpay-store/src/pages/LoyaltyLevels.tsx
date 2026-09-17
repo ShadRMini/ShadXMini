@@ -27,6 +27,8 @@ interface LevelItem {
   requiredSpent?: number;
   discount_percent?: number;
   discountPercent?: number;
+  discount_fixed_amount?: string | number;
+  discountFixedAmount?: string | number;
   badge_color?: string;
   badgeColor?: string;
   benefits?: string[] | string;
@@ -96,6 +98,7 @@ export default function LoyaltyLevels() {
     ? (currentLvl.name && currentLvl.name !== (currentLvl.name_ar || currentLvl.nameAr) ? `${currentLvl.name_ar || currentLvl.nameAr} (${currentLvl.name})` : (currentLvl.name_ar || currentLvl.nameAr))
     : (currentLvl?.name || "المستوى الأساسي");
   const currentDiscount = currentLvl?.discount_percent ?? currentLvl?.discountPercent ?? 0;
+  const currentFixedDiscount = Number(currentLvl?.discount_fixed_amount ?? currentLvl?.discountFixedAmount ?? 0);
   const badgeColor = currentLvl?.badge_color || currentLvl?.badgeColor || "#C8A45C";
 
   const totalSpent = data?.totalSpent || 0;
@@ -179,8 +182,12 @@ export default function LoyaltyLevels() {
               {/* Badges: Discount & Total Spent */}
               <div className="flex items-center gap-4 bg-[#1A1A1A] px-4 py-3 rounded-2xl border border-[#3D3D3D] self-start sm:self-center shadow-inner">
                 <div className="text-right">
-                  <span className="text-[10px] text-[#9CA3AF] block font-bold">نسبة الخصم</span>
-                  <span className="text-xl font-black text-[#C8A45C] font-mono">{currentDiscount}%</span>
+                  <span className="text-[10px] text-[#9CA3AF] block font-bold">
+                    {currentFixedDiscount > 0 ? "خصم الوحدة" : "نسبة الخصم"}
+                  </span>
+                  <span className="text-xl font-black text-[#C8A45C] font-mono">
+                    {currentFixedDiscount > 0 ? `$${currentFixedDiscount}` : `${currentDiscount}%`}
+                  </span>
                 </div>
                 <div className="h-8 w-[1px] bg-[#3D3D3D]" />
                 <div className="text-right">
@@ -250,6 +257,7 @@ export default function LoyaltyLevels() {
           {levels.map((lvl) => {
             const reqAmt = Number(lvl.required_amount ?? lvl.requiredAmount ?? lvl.requiredSpent ?? 0);
             const discPct = Number(lvl.discount_percent ?? lvl.discountPercent ?? 0);
+            const discFixed = Number(lvl.discount_fixed_amount ?? lvl.discountFixedAmount ?? 0);
             const orderNum = Number(lvl.level_order ?? lvl.levelOrder ?? lvl.id);
             const color = lvl.badge_color || lvl.badgeColor || "#C8A45C";
 
@@ -361,9 +369,11 @@ export default function LoyaltyLevels() {
                     </div>
 
                     <div className="text-left sm:mt-1">
-                      <span className="text-[10px] text-[#9CA3AF] block font-bold">نسبة الخصم</span>
+                      <span className="text-[10px] text-[#9CA3AF] block font-bold">
+                        {discFixed > 0 ? "خصم الوحدة" : "نسبة الخصم"}
+                      </span>
                       <span className="inline-block text-xs sm:text-sm font-black text-[#C8A45C] bg-[#C8A45C]/15 px-2.5 py-0.5 rounded-lg border border-[#C8A45C]/30 font-mono">
-                        {Number(discPct).toFixed(0)}%
+                        {discFixed > 0 ? `$${discFixed}` : `${Number(discPct).toFixed(0)}%`}
                       </span>
                     </div>
                   </div>

@@ -3753,6 +3753,7 @@ function parseVipPayload(body: any) {
   const levelOrder = Number(body.level_order ?? body.levelOrder ?? 1);
   const requiredAmount = String(body.required_amount ?? body.requiredAmount ?? 0);
   const discountPercent = String(body.discount_percent ?? body.discountPercent ?? body.profit_pct ?? body.profitPct ?? 0);
+  const discountFixedAmount = String(body.discount_fixed_amount ?? body.discountFixedAmount ?? "0.00000000");
   const badgeColor = body.badge_color || body.badgeColor || body.badge || "#C8A45C";
   const badge = badgeColor;
   const description = body.description || "";
@@ -3768,6 +3769,7 @@ function parseVipPayload(body: any) {
     levelOrder,
     requiredAmount,
     discountPercent,
+    discountFixedAmount,
     profitPct: discountPercent,
     badgeColor,
     badge,
@@ -3791,6 +3793,8 @@ function formatVipRow(lvl: any) {
     requiredAmount: Number(lvl.requiredAmount || lvl.required_amount || 0),
     discount_percent: Number(lvl.discountPercent || lvl.discount_percent || lvl.profitPct || lvl.profit_pct || 0),
     discountPercent: Number(lvl.discountPercent || lvl.discount_percent || lvl.profitPct || lvl.profit_pct || 0),
+    discount_fixed_amount: String(lvl.discountFixedAmount || lvl.discount_fixed_amount || "0.00000000"),
+    discountFixedAmount: String(lvl.discountFixedAmount || lvl.discount_fixed_amount || "0.00000000"),
     profit_pct: Number(lvl.profitPct || lvl.discountPercent || 0),
     profitPct: Number(lvl.profitPct || lvl.discountPercent || 0),
     badge_color: lvl.badgeColor || lvl.badge_color || lvl.badge || "#C8A45C",
