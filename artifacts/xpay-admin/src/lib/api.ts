@@ -6,10 +6,14 @@ export async function api<T = any>(
   opts: RequestInit = {},
 ): Promise<T> {
   let cleanPath = path;
-  if (cleanPath.startsWith("/api/admin")) {
-    cleanPath = cleanPath.replace(/^\/api\/admin/, "");
-  } else if (cleanPath.startsWith("/admin")) {
-    cleanPath = cleanPath.replace(/^\/admin/, "");
+  if (cleanPath.startsWith("/api/admin/")) {
+    cleanPath = cleanPath.replace(/^\/api\/admin\//, "/");
+  } else if (cleanPath === "/api/admin") {
+    cleanPath = "";
+  } else if (cleanPath.startsWith("/admin/")) {
+    cleanPath = cleanPath.replace(/^\/admin\//, "/");
+  } else if (cleanPath === "/admin") {
+    cleanPath = "";
   }
   
   const normalizedPath = cleanPath.startsWith("/") ? cleanPath : `/${cleanPath}`;

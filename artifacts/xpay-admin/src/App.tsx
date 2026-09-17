@@ -179,6 +179,14 @@ export default function App() {
             <Route path="/permissions" element={<Permissions />} />
             <Route path="/currency" element={<CurrencySettings />} />
             <Route path="/currencies" element={<Navigate to="/currency" replace />} />
+            <Route path="/api-products" element={<ApiProducts />} />
+            <Route path="/admin/api-products" element={<Navigate to="/api-products" replace />} />
+            <Route path="/provider-reports" element={<ProviderReports />} />
+            <Route path="/admin/provider-reports" element={<Navigate to="/provider-reports" replace />} />
+            <Route path="/languages" element={<Languages />} />
+            <Route path="/admin/languages" element={<Navigate to="/languages" replace />} />
+            <Route path="/maintenance" element={<Maintenance />} />
+            <Route path="/admin/maintenance" element={<Navigate to="/maintenance" replace />} />
             <Route path="/cron-jobs" element={<CronJobs />} />
             <Route path="/cron" element={<Navigate to="/cron-jobs" replace />} />
             <Route path="/cache" element={<CacheManagement />} />

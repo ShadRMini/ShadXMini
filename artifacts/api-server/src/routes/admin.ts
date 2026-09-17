@@ -3152,7 +3152,7 @@ router.get("/admin/activity", requireAdmin, async (_req, res) => {
 });
 
 // ========== ADMINS MANAGEMENT ==========
-router.get("/admin/admins", requireAdmin, async (_req, res) => {
+router.get(["/admin/admins", "/admins"], requireAdmin, async (_req, res) => {
   try {
     const rows = await db.select().from(adminsTable).orderBy(desc(adminsTable.id));
     res.json(rows.map((r) => ({ ...r, password: undefined })));
@@ -3162,7 +3162,7 @@ router.get("/admin/admins", requireAdmin, async (_req, res) => {
   }
 });
 
-router.post("/admin/admins", requireAdmin, async (req, res) => {
+router.post(["/admin/admins", "/admins"], requireAdmin, async (req, res) => {
   try {
     const data = filterFields(req.body, [
       "username",
@@ -3235,10 +3235,10 @@ const handleUpdateAdmin = async (req: any, res: any) => {
   }
 };
 
-router.put("/admin/admins/:id", requireAdmin, handleUpdateAdmin);
-router.patch("/admin/admins/:id", requireAdmin, handleUpdateAdmin);
+router.put(["/admin/admins/:id", "/admins/:id"], requireAdmin, handleUpdateAdmin);
+router.patch(["/admin/admins/:id", "/admins/:id"], requireAdmin, handleUpdateAdmin);
 
-router.delete("/admin/admins/:id", requireAdmin, async (req, res) => {
+router.delete(["/admin/admins/:id", "/admins/:id"], requireAdmin, async (req, res) => {
   try {
     const id = Number(req.params.id);
     await db.delete(adminsTable).where(eq(adminsTable.id, id));
