@@ -76,6 +76,12 @@ export async function ensureDatabaseSchema() {
       ALTER TABLE deposits ADD COLUMN IF NOT EXISTS amount_syp NUMERIC(14, 2);
     `);
 
+    // 2.1 Orders table columns
+    await db.execute(sql`
+      ALTER TABLE orders ADD COLUMN IF NOT EXISTS provider_order_id TEXT;
+    `);
+    console.log("[ensureSchema] ✅ orders.provider_order_id ensured");
+
     // 3. Products table columns
     await db.execute(sql`
       ALTER TABLE products ADD COLUMN IF NOT EXISTS provider_unit_price NUMERIC(16, 8);

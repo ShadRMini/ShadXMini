@@ -16,7 +16,11 @@ import {
   X as XIcon,
   User,
   Hash,
-  DollarSign
+  DollarSign,
+  Copy,
+  Check,
+  Edit3,
+  Building2
 } from "lucide-react";
 
 type OrderItem = {
@@ -45,6 +49,24 @@ export default function Orders() {
   const [selectedOrder, setSelectedOrder] = useState<OrderItem | null>(null);
   const [busyId, setBusyId] = useState<number | null>(null);
   const [note, setNote] = useState("");
+
+  // Modal for accept/complete order with providerOrderId
+  const [showAcceptModal, setShowAcceptModal] = useState<OrderItem | null>(null);
+  const [providerOrderIdInput, setProviderOrderIdInput] = useState("");
+  const [adminNoteInput, setAdminNoteInput] = useState("");
+
+  // Quick edit modal for providerOrderId
+  const [showEditProviderModal, setShowEditProviderModal] = useState<OrderItem | null>(null);
+  const [editProviderIdInput, setEditProviderIdInput] = useState("");
+
+  // Copied feedback
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const copyToClipboard = (text: string, key: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedId(key);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
 
   const loadOrders = async () => {
     setLoading(true);
@@ -85,6 +107,65 @@ export default function Orders() {
     setStatusFilter("all");
   };
 
+  const handleOpenAcceptModal = (order: OrderItem) => {
+    setShowAcceptModal(order);
+    setProviderOrderIdInput(order.providerOrderId || "");
+    setAdminNoteInput("");
+  };
+
+  const handleConfirmAccept = async () => {
+    if (!showAcceptModal) return;
+    setBusyId(showAcceptModal.id);
+    try {
+      await patch(`/admin/orders/${showAcceptModal.id}/accept`, {
+        providerOrderId: providerOrderIdInput.trim() || undefined,
+        adminNote: adminNoteInput.trim() || undefined,
+      });
+      await loadOrders();
+      if (selectedOrder?.id === showAcceptModal.id) {
+        setSelectedOrder({
+          ...selectedOrder,
+          status: "completed",
+          providerOrderId: providerOrderIdInput.trim() || selectedOrder.providerOrderId,
+        });
+      }
+      setShowAcceptModal(null);
+      setProviderOrderIdInput("");
+      setAdminNoteInput("");
+    } catch (err: any) {
+      alert(err?.message || "فشل قبول الطلب");
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const handleUpdateProviderId = async () => {
+    if (!showEditProviderModal) return;
+    if (!editProviderIdInput.trim()) {
+      alert("يرجى إدخال رقم طلب المزود");
+      return;
+    }
+    setBusyId(showEditProviderModal.id);
+    try {
+      await patch(`/admin/orders/${showEditProviderModal.id}/provider-id`, {
+        providerOrderId: editProviderIdInput.trim(),
+      });
+      await loadOrders();
+      if (selectedOrder?.id === showEditProviderModal.id) {
+        setSelectedOrder({
+          ...selectedOrder,
+          providerOrderId: editProviderIdInput.trim(),
+        });
+      }
+      setShowEditProviderModal(null);
+      setEditProviderIdInput("");
+    } catch (err: any) {
+      alert(err?.message || "فشل تحديث رقم المزود");
+    } finally {
+      setBusyId(null);
+    }
+  };
+
   const handleUpdateStatus = async (id: number, newStatus: string) => {
     setBusyId(id);
     try {
@@ -120,7 +201,8 @@ export default function Orders() {
       const userMatch = (o.userName || "").toLowerCase().includes(activeSearch);
       const linkMatch = (o.userIdentifier || "").toLowerCase().includes(activeSearch);
       const productMatch = (o.productName || "").toLowerCase().includes(activeSearch);
-      matchQuery = idMatch || userMatch || linkMatch || productMatch;
+      const providerIdMatch = (o.providerOrderId || "").toLowerCase().includes(activeSearch);
+      matchQuery = idMatch || userMatch || linkMatch || productMatch || providerIdMatch;
     }
 
     return matchStatus && matchQuery;
@@ -138,7 +220,7 @@ export default function Orders() {
             <div>
               <h1 className="text-xl font-bold text-white tracking-wide">الطلبات</h1>
               <p className="text-xs text-slate-400 mt-0.5">
-                متابعة وإدارة جميع طلبات العملاء وتحديث حالاتها
+                متابعة وإدارة جميع طلبات العملاء وتحديث حالاتها وأرقام المزودين
               </p>
             </div>
           </div>
@@ -190,7 +272,7 @@ export default function Orders() {
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-              placeholder="بحث: رقم الطلب، الرابط أو اسم الزبون"
+              placeholder="بحث: رقم الطلب، رقم المزود، الرابط أو اسم الزبون"
               className="w-full bg-[#1e232d] border border-slate-800 rounded-xl pr-10 pl-4 py-2.5 text-xs text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none transition"
             />
           </div>
@@ -239,6 +321,7 @@ export default function Orders() {
                 <thead className="bg-[#14171f] text-slate-400 border-b border-slate-800">
                   <tr>
                     <th className="px-4 py-3.5 font-semibold">رقم الطلب</th>
+                    <th className="px-4 py-3.5 font-semibold">رقم المزود</th>
                     <th className="px-4 py-3.5 font-semibold">المنتج</th>
                     <th className="px-4 py-3.5 font-semibold">المستخدم</th>
                     <th className="px-4 py-3.5 font-semibold">المعرف / الرابط</th>
@@ -258,13 +341,51 @@ export default function Orders() {
                       <td className="px-4 py-3.5 font-bold text-blue-400">
                         #{order.orderNumber || order.id}
                       </td>
+                      <td className="px-4 py-3.5">
+                        {order.providerOrderId ? (
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-mono text-[11px] text-amber-300/90 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 max-w-[120px] truncate" title={order.providerOrderId}>
+                              {order.providerOrderId}
+                            </span>
+                            <button
+                              onClick={() => copyToClipboard(order.providerOrderId!, `tbl-${order.id}`)}
+                              className="text-slate-400 hover:text-amber-300 p-0.5 transition"
+                              title="نسخ رقم المزود"
+                            >
+                              {copiedId === `tbl-${order.id}` ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
+                            </button>
+                            <button
+                              onClick={() => {
+                                setShowEditProviderModal(order);
+                                setEditProviderIdInput(order.providerOrderId || "");
+                              }}
+                              className="text-slate-400 hover:text-blue-400 p-0.5 transition"
+                              title="تعديل رقم المزود"
+                            >
+                              <Edit3 size={12} />
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => {
+                              setShowEditProviderModal(order);
+                              setEditProviderIdInput("");
+                            }}
+                            className="text-[11px] text-slate-500 hover:text-amber-400/80 transition flex items-center gap-1"
+                            title="إضافة رقم المزود"
+                          >
+                            <span>—</span>
+                            <Edit3 size={11} className="opacity-60" />
+                          </button>
+                        )}
+                      </td>
                       <td className="px-4 py-3.5 font-medium text-slate-200">
                         {order.productName || "منتج"}
                       </td>
                       <td className="px-4 py-3.5 text-slate-300">
                         {order.userName || `#${order.userId || "—"}`}
                       </td>
-                      <td className="px-4 py-3.5 font-mono text-[11px] text-slate-400 max-w-[160px] truncate">
+                      <td className="px-4 py-3.5 font-mono text-[11px] text-slate-400 max-w-[140px] truncate">
                         {order.userIdentifier || "—"}
                       </td>
                       <td className="px-4 py-3.5 font-medium text-slate-300">
@@ -293,10 +414,10 @@ export default function Orders() {
                           {(order.status === "wait" || order.status === "pending") && (
                             <>
                               <button
-                                onClick={() => handleUpdateStatus(order.id, "completed")}
+                                onClick={() => handleOpenAcceptModal(order)}
                                 disabled={busyId === order.id}
                                 className="p-1.5 text-emerald-400 hover:bg-emerald-500/10 rounded-lg transition"
-                                title="قبول الطلب"
+                                title="قبول الطلب (مع رقم المزود)"
                               >
                                 <CheckCircle2 size={15} />
                               </button>
@@ -376,6 +497,45 @@ export default function Orders() {
                 </div>
               </div>
 
+              {/* Provider Order ID Row */}
+              <div className="bg-[#14171f] p-3 rounded-xl border border-slate-800 flex items-center justify-between">
+                <div>
+                  <span className="text-slate-400 block mb-0.5">رقم طلب المزود (Provider Order ID):</span>
+                  {selectedOrder.providerOrderId ? (
+                    <code className="text-xs font-mono text-amber-300 font-bold">
+                      {selectedOrder.providerOrderId}
+                    </code>
+                  ) : (
+                    <span className="text-slate-500 italic">غير مسجل</span>
+                  )}
+                </div>
+                <div className="flex items-center gap-1">
+                  {selectedOrder.providerOrderId && (
+                    <button
+                      onClick={() => copyToClipboard(selectedOrder.providerOrderId!, "modal-copy")}
+                      className="p-1.5 text-slate-400 hover:text-amber-300 bg-slate-800 hover:bg-slate-700 rounded-lg transition"
+                      title="نسخ رقم المزود"
+                    >
+                      {copiedId === "modal-copy" ? (
+                        <Check size={14} className="text-emerald-400" />
+                      ) : (
+                        <Copy size={14} />
+                      )}
+                    </button>
+                  )}
+                  <button
+                    onClick={() => {
+                      setShowEditProviderModal(selectedOrder);
+                      setEditProviderIdInput(selectedOrder.providerOrderId || "");
+                    }}
+                    className="p-1.5 text-slate-400 hover:text-blue-400 bg-slate-800 hover:bg-slate-700 rounded-lg transition"
+                    title="تعديل رقم المزود"
+                  >
+                    <Edit3 size={14} />
+                  </button>
+                </div>
+              </div>
+
               {selectedOrder.userIdentifier && (
                 <div className="bg-[#14171f] p-3 rounded-xl border border-slate-800">
                   <span className="text-slate-400 block mb-1">الرابط / المعرف المدخل:</span>
@@ -393,11 +553,11 @@ export default function Orders() {
               {/* Status Action Buttons in Modal */}
               <div className="pt-2 flex gap-2">
                 <button
-                  onClick={() => handleUpdateStatus(selectedOrder.id, "completed")}
+                  onClick={() => handleOpenAcceptModal(selectedOrder)}
                   disabled={busyId === selectedOrder.id}
                   className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-2 rounded-xl transition"
                 >
-                  تعيين كمكتمل ✓
+                  قبول الطلب / إدخال رقم المزود ✓
                 </button>
                 <button
                   onClick={() => handleUpdateStatus(selectedOrder.id, "reject")}
@@ -407,6 +567,130 @@ export default function Orders() {
                   رفض الطلب ✕
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Accept Order Modal with Provider Order ID */}
+      {showAcceptModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fadeIn">
+          <div className="bg-[#1e232d] border border-slate-700 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl p-6">
+            <div className="flex items-center justify-between pb-3 mb-4 border-b border-slate-800">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 size={20} className="text-emerald-400" />
+                <h3 className="text-base font-bold text-white">
+                  قبول الطلب #{showAcceptModal.orderNumber || showAcceptModal.id}
+                </h3>
+              </div>
+              <button
+                onClick={() => setShowAcceptModal(null)}
+                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800"
+              >
+                <XIcon size={16} />
+              </button>
+            </div>
+
+            <div className="space-y-4 mb-5 text-xs">
+              <div>
+                <label className="block text-slate-300 font-medium mb-1.5">
+                  رقم طلب المزود الخارجي (Provider Order ID):
+                </label>
+                <input
+                  type="text"
+                  value={providerOrderIdInput}
+                  onChange={(e) => setProviderOrderIdInput(e.target.value)}
+                  placeholder="مثال: ORD-98234 أو رقم الطلب من المزود"
+                  className="w-full px-3 py-2.5 bg-[#14171f] border border-slate-700 focus:border-blue-500 text-white font-mono rounded-xl outline-none transition"
+                  autoFocus
+                />
+                <p className="text-[11px] text-slate-500 mt-1">
+                  يمكن تركه فارغاً إذا كان الطلب محلياً أو يدوياً بدون مزود.
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-slate-300 font-medium mb-1.5">
+                  ملاحظة إضافية (اختياري):
+                </label>
+                <input
+                  type="text"
+                  value={adminNoteInput}
+                  onChange={(e) => setAdminNoteInput(e.target.value)}
+                  placeholder="ملاحظة للإشعار أو السجل الداخلي..."
+                  className="w-full px-3 py-2.5 bg-[#14171f] border border-slate-700 focus:border-blue-500 text-white rounded-xl outline-none transition"
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                onClick={handleConfirmAccept}
+                disabled={busyId === showAcceptModal.id}
+                className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl transition shadow disabled:opacity-50"
+              >
+                {busyId === showAcceptModal.id ? "جاري الحفظ..." : "قبول وحفظ ✓"}
+              </button>
+              <button
+                onClick={() => setShowAcceptModal(null)}
+                className="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl transition"
+              >
+                إلغاء
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Provider ID Only Modal */}
+      {showEditProviderModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fadeIn">
+          <div className="bg-[#1e232d] border border-slate-700 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl p-6">
+            <div className="flex items-center justify-between pb-3 mb-4 border-b border-slate-800">
+              <div className="flex items-center gap-2">
+                <Building2 size={20} className="text-amber-400" />
+                <h3 className="text-base font-bold text-white">
+                  تحديث رقم طلب المزود #{showEditProviderModal.orderNumber || showEditProviderModal.id}
+                </h3>
+              </div>
+              <button
+                onClick={() => setShowEditProviderModal(null)}
+                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800"
+              >
+                <XIcon size={16} />
+              </button>
+            </div>
+
+            <div className="space-y-4 mb-5 text-xs">
+              <div>
+                <label className="block text-slate-300 font-medium mb-1.5">
+                  رقم طلب المزود الجديد:
+                </label>
+                <input
+                  type="text"
+                  value={editProviderIdInput}
+                  onChange={(e) => setEditProviderIdInput(e.target.value)}
+                  placeholder="أدخل رقم طلب المزود..."
+                  className="w-full px-3 py-2.5 bg-[#14171f] border border-slate-700 focus:border-amber-500 text-white font-mono rounded-xl outline-none transition"
+                  autoFocus
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                onClick={handleUpdateProviderId}
+                disabled={busyId === showEditProviderModal.id}
+                className="flex-1 py-2.5 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl transition shadow disabled:opacity-50"
+              >
+                {busyId === showEditProviderModal.id ? "جاري التحديث..." : "تحديث رقم المزود"}
+              </button>
+              <button
+                onClick={() => setShowEditProviderModal(null)}
+                className="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl transition"
+              >
+                إلغاء
+              </button>
             </div>
           </div>
         </div>

@@ -358,7 +358,12 @@ async function applyDepositStatusChange(id: number, status: string, note?: strin
   return { updated };
 }
 
-async function applyOrderStatusChange(id: number, status: string, note?: string) {
+async function applyOrderStatusChange(
+  id: number,
+  status: string,
+  note?: string,
+  providerOrderId?: string,
+) {
   const [order] = await db
     .select()
     .from(ordersTable)
@@ -366,9 +371,14 @@ async function applyOrderStatusChange(id: number, status: string, note?: string)
     .limit(1);
   if (!order) return { error: "not_found" as const };
 
+  const updateFields: Record<string, any> = { status };
+  if (providerOrderId !== undefined && providerOrderId !== null) {
+    updateFields.providerOrderId = String(providerOrderId).trim() || null;
+  }
+
   const [updated] = await db
     .update(ordersTable)
-    .set({ status })
+    .set(updateFields)
     .where(eq(ordersTable.id, id))
     .returning();
 
@@ -2146,9 +2156,13 @@ router.get("/admin/orders", requireAdmin, async (req, res) => {
 });
 
 router.post("/admin/orders/:id/status", requireAdmin, async (req, res) => {
-  const { status, note } = req.body as { status: string; note?: string };
+  const { status, note, providerOrderId } = req.body as {
+    status: string;
+    note?: string;
+    providerOrderId?: string;
+  };
   const id = Number(req.params.id);
-  const result = await applyOrderStatusChange(id, status, note);
+  const result = await applyOrderStatusChange(id, status, note, providerOrderId);
   if ("error" in result) {
     res.status(404).json({ error: "غير موجود" });
     return;
@@ -2157,9 +2171,91 @@ router.post("/admin/orders/:id/status", requireAdmin, async (req, res) => {
     { id: req.session.adminId, name: req.session.adminUsername },
     "order_status",
     String(id),
-    { status, note },
+    { status, note, providerOrderId },
   );
   res.json(result.updated);
+});
+
+router.patch("/admin/orders/:id/accept", requireAdmin, async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const { providerOrderId, adminNote, note } = req.body as {
+      providerOrderId?: string;
+      adminNote?: string;
+      note?: string;
+    };
+    const result = await applyOrderStatusChange(
+      id,
+      "completed",
+      adminNote || note,
+      providerOrderId,
+    );
+    if ("error" in result) {
+      return res.status(404).json({ error: "الطلب غير موجود" });
+    }
+    await logActivity(
+      { id: req.session.adminId, name: req.session.adminUsername },
+      "order_accept",
+      String(id),
+      { providerOrderId, note: adminNote || note },
+    );
+    return res.json({ success: true, order: result.updated });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message || "فشل قبول الطلب" });
+  }
+});
+
+router.patch("/admin/orders/:id/reject", requireAdmin, async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const { adminNote, note } = req.body as {
+      adminNote?: string;
+      note?: string;
+    };
+    const result = await applyOrderStatusChange(id, "reject", adminNote || note);
+    if ("error" in result) {
+      return res.status(404).json({ error: "الطلب غير موجود" });
+    }
+    await logActivity(
+      { id: req.session.adminId, name: req.session.adminUsername },
+      "order_reject",
+      String(id),
+      { note: adminNote || note },
+    );
+    return res.json({ success: true, order: result.updated });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message || "فشل رفض الطلب" });
+  }
+});
+
+router.patch("/admin/orders/:id/provider-id", requireAdmin, async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const { providerOrderId } = req.body as { providerOrderId?: string };
+
+    if (!providerOrderId || !String(providerOrderId).trim()) {
+      return res.status(400).json({ error: "رقم طلب المزود مطلوب" });
+    }
+
+    const [updated] = await db
+      .update(ordersTable)
+      .set({ providerOrderId: String(providerOrderId).trim() })
+      .where(eq(ordersTable.id, id))
+      .returning();
+
+    if (!updated) return res.status(404).json({ error: "الطلب غير موجود" });
+
+    await logActivity(
+      { id: req.session.adminId, name: req.session.adminUsername },
+      "update_order_provider_id",
+      String(id),
+      { providerOrderId: String(providerOrderId).trim() },
+    );
+
+    return res.json({ success: true, order: updated });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message || "فشل تحديث رقم طلب المزود" });
+  }
 });
 
 // ========== DEPOSITS ==========
@@ -3521,9 +3617,13 @@ router.patch("/admin/users/:id/ban", requireAdmin, async (req, res) => {
 
 // ========== STATUS PATCH ALIASES ==========
 router.patch("/admin/orders/:id/status", requireAdmin, async (req, res) => {
-  const { status, note } = req.body as { status: string; note?: string };
+  const { status, note, providerOrderId } = req.body as {
+    status: string;
+    note?: string;
+    providerOrderId?: string;
+  };
   const id = Number(req.params.id);
-  const result = await applyOrderStatusChange(id, status, note);
+  const result = await applyOrderStatusChange(id, status, note, providerOrderId);
   if ("error" in result) {
     res.status(404).json({ error: "غير موجود" });
     return;
@@ -3532,7 +3632,7 @@ router.patch("/admin/orders/:id/status", requireAdmin, async (req, res) => {
     { id: req.session.adminId, name: req.session.adminUsername },
     "order_status",
     String(id),
-    { status, note },
+    { status, note, providerOrderId },
   );
   res.json(result.updated);
 });
