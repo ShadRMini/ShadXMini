@@ -345,15 +345,11 @@ export async function ensureDatabaseSchema() {
       { key: "news_ticker_speed", val: 15 }
     ];
     for (const item of shamcashKeys) {
-      const existing: any = await db.execute(sql`SELECT key FROM settings WHERE key = ${item.key}`);
-      const rows = existing?.rows || existing;
-      if (!rows || rows.length === 0) {
-        await db.execute(sql`
-          INSERT INTO settings (key, value)
-          VALUES (${item.key}, ${JSON.stringify(item.val)}::jsonb)
-          ON CONFLICT (key) DO NOTHING
-        `);
-      }
+      await db.execute(sql`
+        INSERT INTO settings (key, value)
+        VALUES (${item.key}, ${JSON.stringify(item.val)}::jsonb)
+        ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value;
+      `);
     }
 
     // Seed default maintenance settings if missing
