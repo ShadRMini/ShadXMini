@@ -196,7 +196,11 @@ export function DepositShamCash() {
           qrImageUrl={qrImageUrl || undefined}
           onConfirm={handleCreateInvoice}
           isSubmitting={submitting}
-          onQrClick={() => setShowLightbox(true)}
+          onQrClick={() => {
+            if (walletAddress || qrImageUrl) {
+              setShowLightbox(true);
+            }
+          }}
         />
       </div>
 
@@ -207,7 +211,7 @@ export function DepositShamCash() {
           onClick={() => setShowLightbox(false)}
         >
           <div 
-            className="relative bg-white p-6 rounded-3xl max-w-sm w-full shadow-2xl text-center space-y-4"
+            className="relative bg-white dark:bg-zinc-900 p-6 rounded-3xl max-w-sm w-full shadow-2xl text-center space-y-4 border border-zinc-200 dark:border-zinc-800"
             onClick={(e) => e.stopPropagation()}
           >
             <button
@@ -220,25 +224,35 @@ export function DepositShamCash() {
             <h3 className="font-bold text-foreground text-sm">
               رمز الاستجابة السريعة (QR Code)
             </h3>
-            <div className="w-64 h-64 mx-auto p-2 bg-white rounded-2xl border flex items-center justify-center overflow-hidden">
-              {qrImageUrl ? (
-                <img src={qrImageUrl} alt="QR Big" className="w-full h-full object-contain" />
-              ) : (
-                <QRCodeSVG
-                  value={walletAddress}
-                  size={256}
-                  level="M"
-                  className="w-full h-full"
-                />
-              )}
-            </div>
-            <div className="font-mono text-xs text-muted-foreground break-all bg-muted/40 p-2 rounded-xl">
-              {walletAddress}
-            </div>
+            {qrImageUrl || walletAddress ? (
+              <>
+                <div className="w-64 h-64 mx-auto p-2 bg-white rounded-2xl border flex items-center justify-center overflow-hidden">
+                  {qrImageUrl ? (
+                    <img src={qrImageUrl} alt="QR Big" className="w-full h-full object-contain" />
+                  ) : (
+                    <QRCodeSVG
+                      value={walletAddress}
+                      size={256}
+                      level="M"
+                      className="w-full h-full"
+                    />
+                  )}
+                </div>
+                <div className="font-mono text-xs text-muted-foreground break-all bg-muted/40 p-2 rounded-xl">
+                  {walletAddress}
+                </div>
+              </>
+            ) : (
+              <div className="p-6 text-center space-y-3">
+                <AlertCircle className="w-10 h-10 text-amber-500 mx-auto" />
+                <p className="text-sm font-bold text-foreground">لا توجد محفظة مُعدّة</p>
+                <p className="text-xs text-muted-foreground">يرجى التواصل مع الدعم</p>
+              </div>
+            )}
             <Button
               type="button"
               onClick={() => setShowLightbox(false)}
-              className="w-full rounded-xl bg-foreground text-background"
+              className="w-full rounded-xl bg-foreground text-background cursor-pointer"
             >
               إغلاق
             </Button>

@@ -379,14 +379,18 @@ export default function ShamCashInvoiceVerify() {
               {/* QR Image Container with dynamic sizing and 1:1 ratio */}
               <div className="w-full flex justify-center items-center">
                 <div
-                  onClick={() => setLightboxOpen(true)}
-                  className="group relative cursor-pointer rounded-2xl bg-white p-3.5 shadow-lg border-2 transition-transform duration-200 hover:scale-[1.02] active:scale-95 flex items-center justify-center aspect-square overflow-hidden"
+                  onClick={() => {
+                    if (walletAddress || qrImageSrc) setLightboxOpen(true);
+                  }}
+                  className={`group relative rounded-2xl bg-white p-3.5 shadow-lg border-2 transition-transform duration-200 hover:scale-[1.02] active:scale-95 flex items-center justify-center aspect-square overflow-hidden ${
+                    walletAddress || qrImageSrc ? "cursor-pointer" : "cursor-default"
+                  }`}
                   style={{
                     width: `${qrSize}px`,
                     maxWidth: "min(400px, 100%)",
                     borderColor: "color-mix(in srgb, var(--theme-accent) 40%, transparent)",
                   }}
-                  title="انقر لتكبير رمز الـ QR بالحجم الكامل"
+                  title={walletAddress || qrImageSrc ? "انقر لتكبير رمز الـ QR بالحجم الكامل" : undefined}
                 >
                   {qrImageSrc ? (
                     <img
@@ -413,12 +417,14 @@ export default function ShamCashInvoiceVerify() {
                   )}
 
                   {/* Hover Overlay Hint */}
-                  <div className="absolute inset-0 rounded-2xl bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white gap-1 p-2">
-                    <Maximize2 className="w-7 h-7 text-amber-300 drop-shadow" />
-                    <span className="text-xs font-bold bg-black/60 px-2.5 py-1 rounded-full">
-                      انقر للتكبير (1080x1080)
-                    </span>
-                  </div>
+                  {(walletAddress || qrImageSrc) && (
+                    <div className="absolute inset-0 rounded-2xl bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white gap-1 p-2">
+                      <Maximize2 className="w-7 h-7 text-amber-300 drop-shadow" />
+                      <span className="text-xs font-bold bg-black/60 px-2.5 py-1 rounded-full">
+                        انقر للتكبير (1080x1080)
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -827,55 +833,72 @@ export default function ShamCashInvoiceVerify() {
               <X className="w-5 h-5" />
             </button>
 
-            {/* QR Title in Modal */}
-            <div className="text-center mb-3">
-              <h4 className="text-base font-black text-zinc-900">
-                رمز استجابة شام كاش (1080x1080)
-              </h4>
-              <p className="text-xs font-mono font-bold text-zinc-600 mt-0.5 select-all">
-                {walletAddress}
-              </p>
-            </div>
+            {walletAddress || qrImageSrc ? (
+              <>
+                {/* QR Title in Modal */}
+                <div className="text-center mb-3">
+                  <h4 className="text-base font-black text-zinc-900">
+                    رمز استجابة شام كاش (1080x1080)
+                  </h4>
+                  <p className="text-xs font-mono font-bold text-zinc-600 mt-0.5 select-all">
+                    {walletAddress}
+                  </p>
+                </div>
 
-            {/* 1:1 Aspect Ratio Container */}
-            <div className="w-[min(80vw,520px)] aspect-square flex items-center justify-center bg-white p-2 overflow-hidden">
-              {qrImageSrc ? (
-                <img
-                  src={qrImageSrc}
-                  alt="Sham Cash Full QR Code 1080x1080"
-                  width={1080}
-                  height={1080}
-                  className="w-full h-full object-contain select-none"
-                />
-              ) : (
-                <QRCodeSVG
-                  value={walletAddress}
-                  size={1080}
-                  level="M"
-                  className="w-full h-full"
-                  style={{ width: "100%", height: "100%" }}
-                />
-              )}
-            </div>
+                {/* 1:1 Aspect Ratio Container */}
+                <div className="w-[min(80vw,520px)] aspect-square flex items-center justify-center bg-white p-2 overflow-hidden">
+                  {qrImageSrc ? (
+                    <img
+                      src={qrImageSrc}
+                      alt="Sham Cash Full QR Code 1080x1080"
+                      width={1080}
+                      height={1080}
+                      className="w-full h-full object-contain select-none"
+                    />
+                  ) : (
+                    <QRCodeSVG
+                      value={walletAddress}
+                      size={1080}
+                      level="M"
+                      className="w-full h-full"
+                      style={{ width: "100%", height: "100%" }}
+                    />
+                  )}
+                </div>
 
-            {/* Modal Actions */}
-            <div className="mt-4 flex gap-3 w-full justify-center">
-              <button
-                type="button"
-                onClick={() => copyToClipboard(walletAddress, "تم نسخ عنوان المحفظة")}
-                className="px-5 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition cursor-pointer shadow-md text-white bg-zinc-900 hover:bg-zinc-800"
-              >
-                <Copy className="w-4 h-4" />
-                <span>نسخ العنوان</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setLightboxOpen(false)}
-                className="px-5 py-2.5 rounded-xl font-bold text-xs border border-zinc-300 text-zinc-700 hover:bg-zinc-100 transition cursor-pointer"
-              >
-                إغلاق
-              </button>
-            </div>
+                {/* Modal Actions */}
+                <div className="mt-4 flex gap-3 w-full justify-center">
+                  <button
+                    type="button"
+                    onClick={() => copyToClipboard(walletAddress, "تم نسخ عنوان المحفظة")}
+                    className="px-5 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition cursor-pointer shadow-md text-white bg-zinc-900 hover:bg-zinc-800"
+                  >
+                    <Copy className="w-4 h-4" />
+                    <span>نسخ العنوان</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setLightboxOpen(false)}
+                    className="px-5 py-2.5 rounded-xl font-bold text-xs border border-zinc-300 text-zinc-700 hover:bg-zinc-100 transition cursor-pointer"
+                  >
+                    إغلاق
+                  </button>
+                </div>
+              </>
+            ) : (
+              <div className="p-8 text-center space-y-3">
+                <AlertCircle className="w-12 h-12 text-amber-500 mx-auto" />
+                <p className="text-sm font-bold text-zinc-900">لا توجد محفظة مُعدّة</p>
+                <p className="text-xs text-zinc-500">يرجى التواصل مع الدعم</p>
+                <button
+                  type="button"
+                  onClick={() => setLightboxOpen(false)}
+                  className="mt-4 px-6 py-2 rounded-xl text-xs font-bold bg-zinc-900 text-white cursor-pointer"
+                >
+                  إغلاق
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}

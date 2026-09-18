@@ -48,6 +48,7 @@ export function DepositPageUI({
 }: DepositPageUIProps) {
   const [copied, setCopied] = useState(false);
 
+  const hasQr = Boolean(qrImageUrl || (walletAddress && walletAddress.trim() !== ""));
   const qrData = walletAddress;
 
   const handleCopyWallet = async () => {
@@ -114,15 +115,17 @@ export function DepositPageUI({
         <div className="flex justify-center py-2">
           <div
             onClick={() => {
-              if (!isPreview && onQrClick) onQrClick();
+              if (!isPreview && hasQr && onQrClick) onQrClick();
             }}
-            className="group relative bg-white dark:bg-zinc-900 rounded-3xl border-2 border-gray-200 dark:border-zinc-700 p-4 shadow-sm hover:shadow-md hover:border-blue-500/70 transition-all cursor-pointer flex items-center justify-center overflow-hidden"
+            className={`group relative bg-white dark:bg-zinc-900 rounded-3xl border-2 border-gray-200 dark:border-zinc-700 p-4 shadow-sm hover:shadow-md hover:border-blue-500/70 transition-all flex items-center justify-center overflow-hidden ${
+              hasQr ? "cursor-pointer" : "cursor-default"
+            }`}
             style={{
               width: "100%",
               maxWidth: "340px",
               aspectRatio: "1 / 1",
             }}
-            title="انقر لتكبير الرمز (1080×1080)"
+            title={hasQr ? "انقر لتكبير الرمز (1080×1080)" : undefined}
           >
             {qrImageUrl ? (
               <img
@@ -144,12 +147,14 @@ export function DepositPageUI({
                 <span>لا توجد محفظة مُعدّة — يرجى التواصل مع الدعم</span>
               </div>
             )}
-            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white rounded-3xl">
-              <span className="inline-flex items-center gap-1.5 text-xs font-bold bg-black/60 px-3 py-1.5 rounded-full backdrop-blur-xs">
-                <Maximize2 className="w-4 h-4" />
-                تكبير الرمز
-              </span>
-            </div>
+            {hasQr && (
+              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white rounded-3xl">
+                <span className="inline-flex items-center gap-1.5 text-xs font-bold bg-black/60 px-3 py-1.5 rounded-full backdrop-blur-xs">
+                  <Maximize2 className="w-4 h-4" />
+                  تكبير الرمز
+                </span>
+              </div>
+            )}
           </div>
         </div>
       </div>
