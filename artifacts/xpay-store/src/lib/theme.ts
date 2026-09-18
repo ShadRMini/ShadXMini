@@ -746,10 +746,33 @@ export function applyStoreTheme(theme?: Partial<StoreThemeSettings> | null | und
   `;
 }
 
+const THEME_CACHE_KEY = "xpay_theme_cache";
+
+export function getCachedThemeSettings(): StoreThemeSettings | null {
+  try {
+    const raw = localStorage.getItem(THEME_CACHE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+export function setCachedThemeSettings(theme: StoreThemeSettings) {
+  try {
+    localStorage.setItem(THEME_CACHE_KEY, JSON.stringify(theme));
+  } catch {}
+}
+
 /**
  * Fetches and applies theme from backend public API
  */
 export async function loadAndApplyStoreTheme(apiBase = ""): Promise<StoreThemeSettings> {
+  const cachedTheme = getCachedThemeSettings();
+  if (cachedTheme) {
+    applyStoreTheme(cachedTheme);
+  }
+
   const endpoints = [
     `${apiBase}/api/public/theme-settings`,
     `${apiBase}/api/theme-settings`,
@@ -763,6 +786,7 @@ export async function loadAndApplyStoreTheme(apiBase = ""): Promise<StoreThemeSe
       if (res.ok) {
         const data: StoreThemeSettings = await res.json();
         console.log("[Theme] Received from endpoint:", endpoint, data);
+        setCachedThemeSettings(data);
         applyStoreTheme(data);
         return data;
       }
@@ -771,8 +795,10 @@ export async function loadAndApplyStoreTheme(apiBase = ""): Promise<StoreThemeSe
     }
   }
 
-  applyStoreTheme(DEFAULT_STORE_THEME);
-  return DEFAULT_STORE_THEME;
+  if (!cachedTheme) {
+    applyStoreTheme(DEFAULT_STORE_THEME);
+  }
+  return cachedTheme || DEFAULT_STORE_THEME;
 }
 
 

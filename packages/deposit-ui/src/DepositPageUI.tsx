@@ -30,6 +30,7 @@ export interface DepositPageUIProps {
   isPreview?: boolean;
   isSubmitting?: boolean;
   onQrClick?: () => void;
+  loading?: boolean;
 }
 
 export function DepositPageUI({
@@ -45,6 +46,7 @@ export function DepositPageUI({
   isPreview = false,
   isSubmitting = false,
   onQrClick,
+  loading = false,
 }: DepositPageUIProps) {
   const [copied, setCopied] = useState(false);
 
@@ -113,49 +115,60 @@ export function DepositPageUI({
         </div>
 
         <div className="flex justify-center py-2">
-          <div
-            onClick={() => {
-              if (!isPreview && hasQr && onQrClick) onQrClick();
-            }}
-            className={`group relative bg-white dark:bg-zinc-900 rounded-3xl border-2 border-gray-200 dark:border-zinc-700 p-4 shadow-sm hover:shadow-md hover:border-blue-500/70 transition-all flex items-center justify-center overflow-hidden ${
-              hasQr ? "cursor-pointer" : "cursor-default"
-            }`}
-            style={{
-              width: "100%",
-              maxWidth: "340px",
-              aspectRatio: "1 / 1",
-            }}
-            title={hasQr ? "انقر لتكبير الرمز (1080×1080)" : undefined}
-          >
-            {qrImageUrl ? (
-              <img
-                src={qrImageUrl}
-                alt="QR Code"
-                className="w-full h-full object-contain rounded-2xl group-hover:scale-105 transition-transform duration-300"
-              />
-            ) : qrData ? (
-              <QRCodeSVG
-                value={qrData}
-                size={1080}
-                level="M"
-                className="w-full h-full group-hover:scale-105 transition-transform duration-300"
-                style={{ width: "100%", height: "100%" }}
-              />
-            ) : (
-              <div className="flex flex-col items-center justify-center p-4 text-center text-amber-500 font-bold text-xs gap-2">
-                <AlertCircle className="w-8 h-8 text-amber-500" />
-                <span>لا توجد محفظة مُعدّة — يرجى التواصل مع الدعم</span>
-              </div>
-            )}
-            {hasQr && (
-              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white rounded-3xl">
-                <span className="inline-flex items-center gap-1.5 text-xs font-bold bg-black/60 px-3 py-1.5 rounded-full backdrop-blur-xs">
-                  <Maximize2 className="w-4 h-4" />
-                  تكبير الرمز
-                </span>
-              </div>
-            )}
-          </div>
+          {loading ? (
+            <div
+              className="animate-pulse bg-gray-200 dark:bg-zinc-800 rounded-3xl border-2 border-gray-200 dark:border-zinc-700 p-4 shadow-sm flex items-center justify-center overflow-hidden"
+              style={{
+                width: "100%",
+                maxWidth: "340px",
+                aspectRatio: "1 / 1",
+              }}
+            />
+          ) : (
+            <div
+              onClick={() => {
+                if (!isPreview && hasQr && onQrClick) onQrClick();
+              }}
+              className={`group relative bg-white dark:bg-zinc-900 rounded-3xl border-2 border-gray-200 dark:border-zinc-700 p-4 shadow-sm hover:shadow-md hover:border-blue-500/70 transition-all flex items-center justify-center overflow-hidden ${
+                hasQr ? "cursor-pointer" : "cursor-default"
+              }`}
+              style={{
+                width: "100%",
+                maxWidth: "340px",
+                aspectRatio: "1 / 1",
+              }}
+              title={hasQr ? "انقر لتكبير الرمز (1080×1080)" : undefined}
+            >
+              {qrImageUrl ? (
+                <img
+                  src={qrImageUrl}
+                  alt="QR Code"
+                  className="w-full h-full object-contain rounded-2xl group-hover:scale-105 transition-transform duration-300"
+                />
+              ) : qrData ? (
+                <QRCodeSVG
+                  value={qrData}
+                  size={1080}
+                  level="M"
+                  className="w-full h-full group-hover:scale-105 transition-transform duration-300"
+                  style={{ width: "100%", height: "100%" }}
+                />
+              ) : (
+                <div className="flex flex-col items-center justify-center p-4 text-center text-amber-500 font-bold text-xs gap-2">
+                  <AlertCircle className="w-8 h-8 text-amber-500" />
+                  <span>لا توجد محفظة مُعدّة — يرجى التواصل مع الدعم</span>
+                </div>
+              )}
+              {hasQr && (
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white rounded-3xl">
+                  <span className="inline-flex items-center gap-1.5 text-xs font-bold bg-black/60 px-3 py-1.5 rounded-full backdrop-blur-xs">
+                    <Maximize2 className="w-4 h-4" />
+                    تكبير الرمز
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
@@ -166,30 +179,38 @@ export function DepositPageUI({
           <span>عنوان المحفظة / معرف الحساب</span>
         </div>
 
-        <div className="bg-white dark:bg-zinc-900 border border-blue-200/80 dark:border-blue-900/50 rounded-2xl p-3 max-w-md mx-auto shadow-2xs">
-          <div className="font-mono font-bold text-xs sm:text-sm text-blue-600 dark:text-blue-400 select-all break-all tracking-wider">
-            {walletAddress || "لا توجد محفظة مُعدّة — يرجى التواصل مع الدعم"}
+        {loading ? (
+          <div className="animate-pulse bg-gray-200 dark:bg-zinc-800 border border-blue-200/80 dark:border-blue-900/50 rounded-2xl h-11 max-w-md mx-auto shadow-2xs" />
+        ) : (
+          <div className="bg-white dark:bg-zinc-900 border border-blue-200/80 dark:border-blue-900/50 rounded-2xl p-3 max-w-md mx-auto shadow-2xs">
+            <div className="font-mono font-bold text-xs sm:text-sm text-blue-600 dark:text-blue-400 select-all break-all tracking-wider">
+              {walletAddress || "لا توجد محفظة مُعدّة — يرجى التواصل مع الدعم"}
+            </div>
           </div>
-        </div>
+        )}
 
         <div className="flex justify-center pt-0.5">
-          <button
-            type="button"
-            onClick={handleCopyWallet}
-            className="inline-flex items-center gap-2 px-5 py-2 rounded-xl text-xs font-bold border border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:border-blue-800 dark:text-blue-300 dark:hover:bg-blue-900/60 transition-all shadow-2xs active:scale-95 cursor-pointer"
-          >
-            {copied ? (
-              <>
-                <Check className="w-3.5 h-3.5 text-emerald-600" />
-                <span>تم النسخ</span>
-              </>
-            ) : (
-              <>
-                <Copy className="w-3.5 h-3.5 text-blue-600" />
-                <span>نسخ معرف المحفظة</span>
-              </>
-            )}
-          </button>
+          {loading ? (
+            <div className="animate-pulse h-8 w-36 rounded-xl bg-gray-200 dark:bg-zinc-800" />
+          ) : (
+            <button
+              type="button"
+              onClick={handleCopyWallet}
+              className="inline-flex items-center gap-2 px-5 py-2 rounded-xl text-xs font-bold border border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:border-blue-800 dark:text-blue-300 dark:hover:bg-blue-900/60 transition-all shadow-2xs active:scale-95 cursor-pointer"
+            >
+              {copied ? (
+                <>
+                  <Check className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>تم النسخ</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="w-3.5 h-3.5 text-blue-600" />
+                  <span>نسخ معرف المحفظة</span>
+                </>
+              )}
+            </button>
+          )}
         </div>
       </div>
 

@@ -38,6 +38,8 @@ import IdentityVerification from "@/pages/IdentityVerification";
 import AppLayout from "@/components/layout/AppLayout";
 import { PopupNotification } from "@/components/PopupNotification";
 import { loadAndApplyStoreTheme, DEFAULT_STORE_THEME, applyStoreTheme } from "@/lib/theme";
+import { getPublicJson } from "@/lib/public-api";
+import { setCachedShamCash } from "@/lib/shamcash-cache";
 import { Wrench, Construction, Clock, ShieldAlert, Server, MessageCircle } from "lucide-react";
 
 const queryClient = new QueryClient();
@@ -278,6 +280,27 @@ function App() {
         console.error("App settings load failed:", error);
         if (!cancelled) setSettings(null);
       });
+
+    // Preload ShamCash payment method data on startup into cache
+    getPublicJson<any[]>("/payment-methods")
+      .then((methods) => {
+        if (!cancelled && Array.isArray(methods)) {
+          const sham = methods.find(
+            (m) => m.code === "sham_cash" || m.code === "sham_cash_auto"
+          );
+          if (sham) {
+            setCachedShamCash({
+              walletAddress: sham.walletAddress || "",
+              qrImageUrl: sham.qrImage || "",
+              methodConfig: sham.displayConfig || sham.display_config || null,
+              minAmount: sham.minAmount !== undefined && sham.minAmount !== null ? Number(sham.minAmount) || 1 : 1,
+              maxAmount: sham.maxAmount !== undefined && sham.maxAmount !== null && Number(sham.maxAmount) > 0 ? Number(sham.maxAmount) : undefined,
+            });
+          }
+        }
+      })
+      .catch(() => {});
+
     return () => {
       cancelled = true;
     };

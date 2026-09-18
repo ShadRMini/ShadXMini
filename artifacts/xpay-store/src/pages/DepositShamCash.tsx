@@ -20,21 +20,25 @@ import { toast } from "sonner";
 import { getPublicJson } from "@/lib/public-api";
 import { useAuth } from "@/lib/auth-context";
 import { DepositPageUI } from "@workspace/deposit-ui";
+import { getCachedShamCash, setCachedShamCash } from "@/lib/shamcash-cache";
 
 export function DepositShamCash() {
   const [, setLocation] = useLocation();
   const { user } = useAuth();
 
-  const [walletAddress, setWalletAddress] = useState<string>("");
-  const [qrImageUrl, setQrImageUrl] = useState<string>("");
+  const cached = getCachedShamCash();
+
+  const [walletAddress, setWalletAddress] = useState<string>(() => cached?.walletAddress || "");
+  const [qrImageUrl, setQrImageUrl] = useState<string>(() => cached?.qrImageUrl || "");
   const [amount, setAmount] = useState<string>("");
   const [currency, setCurrency] = useState<"USD" | "SYP">("USD");
   const [copied, setCopied] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [showLightbox, setShowLightbox] = useState(false);
-  const [methodConfig, setMethodConfig] = useState<any>(null);
-  const [methodMinAmount, setMethodMinAmount] = useState<number>(1);
-  const [methodMaxAmount, setMethodMaxAmount] = useState<number | undefined>(undefined);
+  const [methodConfig, setMethodConfig] = useState<any>(() => cached?.methodConfig || null);
+  const [methodMinAmount, setMethodMinAmount] = useState<number>(() => cached?.minAmount ?? 1);
+  const [methodMaxAmount, setMethodMaxAmount] = useState<number | undefined>(() => cached?.maxAmount);
+  const [loading, setLoading] = useState<boolean>(() => !cached);
 
   // Load payment methods to get active ShamCash wallet and QR
   useEffect(() => {
@@ -45,24 +49,30 @@ export function DepositShamCash() {
           const sham = methods.find(
             (m) => m.code === "sham_cash" || m.code === "sham_cash_auto"
           );
-          if (sham?.walletAddress) {
-            setWalletAddress(sham.walletAddress);
-          }
-          if (sham?.qrImage) {
-            setQrImageUrl(sham.qrImage);
-          }
-          if (sham?.displayConfig || sham?.display_config) {
-            setMethodConfig(sham.displayConfig || sham.display_config);
-          }
-          if (sham?.minAmount !== undefined && sham?.minAmount !== null) {
-            setMethodMinAmount(Number(sham.minAmount) || 1);
-          }
-          if (sham?.maxAmount !== undefined && sham?.maxAmount !== null && Number(sham.maxAmount) > 0) {
-            setMethodMaxAmount(Number(sham.maxAmount));
-          }
+          const address = sham?.walletAddress || "";
+          const qr = sham?.qrImage || "";
+          const config = sham?.displayConfig || sham?.display_config || null;
+          const minAmt = sham?.minAmount !== undefined && sham?.minAmount !== null ? Number(sham.minAmount) || 1 : 1;
+          const maxAmt = sham?.maxAmount !== undefined && sham?.maxAmount !== null && Number(sham.maxAmount) > 0 ? Number(sham.maxAmount) : undefined;
+
+          setWalletAddress(address);
+          setQrImageUrl(qr);
+          setMethodConfig(config);
+          setMethodMinAmount(minAmt);
+          setMethodMaxAmount(maxAmt);
+
+          setCachedShamCash({
+            walletAddress: address,
+            qrImageUrl: qr,
+            methodConfig: config,
+            minAmount: minAmt,
+            maxAmount: maxAmt,
+          });
         }
       } catch (e) {
         console.warn("Could not load sham_cash settings:", e);
+      } finally {
+        setLoading(false);
       }
     }
     loadMethod();
@@ -187,6 +197,7 @@ export function DepositShamCash() {
             minAmount: methodMinAmount,
             maxAmount: methodMaxAmount,
           }}
+          loading={loading}
           amount={amount}
           onAmountChange={setAmount}
           onAmountSelect={(v) => setAmount(String(v))}
