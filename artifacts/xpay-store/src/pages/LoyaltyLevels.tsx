@@ -179,21 +179,21 @@ export default function LoyaltyLevels() {
       <div className="max-w-3xl mx-auto space-y-6">
 
         {/* Top Header Card */}
-        <div className="bg-[#2D2D2D] border border-[#C8A45C]/30 rounded-3xl p-5 sm:p-6 shadow-2xl relative overflow-hidden flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="absolute top-0 left-0 w-48 h-48 bg-[#C8A45C]/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="bg-[var(--theme-card)] border border-[var(--theme-border)] rounded-3xl p-5 sm:p-6 shadow-2xl relative overflow-hidden flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="absolute top-0 left-0 w-48 h-48 bg-[var(--theme-primary)]/10 rounded-full blur-3xl pointer-events-none" />
 
           <div className="flex items-center gap-4 relative z-10">
-            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-[#C8A45C] to-[#8A6D3B] text-black flex items-center justify-center shadow-lg shrink-0">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-[var(--theme-primary)] text-black flex items-center justify-center shadow-lg shrink-0">
               <Crown className="w-6 h-6 sm:w-7 sm:h-7" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-xl sm:text-2xl font-black text-[#C8A45C] tracking-wide">
+                <h1 className="text-xl sm:text-2xl font-black text-[var(--theme-primary)] tracking-wide">
                   المستويات والعضويات
                 </h1>
-                <Sparkles className="w-4 h-4 text-[#C8A45C]" />
+                <Sparkles className="w-4 h-4 text-[var(--theme-primary)]" />
               </div>
-              <p className="text-xs text-[#9CA3AF] mt-1 leading-relaxed">
+              <p className="text-xs text-[var(--theme-text-muted)] mt-1 leading-relaxed">
                 ارتقِ بمستواك مع كل عملية شراء واستمتع بخصومات حصرية لكبار العملاء VIP
               </p>
             </div>
@@ -204,16 +204,16 @@ export default function LoyaltyLevels() {
               type="button"
               onClick={() => fetchLoyaltyData(true)}
               disabled={refreshing}
-              className="px-3.5 py-2 rounded-xl bg-[#1A1A1A] hover:bg-[#3D3D3D] text-[#9CA3AF] hover:text-[#C8A45C] text-xs font-bold border border-[#3D3D3D] transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+              className="px-3.5 py-2 rounded-xl bg-[var(--theme-background)] hover:bg-[var(--theme-input-bg)] text-[var(--theme-text-muted)] hover:text-[var(--theme-primary)] text-xs font-bold border border-[var(--theme-border)] transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
               title="تحديث البيانات"
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? "animate-spin text-[#C8A45C]" : ""}`} />
+              <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? "animate-spin text-[var(--theme-primary)]" : ""}`} />
               <span>تحديث</span>
             </button>
             <button
               type="button"
               onClick={() => setLocation("/profile")}
-              className="px-3.5 py-2 rounded-xl bg-[#1A1A1A] hover:bg-[#3D3D3D] text-[#9CA3AF] hover:text-white text-xs font-bold border border-[#3D3D3D] transition-all flex items-center gap-1 cursor-pointer"
+              className="px-3.5 py-2 rounded-xl bg-[var(--theme-background)] hover:bg-[var(--theme-input-bg)] text-[var(--theme-text-muted)] hover:text-[var(--theme-text-primary)] text-xs font-bold border border-[var(--theme-border)] transition-all flex items-center gap-1 cursor-pointer"
             >
               <span>الملف الشخصي</span>
               <ChevronLeft className="w-3.5 h-3.5" />
@@ -222,16 +222,16 @@ export default function LoyaltyLevels() {
         </div>
 
         {/* Current Level Hero Card */}
-        <div className="rounded-3xl border border-[#C8A45C]/50 bg-[#2D2D2D] p-6 sm:p-7 shadow-2xl relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-44 h-44 bg-[#C8A45C]/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="rounded-3xl border border-[var(--theme-primary)]/50 bg-[var(--theme-card)] p-6 sm:p-7 shadow-2xl relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-44 h-44 bg-[var(--theme-primary)]/10 rounded-full blur-3xl pointer-events-none" />
 
           <div className="space-y-6 relative z-10">
             {/* Level Identification & Key Numbers */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#3D3D3D] pb-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[var(--theme-border)] pb-5">
               <div className="space-y-1.5">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-[#9CA3AF]">مستواك الحالي في المتجر</span>
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-[#C8A45C]/20 text-[#C8A45C] border border-[#C8A45C]/40 flex items-center gap-1">
+                  <span className="text-xs font-bold text-[var(--theme-text-muted)]">مستواك الحالي في المتجر</span>
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-[var(--theme-primary)]/20 text-[var(--theme-primary)] border border-[var(--theme-primary)]/40 flex items-center gap-1">
                     <Sparkles className="w-2.5 h-2.5" /> مفعّل
                   </span>
                 </div>
@@ -242,31 +242,31 @@ export default function LoyaltyLevels() {
                   >
                     <Crown className="w-5 h-5" />
                   </div>
-                  <h2 className="text-2xl font-black text-white">{currentLevelName}</h2>
+                  <h2 className="text-2xl font-black text-[var(--theme-text-primary)]">{currentLevelName}</h2>
                 </div>
               </div>
 
               {/* Badges: Discount & Total Spent */}
-              <div className="flex items-center gap-4 bg-[#1A1A1A] px-4 py-3 rounded-2xl border border-[#3D3D3D] self-start sm:self-center shadow-inner">
+              <div className="flex items-center gap-4 bg-[var(--theme-background)] px-4 py-3 rounded-2xl border border-[var(--theme-border)] self-start sm:self-center shadow-inner">
                 <div className="text-right">
-                  <span className="text-[10px] text-[#9CA3AF] block font-bold">
+                  <span className="text-[10px] text-[var(--theme-text-muted)] block font-bold">
                     {currentFixedDiscount > 0 ? "خصم الوحدة" : "نسبة الخصم"}
                   </span>
-                  <span className="text-xl font-black text-[#C8A45C] font-mono">
+                  <span className="text-xl font-black text-[var(--theme-primary)] font-mono">
                     {currentFixedDiscount > 0 ? `$${currentFixedDiscount}` : `${currentDiscount}%`}
                   </span>
                 </div>
-                <div className="h-8 w-[1px] bg-[#3D3D3D]" />
+                <div className="h-8 w-[1px] bg-[var(--theme-border)]" />
                 <div className="text-right">
-                  <span className="text-[10px] text-[#9CA3AF] block font-bold">إجمالي الإنفاق</span>
-                  <span className="text-base font-black text-white font-mono">${totalSpent.toFixed(2)}</span>
+                  <span className="text-[10px] text-[var(--theme-text-muted)] block font-bold">إجمالي الإنفاق</span>
+                  <span className="text-base font-black text-[var(--theme-text-primary)] font-mono">${totalSpent.toFixed(2)}</span>
                 </div>
               </div>
             </div>
 
             {/* Description */}
             {currentLvl?.description && (
-              <p className="text-xs text-[#9CA3AF] leading-relaxed bg-[#1A1A1A] p-3 rounded-xl border border-[#3D3D3D]">
+              <p className="text-xs text-[var(--theme-text-muted)] leading-relaxed bg-[var(--theme-background)] p-3 rounded-xl border border-[var(--theme-border)]">
                 {currentLvl.description}
               </p>
             )}
@@ -275,32 +275,32 @@ export default function LoyaltyLevels() {
             {nextLvl ? (
               <div className="space-y-3 pt-1">
                 <div className="flex items-center justify-between text-xs font-bold">
-                  <span className="text-[#E5E7EB] flex items-center gap-1.5">
-                    <Trophy className="w-4 h-4 text-[#C8A45C]" />
+                  <span className="text-[var(--theme-text-secondary)] flex items-center gap-1.5">
+                    <Trophy className="w-4 h-4 text-[var(--theme-primary)]" />
                     <span>التقدم نحو المستوى التالي ({nextLvl.name})</span>
                   </span>
-                  <span className="font-mono text-[#C8A45C]">
+                  <span className="font-mono text-[var(--theme-primary)]">
                     ${totalSpent.toFixed(2)} / ${(nextLvl.required_amount ?? nextLvl.requiredAmount ?? nextLvl.requiredSpent ?? 0).toFixed(2)}
                   </span>
                 </div>
 
                 {/* Progress Track */}
-                <div className="w-full bg-[#3D3D3D] h-3.5 rounded-full overflow-hidden p-0.5 border border-[#4B4B4B] shadow-inner">
+                <div className="w-full bg-[var(--theme-input-bg)] h-3.5 rounded-full overflow-hidden p-0.5 border border-[var(--theme-border)] shadow-inner">
                   <div
-                    className="bg-gradient-to-r from-[#C8A45C] via-[#E5C178] to-[#C8A45C] h-full rounded-full transition-all duration-700 shadow-md shadow-[#C8A45C]/30"
+                    className="bg-[var(--theme-primary)] h-full rounded-full transition-all duration-700 shadow-md shadow-[var(--theme-primary)]/30"
                     style={{ width: `${Math.min(100, Math.max(4, progressPercent))}%` }}
                   />
                 </div>
 
-                <div className="flex items-center justify-between text-[11px] text-[#9CA3AF]">
-                  <span>نسبة الإنجاز: <strong className="text-white font-mono">{progressPercent}%</strong></span>
+                <div className="flex items-center justify-between text-[11px] text-[var(--theme-text-muted)]">
+                  <span>نسبة الإنجاز: <strong className="text-[var(--theme-text-primary)] font-mono">{progressPercent}%</strong></span>
                   <span>
-                    متبقي <strong className="text-[#C8A45C] font-mono font-extrabold">${amountToNext.toFixed(2)}</strong> للوصول إلى {nextLvl.name}
+                    متبقي <strong className="text-[var(--theme-primary)] font-mono font-extrabold">${amountToNext.toFixed(2)}</strong> للوصول إلى {nextLvl.name}
                   </span>
                 </div>
               </div>
             ) : (
-              <div className="p-3.5 bg-[#C8A45C]/10 border border-[#C8A45C]/30 rounded-2xl text-center text-xs text-[#C8A45C] font-bold flex items-center justify-center gap-2 shadow-sm">
+              <div className="p-3.5 bg-[var(--theme-primary)]/10 border border-[var(--theme-primary)]/30 rounded-2xl text-center text-xs text-[var(--theme-primary)] font-bold flex items-center justify-center gap-2 shadow-sm">
                 <Sparkles className="w-4 h-4" />
                 <span>تهانينا! لقد وصلت إلى أعلى مستوى في نظام كبار العملاء VIP في المتجر.</span>
               </div>
@@ -310,11 +310,11 @@ export default function LoyaltyLevels() {
 
         {/* Levels List Section Header */}
         <div className="pt-2 flex items-center justify-between">
-          <h2 className="text-lg font-black text-[#C8A45C] flex items-center gap-2">
+          <h2 className="text-lg font-black text-[var(--theme-primary)] flex items-center gap-2">
             <Award className="w-5 h-5" />
             <span>كافة مستويات المنصة والمزايا</span>
           </h2>
-          <span className="text-xs text-[#9CA3AF] font-bold bg-[#2D2D2D] px-3 py-1 rounded-xl border border-[#3D3D3D]">
+          <span className="text-xs text-[var(--theme-text-muted)] font-bold bg-[var(--theme-card)] px-3 py-1 rounded-xl border border-[var(--theme-border)]">
             {levels.length} مستويات متاحة
           </span>
         </div>
@@ -326,7 +326,7 @@ export default function LoyaltyLevels() {
             const discPct = Number(lvl.discount_percent ?? lvl.discountPercent ?? 0);
             const discFixed = Number(lvl.discount_fixed_amount ?? lvl.discountFixedAmount ?? 0);
             const orderNum = Number(lvl.level_order ?? lvl.levelOrder ?? lvl.id);
-            const color = lvl.badge_color || lvl.badgeColor || "#C8A45C";
+            const color = lvl.badge_color || lvl.badgeColor || "var(--theme-primary)";
 
             const isCurrent = orderNum === currentLevelOrder || lvl.id === currentLvl?.id;
             const isUnlocked = totalSpent >= reqAmt || isCurrent;
@@ -346,10 +346,10 @@ export default function LoyaltyLevels() {
                 key={lvl.id}
                 className={`rounded-2xl p-5 sm:p-6 transition-all relative overflow-hidden border ${
                   isCurrent
-                    ? "bg-[#2D2D2D] border-2 border-[#C8A45C] shadow-xl shadow-[#C8A45C]/15 ring-1 ring-[#C8A45C]/40"
+                    ? "bg-[var(--theme-card)] border-2 border-[var(--theme-primary)] shadow-xl shadow-[var(--theme-primary)]/15 ring-1 ring-[var(--theme-primary)]/40"
                     : isUnlocked
-                    ? "bg-[#2D2D2D] border border-emerald-500/40 hover:border-emerald-500/70"
-                    : "bg-[#2D2D2D] border border-[#3D3D3D] hover:border-[#4B4B4B] opacity-80"
+                    ? "bg-[var(--theme-card)] border border-emerald-500/40 hover:border-emerald-500/70"
+                    : "bg-[var(--theme-card)] border border-[var(--theme-border)] hover:border-[var(--theme-border)] opacity-80"
                 }`}
               >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -359,10 +359,10 @@ export default function LoyaltyLevels() {
                     <div
                       className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border shadow-inner transition-all ${
                         isCurrent
-                          ? "bg-[#C8A45C]/20 border-[#C8A45C] text-[#C8A45C]"
+                          ? "bg-[var(--theme-primary)]/20 border-[var(--theme-primary)] text-[var(--theme-primary)]"
                           : isUnlocked
                           ? "bg-emerald-500/15 border-emerald-500/40 text-emerald-400"
-                          : "bg-[#1A1A1A] border-[#3D3D3D] text-[#9CA3AF]"
+                          : "bg-[var(--theme-background)] border-[var(--theme-border)] text-[var(--theme-text-muted)]"
                       }`}
                     >
                       {isCurrent ? (
@@ -376,14 +376,14 @@ export default function LoyaltyLevels() {
 
                     <div className="space-y-1.5">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <h3 className={`font-black text-lg ${isCurrent ? "text-[#C8A45C]" : "text-white"}`}>
+                        <h3 className={`font-black text-lg ${isCurrent ? "text-[var(--theme-primary)]" : "text-[var(--theme-text-primary)]"}`}>
                           {lvl.name_ar || lvl.nameAr
                             ? (lvl.name && lvl.name !== (lvl.name_ar || lvl.nameAr) ? `${lvl.name_ar || lvl.nameAr} (${lvl.name})` : (lvl.name_ar || lvl.nameAr))
                             : lvl.name}
                         </h3>
 
                         {isCurrent && (
-                          <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-[#C8A45C] text-black font-extrabold flex items-center gap-1 shadow-sm">
+                          <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-[var(--theme-primary)] text-black font-extrabold flex items-center gap-1 shadow-sm">
                             <Sparkles className="w-3 h-3" /> مستواك الحالي
                           </span>
                         )}
@@ -395,14 +395,14 @@ export default function LoyaltyLevels() {
                         )}
 
                         {!isUnlocked && (
-                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#1A1A1A] text-[#9CA3AF] border border-[#3D3D3D] font-medium">
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-[var(--theme-background)] text-[var(--theme-text-muted)] border border-[var(--theme-border)] font-medium">
                             مستوى مغلق
                           </span>
                         )}
                       </div>
 
                       {lvl.description && (
-                        <p className="text-xs text-[#9CA3AF] leading-relaxed">{lvl.description}</p>
+                        <p className="text-xs text-[var(--theme-text-muted)] leading-relaxed">{lvl.description}</p>
                       )}
 
                       {/* Benefits Checklist */}
@@ -413,11 +413,11 @@ export default function LoyaltyLevels() {
                               key={i}
                               className={`text-[11px] px-2.5 py-1 rounded-lg border flex items-center gap-1.5 ${
                                 isCurrent
-                                  ? "bg-[#1A1A1A] border-[#C8A45C]/40 text-[#C8A45C]"
-                                  : "bg-[#1A1A1A] border-[#3D3D3D] text-[#9CA3AF]"
+                                  ? "bg-[var(--theme-background)] border-[var(--theme-primary)]/40 text-[var(--theme-primary)]"
+                                  : "bg-[var(--theme-background)] border-[var(--theme-border)] text-[var(--theme-text-muted)]"
                               }`}
                             >
-                              <CheckCircle2 className="w-3 h-3 text-[#C8A45C]" />
+                              <CheckCircle2 className="w-3 h-3 text-[var(--theme-primary)]" />
                               {benefit}
                             </span>
                           ))}
@@ -427,19 +427,19 @@ export default function LoyaltyLevels() {
                   </div>
 
                   {/* Right: Requirements & Discount */}
-                  <div className="sm:text-left flex sm:flex-col items-center sm:items-end justify-between border-t sm:border-t-0 border-[#3D3D3D] pt-3 sm:pt-0 shrink-0 gap-2">
+                  <div className="sm:text-left flex sm:flex-col items-center sm:items-end justify-between border-t sm:border-t-0 border-[var(--theme-border)] pt-3 sm:pt-0 shrink-0 gap-2">
                     <div className="text-right sm:text-left">
-                      <span className="text-[10px] text-[#9CA3AF] block font-bold">حد الإنفاق المطلوب</span>
-                      <span className={`text-base sm:text-lg font-black font-mono ${isCurrent ? "text-[#C8A45C]" : "text-white"}`}>
+                      <span className="text-[10px] text-[var(--theme-text-muted)] block font-bold">حد الإنفاق المطلوب</span>
+                      <span className={`text-base sm:text-lg font-black font-mono ${isCurrent ? "text-[var(--theme-primary)]" : "text-[var(--theme-text-primary)]"}`}>
                         ${reqAmt.toFixed(2)}
                       </span>
                     </div>
 
                     <div className="text-left sm:mt-1">
-                      <span className="text-[10px] text-[#9CA3AF] block font-bold">
+                      <span className="text-[10px] text-[var(--theme-text-muted)] block font-bold">
                         {discFixed > 0 ? "خصم الوحدة" : "نسبة الخصم"}
                       </span>
-                      <span className="inline-block text-xs sm:text-sm font-black text-[#C8A45C] bg-[#C8A45C]/15 px-2.5 py-0.5 rounded-lg border border-[#C8A45C]/30 font-mono">
+                      <span className="inline-block text-xs sm:text-sm font-black text-[var(--theme-primary)] bg-[var(--theme-primary)]/15 px-2.5 py-0.5 rounded-lg border border-[var(--theme-primary)]/30 font-mono">
                         {discFixed > 0 ? `$${discFixed}` : `${Number(discPct).toFixed(0)}%`}
                       </span>
                     </div>

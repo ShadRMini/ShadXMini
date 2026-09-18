@@ -148,48 +148,48 @@ export default function Home() {
         {/* Top Section: Guest Preview Banner or User & Balance Section */}
         {isGuest ? (
           <div className="px-2 sm:px-4">
-            <div className="rounded-3xl bg-gradient-to-br from-[#2D2D2D] via-[#222222] to-[#171717] border-2 border-[#C8A45C]/50 shadow-2xl overflow-hidden relative p-6 sm:p-8 text-white">
-              {/* Decorative Gold Glow Orbs */}
-              <div className="absolute top-0 right-0 w-64 h-64 bg-[#C8A45C]/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-              <div className="absolute bottom-0 left-0 w-48 h-48 bg-[#FDE68A]/10 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2 pointer-events-none" />
+            <div className="rounded-3xl bg-[var(--theme-card)] border-2 border-[var(--theme-border)] shadow-2xl overflow-hidden relative p-6 sm:p-8 text-[var(--theme-text-primary)]">
+              {/* Decorative Glow Orbs */}
+              <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--theme-primary)]/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+              <div className="absolute bottom-0 left-0 w-48 h-48 bg-[var(--theme-accent)]/10 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2 pointer-events-none" />
 
               <div className="relative z-10 flex flex-col items-center text-center space-y-4 max-w-2xl mx-auto">
                 {/* Badge */}
-                <div className="inline-flex items-center gap-2 bg-[#C8A45C]/20 border border-[#C8A45C]/40 px-3.5 py-1.5 rounded-full text-xs font-bold text-[#FDE68A] shadow-xs">
-                  <Sparkles size={14} className="text-[#C8A45C]" />
+                <div className="inline-flex items-center gap-2 bg-[var(--theme-primary)]/20 border border-[var(--theme-border)] px-3.5 py-1.5 rounded-full text-xs font-bold text-[var(--theme-accent)] shadow-xs">
+                  <Sparkles size={14} className="text-[var(--theme-primary)]" />
                   <span>استطلاع المتجر (وضع الزائر)</span>
                 </div>
 
                 {/* Title */}
-                <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-white tracking-tight leading-tight">
+                <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-[var(--theme-text-primary)] tracking-tight leading-tight">
                   {storeSettings.guestPreviewTitle || "مرحباً بك في متجرنا! استطلع الأقسام والمنتجات المتاحة"}
                 </h1>
 
                 {/* Subtitle */}
-                <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed max-w-xl">
+                <p className="text-xs sm:text-sm text-[var(--theme-text-muted)] leading-relaxed max-w-xl">
                   {storeSettings.guestPreviewSubtitle || "تصفح تشكيلتنا الواسعة من الألعاب، البطاقات الرقمية، والاشتراكات. لبدء الشراء والاستمتاع بخدماتنا، سجل دخولك أو أنشئ حسابك الآن."}
                 </p>
 
                 {/* Action Buttons */}
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-3 w-full pt-2">
                   <Link href="/login" className="w-full sm:w-auto">
-                    <button className="w-full sm:w-auto min-w-[160px] bg-[#C8A45C] hover:bg-[#B8954A] text-[#1A1A1A] font-black text-sm px-6 py-3.5 rounded-2xl shadow-lg shadow-[#C8A45C]/30 flex items-center justify-center gap-2.5 transition active:scale-95 cursor-pointer">
+                    <button className="w-full sm:w-auto min-w-[160px] bg-[var(--theme-primary)] hover:opacity-90 text-black font-black text-sm px-6 py-3.5 rounded-2xl shadow-lg flex items-center justify-center gap-2.5 transition active:scale-95 cursor-pointer">
                       <LogIn size={18} className="stroke-[2.5]" />
                       <span>{storeSettings.guestPreviewLoginButton || "تسجيل الدخول"}</span>
                     </button>
                   </Link>
 
                   <Link href="/register" className="w-full sm:w-auto">
-                    <button className="w-full sm:w-auto min-w-[160px] bg-[#1A1A1A]/80 hover:bg-[#252525] border border-[#C8A45C]/60 text-[#FDE68A] font-black text-sm px-6 py-3.5 rounded-2xl shadow-md flex items-center justify-center gap-2.5 transition active:scale-95 cursor-pointer">
-                      <UserPlus size={18} className="stroke-[2.5] text-[#C8A45C]" />
+                    <button className="w-full sm:w-auto min-w-[160px] bg-[var(--theme-background)] hover:bg-[var(--theme-input-bg)] border border-[var(--theme-border)] text-[var(--theme-accent)] font-black text-sm px-6 py-3.5 rounded-2xl shadow-md flex items-center justify-center gap-2.5 transition active:scale-95 cursor-pointer">
+                      <UserPlus size={18} className="stroke-[2.5] text-[var(--theme-primary)]" />
                       <span>{storeSettings.guestPreviewRegisterButton || "إنشاء حساب جديد"}</span>
                     </button>
                   </Link>
                 </div>
 
                 {/* Guest Note */}
-                <div className="pt-2 border-t border-[#C8A45C]/20 w-full flex items-center justify-center gap-2 text-zinc-400 text-xs font-semibold">
-                  <Info size={15} className="text-[#C8A45C] shrink-0" />
+                <div className="pt-2 border-t border-[var(--theme-border)] w-full flex items-center justify-center gap-2 text-[var(--theme-text-muted)] text-xs font-semibold">
+                  <Info size={15} className="text-[var(--theme-primary)] shrink-0" />
                   <span>
                     {storeSettings.guestPreviewNote || "لا يمكنك الشراء أو استخدام المتجر بدون حساب. اضغط على أي قسم أو منتج للتسجيل."}
                   </span>

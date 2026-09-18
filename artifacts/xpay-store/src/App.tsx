@@ -75,51 +75,51 @@ function StoreMaintenance({ settings }: { settings: AppSettings }) {
   const getIconComponent = (iconName: string) => {
     switch (iconName) {
       case "Construction":
-        return <Construction className="w-10 h-10 text-[#C8A45C] animate-bounce" />;
+        return <Construction className="w-10 h-10 text-[var(--theme-primary)] animate-bounce" />;
       case "Clock":
-        return <Clock className="w-10 h-10 text-[#C8A45C] animate-spin" style={{ animationDuration: "6s" }} />;
+        return <Clock className="w-10 h-10 text-[var(--theme-primary)] animate-spin" style={{ animationDuration: "6s" }} />;
       case "ShieldAlert":
-        return <ShieldAlert className="w-10 h-10 text-[#C8A45C] animate-pulse" />;
+        return <ShieldAlert className="w-10 h-10 text-[var(--theme-primary)] animate-pulse" />;
       case "Server":
-        return <Server className="w-10 h-10 text-[#C8A45C] animate-pulse" />;
+        return <Server className="w-10 h-10 text-[var(--theme-primary)] animate-pulse" />;
       case "Wrench":
       default:
-        return <Wrench className="w-10 h-10 text-[#C8A45C] animate-spin" style={{ animationDuration: "8s" }} />;
+        return <Wrench className="w-10 h-10 text-[var(--theme-primary)] animate-spin" style={{ animationDuration: "8s" }} />;
     }
   };
 
   return (
-    <div className="min-h-[100dvh] bg-[#1A1A1A] text-white flex items-center justify-center p-6 selection:bg-[#C8A45C] selection:text-black" dir="rtl">
-      <div className="w-full max-w-lg rounded-3xl border border-[#C8A45C]/30 bg-[#242424]/95 p-8 sm:p-10 text-center shadow-2xl backdrop-blur-xl relative overflow-hidden">
-        <div className="absolute -top-24 -right-24 w-48 h-48 bg-[#C8A45C]/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-[#C8A45C]/10 rounded-full blur-3xl pointer-events-none" />
+    <div className="min-h-[100dvh] bg-[var(--theme-background)] text-[var(--theme-text-primary)] flex items-center justify-center p-6 selection:bg-[var(--theme-primary)] selection:text-black" dir="rtl">
+      <div className="w-full max-w-lg rounded-3xl border border-[var(--theme-border)] bg-[var(--theme-card)]/95 p-8 sm:p-10 text-center shadow-2xl backdrop-blur-xl relative overflow-hidden">
+        <div className="absolute -top-24 -right-24 w-48 h-48 bg-[var(--theme-primary)]/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-[var(--theme-primary)]/10 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-[#C8A45C]/15 border border-[#C8A45C]/30 shadow-inner">
+        <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-[var(--theme-primary)]/15 border border-[var(--theme-border)] shadow-inner">
           {getIconComponent(settings.maintenanceIcon || "Wrench")}
         </div>
 
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-[#C8A45C] tracking-wide">
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-[var(--theme-primary)] tracking-wide">
           {settings.maintenanceTitle || "الموقع قيد الصيانة المؤقتة"}
         </h1>
 
-        <p className="mt-4 text-sm sm:text-base leading-8 text-zinc-300">
+        <p className="mt-4 text-sm sm:text-base leading-8 text-[var(--theme-text-muted)]">
           {settings.maintenanceMessage}
         </p>
 
         {settings.maintenanceEstimatedTime && (
-          <div className="mt-6 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#1A1A1A] border border-[#C8A45C]/30 text-xs sm:text-sm text-[#FDE68A] font-medium shadow-sm">
-            <Clock className="w-4 h-4 text-[#C8A45C]" />
+          <div className="mt-6 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--theme-background)] border border-[var(--theme-border)] text-xs sm:text-sm text-[var(--theme-accent)] font-medium shadow-sm">
+            <Clock className="w-4 h-4 text-[var(--theme-primary)]" />
             <span>{settings.maintenanceEstimatedTime}</span>
           </div>
         )}
 
         {settings.maintenanceContactEnabled !== false && settings.maintenanceContactUrl && (
-          <div className="mt-8 pt-6 border-t border-zinc-800">
+          <div className="mt-8 pt-6 border-t border-[var(--theme-border)]">
             <a
               href={settings.maintenanceContactUrl}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-3.5 rounded-full bg-[#C8A45C] text-[#1A1A1A] font-extrabold text-sm sm:text-base shadow-lg shadow-[#C8A45C]/20 hover:bg-[#B8954A] transition duration-200"
+              className="inline-flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-3.5 rounded-full bg-[var(--theme-primary)] text-black font-extrabold text-sm sm:text-base shadow-lg hover:opacity-90 transition duration-200"
             >
               <MessageCircle className="w-5 h-5" />
               <span>{settings.maintenanceContactText || "تواصل معنا"}</span>

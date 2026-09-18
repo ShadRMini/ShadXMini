@@ -537,7 +537,7 @@ export default function DepositMethod() {
 
           {method.qrImage && (
             <div className="mt-4 flex justify-center items-center">
-              <div className="w-full max-w-[180px] sm:max-w-[220px] aspect-square rounded-2xl border border-[#C8A45C]/40 p-2 bg-white shadow-md flex items-center justify-center">
+              <div className="w-full max-w-[180px] sm:max-w-[220px] aspect-square rounded-2xl border border-[var(--theme-border)] p-2 bg-white shadow-md flex items-center justify-center">
                 <img
                   src={method.qrImage}
                   alt="QR Code"
@@ -549,26 +549,26 @@ export default function DepositMethod() {
         </div>
 
         {/* Alert Note Box */}
-        <div className="bg-[#241D12] border border-[#C8A45C]/40 rounded-2xl p-4 flex gap-3 text-[#FDE68A] shadow-md">
-          <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5 text-[#C8A45C]" />
-          <div className="text-xs leading-relaxed space-y-1 font-medium text-[#E5E7EB]">
+        <div className="bg-[var(--theme-input-bg)] border border-[var(--theme-border)] rounded-2xl p-4 flex gap-3 text-[var(--theme-accent)] shadow-md">
+          <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5 text-[var(--theme-primary)]" />
+          <div className="text-xs leading-relaxed space-y-1 font-medium text-[var(--theme-text-primary)]">
             {method.code === "sham_cash_auto" ? (
               <>
-                <p className="font-bold text-[#FDE68A]">التحقق يتم عبر API بشكل تلقائي فوري داخل المتجر.</p>
-                <p className="text-zinc-300">بعد إنشاء الفاتورة أدخل رقم العملية كما ظهر في شام كاش ثم اضغط تحقق.</p>
+                <p className="font-bold text-[var(--theme-accent)]">التحقق يتم عبر API بشكل تلقائي فوري داخل المتجر.</p>
+                <p className="text-[var(--theme-text-muted)]">بعد إنشاء الفاتورة أدخل رقم العملية كما ظهر في شام كاش ثم اضغط تحقق.</p>
               </>
             ) : (
               <>
-                <p className="font-bold text-[#FDE68A]">يرجى إدخال رقم عملية صحيح أو رفع إيصال واضح.</p>
-                <p className="text-zinc-300">طلبات الإيداع اليدوي تُرسل للمشرفين للمراجعة السريعة وإضافة الرصيد.</p>
+                <p className="font-bold text-[var(--theme-accent)]">يرجى إدخال رقم عملية صحيح أو رفع إيصال واضح.</p>
+                <p className="text-[var(--theme-text-muted)]">طلبات الإيداع اليدوي تُرسل للمشرفين للمراجعة السريعة وإضافة الرصيد.</p>
               </>
             )}
           </div>
         </div>
 
         {/* Form Card */}
-        <div className="bg-[#2D2D2D] border border-[#C8A45C]/35 rounded-3xl p-5 sm:p-6 shadow-xl space-y-4">
-          <h3 className="font-bold text-base text-[#FDE68A] pb-2 border-b border-zinc-700/80">تفاصيل التحويل</h3>
+        <div className="bg-[var(--theme-card)] border border-[var(--theme-border)] rounded-3xl p-5 sm:p-6 shadow-xl space-y-4">
+          <h3 className="font-bold text-base text-[var(--theme-accent)] pb-2 border-b border-[var(--theme-border)]">تفاصيل التحويل</h3>
 
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -577,18 +577,18 @@ export default function DepositMethod() {
                 name="currency"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-xs font-bold text-[#E5E7EB]">العملة</FormLabel>
+                    <FormLabel className="text-xs font-bold text-[var(--theme-text-primary)]">العملة</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
-                        <SelectTrigger className="h-12 bg-[#3D3D3D] border-[#4B5563] text-white rounded-xl focus:border-[#C8A45C] focus:ring-1 focus:ring-[#C8A45C]">
+                        <SelectTrigger className="h-12 bg-[var(--theme-input-bg)] border-[var(--theme-border)] text-[var(--theme-text-primary)] rounded-xl focus:border-[var(--theme-primary)] focus:ring-1 focus:ring-[var(--theme-primary)]">
                           <SelectValue placeholder="اختر العملة" />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent className="bg-[#2D2D2D] border-[#C8A45C]/40 text-white">
-                        <SelectItem value="USD" className="hover:bg-[#C8A45C]/20 hover:text-[#FDE68A] focus:bg-[#C8A45C]/20 focus:text-[#FDE68A]">
+                      <SelectContent className="bg-[var(--theme-card)] border-[var(--theme-border)] text-[var(--theme-text-primary)]">
+                        <SelectItem value="USD" className="hover:bg-[var(--theme-primary)]/20 hover:text-[var(--theme-accent)] focus:bg-[var(--theme-primary)]/20 focus:text-[var(--theme-accent)]">
                           دولار أمريكي (USD)
                         </SelectItem>
-                        <SelectItem value="SYP" className="hover:bg-[#C8A45C]/20 hover:text-[#FDE68A] focus:bg-[#C8A45C]/20 focus:text-[#FDE68A]">
+                        <SelectItem value="SYP" className="hover:bg-[var(--theme-primary)]/20 hover:text-[var(--theme-accent)] focus:bg-[var(--theme-primary)]/20 focus:text-[var(--theme-accent)]">
                           ليرة سورية (SYP)
                         </SelectItem>
                       </SelectContent>
@@ -603,13 +603,13 @@ export default function DepositMethod() {
                 name="amount"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-xs font-bold text-[#E5E7EB]">المبلغ المحول</FormLabel>
+                    <FormLabel className="text-xs font-bold text-[var(--theme-text-primary)]">المبلغ المحول</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
                         placeholder="أدخل المبلغ..."
                         {...field}
-                        className="h-12 bg-[#3D3D3D] border-[#4B5563] text-white placeholder:text-zinc-400 rounded-xl text-base focus:border-[#C8A45C] focus:ring-1 focus:ring-[#C8A45C]"
+                        className="h-12 bg-[var(--theme-input-bg)] border-[var(--theme-border)] text-[var(--theme-text-primary)] placeholder:text-[var(--theme-text-muted)] rounded-xl text-base focus:border-[var(--theme-primary)] focus:ring-1 focus:ring-[var(--theme-primary)]"
                       />
                     </FormControl>
                     {/* Suggested Amounts from displayConfig */}
@@ -620,7 +620,7 @@ export default function DepositMethod() {
                             key={amt}
                             type="button"
                             onClick={() => form.setValue("amount", amt as any)}
-                            className="px-2.5 py-1 rounded-lg text-xs font-mono font-bold bg-[#3D3D3D] hover:bg-[#C8A45C]/20 text-[#FDE68A] border border-zinc-600 transition-colors cursor-pointer"
+                            className="px-2.5 py-1 rounded-lg text-xs font-mono font-bold bg-[var(--theme-input-bg)] hover:bg-[var(--theme-primary)]/20 text-[var(--theme-accent)] border border-[var(--theme-border)] transition-colors cursor-pointer"
                           >
                             ${amt}
                           </button>
@@ -638,7 +638,7 @@ export default function DepositMethod() {
                   name="transactionId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-xs font-bold text-[#E5E7EB]">رقم العملية (Transaction ID/Ref)</FormLabel>
+                      <FormLabel className="text-xs font-bold text-[var(--theme-text-primary)]">رقم العملية (Transaction ID/Ref)</FormLabel>
                       <FormControl>
                         <Input
                           type="text"
@@ -647,7 +647,7 @@ export default function DepositMethod() {
                           placeholder="أدخل رقم عملية التحويل..."
                           {...field}
                           onChange={(e) => field.onChange(e.target.value.replace(/\D+/g, ""))}
-                          className="h-12 bg-[#3D3D3D] border-[#4B5563] text-white placeholder:text-zinc-400 rounded-xl text-base font-mono focus:border-[#C8A45C] focus:ring-1 focus:ring-[#C8A45C]"
+                          className="h-12 bg-[var(--theme-input-bg)] border-[var(--theme-border)] text-[var(--theme-text-primary)] placeholder:text-[var(--theme-text-muted)] rounded-xl text-base font-mono focus:border-[var(--theme-primary)] focus:ring-1 focus:ring-[var(--theme-primary)]"
                         />
                       </FormControl>
                       <FormMessage className="text-red-400 text-xs" />
@@ -662,24 +662,24 @@ export default function DepositMethod() {
                   name="proofImage"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-xs font-bold text-[#E5E7EB]">صورة الإيصال (اختياري)</FormLabel>
+                      <FormLabel className="text-xs font-bold text-[var(--theme-text-primary)]">صورة الإيصال (اختياري)</FormLabel>
                       <FormControl>
                         <div className="space-y-2">
                           <Input
                             type="file"
                             accept="image/*"
                             onChange={(e) => onProofFileChange(e.target.files?.[0])}
-                            className="h-12 bg-[#3D3D3D] border-[#4B5563] text-white rounded-xl text-xs sm:text-sm file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-[#C8A45C] file:text-[#1A1A1A] hover:file:bg-[#B8954A]"
+                            className="h-12 bg-[var(--theme-input-bg)] border-[var(--theme-border)] text-[var(--theme-text-primary)] rounded-xl text-xs sm:text-sm file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-[var(--theme-primary)] file:text-black hover:file:opacity-90"
                           />
                           {!isShamCashManual ? (
                             <Input
                               placeholder="أو رابط صورة الإيصال"
                               value={field.value || ""}
                               onChange={(e) => field.onChange(e.target.value)}
-                              className="h-12 bg-[#3D3D3D] border-[#4B5563] text-white placeholder:text-zinc-400 rounded-xl text-base focus:border-[#C8A45C] focus:ring-1 focus:ring-[#C8A45C]"
+                              className="h-12 bg-[var(--theme-input-bg)] border-[var(--theme-border)] text-[var(--theme-text-primary)] placeholder:text-[var(--theme-text-muted)] rounded-xl text-base focus:border-[var(--theme-primary)] focus:ring-1 focus:ring-[var(--theme-primary)]"
                             />
                           ) : null}
-                          {proofImageName ? <div className="text-xs text-[#FDE68A]">الملف المحدد: {proofImageName}</div> : null}
+                          {proofImageName ? <div className="text-xs text-[var(--theme-accent)]">الملف المحدد: {proofImageName}</div> : null}
                         </div>
                       </FormControl>
                       <FormMessage className="text-red-400 text-xs" />
@@ -694,7 +694,7 @@ export default function DepositMethod() {
                   disabled={createDeposit.isPending || autoLoading}
                   className="w-full h-13 rounded-2xl text-base font-black transition-all shadow-lg cursor-pointer active:scale-98 disabled:opacity-50"
                   style={{
-                    backgroundColor: cfg?.button_color || "#C8A45C",
+                    backgroundColor: cfg?.button_color || "var(--theme-primary)",
                     color: cfg?.button_color ? "#1A1A1A" : "#1A1A1A",
                   }}
                 >
@@ -708,11 +708,11 @@ export default function DepositMethod() {
           </Form>
 
           {isShamCashAuto && autoInvoice ? (
-            <div className="mt-5 space-y-3 rounded-2xl border border-[#C8A45C]/40 bg-[#1A1A1A] p-4 shadow-inner">
-              <div className="text-sm font-bold text-[#FDE68A]">
-                رقم الفاتورة (Invoice ID): <span className="font-mono text-white select-all">{autoInvoice.invoiceId}</span>
+            <div className="mt-5 space-y-3 rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-background)] p-4 shadow-inner">
+              <div className="text-sm font-bold text-[var(--theme-accent)]">
+                رقم الفاتورة (Invoice ID): <span className="font-mono text-[var(--theme-text-primary)] select-all">{autoInvoice.invoiceId}</span>
               </div>
-              <div className="text-xs text-zinc-400">
+              <div className="text-xs text-[var(--theme-text-muted)]">
                 {autoInvoice.expiresAt
                   ? `تنتهي الفاتورة عند: ${new Date(autoInvoice.expiresAt).toLocaleString()}`
                   : "يمكنك إنشاء فاتورة جديدة في أي وقت."}
@@ -724,13 +724,13 @@ export default function DepositMethod() {
                 placeholder="أدخل رقم العملية الذي ظهر في تطبيق شام كاش"
                 value={autoTransactionRef}
                 onChange={(e) => setAutoTransactionRef(e.target.value.replace(/\D+/g, ""))}
-                className="h-12 bg-[#3D3D3D] border-[#4B5563] text-white placeholder:text-zinc-400 rounded-xl text-base font-mono focus:border-[#C8A45C] focus:ring-1 focus:ring-[#C8A45C]"
+                className="h-12 bg-[var(--theme-input-bg)] border-[var(--theme-border)] text-[var(--theme-text-primary)] placeholder:text-[var(--theme-text-muted)] rounded-xl text-base font-mono focus:border-[var(--theme-primary)] focus:ring-1 focus:ring-[var(--theme-primary)]"
               />
               <Button
                 type="button"
                 onClick={verifyAutoInvoice}
                 disabled={autoVerifying}
-                className="w-full h-12 rounded-xl font-black bg-[#C8A45C] hover:bg-[#B8954A] text-[#1A1A1A] transition shadow-md cursor-pointer"
+                className="w-full h-12 rounded-xl font-black bg-[var(--theme-primary)] hover:opacity-90 text-black transition shadow-md cursor-pointer"
               >
                 {autoVerifying ? "جاري التحقق..." : "تحقق من العملية"}
               </Button>

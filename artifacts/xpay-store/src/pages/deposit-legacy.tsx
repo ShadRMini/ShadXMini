@@ -77,19 +77,19 @@ export default function LegacyDeposit() {
   };
 
   return (
-    <div className="min-h-screen bg-[#1A1A1A] text-white pb-24 p-4 animate-in fade-in duration-300" dir="rtl">
+    <div className="min-h-screen bg-[var(--theme-background)] text-[var(--theme-text-primary)] pb-24 p-4 animate-in fade-in duration-300" dir="rtl">
       <div className="mb-6 mt-4 text-center max-w-md mx-auto">
-        <div className="w-16 h-16 bg-gradient-to-br from-[#C8A45C]/25 to-[#1A1A1A] rounded-2xl flex items-center justify-center mx-auto mb-4 border border-[#C8A45C]/50 shadow-[0_0_25px_rgba(200,164,92,0.25)]">
-          <Wallet className="w-8 h-8 text-[#C8A45C]" />
+        <div className="w-16 h-16 bg-gradient-to-br from-[var(--theme-primary)]/25 to-[var(--theme-background)] rounded-2xl flex items-center justify-center mx-auto mb-4 border border-[var(--theme-border)] shadow-lg">
+          <Wallet className="w-8 h-8 text-[var(--theme-primary)]" />
         </div>
-        <h1 className="text-2xl font-black text-[#FDE68A] mb-2">اختر وسيلة الشحن</h1>
-        <p className="text-xs sm:text-sm text-zinc-400">وسائل دفع آمنة ومباشرة لإضافة الرصيد إلى حسابك فورياً</p>
+        <h1 className="text-2xl font-black text-[var(--theme-accent)] mb-2">اختر وسيلة الشحن</h1>
+        <p className="text-xs sm:text-sm text-[var(--theme-text-muted)]">وسائل دفع آمنة ومباشرة لإضافة الرصيد إلى حسابك فورياً</p>
       </div>
 
       {isLoading && visibleMethods.length === 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-3xl mx-auto">
           {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-36 rounded-3xl bg-zinc-800" />
+            <Skeleton key={i} className="h-36 rounded-3xl bg-[var(--theme-card)]" />
           ))}
         </div>
       ) : (
@@ -102,24 +102,24 @@ export default function LegacyDeposit() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.08 }}
-                  className="p-5 rounded-3xl border border-[#C8A45C]/35 bg-[#2D2D2D] hover:bg-[#383838] hover:border-[#C8A45C] hover:shadow-[0_0_20px_rgba(200,164,92,0.2)] transition-all cursor-pointer h-full flex flex-col items-center justify-center text-center group shadow-md"
+                  className="p-5 rounded-3xl border border-[var(--theme-border)] bg-[var(--theme-card)] hover:bg-[var(--theme-input-bg)] hover:border-[var(--theme-primary)] transition-all cursor-pointer h-full flex flex-col items-center justify-center text-center group shadow-md"
                 >
                   <div className="mb-3 transform group-hover:scale-110 transition-transform duration-300">
                     {getMethodIcon(method)}
                   </div>
-                  <h3 className="font-bold text-[#FDE68A] text-sm mb-1">{getDisplayName(method)}</h3>
-                  <p className="text-[10px] text-zinc-400">{getDisplaySubtitle(method)}</p>
+                  <h3 className="font-bold text-[var(--theme-accent)] text-sm mb-1">{getDisplayName(method)}</h3>
+                  <p className="text-[10px] text-[var(--theme-text-muted)]">{getDisplaySubtitle(method)}</p>
                 </motion.div>
               </Link>
             ))}
         </div>
       )}
 
-      <div className="mt-8 max-w-xl mx-auto bg-[#2D2D2D] border border-[#C8A45C]/30 rounded-2xl p-4 flex items-center gap-4 shadow-lg">
-        <ShieldCheck className="w-9 h-9 text-[#C8A45C] shrink-0" />
+      <div className="mt-8 max-w-xl mx-auto bg-[var(--theme-card)] border border-[var(--theme-border)] rounded-2xl p-4 flex items-center gap-4 shadow-lg">
+        <ShieldCheck className="w-9 h-9 text-[var(--theme-primary)] shrink-0" />
         <div>
-          <h4 className="text-sm font-bold text-[#FDE68A] mb-1">دفع آمن ومشفّر 100%</h4>
-          <p className="text-xs text-zinc-300">جميع عمليات الدفع مشفّرة ومؤمنة بالكامل. يتم إضافة الرصيد تلقائيًا أو بعد مراجعة فورية.</p>
+          <h4 className="text-sm font-bold text-[var(--theme-accent)] mb-1">دفع آمن ومشفّر 100%</h4>
+          <p className="text-xs text-[var(--theme-text-muted)]">جميع عمليات الدفع مشفّرة ومؤمنة بالكامل. يتم إضافة الرصيد تلقائيًا أو بعد مراجعة فورية.</p>
         </div>
       </div>
     </div>

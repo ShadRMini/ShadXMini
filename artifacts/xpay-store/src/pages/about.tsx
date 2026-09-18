@@ -141,10 +141,10 @@ const DEFAULT_CONFIG: AboutConfig = {
     },
   ],
   style: {
-    bg_color: "#1A1A1A",
-    text_color: "#FFFFFF",
-    title_color: "#C8A45C",
-    section_bg: "#2D2D2D",
+    bg_color: "var(--theme-background)",
+    text_color: "var(--theme-text-primary)",
+    title_color: "var(--theme-primary)",
+    section_bg: "var(--theme-card)",
     border_radius: "16px",
     font_family: "Cairo",
   },
@@ -202,9 +202,9 @@ export default function About() {
 
   if (isLoading) {
     return (
-      <div className="p-6 min-h-screen bg-[#1A1A1A] text-white flex flex-col items-center justify-center gap-3" dir="rtl">
-        <div className="w-8 h-8 border-2 border-[#C8A45C] border-t-transparent rounded-full animate-spin" />
-        <span className="text-xs text-zinc-400 font-medium">جاري تحميل صفحة من نحن...</span>
+      <div className="p-6 min-h-screen bg-[var(--theme-background)] text-[var(--theme-text-primary)] flex flex-col items-center justify-center gap-3" dir="rtl">
+        <div className="w-8 h-8 border-2 border-[var(--theme-primary)] border-t-transparent rounded-full animate-spin" />
+        <span className="text-xs text-[var(--theme-text-muted)] font-medium">جاري تحميل صفحة من نحن...</span>
       </div>
     );
   }
@@ -216,25 +216,25 @@ export default function About() {
         className="p-4 sm:p-6 min-h-screen pb-24 animate-in fade-in duration-300"
         dir="rtl"
         style={{
-          backgroundColor: "var(--about-bg-color, var(--theme-background, #1A1A1A))",
-          color: "var(--about-text-color, var(--theme-text-primary, #FFFFFF))",
+          backgroundColor: "var(--about-bg-color, var(--theme-background))",
+          color: "var(--about-text-color, var(--theme-text-primary))",
         }}
       >
         {/* Top Header */}
         <div className="flex items-center justify-between mb-6 max-w-2xl mx-auto">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-[#C8A45C]/20 border border-[#C8A45C]/40 flex items-center justify-center text-[#C8A45C]">
+            <div className="w-10 h-10 rounded-2xl bg-[var(--theme-primary)]/20 border border-[var(--theme-border)] flex items-center justify-center text-[var(--theme-primary)]">
               <Info size={22} />
             </div>
             <div>
-              <h1 className="text-xl font-black text-[#FDE68A]">من نحن</h1>
-              <p className="text-xs text-zinc-400 font-medium">تعرف على المنصة وخدماتنا (الوضع الكلاسيكي)</p>
+              <h1 className="text-xl font-black text-[var(--theme-accent)]">من نحن</h1>
+              <p className="text-xs text-[var(--theme-text-muted)] font-medium">تعرف على المنصة وخدماتنا (الوضع الكلاسيكي)</p>
             </div>
           </div>
           <Link href="/">
             <button
-              className="flex items-center gap-1 text-xs font-bold text-[#C8A45C] hover:text-[#FDE68A] border border-zinc-700 hover:border-[#C8A45C] px-3.5 py-2 rounded-xl shadow-xs transition cursor-pointer"
-              style={{ backgroundColor: "var(--about-card-color, var(--theme-card, #2D2D2D))" }}
+              className="flex items-center gap-1 text-xs font-bold text-[var(--theme-primary)] hover:text-[var(--theme-accent)] border border-[var(--theme-border)] px-3.5 py-2 rounded-xl shadow-xs transition cursor-pointer"
+              style={{ backgroundColor: "var(--about-card-color, var(--theme-card))" }}
             >
               <span>الرئيسية</span>
               <ArrowRight size={14} />
@@ -245,14 +245,14 @@ export default function About() {
         <div className="space-y-4 max-w-2xl mx-auto">
           {/* Hero Card */}
           <div
-            className="border border-[#C8A45C]/40 text-white rounded-3xl p-6 sm:p-8 text-center shadow-xl relative overflow-hidden"
-            style={{ backgroundColor: "var(--about-card-color, var(--theme-card, #2D2D2D))" }}
+            className="border border-[var(--theme-border)] text-[var(--theme-text-primary)] rounded-3xl p-6 sm:p-8 text-center shadow-xl relative overflow-hidden"
+            style={{ backgroundColor: "var(--about-card-color, var(--theme-card))" }}
           >
-            <div className="absolute top-0 right-0 w-40 h-40 bg-[#C8A45C]/10 rounded-full blur-3xl pointer-events-none" />
-            <h2 className="text-xl sm:text-2xl font-black text-[#FDE68A] mb-2">
+            <div className="absolute top-0 right-0 w-40 h-40 bg-[var(--theme-primary)]/10 rounded-full blur-3xl pointer-events-none" />
+            <h2 className="text-xl sm:text-2xl font-black text-[var(--theme-accent)] mb-2">
               منصة ShadMini للخدمات الرقمية
             </h2>
-            <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed font-medium">
+            <p className="text-xs sm:text-sm text-[var(--theme-text-muted)] leading-relaxed font-medium">
               المنصة الرائدة والأسرع لخدمات شحن الألعاب، البطاقات الرقمية، والاشتراكات في الوطن العربي بأعلى معايير الأمان والسرعة.
             </p>
           </div>
@@ -260,53 +260,53 @@ export default function About() {
           {/* Feature Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div
-              className="border border-[#C8A45C]/30 rounded-2xl p-4 shadow-md hover:border-[#C8A45C] transition"
-              style={{ backgroundColor: "var(--about-card-color, var(--theme-card, #2D2D2D))" }}
+              className="border border-[var(--theme-border)] rounded-2xl p-4 shadow-md hover:border-[var(--theme-primary)] transition"
+              style={{ backgroundColor: "var(--about-card-color, var(--theme-card))" }}
             >
-              <div className="w-10 h-10 rounded-xl bg-[#1A1A1A] border border-[#C8A45C]/40 text-[#C8A45C] flex items-center justify-center mb-3">
+              <div className="w-10 h-10 rounded-xl bg-[var(--theme-background)] border border-[var(--theme-border)] text-[var(--theme-primary)] flex items-center justify-center mb-3">
                 <Zap size={20} />
               </div>
-              <h3 className="text-sm font-bold text-[#FDE68A] mb-1">تسليم فوري وآلي</h3>
-              <p className="text-xs text-zinc-400 leading-normal">
+              <h3 className="text-sm font-bold text-[var(--theme-accent)] mb-1">تسليم فوري وآلي</h3>
+              <p className="text-xs text-[var(--theme-text-muted)] leading-normal">
                 تنفيذ فوري لطلباتك عبر أحدث أنظمة الربط المباشر مع مزودي الخدمات العالمية.
               </p>
             </div>
 
             <div
-              className="border border-[#C8A45C]/30 rounded-2xl p-4 shadow-md hover:border-[#C8A45C] transition"
-              style={{ backgroundColor: "var(--about-card-color, var(--theme-card, #2D2D2D))" }}
+              className="border border-[var(--theme-border)] rounded-2xl p-4 shadow-md hover:border-[var(--theme-primary)] transition"
+              style={{ backgroundColor: "var(--about-card-color, var(--theme-card))" }}
             >
-              <div className="w-10 h-10 rounded-xl bg-[#1A1A1A] border border-[#C8A45C]/40 text-[#C8A45C] flex items-center justify-center mb-3">
+              <div className="w-10 h-10 rounded-xl bg-[var(--theme-background)] border border-[var(--theme-border)] text-[var(--theme-primary)] flex items-center justify-center mb-3">
                 <ShieldCheck size={20} />
               </div>
-              <h3 className="text-sm font-bold text-[#FDE68A] mb-1">حماية وأمان كامل</h3>
-              <p className="text-xs text-zinc-400 leading-normal">
+              <h3 className="text-sm font-bold text-[var(--theme-accent)] mb-1">حماية وأمان كامل</h3>
+              <p className="text-xs text-[var(--theme-text-muted)] leading-normal">
                 معاملات مالية مشفرة بالكامل لضمان سلامة بياناتك وأرصدتك الرقمية.
               </p>
             </div>
 
             <div
-              className="border border-[#C8A45C]/30 rounded-2xl p-4 shadow-md hover:border-[#C8A45C] transition"
-              style={{ backgroundColor: "var(--about-card-color, var(--theme-card, #2D2D2D))" }}
+              className="border border-[var(--theme-border)] rounded-2xl p-4 shadow-md hover:border-[var(--theme-primary)] transition"
+              style={{ backgroundColor: "var(--about-card-color, var(--theme-card))" }}
             >
-              <div className="w-10 h-10 rounded-xl bg-[#1A1A1A] border border-[#C8A45C]/40 text-[#C8A45C] flex items-center justify-center mb-3">
+              <div className="w-10 h-10 rounded-xl bg-[var(--theme-background)] border border-[var(--theme-border)] text-[var(--theme-primary)] flex items-center justify-center mb-3">
                 <Globe size={20} />
               </div>
-              <h3 className="text-sm font-bold text-[#FDE68A] mb-1">طرق دفع محلية ودولية</h3>
-              <p className="text-xs text-zinc-400 leading-normal">
+              <h3 className="text-sm font-bold text-[var(--theme-accent)] mb-1">طرق دفع محلية ودولية</h3>
+              <p className="text-xs text-[var(--theme-text-muted)] leading-normal">
                 دعم شام كاش، سيريتل كاش، MTN كاش، بينانس باي، وUSDT.
               </p>
             </div>
 
             <div
-              className="border border-[#C8A45C]/30 rounded-2xl p-4 shadow-md hover:border-[#C8A45C] transition"
-              style={{ backgroundColor: "var(--about-card-color, var(--theme-card, #2D2D2D))" }}
+              className="border border-[var(--theme-border)] rounded-2xl p-4 shadow-md hover:border-[var(--theme-primary)] transition"
+              style={{ backgroundColor: "var(--about-card-color, var(--theme-card))" }}
             >
-              <div className="w-10 h-10 rounded-xl bg-[#1A1A1A] border border-[#C8A45C]/40 text-[#C8A45C] flex items-center justify-center mb-3">
+              <div className="w-10 h-10 rounded-xl bg-[var(--theme-background)] border border-[var(--theme-border)] text-[var(--theme-primary)] flex items-center justify-center mb-3">
                 <Headphones size={20} />
               </div>
-              <h3 className="text-sm font-bold text-[#FDE68A] mb-1">دعم فني متواصل</h3>
-              <p className="text-xs text-zinc-400 leading-normal">
+              <h3 className="text-sm font-bold text-[var(--theme-accent)] mb-1">دعم فني متواصل</h3>
+              <p className="text-xs text-[var(--theme-text-muted)] leading-normal">
                 فريق دعم فني جاهز للإجابة على استفساراتكم ومتابعة الطلبات على مدار الساعة.
               </p>
             </div>
