@@ -399,131 +399,80 @@ export function applyStoreTheme(theme?: Partial<StoreThemeSettings> | null | und
   // Helper to format shadow
   const formatShadow = (s?: string) => getShadowCss(s || "medium", primary, isLight);
 
-  // --- Auth Section Variables ---
-  const authBg = currentTheme.auth_bg_color || currentTheme.authBgColor || "#1A1A1A";
-  const authCard = currentTheme.auth_card_color || currentTheme.authCardColor || "#2D2D2D";
-  const authText = currentTheme.auth_text_color || currentTheme.authTextColor || "#FFFFFF";
-  const authTitle = currentTheme.auth_title_color || currentTheme.authTitleColor || "#C8A45C";
-  const authBorder = currentTheme.auth_border_color || currentTheme.authBorderColor || "#C8A45C";
-  const authButton = currentTheme.auth_button_color || currentTheme.authButtonColor || "#C8A45C";
-  const authButtonText = currentTheme.auth_button_text_color || currentTheme.authButtonTextColor || "#1A1A1A";
-  const authButtonHover = currentTheme.auth_button_hover_color || currentTheme.authButtonHoverColor || "#B8954A";
-  const authFont = formatFont(currentTheme.auth_font_family || currentTheme.authFontFamily);
-  const authFontSize = `${currentTheme.auth_font_size || currentTheme.authFontSize || 14}px`;
-  const authHeadingSize = `${currentTheme.auth_heading_size || currentTheme.authHeadingSize || 20}px`;
-  const authRadius = `${currentTheme.auth_radius || currentTheme.authRadius || 16}px`;
-  const authPadding = `${currentTheme.auth_padding || currentTheme.authPadding || 24}px`;
-  const authShadow = formatShadow(currentTheme.auth_shadow || currentTheme.authShadow);
+  // Helper to set or remove custom section properties
+  const setOrRemoveProp = (propNames: string[], val?: string) => {
+    const cleanVal = String(val || "").trim();
+    if (cleanVal && !cleanVal.startsWith("var(")) {
+      propNames.forEach((p) => root.style.setProperty(p, cleanVal));
+    } else {
+      propNames.forEach((p) => root.style.removeProperty(p));
+    }
+  };
 
-  root.style.setProperty("--auth-bg-color", authBg);
-  root.style.setProperty("--auth-card-color", authCard);
-  root.style.setProperty("--auth-text-color", authText);
-  root.style.setProperty("--auth-title-color", authTitle);
-  root.style.setProperty("--auth-border-color", authBorder);
-  root.style.setProperty("--auth-button-color", authButton);
-  root.style.setProperty("--auth-button-text-color", authButtonText);
-  root.style.setProperty("--auth-button-hover-color", authButtonHover);
-  root.style.setProperty("--auth-font-family", authFont);
-  root.style.setProperty("--auth-font-size", authFontSize);
-  root.style.setProperty("--auth-heading-size", authHeadingSize);
-  root.style.setProperty("--auth-radius", authRadius);
-  root.style.setProperty("--auth-padding", authPadding);
-  root.style.setProperty("--auth-shadow", authShadow);
+  // --- Auth Section Variables ---
+  setOrRemoveProp(["--auth-bg-color", "--auth-bg"], currentTheme.auth_bg_color || currentTheme.authBgColor);
+  setOrRemoveProp(["--auth-card-color", "--auth-card-bg"], currentTheme.auth_card_color || currentTheme.authCardColor);
+  setOrRemoveProp(["--auth-text-color", "--auth-text"], currentTheme.auth_text_color || currentTheme.authTextColor);
+  setOrRemoveProp(["--auth-title-color", "--auth-title"], currentTheme.auth_title_color || currentTheme.authTitleColor);
+  setOrRemoveProp(["--auth-border-color", "--auth-border"], currentTheme.auth_border_color || currentTheme.authBorderColor);
+  setOrRemoveProp(["--auth-button-color", "--auth-button-bg"], currentTheme.auth_button_color || currentTheme.authButtonColor);
+  setOrRemoveProp(["--auth-button-text-color"], currentTheme.auth_button_text_color || currentTheme.authButtonTextColor);
+  setOrRemoveProp(["--auth-button-hover-color"], currentTheme.auth_button_hover_color || currentTheme.authButtonHoverColor);
+
+  if (currentTheme.auth_font_family || currentTheme.authFontFamily) {
+    root.style.setProperty("--auth-font-family", formatFont(currentTheme.auth_font_family || currentTheme.authFontFamily));
+  } else {
+    root.style.removeProperty("--auth-font-family");
+  }
 
   // --- Product Section Variables ---
-  const productBg = currentTheme.product_bg_color || currentTheme.productBgColor || "#1A1A1A";
-  const productCard = currentTheme.product_card_color || currentTheme.productCardColor || "#2D2D2D";
-  const productText = currentTheme.product_text_color || currentTheme.productTextColor || "#FFFFFF";
-  const productTitle = currentTheme.product_title_color || currentTheme.productTitleColor || "#FDE68A";
-  const productPrice = currentTheme.product_price_color || currentTheme.productPriceColor || "#C8A45C";
-  const productBorder = currentTheme.product_border_color || currentTheme.productBorderColor || "#C8A45C";
-  const productButton = currentTheme.product_button_color || currentTheme.productButtonColor || "#C8A45C";
-  const productButtonText = currentTheme.product_button_text_color || currentTheme.productButtonTextColor || "#1A1A1A";
-  const productButtonHover = currentTheme.product_button_hover_color || currentTheme.productButtonHoverColor || "#B8954A";
-  const productFont = formatFont(currentTheme.product_font_family || currentTheme.productFontFamily);
-  const productFontSize = `${currentTheme.product_font_size || currentTheme.productFontSize || 14}px`;
-  const productHeadingSize = `${currentTheme.product_heading_size || currentTheme.productHeadingSize || 20}px`;
-  const productRadius = `${currentTheme.product_radius || currentTheme.productRadius || 16}px`;
-  const productPadding = `${currentTheme.product_padding || currentTheme.productPadding || 24}px`;
-  const productShadow = formatShadow(currentTheme.product_shadow || currentTheme.productShadow);
+  setOrRemoveProp(["--product-bg-color", "--product-bg"], currentTheme.product_bg_color || currentTheme.productBgColor);
+  setOrRemoveProp(["--product-card-color", "--product-card-bg"], currentTheme.product_card_color || currentTheme.productCardColor);
+  setOrRemoveProp(["--product-text-color", "--product-text"], currentTheme.product_text_color || currentTheme.productTextColor);
+  setOrRemoveProp(["--product-title-color", "--product-title"], currentTheme.product_title_color || currentTheme.productTitleColor);
+  setOrRemoveProp(["--product-price-color", "--product-price"], currentTheme.product_price_color || currentTheme.productPriceColor);
+  setOrRemoveProp(["--product-border-color", "--product-border"], currentTheme.product_border_color || currentTheme.productBorderColor);
+  setOrRemoveProp(["--product-button-color", "--product-button-bg"], currentTheme.product_button_color || currentTheme.productButtonColor);
+  setOrRemoveProp(["--product-button-text-color"], currentTheme.product_button_text_color || currentTheme.productButtonTextColor);
+  setOrRemoveProp(["--product-button-hover-color"], currentTheme.product_button_hover_color || currentTheme.productButtonHoverColor);
 
-  root.style.setProperty("--product-bg-color", productBg);
-  root.style.setProperty("--product-card-color", productCard);
-  root.style.setProperty("--product-text-color", productText);
-  root.style.setProperty("--product-title-color", productTitle);
-  root.style.setProperty("--product-price-color", productPrice);
-  root.style.setProperty("--product-border-color", productBorder);
-  root.style.setProperty("--product-button-color", productButton);
-  root.style.setProperty("--product-button-text-color", productButtonText);
-  root.style.setProperty("--product-button-hover-color", productButtonHover);
-  root.style.setProperty("--product-font-family", productFont);
-  root.style.setProperty("--product-font-size", productFontSize);
-  root.style.setProperty("--product-heading-size", productHeadingSize);
-  root.style.setProperty("--product-radius", productRadius);
-  root.style.setProperty("--product-padding", productPadding);
-  root.style.setProperty("--product-shadow", productShadow);
+  if (currentTheme.product_font_family || currentTheme.productFontFamily) {
+    root.style.setProperty("--product-font-family", formatFont(currentTheme.product_font_family || currentTheme.productFontFamily));
+  } else {
+    root.style.removeProperty("--product-font-family");
+  }
 
   // --- About Section Variables ---
-  const aboutBg = currentTheme.about_bg_color || currentTheme.aboutBgColor || "#1A1A1A";
-  const aboutCard = currentTheme.about_card_color || currentTheme.aboutCardColor || "#2D2D2D";
-  const aboutText = currentTheme.about_text_color || currentTheme.aboutTextColor || "#FFFFFF";
-  const aboutTitle = currentTheme.about_title_color || currentTheme.aboutTitleColor || "#C8A45C";
-  const aboutBorder = currentTheme.about_border_color || currentTheme.aboutBorderColor || "#C8A45C";
-  const aboutButton = currentTheme.about_button_color || currentTheme.aboutButtonColor || "#C8A45C";
-  const aboutButtonText = currentTheme.about_button_text_color || currentTheme.aboutButtonTextColor || "#1A1A1A";
-  const aboutButtonHover = currentTheme.about_button_hover_color || currentTheme.aboutButtonHoverColor || "#B8954A";
-  const aboutFont = formatFont(currentTheme.about_font_family || currentTheme.aboutFontFamily);
-  const aboutFontSize = `${currentTheme.about_font_size || currentTheme.aboutFontSize || 14}px`;
-  const aboutHeadingSize = `${currentTheme.about_heading_size || currentTheme.aboutHeadingSize || 20}px`;
-  const aboutRadius = `${currentTheme.about_radius || currentTheme.aboutRadius || 16}px`;
-  const aboutPadding = `${currentTheme.about_padding || currentTheme.aboutPadding || 24}px`;
-  const aboutShadow = formatShadow(currentTheme.about_shadow || currentTheme.aboutShadow);
+  setOrRemoveProp(["--about-bg-color", "--about-bg"], currentTheme.about_bg_color || currentTheme.aboutBgColor);
+  setOrRemoveProp(["--about-card-color", "--about-card-bg"], currentTheme.about_card_color || currentTheme.aboutCardColor);
+  setOrRemoveProp(["--about-text-color", "--about-text"], currentTheme.about_text_color || currentTheme.aboutTextColor);
+  setOrRemoveProp(["--about-title-color", "--about-title"], currentTheme.about_title_color || currentTheme.aboutTitleColor);
+  setOrRemoveProp(["--about-border-color", "--about-border"], currentTheme.about_border_color || currentTheme.aboutBorderColor);
+  setOrRemoveProp(["--about-button-color", "--about-button-bg"], currentTheme.about_button_color || currentTheme.aboutButtonColor);
+  setOrRemoveProp(["--about-button-text-color"], currentTheme.about_button_text_color || currentTheme.aboutButtonTextColor);
+  setOrRemoveProp(["--about-button-hover-color"], currentTheme.about_button_hover_color || currentTheme.aboutButtonHoverColor);
 
-  root.style.setProperty("--about-bg-color", aboutBg);
-  root.style.setProperty("--about-card-color", aboutCard);
-  root.style.setProperty("--about-text-color", aboutText);
-  root.style.setProperty("--about-title-color", aboutTitle);
-  root.style.setProperty("--about-border-color", aboutBorder);
-  root.style.setProperty("--about-button-color", aboutButton);
-  root.style.setProperty("--about-button-text-color", aboutButtonText);
-  root.style.setProperty("--about-button-hover-color", aboutButtonHover);
-  root.style.setProperty("--about-font-family", aboutFont);
-  root.style.setProperty("--about-font-size", aboutFontSize);
-  root.style.setProperty("--about-heading-size", aboutHeadingSize);
-  root.style.setProperty("--about-radius", aboutRadius);
-  root.style.setProperty("--about-padding", aboutPadding);
-  root.style.setProperty("--about-shadow", aboutShadow);
+  if (currentTheme.about_font_family || currentTheme.aboutFontFamily) {
+    root.style.setProperty("--about-font-family", formatFont(currentTheme.about_font_family || currentTheme.aboutFontFamily));
+  } else {
+    root.style.removeProperty("--about-font-family");
+  }
 
   // --- Contact Section Variables ---
-  const contactBg = currentTheme.contact_bg_color || currentTheme.contactBgColor || "#1A1A1A";
-  const contactCard = currentTheme.contact_card_color || currentTheme.contactCardColor || "#2D2D2D";
-  const contactText = currentTheme.contact_text_color || currentTheme.contactTextColor || "#FFFFFF";
-  const contactTitle = currentTheme.contact_title_color || currentTheme.contactTitleColor || "#C8A45C";
-  const contactBorder = currentTheme.contact_border_color || currentTheme.contactBorderColor || "#C8A45C";
-  const contactButton = currentTheme.contact_button_color || currentTheme.contactButtonColor || "#C8A45C";
-  const contactButtonText = currentTheme.contact_button_text_color || currentTheme.contactButtonTextColor || "#1A1A1A";
-  const contactButtonHover = currentTheme.contact_button_hover_color || currentTheme.contactButtonHoverColor || "#B8954A";
-  const contactFont = formatFont(currentTheme.contact_font_family || currentTheme.contactFontFamily);
-  const contactFontSize = `${currentTheme.contact_font_size || currentTheme.contactFontSize || 14}px`;
-  const contactHeadingSize = `${currentTheme.contact_heading_size || currentTheme.contactHeadingSize || 20}px`;
-  const contactRadius = `${currentTheme.contact_radius || currentTheme.contactRadius || 16}px`;
-  const contactPadding = `${currentTheme.contact_padding || currentTheme.contactPadding || 24}px`;
-  const contactShadow = formatShadow(currentTheme.contact_shadow || currentTheme.contactShadow);
+  setOrRemoveProp(["--contact-bg-color", "--contact-bg"], currentTheme.contact_bg_color || currentTheme.contactBgColor);
+  setOrRemoveProp(["--contact-card-color", "--contact-card-bg"], currentTheme.contact_card_color || currentTheme.contactCardColor);
+  setOrRemoveProp(["--contact-text-color", "--contact-text"], currentTheme.contact_text_color || currentTheme.contactTextColor);
+  setOrRemoveProp(["--contact-title-color", "--contact-title"], currentTheme.contact_title_color || currentTheme.contactTitleColor);
+  setOrRemoveProp(["--contact-border-color", "--contact-border"], currentTheme.contact_border_color || currentTheme.contactBorderColor);
+  setOrRemoveProp(["--contact-button-color", "--contact-button-bg"], currentTheme.contact_button_color || currentTheme.contactButtonColor);
+  setOrRemoveProp(["--contact-button-text-color"], currentTheme.contact_button_text_color || currentTheme.contactButtonTextColor);
+  setOrRemoveProp(["--contact-button-hover-color"], currentTheme.contact_button_hover_color || currentTheme.contactButtonHoverColor);
 
-  root.style.setProperty("--contact-bg-color", contactBg);
-  root.style.setProperty("--contact-card-color", contactCard);
-  root.style.setProperty("--contact-text-color", contactText);
-  root.style.setProperty("--contact-title-color", contactTitle);
-  root.style.setProperty("--contact-border-color", contactBorder);
-  root.style.setProperty("--contact-button-color", contactButton);
-  root.style.setProperty("--contact-button-text-color", contactButtonText);
-  root.style.setProperty("--contact-button-hover-color", contactButtonHover);
-  root.style.setProperty("--contact-font-family", contactFont);
-  root.style.setProperty("--contact-font-size", contactFontSize);
-  root.style.setProperty("--contact-heading-size", contactHeadingSize);
-  root.style.setProperty("--contact-radius", contactRadius);
-  root.style.setProperty("--contact-padding", contactPadding);
-  root.style.setProperty("--contact-shadow", contactShadow);
+  if (currentTheme.contact_font_family || currentTheme.contactFontFamily) {
+    root.style.setProperty("--contact-font-family", formatFont(currentTheme.contact_font_family || currentTheme.contactFontFamily));
+  } else {
+    root.style.removeProperty("--contact-font-family");
+  }
 
   // --- Balance Card Section Variables ---
   const balanceGradStart = currentTheme.balance_gradient_start || currentTheme.balanceGradientStart || "#1E40AF";
@@ -600,24 +549,6 @@ export function applyStoreTheme(theme?: Partial<StoreThemeSettings> | null | und
       --font-arabic: '${fontArabic}', sans-serif !important;
       --font-english: '${fontEnglish}', sans-serif !important;
       --app-font-sans: '${fontArabic}', '${fontEnglish}', sans-serif !important;
-
-      ${authBg ? `--auth-bg-color: ${authBg} !important;` : ""}
-      ${authCard ? `--auth-card-color: ${authCard} !important;` : ""}
-      ${authText ? `--auth-text-color: ${authText} !important;` : ""}
-      ${authButton ? `--auth-button-color: ${authButton} !important;` : ""}
-
-      ${productBg ? `--product-bg-color: ${productBg} !important;` : ""}
-      ${productCard ? `--product-card-color: ${productCard} !important;` : ""}
-      ${productText ? `--product-text-color: ${productText} !important;` : ""}
-      ${productPrice ? `--product-price-color: ${productPrice} !important;` : ""}
-
-      ${aboutBg ? `--about-bg-color: ${aboutBg} !important;` : ""}
-      ${aboutCard ? `--about-card-color: ${aboutCard} !important;` : ""}
-      ${aboutText ? `--about-text-color: ${aboutText} !important;` : ""}
-
-      ${contactBg ? `--contact-bg-color: ${contactBg} !important;` : ""}
-      ${contactCard ? `--contact-card-color: ${contactCard} !important;` : ""}
-      ${contactText ? `--contact-text-color: ${contactText} !important;` : ""}
     }
 
     body {

@@ -759,8 +759,8 @@ export default function ContactPage() {
     <div
       className="min-h-screen pb-24 p-4 selection:bg-[#C8A45C] selection:text-black transition-colors"
       style={{
-        backgroundColor: "var(--contact-bg-color, var(--theme-background, #1A1A1A))",
-        color: "var(--contact-text-color, var(--theme-text-primary, #E5E7EB))",
+        backgroundColor: "var(--contact-bg-color, var(--contact-bg, var(--theme-background)))",
+        color: "var(--contact-text-color, var(--contact-text, var(--theme-text-primary)))",
       }}
       dir="rtl"
     >
@@ -770,22 +770,22 @@ export default function ContactPage() {
           <div
             className="inline-flex items-center justify-center w-16 h-16 rounded-3xl mb-4 shadow-xl border"
             style={{
-              backgroundColor: "var(--contact-card-color, var(--theme-card, #2D2D2D))",
-              borderColor: styles.border_color || "#C8A45C",
-              color: styles.title_color || "#C8A45C",
+              backgroundColor: "var(--contact-card-color, var(--contact-card-bg, var(--theme-card)))",
+              borderColor: "var(--contact-border-color, var(--contact-border, var(--theme-border)))",
+              color: "var(--contact-title-color, var(--contact-title, var(--theme-primary)))",
             }}
           >
             <Headphones size={32} />
           </div>
           <h1
             className="text-2xl sm:text-3xl font-black mb-2 tracking-wide"
-            style={{ color: styles.title_color || "#C8A45C" }}
+            style={{ color: "var(--contact-title-color, var(--contact-title, var(--theme-primary)))" }}
           >
             {config.title || "تواصل معنا"}
           </h1>
           <p
             className="text-sm sm:text-base max-w-xl mx-auto leading-relaxed"
-            style={{ color: styles.text_color || "#E5E7EB", opacity: 0.85 }}
+            style={{ color: "var(--contact-text-color, var(--contact-text, var(--theme-text-primary)))", opacity: 0.85 }}
           >
             {config.subtitle || "نحن هنا لمساعدتك. تواصل معنا عبر أي من القنوات التالية"}
           </p>

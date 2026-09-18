@@ -454,23 +454,43 @@ export default function NotificationsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#1A1A1A] text-white pb-24 p-4 max-w-4xl mx-auto selection:bg-[#C8A45C] selection:text-black" dir="rtl">
+    <div
+      className="min-h-screen pb-24 p-4 max-w-4xl mx-auto transition-colors"
+      style={{
+        backgroundColor: "var(--theme-background)",
+        color: "var(--theme-text-primary)",
+      }}
+      dir="rtl"
+    >
       {/* Top Header Card */}
-      <div className="bg-[#2D2D2D] border border-[#C8A45C]/30 rounded-3xl p-5 sm:p-7 shadow-2xl relative overflow-hidden mb-6">
+      <div
+        className="rounded-3xl p-5 sm:p-7 shadow-2xl relative overflow-hidden mb-6 border"
+        style={{
+          backgroundColor: "var(--theme-card)",
+          borderColor: "var(--theme-border)",
+        }}
+      >
         {/* Glow decoration */}
-        <div className="absolute -top-16 -left-16 w-44 h-44 bg-[#C8A45C]/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-16 -right-16 w-44 h-44 bg-[#C8A45C]/5 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -top-16 -left-16 w-44 h-44 bg-[var(--theme-primary)]/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-16 -right-16 w-44 h-44 bg-[var(--theme-primary)]/5 rounded-full blur-3xl pointer-events-none" />
 
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-5 relative z-10">
           {/* Title & Count */}
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#C8A45C]/30 to-[#1A1A1A] border border-[#C8A45C]/50 flex items-center justify-center text-[#C8A45C] shadow-lg shadow-[#C8A45C]/10 shrink-0">
-              <Bell size={26} className="text-[#C8A45C]" />
+            <div
+              className="w-14 h-14 rounded-2xl flex items-center justify-center border shadow-lg shrink-0"
+              style={{
+                backgroundColor: "var(--theme-background)",
+                borderColor: "var(--theme-border)",
+                color: "var(--theme-primary)",
+              }}
+            >
+              <Bell size={26} style={{ color: "var(--theme-primary)" }} />
             </div>
 
             <div>
               <div className="flex items-center gap-2.5 flex-wrap">
-                <h1 className="text-xl sm:text-2xl font-black text-[#C8A45C]">
+                <h1 className="text-xl sm:text-2xl font-black" style={{ color: "var(--theme-primary)" }}>
                   الإشعارات والتنبيهات
                 </h1>
                 {unreadCount > 0 && (

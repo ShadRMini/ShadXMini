@@ -328,8 +328,8 @@ export default function About() {
       className="p-4 sm:p-6 min-h-screen pb-24 animate-in fade-in duration-300"
       dir="rtl"
       style={{
-        backgroundColor: `var(--about-bg-color, ${style.bg_color || "#1A1A1A"})`,
-        color: `var(--about-text-color, ${style.text_color || "#FFFFFF"})`,
+        backgroundColor: "var(--about-bg-color, var(--about-bg, var(--theme-background)))",
+        color: "var(--about-text-color, var(--about-text, var(--theme-text-primary)))",
         fontFamily: style.font_family || "var(--theme-font-arabic, 'Cairo', sans-serif)",
       }}
     >
@@ -339,9 +339,9 @@ export default function About() {
           <div
             className="w-10 h-10 rounded-2xl flex items-center justify-center border"
             style={{
-              backgroundColor: `${style.title_color || "#C8A45C"}20`,
-              borderColor: `${style.title_color || "#C8A45C"}50`,
-              color: style.title_color || "#C8A45C",
+              backgroundColor: "rgba(200, 164, 92, 0.15)",
+              borderColor: "var(--about-border-color, var(--theme-border))",
+              color: "var(--about-title-color, var(--theme-primary))",
             }}
           >
             <Info size={22} />
@@ -349,7 +349,7 @@ export default function About() {
           <div>
             <h1
               className="text-xl font-black"
-              style={{ color: style.title_color || "#C8A45C" }}
+              style={{ color: "var(--about-title-color, var(--theme-primary))" }}
             >
               {currentConfig.title || "من نحن"}
             </h1>
@@ -363,9 +363,9 @@ export default function About() {
           <button
             className="flex items-center gap-1.5 text-xs font-bold px-3.5 py-2 rounded-xl shadow-xs transition border cursor-pointer hover:opacity-90"
             style={{
-              backgroundColor: `var(--about-card-color, ${style.section_bg || "#2D2D2D"})`,
-              borderColor: `${style.title_color || "#C8A45C"}50`,
-              color: style.title_color || "#C8A45C",
+              backgroundColor: "var(--about-card-color, var(--about-card-bg, var(--theme-card)))",
+              borderColor: "var(--about-border-color, var(--theme-border))",
+              color: "var(--about-title-color, var(--theme-primary))",
             }}
           >
             <span>الرئيسية</span>
@@ -381,16 +381,16 @@ export default function About() {
             key={section.id}
             className="p-5 sm:p-6 border shadow-xl transition relative overflow-hidden"
             style={{
-              backgroundColor: `var(--about-card-color, ${style.section_bg || "#2D2D2D"})`,
-              borderRadius: style.border_radius || "16px",
-              borderColor: `${style.title_color || "#C8A45C"}35`,
+              backgroundColor: "var(--about-card-color, var(--about-card-bg, var(--theme-card)))",
+              borderRadius: style.border_radius || "var(--theme-border-radius, 16px)",
+              borderColor: "var(--about-border-color, var(--theme-border))",
             }}
           >
             <div className="flex items-center gap-2 mb-3">
-              <Sparkles className="w-5 h-5 shrink-0" style={{ color: style.title_color || "#C8A45C" }} />
+              <Sparkles className="w-5 h-5 shrink-0" style={{ color: "var(--about-title-color, var(--theme-primary))" }} />
               <h2
                 className="text-lg font-black"
-                style={{ color: style.title_color || "#C8A45C" }}
+                style={{ color: "var(--about-title-color, var(--theme-primary))" }}
               >
                 {section.title}
               </h2>
