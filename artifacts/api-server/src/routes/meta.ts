@@ -85,6 +85,43 @@ router.get(["/theme", "/theme-settings", "/public/theme-settings", "/admin/theme
     const themeDefaultMode = themeMode;
     const themeActivePreset = String(map.get("theme_active_preset") || "gold").trim();
 
+    const SERVER_THEME_PRESETS: Record<string, { dark: any; light: any }> = {
+      "gold": {
+        dark: { primary: "#C8A45C", secondary: "#B8954A", accent: "#FDE68A", background: "#1A1A1A", card: "#2D2D2D", textPrimary: "#FFFFFF", textSecondary: "#E5E7EB", textMuted: "#9CA3AF", border: "rgba(200, 164, 92, 0.25)", inputBg: "#3D3D3D", headerGradientStart: "#1A1A1A", headerGradientEnd: "#2D2D2D", bottomNav: "#1A1A1A", bottomNavActive: "#C8A45C", sidebar: "#1A1A1A" },
+        light: { primary: "#C8A45C", secondary: "#B8954A", accent: "#D97706", background: "#F5F2EB", card: "#FFFFFF", textPrimary: "#1C1917", textSecondary: "#44403C", textMuted: "#78716C", border: "rgba(200, 164, 92, 0.3)", inputBg: "#EFECE6", headerGradientStart: "#F5F2EB", headerGradientEnd: "#EFECE6", bottomNav: "#FFFFFF", bottomNavActive: "#C8A45C", sidebar: "#FFFFFF" }
+      },
+      "royal-blue": {
+        dark: { primary: "#3B82F6", secondary: "#2563EB", accent: "#93C5FD", background: "#0F172A", card: "#1E293B", textPrimary: "#FFFFFF", textSecondary: "#CBD5E1", textMuted: "#94A3B8", border: "rgba(59, 130, 246, 0.25)", inputBg: "#334155", headerGradientStart: "#0F172A", headerGradientEnd: "#1E293B", bottomNav: "#0F172A", bottomNavActive: "#3B82F6", sidebar: "#0F172A" },
+        light: { primary: "#3B82F6", secondary: "#2563EB", accent: "#1D4ED8", background: "#F1F5F9", card: "#FFFFFF", textPrimary: "#0F172A", textSecondary: "#334155", textMuted: "#64748B", border: "rgba(59, 130, 246, 0.25)", inputBg: "#E2E8F0", headerGradientStart: "#F1F5F9", headerGradientEnd: "#E2E8F0", bottomNav: "#FFFFFF", bottomNavActive: "#3B82F6", sidebar: "#FFFFFF" }
+      },
+      "imperial-emerald": {
+        dark: { primary: "#10B981", secondary: "#059669", accent: "#6EE7B7", background: "#064E3B", card: "#065F46", textPrimary: "#FFFFFF", textSecondary: "#D1FAE5", textMuted: "#A7F3D0", border: "rgba(16, 185, 129, 0.25)", inputBg: "#047857", headerGradientStart: "#064E3B", headerGradientEnd: "#065F46", bottomNav: "#064E3B", bottomNavActive: "#10B981", sidebar: "#064E3B" },
+        light: { primary: "#10B981", secondary: "#059669", accent: "#047857", background: "#ECFDF5", card: "#FFFFFF", textPrimary: "#064E3B", textSecondary: "#065F46", textMuted: "#047857", border: "rgba(16, 185, 129, 0.25)", inputBg: "#D1FAE5", headerGradientStart: "#ECFDF5", headerGradientEnd: "#D1FAE5", bottomNav: "#FFFFFF", bottomNavActive: "#10B981", sidebar: "#FFFFFF" }
+      },
+      "classic-violet": {
+        dark: { primary: "#8B5CF6", secondary: "#7C3AED", accent: "#C4B5FD", background: "#2E1065", card: "#3B0764", textPrimary: "#FFFFFF", textSecondary: "#E9D5FF", textMuted: "#C084FC", border: "rgba(139, 92, 246, 0.25)", inputBg: "#581C87", headerGradientStart: "#2E1065", headerGradientEnd: "#3B0764", bottomNav: "#2E1065", bottomNavActive: "#8B5CF6", sidebar: "#2E1065" },
+        light: { primary: "#8B5CF6", secondary: "#7C3AED", accent: "#6D28D9", background: "#F5F3FF", card: "#FFFFFF", textPrimary: "#2E1065", textSecondary: "#4C1D95", textMuted: "#6D28D9", border: "rgba(139, 92, 246, 0.25)", inputBg: "#EDE9FE", headerGradientStart: "#F5F3FF", headerGradientEnd: "#EDE9FE", bottomNav: "#FFFFFF", bottomNavActive: "#8B5CF6", sidebar: "#FFFFFF" }
+      },
+      "ruby-pink": {
+        dark: { primary: "#EC4899", secondary: "#DB2777", accent: "#F9A8D4", background: "#4C0519", card: "#831843", textPrimary: "#FFFFFF", textSecondary: "#FCE7F3", textMuted: "#F472B6", border: "rgba(236, 72, 153, 0.25)", inputBg: "#9D174D", headerGradientStart: "#4C0519", headerGradientEnd: "#831843", bottomNav: "#4C0519", bottomNavActive: "#EC4899", sidebar: "#4C0519" },
+        light: { primary: "#EC4899", secondary: "#DB2777", accent: "#BE185D", background: "#FDF2F8", card: "#FFFFFF", textPrimary: "#4C0519", textSecondary: "#831843", textMuted: "#9D174D", border: "rgba(236, 72, 153, 0.25)", inputBg: "#FCE7F3", headerGradientStart: "#FDF2F8", headerGradientEnd: "#FCE7F3", bottomNav: "#FFFFFF", bottomNavActive: "#EC4899", sidebar: "#FFFFFF" }
+      },
+      "fire-red": {
+        dark: { primary: "#EF4444", secondary: "#DC2626", accent: "#FCA5A5", background: "#450A0A", card: "#7F1D1D", textPrimary: "#FFFFFF", textSecondary: "#FEE2E2", textMuted: "#F87171", border: "rgba(239, 68, 68, 0.25)", inputBg: "#991B1B", headerGradientStart: "#450A0A", headerGradientEnd: "#7F1D1D", bottomNav: "#450A0A", bottomNavActive: "#EF4444", sidebar: "#450A0A" },
+        light: { primary: "#EF4444", secondary: "#DC2626", accent: "#B91C1C", background: "#FEF2F2", card: "#FFFFFF", textPrimary: "#450A0A", textSecondary: "#7F1D1D", textMuted: "#991B1B", border: "rgba(239, 68, 68, 0.25)", inputBg: "#FEE2E2", headerGradientStart: "#FEF2F2", headerGradientEnd: "#FEE2E2", bottomNav: "#FFFFFF", bottomNavActive: "#EF4444", sidebar: "#FFFFFF" }
+      },
+      "calm-indigo": {
+        dark: { primary: "#4F46E5", secondary: "#4338CA", accent: "#A5B4FC", background: "#1E1B4B", card: "#312E81", textPrimary: "#FFFFFF", textSecondary: "#E0E7FF", textMuted: "#818CF8", border: "rgba(79, 70, 229, 0.25)", inputBg: "#3730A3", headerGradientStart: "#1E1B4B", headerGradientEnd: "#312E81", bottomNav: "#1E1B4B", bottomNavActive: "#4F46E5", sidebar: "#1E1B4B" },
+        light: { primary: "#4F46E5", secondary: "#4338CA", accent: "#3730A3", background: "#EEF2FF", card: "#FFFFFF", textPrimary: "#1E1B4B", textSecondary: "#312E81", textMuted: "#4338CA", border: "rgba(79, 70, 229, 0.25)", inputBg: "#E0E7FF", headerGradientStart: "#EEF2FF", headerGradientEnd: "#E0E7FF", bottomNav: "#FFFFFF", bottomNavActive: "#4F46E5", sidebar: "#FFFFFF" }
+      },
+      "modern-teal": {
+        dark: { primary: "#14B8A6", secondary: "#0D9488", accent: "#99F6E4", background: "#042F2E", card: "#115E59", textPrimary: "#FFFFFF", textSecondary: "#CCFBF1", textMuted: "#2DD4BF", border: "rgba(20, 184, 166, 0.25)", inputBg: "#134E4A", headerGradientStart: "#042F2E", headerGradientEnd: "#115E59", bottomNav: "#042F2E", bottomNavActive: "#14B8A6", sidebar: "#042F2E" },
+        light: { primary: "#14B8A6", secondary: "#0D9488", accent: "#0F766E", background: "#F0FDFA", card: "#FFFFFF", textPrimary: "#042F2E", textSecondary: "#115E59", textMuted: "#0D9488", border: "rgba(20, 184, 166, 0.25)", inputBg: "#CCFBF1", headerGradientStart: "#F0FDFA", headerGradientEnd: "#CCFBF1", bottomNav: "#FFFFFF", bottomNavActive: "#14B8A6", sidebar: "#FFFFFF" }
+      }
+    };
+
+    const activePresetObj = SERVER_THEME_PRESETS[themeActivePreset] || SERVER_THEME_PRESETS["gold"];
+
     const themeLogoSize = String(map.get("theme_logo_size") || map.get("logo_size") || "80px").trim();
     const themeLogoUrl = String(map.get("theme_logo_url") || map.get("brand_logo_url") || map.get("site_logo") || "").trim();
     const themeLogoTextColor = String(map.get("theme_logo_text_color") || "#C8A45C").trim();
@@ -370,6 +407,9 @@ router.get(["/theme", "/theme-settings", "/public/theme-settings", "/admin/theme
       // Direct alias & structured theme properties
       theme_mode: themeMode,
       theme_active_preset: themeActivePreset,
+      activePreset: themeActivePreset,
+      dark: activePresetObj.dark,
+      light: activePresetObj.light,
       theme_card: themeCard,
       theme_text_secondary: themeTextSecondary,
       theme_text_muted: themeTextMuted,

@@ -1,3 +1,5 @@
+import { getThemePreset, THEME_PRESETS, ThemePreset } from "./theme-presets";
+
 export interface StoreThemeSettings {
   primary: string;
   secondary?: string;
@@ -215,9 +217,15 @@ export function applyStoreTheme(theme?: Partial<StoreThemeSettings> | null | und
   root.classList.add(isLight ? "light" : "dark");
   root.setAttribute("data-theme", isLight ? "light" : "dark");
 
-  const primary = String(currentTheme.primary || currentTheme.theme_primary || DEFAULT_STORE_THEME.primary).trim();
-  const secondary = String(currentTheme.secondary || currentTheme.theme_secondary || DEFAULT_STORE_THEME.secondary).trim();
-  const accent = String(currentTheme.accent || currentTheme.theme_accent || DEFAULT_STORE_THEME.accent).trim();
+  const activePresetId = String(currentTheme.theme_active_preset || currentTheme.activePreset || currentTheme.preset || "gold").trim();
+  const activePresetObj = getThemePreset(activePresetId);
+  const presetLight = currentTheme.light || activePresetObj.light;
+  const presetDark = currentTheme.dark || activePresetObj.dark;
+  const activePalette = isLight ? presetLight : presetDark;
+
+  const primary = String(currentTheme.primary || currentTheme.theme_primary || activePalette.primary).trim();
+  const secondary = String(currentTheme.secondary || currentTheme.theme_secondary || activePalette.secondary).trim();
+  const accent = String(currentTheme.accent || currentTheme.theme_accent || activePalette.accent).trim();
 
   // Custom dark/light palette resolution
   const customDarkBg = String(currentTheme.theme_background || currentTheme.background || "").trim();
@@ -231,37 +239,41 @@ export function applyStoreTheme(theme?: Partial<StoreThemeSettings> | null | und
   const customLightBg = String(currentTheme.light_background || currentTheme.lightBg || "").trim();
   const customLightCard = String(currentTheme.light_card || currentTheme.lightCard || "").trim();
   const customLightText = String(currentTheme.light_text_primary || currentTheme.lightTextPrimary || "").trim();
+  const customLightTextSecondary = String(currentTheme.light_text_secondary || currentTheme.lightTextSecondary || "").trim();
+  const customLightTextMuted = String(currentTheme.light_text_muted || currentTheme.lightTextMuted || "").trim();
+  const customLightBorder = String(currentTheme.light_border || currentTheme.lightBorder || "").trim();
+  const customLightInputBg = String(currentTheme.light_input_bg || currentTheme.lightInputBg || "").trim();
 
-  // Distinct Light vs Dark mode palettes
+  // Distinct Light vs Dark mode palettes derived dynamically from activePreset
   const bgPrimary = isLight
-    ? (customLightBg || "#F5F2EB")
-    : (customDarkBg || "#1A1A1A");
+    ? (customLightBg || presetLight.background)
+    : (customDarkBg || presetDark.background);
 
-  const bgSecondary = isLight ? "#FFFFFF" : "#242424";
+  const bgSecondary = isLight ? (presetLight.card || "#FFFFFF") : "#242424";
 
   const bgCard = isLight
-    ? (customLightCard || "#FFFFFF")
-    : (customCardBg || "#2D2D2D");
+    ? (customLightCard || presetLight.card)
+    : (customCardBg || presetDark.card);
 
   const bgInput = isLight
-    ? "#EFECE6"
-    : (customInputBg || "#3D3D3D");
+    ? (customLightInputBg || presetLight.inputBg)
+    : (customInputBg || presetDark.inputBg);
 
   const textPrimary = isLight
-    ? (customLightText || "#111827")
-    : (customTextPrimary || "#FFFFFF");
+    ? (customLightText || presetLight.textPrimary)
+    : (customTextPrimary || presetDark.textPrimary);
 
   const textSecondary = isLight
-    ? "#374151"
-    : (customTextSecondary || "#E5E7EB");
+    ? (customLightTextSecondary || presetLight.textSecondary)
+    : (customTextSecondary || presetDark.textSecondary);
 
   const textMuted = isLight
-    ? "#6B7280"
-    : (customTextMuted || "#9CA3AF");
+    ? (customLightTextMuted || presetLight.textMuted)
+    : (customTextMuted || presetDark.textMuted);
 
   const borderColor = isLight
-    ? "rgba(0, 0, 0, 0.12)"
-    : (customBorder || "rgba(200, 164, 92, 0.25)");
+    ? (customLightBorder || presetLight.border)
+    : (customBorder || presetDark.border);
 
   const shadowColor = isLight ? "rgba(0, 0, 0, 0.08)" : "rgba(0, 0, 0, 0.35)";
 
@@ -273,11 +285,11 @@ export function applyStoreTheme(theme?: Partial<StoreThemeSettings> | null | und
   const rawShadow = String(currentTheme.shadow || currentTheme.theme_shadow || "medium").trim();
   const shadowCss = getShadowCss(rawShadow, primary, isLight);
 
-  const headerGradStart = currentTheme.theme_header_gradient_start || currentTheme.headerGradientStart || bgPrimary;
-  const headerGradEnd = currentTheme.theme_header_gradient_end || currentTheme.headerGradientEnd || bgCard;
-  const bottomNavBg = currentTheme.theme_bottom_nav || currentTheme.bottomNav || bgPrimary;
-  const bottomNavActive = currentTheme.theme_bottom_nav_active || currentTheme.bottomNavActive || primary;
-  const sidebarBg = currentTheme.theme_sidebar_bg || currentTheme.sidebar || bgPrimary;
+  const headerGradStart = currentTheme.theme_header_gradient_start || currentTheme.headerGradientStart || activePalette.headerGradientStart;
+  const headerGradEnd = currentTheme.theme_header_gradient_end || currentTheme.headerGradientEnd || activePalette.headerGradientEnd;
+  const bottomNavBg = currentTheme.theme_bottom_nav || currentTheme.bottomNav || activePalette.bottomNav;
+  const bottomNavActive = currentTheme.theme_bottom_nav_active || currentTheme.bottomNavActive || activePalette.bottomNavActive;
+  const sidebarBg = currentTheme.theme_sidebar_bg || currentTheme.sidebar || activePalette.sidebar;
   const paddingPx = `${currentTheme.theme_padding || currentTheme.padding || 24}px`;
   const headingSizePx = `${currentTheme.theme_heading_size || currentTheme.headingSize || 20}px`;
 
@@ -356,7 +368,7 @@ export function applyStoreTheme(theme?: Partial<StoreThemeSettings> | null | und
   root.style.setProperty("--theme-input", bgInput);
   root.style.setProperty("--theme-text-primary", textPrimary);
   root.style.setProperty("--theme-text-muted", textMuted);
-  root.style.setProperty("--theme-border", isLight ? "rgba(0, 0, 0, 0.1)" : hexWithAlpha(primary, "33"));
+  root.style.setProperty("--theme-border", borderColor);
   root.style.setProperty("--theme-font-arabic", `'${fontArabic}', sans-serif`);
   root.style.setProperty("--theme-font-english", `'${fontEnglish}', sans-serif`);
   root.style.setProperty("--theme-border-radius", radiusPx);
@@ -562,7 +574,7 @@ export function applyStoreTheme(theme?: Partial<StoreThemeSettings> | null | und
       --theme-sidebar-bg: ${bgPrimary} !important;
       --theme-header-bg: ${bgPrimary} !important;
       --theme-footer-bg: ${bgPrimary} !important;
-      --theme-border: ${isLight ? "rgba(0, 0, 0, 0.1)" : primaryAlpha20} !important;
+      --theme-border: ${borderColor} !important;
       --theme-input: ${bgInput} !important;
       --theme-input-bg: ${bgInput} !important;
       --theme-input-border: ${borderColor} !important;
