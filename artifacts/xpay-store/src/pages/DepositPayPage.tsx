@@ -386,7 +386,9 @@ export default function DepositPayPage() {
     }
   };
 
-  const walletAddress = paymentMethod?.walletAddress || "SHAM-CASH-PAY";
+  const rawWallet = paymentMethod?.walletAddress || "";
+  const walletAddress = rawWallet && rawWallet !== "SHAM-CASH-PAY" ? rawWallet : "";
+  const displayWalletAddress = walletAddress || "يرجى التواصل مع الدعم";
   const qrImageSrc = paymentMethod?.qrImage || null;
 
   return (
@@ -525,7 +527,7 @@ export default function DepositPayPage() {
                       className="w-full h-full object-contain rounded-xl select-none"
                       loading="eager"
                     />
-                  ) : (
+                  ) : walletAddress ? (
                     <QRCodeSVG
                       value={walletAddress}
                       size={1080}
@@ -533,6 +535,11 @@ export default function DepositPayPage() {
                       className="w-full h-full"
                       style={{ width: "100%", height: "100%" }}
                     />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center p-2 text-center text-amber-500 font-bold text-xs gap-1">
+                      <AlertTriangle className="w-8 h-8 text-amber-500" />
+                      <span>يرجى التواصل مع الدعم</span>
+                    </div>
                   )}
 
                   <div className="absolute inset-0 rounded-2xl bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white gap-1 p-2">
@@ -614,13 +621,19 @@ export default function DepositPayPage() {
                 className="text-xl sm:text-2xl font-bold font-mono tracking-wider break-all select-all py-1"
                 style={{ color: "var(--theme-primary)" }}
               >
-                {walletAddress}
+                {displayWalletAddress}
               </div>
 
               <div className="mt-3 flex justify-center">
                 <button
                   type="button"
-                  onClick={() => copyToClipboard(walletAddress, "تم نسخ معرف المحفظة بنجاح")}
+                  onClick={() => {
+                    if (walletAddress) {
+                      copyToClipboard(walletAddress, "تم نسخ معرف المحفظة بنجاح");
+                    } else {
+                      toast.error("لا يوجد عنوان محفظة للنسخ — يرجى التواصل مع الدعم");
+                    }
+                  }}
                   className="px-4 py-2 rounded-xl flex items-center gap-2 font-bold text-xs transition cursor-pointer shadow-md active:scale-95"
                   style={{
                     backgroundColor: "var(--theme-primary)",
@@ -804,9 +817,9 @@ export default function DepositPayPage() {
                   onChange={(e) => setTransactionRef(e.target.value.replace(/\D+/g, ""))}
                   className="h-13 rounded-xl text-base font-mono transition focus:ring-2"
                   style={{
-                    backgroundColor: "var(--theme-background)",
-                    borderColor: "var(--theme-accent)",
-                    color: "var(--theme-text-primary)",
+                    backgroundColor: "var(--theme-input-bg, #3D3D3D)",
+                    borderColor: "var(--theme-border, rgba(200, 164, 92, 0.4))",
+                    color: "var(--theme-text-primary, #FFFFFF)",
                   }}
                 />
               </div>

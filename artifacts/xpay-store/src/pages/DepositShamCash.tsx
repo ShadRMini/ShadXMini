@@ -21,14 +21,11 @@ import { getPublicJson } from "@/lib/public-api";
 import { useAuth } from "@/lib/auth-context";
 import { DepositPageUI } from "@workspace/deposit-ui";
 
-// Fallback ShamCash QR image generator or SVG
-const SHAMCASH_DEFAULT_WALLET = "35147b5811bdc0bf07fdb11b85c8a5d";
-
 export function DepositShamCash() {
   const [, setLocation] = useLocation();
   const { user } = useAuth();
 
-  const [walletAddress, setWalletAddress] = useState<string>(SHAMCASH_DEFAULT_WALLET);
+  const [walletAddress, setWalletAddress] = useState<string>("");
   const [qrImageUrl, setQrImageUrl] = useState<string>("");
   const [amount, setAmount] = useState<string>("");
   const [currency, setCurrency] = useState<"USD" | "SYP">("USD");
@@ -228,7 +225,7 @@ export function DepositShamCash() {
                 <img src={qrImageUrl} alt="QR Big" className="w-full h-full object-contain" />
               ) : (
                 <QRCodeSVG
-                  value={walletAddress || SHAMCASH_DEFAULT_WALLET}
+                  value={walletAddress}
                   size={256}
                   level="M"
                   className="w-full h-full"

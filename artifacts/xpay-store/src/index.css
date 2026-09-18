@@ -349,7 +349,7 @@
 .light textarea {
   background-color: var(--theme-input-bg, var(--bg-input)) !important;
   border-color: var(--theme-input-border, var(--border-color)) !important;
-  color: var(--theme-text-primary, var(--text-primary));
+  color: var(--theme-text-primary, var(--text-primary)) !important;
 }
 
 .light input::placeholder,

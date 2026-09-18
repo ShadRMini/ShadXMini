@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Copy, Check, Clock, QrCode, Maximize2 } from "lucide-react";
+import { Copy, Check, Clock, QrCode, Maximize2, AlertCircle } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 
 export interface DepositPageConfig {
@@ -124,7 +124,7 @@ export function DepositPageUI({
                 alt="QR Code"
                 className="w-full h-full object-contain rounded-2xl group-hover:scale-105 transition-transform duration-300"
               />
-            ) : (
+            ) : qrData ? (
               <QRCodeSVG
                 value={qrData}
                 size={1080}
@@ -132,6 +132,11 @@ export function DepositPageUI({
                 className="w-full h-full group-hover:scale-105 transition-transform duration-300"
                 style={{ width: "100%", height: "100%" }}
               />
+            ) : (
+              <div className="flex flex-col items-center justify-center p-4 text-center text-amber-500 font-bold text-xs gap-2">
+                <AlertCircle className="w-8 h-8 text-amber-500" />
+                <span>لا توجد محفظة مُعدّة — يرجى التواصل مع الدعم</span>
+              </div>
             )}
             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white rounded-3xl">
               <span className="inline-flex items-center gap-1.5 text-xs font-bold bg-black/60 px-3 py-1.5 rounded-full backdrop-blur-xs">
@@ -228,7 +233,12 @@ export function DepositPageUI({
               value={amount}
               onChange={(e) => onAmountChange?.(e.target.value)}
               readOnly={isPreview}
-              className="w-full h-12 bg-white dark:bg-zinc-900 rounded-xl px-4 text-right font-mono font-bold text-base border border-gray-200 dark:border-zinc-700 focus:outline-hidden focus:border-blue-500 text-gray-900 dark:text-white placeholder:text-gray-400"
+              className="w-full h-12 rounded-xl px-4 text-right font-mono font-bold text-base border focus:outline-hidden focus:border-blue-500 placeholder:text-gray-400"
+              style={{
+                backgroundColor: "var(--theme-input-bg, #3D3D3D)",
+                color: "var(--theme-text-primary, #FFFFFF)",
+                borderColor: "var(--theme-border, rgba(200, 164, 92, 0.25))"
+              }}
             />
           </div>
           {isAmountEntered && !isAmountValid && (
@@ -249,10 +259,15 @@ export function DepositPageUI({
               value={currency}
               onChange={(e) => onCurrencyChange?.(e.target.value)}
               disabled={isPreview}
-              className="w-full h-12 bg-white dark:bg-zinc-900 rounded-xl border border-gray-200 dark:border-zinc-700 px-4 text-xs font-bold text-gray-800 dark:text-gray-200 focus:outline-hidden focus:border-blue-500 appearance-none cursor-pointer text-right"
+              className="w-full h-12 rounded-xl border px-4 text-xs font-bold focus:outline-hidden focus:border-blue-500 appearance-none cursor-pointer text-right"
+              style={{
+                backgroundColor: "var(--theme-input-bg, #3D3D3D)",
+                color: "var(--theme-text-primary, #FFFFFF)",
+                borderColor: "var(--theme-border, rgba(200, 164, 92, 0.25))"
+              }}
             >
-              <option value="USD">(دولار أمريكي) USD</option>
-              <option value="SYP">(ليرة سورية) SYP</option>
+              <option value="USD" style={{ backgroundColor: "var(--theme-card, #2D2D2D)", color: "var(--theme-text-primary, #FFFFFF)" }}>(دولار أمريكي) USD</option>
+              <option value="SYP" style={{ backgroundColor: "var(--theme-card, #2D2D2D)", color: "var(--theme-text-primary, #FFFFFF)" }}>(ليرة سورية) SYP</option>
             </select>
           </div>
         </div>
