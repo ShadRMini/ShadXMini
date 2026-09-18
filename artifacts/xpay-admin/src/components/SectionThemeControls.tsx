@@ -93,6 +93,53 @@ export default function SectionThemeControls({
     }
   };
 
+  const renderColorInput = (
+    label: string,
+    key: keyof SectionThemeData,
+    defaultPlaceholder: string
+  ) => {
+    const val = data[key] ? String(data[key]).trim() : "";
+    const isCustomized = Boolean(val && val !== "");
+
+    return (
+      <div>
+        <label className="block text-xs font-bold text-zinc-300 mb-1.5 flex items-center justify-between">
+          <span>{label}</span>
+          {isCustomized ? (
+            <span className="text-[10px] text-amber-400 font-normal">مخصص</span>
+          ) : (
+            <span className="text-[10px] text-zinc-500 font-normal">افتراضي من الثيم</span>
+          )}
+        </label>
+        <div className="flex gap-2 items-center">
+          <input
+            type="color"
+            value={val || "#000000"}
+            onChange={(e) => updateField(key, e.target.value)}
+            className="w-10 h-10 bg-[#1A1A1A] border border-zinc-700 rounded-lg cursor-pointer p-1 shrink-0"
+          />
+          <input
+            type="text"
+            value={val}
+            onChange={(e) => updateField(key, e.target.value)}
+            className="flex-1 bg-[#1A1A1A] border border-zinc-700 focus:border-[#C8A45C] text-white px-3 py-2 rounded-lg text-xs font-mono outline-none"
+            placeholder={`${defaultPlaceholder} (افتراضي من الثيم)`}
+          />
+          {isCustomized && (
+            <button
+              type="button"
+              onClick={() => updateField(key, "")}
+              className="px-2.5 py-2 bg-red-500/20 text-red-400 hover:bg-red-500/30 border border-red-500/30 rounded-lg text-xs font-bold transition shrink-0 cursor-pointer"
+              title="مسح التخصيص وإعادة تفعيل الثيم العام"
+            >
+              مسح
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-6 text-zinc-100" dir="rtl">
       {/* Header & Save Bar */}
@@ -137,7 +184,7 @@ export default function SectionThemeControls({
         <div
           className="p-6 transition-all relative overflow-hidden"
           style={{
-            backgroundColor: data.bg_color || "#1A1A1A",
+            backgroundColor: data.bg_color || "var(--theme-background)",
             fontFamily: `${data.font_family || "Cairo"}, sans-serif`,
             borderRadius: `${data.radius || 16}px`,
             padding: `${data.padding || 24}px`,
@@ -146,9 +193,9 @@ export default function SectionThemeControls({
           <div
             className="p-5 transition-all border relative"
             style={{
-              backgroundColor: data.card_color || "#2D2D2D",
-              color: data.text_color || "#FFFFFF",
-              borderColor: data.border_color || "#C8A45C",
+              backgroundColor: data.card_color || "var(--theme-card)",
+              color: data.text_color || "var(--theme-text-primary)",
+              borderColor: data.border_color || "var(--theme-border)",
               borderRadius: `${data.radius || 16}px`,
               boxShadow: getShadowCss(data.shadow || "medium"),
             }}
@@ -156,7 +203,7 @@ export default function SectionThemeControls({
             <h3
               className="font-bold mb-2 transition-colors"
               style={{
-                color: data.title_color || "#C8A45C",
+                color: data.title_color || "var(--theme-primary)",
                 fontSize: `${data.heading_size || 20}px`,
               }}
             >
@@ -166,7 +213,7 @@ export default function SectionThemeControls({
             <p
               className="mb-4 leading-relaxed opacity-90"
               style={{
-                color: data.text_color || "#FFFFFF",
+                color: data.text_color || "var(--theme-text-primary)",
                 fontSize: `${data.font_size || 14}px`,
               }}
             >
@@ -177,7 +224,7 @@ export default function SectionThemeControls({
               <div
                 className="font-bold mb-4"
                 style={{
-                  color: data.price_color || "#C8A45C",
+                  color: data.price_color || "var(--theme-primary)",
                   fontSize: `${Number(data.heading_size || 20) * 0.9}px`,
                 }}
               >
@@ -193,8 +240,8 @@ export default function SectionThemeControls({
                 className="px-5 py-2.5 font-bold transition-all shadow-md cursor-pointer"
                 style={{
                   backgroundColor: isHovered
-                    ? data.button_hover_color || "#B8954A"
-                    : data.button_color || "#C8A45C",
+                    ? data.button_hover_color || "var(--theme-secondary)"
+                    : data.button_color || "var(--theme-primary)",
                   color: data.button_text_color || "#1A1A1A",
                   borderRadius: `${data.radius || 16}px`,
                   fontSize: `${data.font_size || 14}px`,
@@ -215,139 +262,12 @@ export default function SectionThemeControls({
             🎨 القسم 1: الألوان الأساسية
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {/* لون خلفية المحتوى */}
-            <div>
-              <label className="block text-xs font-bold text-zinc-300 mb-1.5">
-                لون خلفية المحتوى
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="color"
-                  value={data.bg_color || "#1A1A1A"}
-                  onChange={(e) => updateField("bg_color", e.target.value)}
-                  className="w-12 h-10 bg-[#1A1A1A] border border-zinc-700 rounded-lg cursor-pointer p-1"
-                />
-                <input
-                  type="text"
-                  value={data.bg_color || "#1A1A1A"}
-                  onChange={(e) => updateField("bg_color", e.target.value)}
-                  className="flex-1 bg-[#1A1A1A] border border-zinc-700 focus:border-[#C8A45C] text-white px-3 py-2 rounded-lg text-xs font-mono outline-none"
-                  placeholder="#1A1A1A"
-                />
-              </div>
-            </div>
-
-            {/* لون البطاقات */}
-            <div>
-              <label className="block text-xs font-bold text-zinc-300 mb-1.5">
-                لون البطاقات
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="color"
-                  value={data.card_color || "#2D2D2D"}
-                  onChange={(e) => updateField("card_color", e.target.value)}
-                  className="w-12 h-10 bg-[#1A1A1A] border border-zinc-700 rounded-lg cursor-pointer p-1"
-                />
-                <input
-                  type="text"
-                  value={data.card_color || "#2D2D2D"}
-                  onChange={(e) => updateField("card_color", e.target.value)}
-                  className="flex-1 bg-[#1A1A1A] border border-zinc-700 focus:border-[#C8A45C] text-white px-3 py-2 rounded-lg text-xs font-mono outline-none"
-                  placeholder="#2D2D2D"
-                />
-              </div>
-            </div>
-
-            {/* لون النص الأساسي */}
-            <div>
-              <label className="block text-xs font-bold text-zinc-300 mb-1.5">
-                لون النص الأساسي
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="color"
-                  value={data.text_color || "#FFFFFF"}
-                  onChange={(e) => updateField("text_color", e.target.value)}
-                  className="w-12 h-10 bg-[#1A1A1A] border border-zinc-700 rounded-lg cursor-pointer p-1"
-                />
-                <input
-                  type="text"
-                  value={data.text_color || "#FFFFFF"}
-                  onChange={(e) => updateField("text_color", e.target.value)}
-                  className="flex-1 bg-[#1A1A1A] border border-zinc-700 focus:border-[#C8A45C] text-white px-3 py-2 rounded-lg text-xs font-mono outline-none"
-                  placeholder="#FFFFFF"
-                />
-              </div>
-            </div>
-
-            {/* لون العناوين */}
-            <div>
-              <label className="block text-xs font-bold text-zinc-300 mb-1.5">
-                لون العناوين
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="color"
-                  value={data.title_color || "#C8A45C"}
-                  onChange={(e) => updateField("title_color", e.target.value)}
-                  className="w-12 h-10 bg-[#1A1A1A] border border-zinc-700 rounded-lg cursor-pointer p-1"
-                />
-                <input
-                  type="text"
-                  value={data.title_color || "#C8A45C"}
-                  onChange={(e) => updateField("title_color", e.target.value)}
-                  className="flex-1 bg-[#1A1A1A] border border-zinc-700 focus:border-[#C8A45C] text-white px-3 py-2 rounded-lg text-xs font-mono outline-none"
-                  placeholder="#C8A45C"
-                />
-              </div>
-            </div>
-
-            {/* لون الحدود */}
-            <div>
-              <label className="block text-xs font-bold text-zinc-300 mb-1.5">
-                لون الحدود
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="color"
-                  value={data.border_color || "#C8A45C"}
-                  onChange={(e) => updateField("border_color", e.target.value)}
-                  className="w-12 h-10 bg-[#1A1A1A] border border-zinc-700 rounded-lg cursor-pointer p-1"
-                />
-                <input
-                  type="text"
-                  value={data.border_color || "#C8A45C"}
-                  onChange={(e) => updateField("border_color", e.target.value)}
-                  className="flex-1 bg-[#1A1A1A] border border-zinc-700 focus:border-[#C8A45C] text-white px-3 py-2 rounded-lg text-xs font-mono outline-none"
-                  placeholder="#C8A45C"
-                />
-              </div>
-            </div>
-
-            {/* لون السعر (خاص بصفحة المنتج) */}
-            {hasPriceColor && (
-              <div>
-                <label className="block text-xs font-bold text-zinc-300 mb-1.5">
-                  لون السعر
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    type="color"
-                    value={data.price_color || "#C8A45C"}
-                    onChange={(e) => updateField("price_color", e.target.value)}
-                    className="w-12 h-10 bg-[#1A1A1A] border border-zinc-700 rounded-lg cursor-pointer p-1"
-                  />
-                  <input
-                    type="text"
-                    value={data.price_color || "#C8A45C"}
-                    onChange={(e) => updateField("price_color", e.target.value)}
-                    className="flex-1 bg-[#1A1A1A] border border-zinc-700 focus:border-[#C8A45C] text-white px-3 py-2 rounded-lg text-xs font-mono outline-none"
-                    placeholder="#C8A45C"
-                  />
-                </div>
-              </div>
-            )}
+            {renderColorInput("لون خلفية المحتوى", "bg_color", "#1A1A1A")}
+            {renderColorInput("لون البطاقات", "card_color", "#2D2D2D")}
+            {renderColorInput("لون النص الأساسي", "text_color", "#FFFFFF")}
+            {renderColorInput("لون العناوين", "title_color", "#C8A45C")}
+            {renderColorInput("لون الحدود", "border_color", "#C8A45C")}
+            {hasPriceColor && renderColorInput("لون السعر", "price_color", "#C8A45C")}
           </div>
         </div>
 
@@ -357,71 +277,9 @@ export default function SectionThemeControls({
             🎨 القسم 2: الأزرار
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* لون خلفية الأزرار */}
-            <div>
-              <label className="block text-xs font-bold text-zinc-300 mb-1.5">
-                لون خلفية الأزرار
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="color"
-                  value={data.button_color || "#C8A45C"}
-                  onChange={(e) => updateField("button_color", e.target.value)}
-                  className="w-12 h-10 bg-[#1A1A1A] border border-zinc-700 rounded-lg cursor-pointer p-1"
-                />
-                <input
-                  type="text"
-                  value={data.button_color || "#C8A45C"}
-                  onChange={(e) => updateField("button_color", e.target.value)}
-                  className="flex-1 bg-[#1A1A1A] border border-zinc-700 focus:border-[#C8A45C] text-white px-3 py-2 rounded-lg text-xs font-mono outline-none"
-                  placeholder="#C8A45C"
-                />
-              </div>
-            </div>
-
-            {/* لون نص الأزرار */}
-            <div>
-              <label className="block text-xs font-bold text-zinc-300 mb-1.5">
-                لون نص الأزرار
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="color"
-                  value={data.button_text_color || "#1A1A1A"}
-                  onChange={(e) => updateField("button_text_color", e.target.value)}
-                  className="w-12 h-10 bg-[#1A1A1A] border border-zinc-700 rounded-lg cursor-pointer p-1"
-                />
-                <input
-                  type="text"
-                  value={data.button_text_color || "#1A1A1A"}
-                  onChange={(e) => updateField("button_text_color", e.target.value)}
-                  className="flex-1 bg-[#1A1A1A] border border-zinc-700 focus:border-[#C8A45C] text-white px-3 py-2 rounded-lg text-xs font-mono outline-none"
-                  placeholder="#1A1A1A"
-                />
-              </div>
-            </div>
-
-            {/* لون خلفية الأزرار عند Hover */}
-            <div>
-              <label className="block text-xs font-bold text-zinc-300 mb-1.5">
-                لون خلفية الأزرار عند Hover
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="color"
-                  value={data.button_hover_color || "#B8954A"}
-                  onChange={(e) => updateField("button_hover_color", e.target.value)}
-                  className="w-12 h-10 bg-[#1A1A1A] border border-zinc-700 rounded-lg cursor-pointer p-1"
-                />
-                <input
-                  type="text"
-                  value={data.button_hover_color || "#B8954A"}
-                  onChange={(e) => updateField("button_hover_color", e.target.value)}
-                  className="flex-1 bg-[#1A1A1A] border border-zinc-700 focus:border-[#C8A45C] text-white px-3 py-2 rounded-lg text-xs font-mono outline-none"
-                  placeholder="#B8954A"
-                />
-              </div>
-            </div>
+            {renderColorInput("لون خلفية الأزرار", "button_color", "#C8A45C")}
+            {renderColorInput("لون نص الأزرار", "button_text_color", "#1A1A1A")}
+            {renderColorInput("لون خلفية الأزرار عند Hover", "button_hover_color", "#B8954A")}
           </div>
         </div>
 

@@ -164,13 +164,36 @@ router.get(["/theme", "/theme-settings", "/public/theme-settings", "/admin/theme
     const contactPageConfig = parseJsonSetting("contact_page_config");
     const contactStyles = contactPageConfig?.styles || {};
 
+    const DEFAULT_VALUES_TO_REJECT = [
+      "",
+      "initial",
+      "none",
+      "inherit",
+      "unset",
+      "#1a1a1a",
+      "#2d2d2d",
+      "#c8a45c",
+      "#0f172a",
+      "#13355f",
+      "#b8954a",
+      "#fde68a",
+      "#3d3d3d",
+      "#242424",
+      "#ffffff",
+      "rgba(200, 164, 92, 0.25)",
+      "rgba(0,0,0,0.1)",
+      "rgba(200,164,92,0.25)",
+    ];
+
     const getPageCustomSetting = (key: string, legacyVal?: string) => {
       const dbVal = getSettingStr(key, "");
-      if (dbVal && !dbVal.startsWith("var(") && dbVal.toLowerCase() !== "#1a1a1a" && dbVal.toLowerCase() !== "#2d2d2d") {
-        return dbVal;
+      const cleanDb = String(dbVal || "").trim().toLowerCase();
+      if (cleanDb && !cleanDb.startsWith("var(") && !DEFAULT_VALUES_TO_REJECT.includes(cleanDb)) {
+        return String(dbVal).trim();
       }
-      if (legacyVal && !legacyVal.startsWith("var(") && legacyVal.toLowerCase() !== "#1a1a1a" && legacyVal.toLowerCase() !== "#2d2d2d") {
-        return legacyVal;
+      const cleanLeg = String(legacyVal || "").trim().toLowerCase();
+      if (cleanLeg && !cleanLeg.startsWith("var(") && !DEFAULT_VALUES_TO_REJECT.includes(cleanLeg)) {
+        return String(legacyVal).trim();
       }
       return "";
     };

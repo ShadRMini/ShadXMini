@@ -399,17 +399,35 @@ export function applyStoreTheme(theme?: Partial<StoreThemeSettings> | null | und
   // Helper to format shadow
   const formatShadow = (s?: string) => getShadowCss(s || "medium", primary, isLight);
 
+  const DEFAULT_VALUES_TO_REJECT = [
+    "",
+    "initial",
+    "none",
+    "inherit",
+    "unset",
+    "#1a1a1a",
+    "#2d2d2d",
+    "#c8a45c",
+    "#0f172a",
+    "#13355f",
+    "#b8954a",
+    "#fde68a",
+    "#3d3d3d",
+    "#242424",
+    "#ffffff",
+    "rgba(200, 164, 92, 0.25)",
+    "rgba(0,0,0,0.1)",
+    "rgba(200,164,92,0.25)",
+  ];
+
   // Helper to set or remove custom section properties
   const setOrRemoveProp = (propNames: string[], val?: string) => {
     const cleanVal = String(val || "").trim();
+    const lowerVal = cleanVal.toLowerCase();
     if (
       cleanVal &&
-      cleanVal !== "" &&
-      cleanVal !== "initial" &&
-      cleanVal !== "none" &&
       !cleanVal.startsWith("var(") &&
-      cleanVal.toLowerCase() !== "#1a1a1a" &&
-      cleanVal.toLowerCase() !== "#2d2d2d"
+      !DEFAULT_VALUES_TO_REJECT.includes(lowerVal)
     ) {
       propNames.forEach((p) => root.style.setProperty(p, cleanVal));
     } else {
