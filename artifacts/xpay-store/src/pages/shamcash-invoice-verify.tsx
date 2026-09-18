@@ -285,7 +285,9 @@ export default function ShamCashInvoiceVerify() {
     );
   }
 
-  const walletAddress = paymentMethod?.walletAddress || "SHAM-CASH-PAY";
+  const rawWallet = paymentMethod?.walletAddress || "";
+  const walletAddress = rawWallet && rawWallet !== "SHAM-CASH-PAY" ? rawWallet : "";
+  const displayWalletAddress = walletAddress || "يرجى التواصل مع الدعم";
   // Sham Cash QR Code image fallback if not configured in method
   const qrImageSrc = paymentMethod?.qrImage || null;
 
@@ -395,7 +397,7 @@ export default function ShamCashInvoiceVerify() {
                       className="w-full h-full object-contain rounded-xl select-none"
                       loading="eager"
                     />
-                  ) : (
+                  ) : walletAddress ? (
                     <QRCodeSVG
                       value={walletAddress}
                       size={1080}
@@ -403,6 +405,11 @@ export default function ShamCashInvoiceVerify() {
                       className="w-full h-full"
                       style={{ width: "100%", height: "100%" }}
                     />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center p-2 text-center text-amber-500 font-bold text-xs gap-1">
+                      <AlertCircle className="w-8 h-8 text-amber-500" />
+                      <span>يرجى التواصل مع الدعم</span>
+                    </div>
                   )}
 
                   {/* Hover Overlay Hint */}
@@ -486,13 +493,19 @@ export default function ShamCashInvoiceVerify() {
                 className="text-xl sm:text-2xl font-bold font-mono tracking-wider break-all select-all py-1"
                 style={{ color: "var(--theme-primary)" }}
               >
-                {walletAddress}
+                {displayWalletAddress}
               </div>
 
               <div className="mt-3 flex justify-center">
                 <button
                   type="button"
-                  onClick={() => copyToClipboard(walletAddress, "تم نسخ عنوان المحفظة بنجاح")}
+                  onClick={() => {
+                    if (walletAddress) {
+                      copyToClipboard(walletAddress, "تم نسخ عنوان المحفظة بنجاح");
+                    } else {
+                      toast.error("لا يوجد عنوان محفظة للنسخ — يرجى التواصل مع الدعم");
+                    }
+                  }}
                   className="px-4 py-2 rounded-xl flex items-center gap-2 font-bold text-xs transition cursor-pointer shadow-md active:scale-95"
                   style={{
                     backgroundColor: "var(--theme-primary)",

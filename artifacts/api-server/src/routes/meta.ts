@@ -1249,4 +1249,52 @@ router.get("/public/auth-pages-config", getPublicAuthPagesConfigHandler);
 router.get("/auth-pages-config", getPublicAuthPagesConfigHandler);
 router.get("/api/public/auth-pages-config", getPublicAuthPagesConfigHandler);
 
+const DEFAULT_SHAMCASH_PUBLIC_SETTINGS = {
+  wallet_address: "",
+  qr_image_url: "",
+  qr_size: 280,
+  show_qr: true,
+  instructions: "يرجى التحويل إلى عنوان المحفظة ثم إدخال رقم العملية للتأكيد الفوري.",
+  min_amount: 1,
+  page_bg: "#1A1A1A",
+  card_bg: "#2D2D2D",
+  text_color: "#FFFFFF",
+  button_bg: "#C8A45C",
+  border_color: "rgba(200, 164, 92, 0.25)",
+  input_bg: "#3D3D3D",
+};
+
+const getPublicShamCashSettingsHandler = async (_req: any, res: any) => {
+  try {
+    const rows = await db.select().from(settingsTable).where(eq(settingsTable.key, "shamcash_settings"));
+    let storedConfig: any = null;
+    if (rows && rows.length > 0 && rows[0].value) {
+      storedConfig = typeof rows[0].value === "string" ? JSON.parse(rows[0].value) : rows[0].value;
+    }
+
+    const pm = await db.select().from(paymentMethodsTable).where(eq(paymentMethodsTable.code, "sham_cash"));
+    const pmData = pm && pm.length > 0 ? pm[0] : null;
+
+    const pmWallet = pmData?.walletAddress && pmData.walletAddress !== "35147b5811bdc0bf07fdb11b85c8a5d" ? pmData.walletAddress : "";
+
+    const config = {
+      ...DEFAULT_SHAMCASH_PUBLIC_SETTINGS,
+      wallet_address: storedConfig?.wallet_address ?? pmWallet,
+      qr_image_url: storedConfig?.qr_image_url ?? pmData?.qrImage ?? "",
+      instructions: storedConfig?.instructions ?? pmData?.instructions ?? DEFAULT_SHAMCASH_PUBLIC_SETTINGS.instructions,
+      min_amount: storedConfig?.min_amount ?? (pmData?.minAmount ? Number(pmData.minAmount) : 1),
+      show_qr: storedConfig?.show_qr ?? true,
+      ...(storedConfig || {}),
+    };
+
+    res.json(config);
+  } catch (err: any) {
+    res.status(500).json({ error: "فشل جلب إعدادات شام كاش" });
+  }
+};
+
+router.get("/public/shamcash-settings", getPublicShamCashSettingsHandler);
+router.get("/shamcash-settings", getPublicShamCashSettingsHandler);
+router.get("/api/public/shamcash-settings", getPublicShamCashSettingsHandler);
+
 export default router;

@@ -32,8 +32,6 @@ export interface DepositPageUIProps {
   onQrClick?: () => void;
 }
 
-const SHAMCASH_DEFAULT_WALLET = "35147b5811bdc0bf07fdb11b85c8a5d";
-
 export function DepositPageUI({
   config = {},
   amount = "",
@@ -41,7 +39,7 @@ export function DepositPageUI({
   onAmountSelect,
   currency = "USD",
   onCurrencyChange,
-  walletAddress = SHAMCASH_DEFAULT_WALLET,
+  walletAddress = "",
   qrImageUrl,
   onConfirm,
   isPreview = false,
@@ -50,7 +48,7 @@ export function DepositPageUI({
 }: DepositPageUIProps) {
   const [copied, setCopied] = useState(false);
 
-  const qrData = walletAddress || SHAMCASH_DEFAULT_WALLET;
+  const qrData = walletAddress;
 
   const handleCopyWallet = async () => {
     if (!walletAddress || isPreview) return;
@@ -80,7 +78,15 @@ export function DepositPageUI({
   };
 
   return (
-    <div className="w-full bg-white dark:bg-[#1E1E1E] rounded-3xl p-5 sm:p-7 shadow-xs border border-gray-100 dark:border-zinc-800 space-y-6 text-right" dir="rtl">
+    <div
+      className="w-full rounded-3xl p-5 sm:p-7 shadow-xs border space-y-6 text-right transition-colors"
+      style={{
+        backgroundColor: "var(--shamcash-card-bg, var(--theme-card, #2D2D2D))",
+        color: "var(--shamcash-text-color, var(--theme-text-primary, #FFFFFF))",
+        borderColor: "var(--shamcash-border-color, var(--theme-border, rgba(200, 164, 92, 0.25)))",
+      }}
+      dir="rtl"
+    >
       {/* Custom Title/Subtitle if passed in config */}
       {config.page_title && (
         <div className="text-center space-y-1 pb-1">
@@ -157,7 +163,7 @@ export function DepositPageUI({
 
         <div className="bg-white dark:bg-zinc-900 border border-blue-200/80 dark:border-blue-900/50 rounded-2xl p-3 max-w-md mx-auto shadow-2xs">
           <div className="font-mono font-bold text-xs sm:text-sm text-blue-600 dark:text-blue-400 select-all break-all tracking-wider">
-            {walletAddress}
+            {walletAddress || "لا توجد محفظة مُعدّة — يرجى التواصل مع الدعم"}
           </div>
         </div>
 

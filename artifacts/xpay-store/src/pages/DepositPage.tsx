@@ -194,7 +194,9 @@ export default function DepositPage() {
     return <LegacyDeposit />;
   }
 
-  const walletAddress = shamCashMethod?.walletAddress || "SHAM-CASH-PAY";
+  const rawWallet = shamCashMethod?.walletAddress || "";
+  const walletAddress = rawWallet && rawWallet !== "SHAM-CASH-PAY" ? rawWallet : "";
+  const displayWallet = walletAddress || "يرجى ضبط المحفظة من لوحة التحكم";
 
   const copyToClipboard = (text: string, label = "تم النسخ بنجاح") => {
     if (!text) return;
@@ -380,12 +382,18 @@ export default function DepositPage() {
                   عنوان محفظة المتجر
                 </span>
                 <span className="text-xs font-mono font-bold truncate block select-all" style={{ color: "var(--theme-text-primary)" }}>
-                  {walletAddress}
+                  {displayWallet}
                 </span>
               </div>
               <button
                 type="button"
-                onClick={() => copyToClipboard(walletAddress, "تم نسخ عنوان المحفظة")}
+                onClick={() => {
+                  if (walletAddress) {
+                    copyToClipboard(walletAddress, "تم نسخ عنوان المحفظة");
+                  } else {
+                    toast.error("لا يوجد عنوان محفظة للنسخ");
+                  }
+                }}
                 className="p-2 rounded-xl border hover:opacity-80 transition cursor-pointer shrink-0"
                 style={{
                   backgroundColor: "var(--theme-card)",

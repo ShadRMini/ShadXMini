@@ -307,6 +307,14 @@ export function applyStoreTheme(theme?: Partial<StoreThemeSettings> | null | und
   root.style.setProperty("--theme-padding", paddingPx);
   root.style.setProperty("--theme-logo-size", currentTheme.theme_logo_size || currentTheme.logoSize || "80px");
 
+  // ShamCash CSS variables
+  root.style.setProperty("--shamcash-page-bg", currentTheme.shamcash_page_bg || "var(--theme-background)");
+  root.style.setProperty("--shamcash-card-bg", currentTheme.shamcash_card_bg || "var(--theme-card)");
+  root.style.setProperty("--shamcash-text-color", currentTheme.shamcash_text_color || "var(--theme-text-primary)");
+  root.style.setProperty("--shamcash-button-bg", currentTheme.shamcash_button_bg || "var(--theme-primary)");
+  root.style.setProperty("--shamcash-border-color", currentTheme.shamcash_border_color || "var(--theme-border)");
+  root.style.setProperty("--shamcash-input-bg", currentTheme.shamcash_input_bg || "var(--theme-input-bg)");
+
   const rawLogoSize = String(currentTheme.theme_logo_size || currentTheme.logoSize || DEFAULT_STORE_THEME.theme_logo_size).trim();
   const logoSizePx = rawLogoSize.includes("px") || rawLogoSize.includes("%") || rawLogoSize.includes("rem") ? rawLogoSize : `${rawLogoSize}px`;
 

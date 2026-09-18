@@ -1158,7 +1158,7 @@ export async function ensureDatabaseSchema() {
         await db.execute(sql`
           INSERT INTO payment_methods (code, name, subtitle, requires_verification, instructions, wallet_address, min_amount, active, "order", category)
           VALUES
-            ('sham_cash', 'شام كاش', 'instant', true, 'يرجى التحويل إلى عنوان المحفظة ثم إدخال رقم العملية للتأكيد الفوري.', '35147b5811bdc0bf07fdb11b85c8a5d', 1, true, 1, 'تلقائي'),
+            ('sham_cash', 'شام كاش', 'instant', true, 'يرجى التحويل إلى عنوان المحفظة ثم إدخال رقم العملية للتأكيد الفوري.', '', 1, true, 1, 'تلقائي'),
             ('syriatel_cash', 'سيرياتيل كاش', 'instant', false, 'يرجى التحويل إلى الرقم المعتمد وإرفاق إشعار الدفع.', '0991234567', 1, true, 2, 'فوري'),
             ('binance_pay', 'Binance Pay', 'instant', false, 'الدفع عبر معرف بينانس مع التأكيد السريع.', 'xpay_binance@pay', 1, true, 3, 'فوري'),
             ('usdt_auto', 'USDT تلقائي', 'instant', false, 'تحويل شبكة TRC20 مع المعالجة التلقائية.', 'TQn9Y2khEsLJW1ChVWFMSMeSTow5KaxnSE', 5, true, 4, 'فوري'),

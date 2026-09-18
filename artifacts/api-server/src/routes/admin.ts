@@ -3075,6 +3075,96 @@ const handlePutDepositConfig = async (req: any, res: any) => {
 router.get("/admin/deposit-config", requireAdmin, handleGetDepositConfig);
 router.put("/admin/deposit-config", requireAdmin, handlePutDepositConfig);
 
+const DEFAULT_SHAMCASH_SETTINGS = {
+  wallet_address: "",
+  qr_image_url: "",
+  qr_size: 280,
+  show_qr: true,
+  instructions: "يرجى التحويل إلى عنوان المحفظة ثم إدخال رقم العملية للتأكيد الفوري.",
+  min_amount: 1,
+  page_bg: "#1A1A1A",
+  card_bg: "#2D2D2D",
+  text_color: "#FFFFFF",
+  button_bg: "#C8A45C",
+  border_color: "rgba(200, 164, 92, 0.25)",
+  input_bg: "#3D3D3D",
+};
+
+const handleGetShamCashSettings = async (_req: any, res: any) => {
+  try {
+    const rows = await db.select().from(settingsTable).where(eq(settingsTable.key, "shamcash_settings"));
+    let storedConfig: any = null;
+    if (rows && rows.length > 0 && rows[0].value) {
+      storedConfig = typeof rows[0].value === "string" ? JSON.parse(rows[0].value) : rows[0].value;
+    }
+
+    const pm = await db.select().from(paymentMethodsTable).where(eq(paymentMethodsTable.code, "sham_cash"));
+    const pmData = pm && pm.length > 0 ? pm[0] : null;
+
+    const pmWallet = pmData?.walletAddress && pmData.walletAddress !== "35147b5811bdc0bf07fdb11b85c8a5d" ? pmData.walletAddress : "";
+
+    const config = {
+      ...DEFAULT_SHAMCASH_SETTINGS,
+      wallet_address: storedConfig?.wallet_address ?? pmWallet,
+      qr_image_url: storedConfig?.qr_image_url ?? pmData?.qrImage ?? "",
+      instructions: storedConfig?.instructions ?? pmData?.instructions ?? DEFAULT_SHAMCASH_SETTINGS.instructions,
+      min_amount: storedConfig?.min_amount ?? (pmData?.minAmount ? Number(pmData.minAmount) : 1),
+      show_qr: storedConfig?.show_qr ?? true,
+      ...(storedConfig || {}),
+    };
+
+    res.json(config);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+const handlePutShamCashSettings = async (req: any, res: any) => {
+  try {
+    const updates = req.body || {};
+    const config = {
+      ...DEFAULT_SHAMCASH_SETTINGS,
+      ...updates,
+      wallet_address: String(updates.wallet_address || "").trim(),
+      qr_image_url: String(updates.qr_image_url || "").trim(),
+      qr_size: Number(updates.qr_size) || 280,
+      show_qr: updates.show_qr !== undefined ? Boolean(updates.show_qr) : true,
+      instructions: String(updates.instructions || "").trim(),
+      min_amount: Number(updates.min_amount) || 1,
+    };
+
+    await db
+      .insert(settingsTable)
+      .values({ key: "shamcash_settings", value: config })
+      .onConflictDoUpdate({ target: settingsTable.key, set: { value: config } });
+
+    await db.execute(sql`
+      UPDATE payment_methods
+      SET 
+        wallet_address = ${config.wallet_address},
+        qr_image = ${config.qr_image_url},
+        instructions = ${config.instructions},
+        min_amount = ${config.min_amount},
+        show_qr_from_address = ${config.show_qr}
+      WHERE code IN ('sham_cash', 'sham_cash_auto');
+    `);
+
+    await logActivity(
+      { id: req.session.adminId, name: req.session.adminUsername },
+      "shamcash_settings_update",
+      "settings",
+      `تم تحديث إعدادات محفظة شام كاش: ${config.wallet_address || "فارغ"}`
+    );
+
+    res.json({ ok: true, settings: config });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+router.get("/admin/shamcash-settings", requireAdmin, handleGetShamCashSettings);
+router.put("/admin/shamcash-settings", requireAdmin, handlePutShamCashSettings);
+
 
 router.post("/admin/theme-settings/apply-preset", requireAdmin, async (req, res) => {
   try {

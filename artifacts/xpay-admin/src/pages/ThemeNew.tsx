@@ -11,6 +11,7 @@ import ProductPageSettings from "./ProductPageSettings";
 import AboutSettings from "./AboutSettings";
 import ContactSettings from "./ContactSettings";
 import BalanceCardSettings from "./BalanceCardSettings";
+import ShamCashSettings from "./ShamCashSettings";
 
 import {
   Palette,
@@ -33,7 +34,8 @@ import {
   Plus,
   Monitor,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  QrCode
 } from "lucide-react";
 
 const GOOGLE_FONTS_ARABIC = ["Cairo", "Changa", "Almarai", "Tajawal", "Noto Kufi Arabic", "Readex Pro", "Alex Brush"];
@@ -41,6 +43,7 @@ const GOOGLE_FONTS_ENGLISH = ["Inter", "Poppins", "Roboto", "Montserrat", "Open 
 
 export const THEME_TABS = [
   { id: "general", label: "الهوية والمظهر (عام)", icon: Palette, badge: "الأساسي", desc: "أنماط جاهزة، ألوان، خطوط وشعار" },
+  { id: "shamcash", label: "⚡ شام كاش (ShamCash)", icon: QrCode, desc: "إعدادات محفظة شام كاش والـ QR والواجهة" },
   { id: "balance", label: "💳 بطاقة الرصيد والمحفظة", icon: Wallet, desc: "التحكم الكامل بتصميم وشكل بطاقة الرصيد" },
   { id: "auth", label: "صفحات الدخول والتسجيل", icon: LogIn, desc: "خلفيات ونصوص ومميزات شاشات الدخول" },
   { id: "product", label: "صفحة المنتج", icon: Package, desc: "ترتيب الأقسام، معاينة الشراء، وأزرار الطلب" },
@@ -361,6 +364,7 @@ export default function ThemeNew() {
       </div>
 
       {/* TAB CONTENT SWITCHER */}
+      {currentTab === "shamcash" && <ShamCashSettings />}
       {currentTab === "balance" && <BalanceCardSettings />}
       {currentTab === "auth" && <AuthPagesSettings />}
       {currentTab === "product" && <ProductPageSettings />}
