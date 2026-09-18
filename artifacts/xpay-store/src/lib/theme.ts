@@ -402,7 +402,15 @@ export function applyStoreTheme(theme?: Partial<StoreThemeSettings> | null | und
   // Helper to set or remove custom section properties
   const setOrRemoveProp = (propNames: string[], val?: string) => {
     const cleanVal = String(val || "").trim();
-    if (cleanVal && !cleanVal.startsWith("var(")) {
+    if (
+      cleanVal &&
+      cleanVal !== "" &&
+      cleanVal !== "initial" &&
+      cleanVal !== "none" &&
+      !cleanVal.startsWith("var(") &&
+      cleanVal.toLowerCase() !== "#1a1a1a" &&
+      cleanVal.toLowerCase() !== "#2d2d2d"
+    ) {
       propNames.forEach((p) => root.style.setProperty(p, cleanVal));
     } else {
       propNames.forEach((p) => root.style.removeProperty(p));

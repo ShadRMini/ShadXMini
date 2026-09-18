@@ -166,8 +166,12 @@ router.get(["/theme", "/theme-settings", "/public/theme-settings", "/admin/theme
 
     const getPageCustomSetting = (key: string, legacyVal?: string) => {
       const dbVal = getSettingStr(key, "");
-      if (dbVal && !dbVal.startsWith("var(")) return dbVal;
-      if (legacyVal && !legacyVal.startsWith("var(")) return legacyVal;
+      if (dbVal && !dbVal.startsWith("var(") && dbVal.toLowerCase() !== "#1a1a1a" && dbVal.toLowerCase() !== "#2d2d2d") {
+        return dbVal;
+      }
+      if (legacyVal && !legacyVal.startsWith("var(") && legacyVal.toLowerCase() !== "#1a1a1a" && legacyVal.toLowerCase() !== "#2d2d2d") {
+        return legacyVal;
+      }
       return "";
     };
 
