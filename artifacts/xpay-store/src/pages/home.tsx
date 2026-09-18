@@ -208,11 +208,18 @@ export default function Home() {
                       <img
                         src={effectiveAvatar}
                         alt={displayName}
-                        className="w-12 h-12 rounded-2xl object-cover border-2 border-[#C8A45C]/50 shadow-md group-hover:border-[#C8A45C] transition"
+                        className="w-12 h-12 rounded-2xl object-cover border-2 shadow-md transition"
+                        style={{ borderColor: "var(--theme-border, rgba(200, 164, 92, 0.5))" }}
                       />
                     ) : (
-                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#2D2D2D] to-[#1A1A1A] flex items-center justify-center border-2 border-[#C8A45C]/40 shadow-md group-hover:border-[#C8A45C] transition">
-                        <span className="text-[#C8A45C] font-black text-xl">
+                      <div
+                        className="w-12 h-12 rounded-2xl flex items-center justify-center border-2 shadow-md transition"
+                        style={{
+                          backgroundColor: "var(--theme-card, #2D2D2D)",
+                          borderColor: "var(--theme-border, rgba(200, 164, 92, 0.4))",
+                        }}
+                      >
+                        <span className="font-black text-xl" style={{ color: "var(--theme-primary, #C8A45C)" }}>
                           {displayName ? displayName.charAt(0).toUpperCase() : "X"}
                         </span>
                       </div>
@@ -220,8 +227,8 @@ export default function Home() {
                   </div>
                 </Link>
                 <div>
-                  <p className="text-[11px] text-zinc-400 font-bold">أهلاً بك يا</p>
-                  <p className="text-sm sm:text-base font-black text-white">
+                  <p className="text-[11px] font-bold" style={{ color: "var(--theme-text-muted, #9CA3AF)" }}>أهلاً بك يا</p>
+                  <p className="text-sm sm:text-base font-black text-[var(--theme-text-primary)]" style={{ color: "var(--theme-text-primary, #FFFFFF)" }}>
                     {profileLoading && !displayName ? <Skeleton className="h-4 w-20" /> : displayName}
                   </p>
                 </div>
@@ -229,10 +236,16 @@ export default function Home() {
 
               {/* Display ID Badge */}
               {effectiveDisplayId && (
-                <div className="flex items-center gap-1.5 bg-[#2D2D2D] border border-[#C8A45C]/40 px-3.5 py-1.5 rounded-2xl shadow-md">
-                  <Hash size={15} className="text-[#C8A45C]" />
-                  <span className="text-xs text-zinc-400 font-bold hidden sm:inline">المعرف:</span>
-                  <span className="text-xs sm:text-sm font-mono font-black text-[#FDE68A]">
+                <div
+                  className="flex items-center gap-1.5 border px-3.5 py-1.5 rounded-2xl shadow-md"
+                  style={{
+                    backgroundColor: "var(--theme-card, #2D2D2D)",
+                    borderColor: "var(--theme-border, rgba(200, 164, 92, 0.4))",
+                  }}
+                >
+                  <Hash size={15} style={{ color: "var(--theme-primary, #C8A45C)" }} />
+                  <span className="text-xs font-bold hidden sm:inline" style={{ color: "var(--theme-text-muted, #9CA3AF)" }}>المعرف:</span>
+                  <span className="text-xs sm:text-sm font-mono font-black" style={{ color: "var(--theme-accent, #FDE68A)" }}>
                     #{effectiveDisplayId}
                   </span>
                 </div>
