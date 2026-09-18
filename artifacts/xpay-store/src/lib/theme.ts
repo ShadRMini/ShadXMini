@@ -415,6 +415,22 @@ export function applyStoreTheme(theme?: Partial<StoreThemeSettings> | null | und
     "#3d3d3d",
     "#242424",
     "#ffffff",
+    "#f5ca35",
+    "#dcb220",
+    "#e5e7eb",
+    "#111827",
+    "#374151",
+    "#1c1917",
+    "#44403c",
+    "#78716c",
+    "#efece6",
+    "#f5f2eb",
+    "cairo",
+    "inter",
+    "'cairo', sans-serif",
+    "'inter', sans-serif",
+    "cairo, sans-serif",
+    "inter, sans-serif",
     "rgba(200, 164, 92, 0.25)",
     "rgba(0,0,0,0.1)",
     "rgba(200,164,92,0.25)",
@@ -445,11 +461,8 @@ export function applyStoreTheme(theme?: Partial<StoreThemeSettings> | null | und
   setOrRemoveProp(["--auth-button-text-color"], currentTheme.auth_button_text_color || currentTheme.authButtonTextColor);
   setOrRemoveProp(["--auth-button-hover-color"], currentTheme.auth_button_hover_color || currentTheme.authButtonHoverColor);
 
-  if (currentTheme.auth_font_family || currentTheme.authFontFamily) {
-    root.style.setProperty("--auth-font-family", formatFont(currentTheme.auth_font_family || currentTheme.authFontFamily));
-  } else {
-    root.style.removeProperty("--auth-font-family");
-  }
+  const authFont = currentTheme.auth_font_family || currentTheme.authFontFamily;
+  setOrRemoveProp(["--auth-font-family"], authFont ? formatFont(authFont) : "");
 
   // --- Product Section Variables ---
   setOrRemoveProp(["--product-bg-color", "--product-bg"], currentTheme.product_bg_color || currentTheme.productBgColor);
@@ -462,11 +475,8 @@ export function applyStoreTheme(theme?: Partial<StoreThemeSettings> | null | und
   setOrRemoveProp(["--product-button-text-color"], currentTheme.product_button_text_color || currentTheme.productButtonTextColor);
   setOrRemoveProp(["--product-button-hover-color"], currentTheme.product_button_hover_color || currentTheme.productButtonHoverColor);
 
-  if (currentTheme.product_font_family || currentTheme.productFontFamily) {
-    root.style.setProperty("--product-font-family", formatFont(currentTheme.product_font_family || currentTheme.productFontFamily));
-  } else {
-    root.style.removeProperty("--product-font-family");
-  }
+  const productFont = currentTheme.product_font_family || currentTheme.productFontFamily;
+  setOrRemoveProp(["--product-font-family"], productFont ? formatFont(productFont) : "");
 
   // --- About Section Variables ---
   setOrRemoveProp(["--about-bg-color", "--about-bg"], currentTheme.about_bg_color || currentTheme.aboutBgColor);
@@ -478,11 +488,8 @@ export function applyStoreTheme(theme?: Partial<StoreThemeSettings> | null | und
   setOrRemoveProp(["--about-button-text-color"], currentTheme.about_button_text_color || currentTheme.aboutButtonTextColor);
   setOrRemoveProp(["--about-button-hover-color"], currentTheme.about_button_hover_color || currentTheme.aboutButtonHoverColor);
 
-  if (currentTheme.about_font_family || currentTheme.aboutFontFamily) {
-    root.style.setProperty("--about-font-family", formatFont(currentTheme.about_font_family || currentTheme.aboutFontFamily));
-  } else {
-    root.style.removeProperty("--about-font-family");
-  }
+  const aboutFont = currentTheme.about_font_family || currentTheme.aboutFontFamily;
+  setOrRemoveProp(["--about-font-family"], aboutFont ? formatFont(aboutFont) : "");
 
   // --- Contact Section Variables ---
   setOrRemoveProp(["--contact-bg-color", "--contact-bg"], currentTheme.contact_bg_color || currentTheme.contactBgColor);
@@ -494,11 +501,8 @@ export function applyStoreTheme(theme?: Partial<StoreThemeSettings> | null | und
   setOrRemoveProp(["--contact-button-text-color"], currentTheme.contact_button_text_color || currentTheme.contactButtonTextColor);
   setOrRemoveProp(["--contact-button-hover-color"], currentTheme.contact_button_hover_color || currentTheme.contactButtonHoverColor);
 
-  if (currentTheme.contact_font_family || currentTheme.contactFontFamily) {
-    root.style.setProperty("--contact-font-family", formatFont(currentTheme.contact_font_family || currentTheme.contactFontFamily));
-  } else {
-    root.style.removeProperty("--contact-font-family");
-  }
+  const contactFont = currentTheme.contact_font_family || currentTheme.contactFontFamily;
+  setOrRemoveProp(["--contact-font-family"], contactFont ? formatFont(contactFont) : "");
 
   // --- Balance Card Section Variables ---
   const balanceGradStart = currentTheme.balance_gradient_start || currentTheme.balanceGradientStart || "#1E40AF";
