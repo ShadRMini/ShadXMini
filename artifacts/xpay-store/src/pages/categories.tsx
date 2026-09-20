@@ -93,18 +93,11 @@ export default function Categories() {
   );
 
   return (
-    <div 
-      className="min-h-screen text-white flex flex-col animate-in slide-in-from-right-4 duration-300"
-      style={{ backgroundColor: "var(--theme-background, #1A1A1A)" }}
-      dir="rtl"
-    >
-      <div 
-        className="sticky top-0 z-10 backdrop-blur-xl border-b border-[var(--theme-border,rgba(200,164,92,0.3))] px-4 py-3 flex items-center gap-3"
-        style={{ backgroundColor: "var(--theme-background, #1A1A1A)" }}
-      >
+    <div className="min-h-screen bg-[var(--theme-background)] text-white flex flex-col animate-in slide-in-from-right-4 duration-300" dir="rtl">
+      <div className="sticky top-0 z-10 bg-[var(--theme-background)]/90 backdrop-blur-xl border-b border-[var(--theme-primary)]/30 px-4 py-3 flex items-center gap-3">
         <Link href="/">
-          <div className="bg-[#2D2D2D] p-2 rounded-full cursor-pointer hover:bg-[#3D3D3D] border border-[#C8A45C]/30 hover:border-[#C8A45C] transition-all">
-            <ChevronRight className="w-5 h-5 text-[#C8A45C]" />
+          <div className="bg-[var(--theme-card)] p-2 rounded-full cursor-pointer hover:bg-[var(--theme-input-bg)] border border-[var(--theme-primary)]/30 hover:border-[var(--theme-primary)] transition-all">
+            <ChevronRight className="w-5 h-5 text-[var(--theme-primary)]" />
           </div>
         </Link>
         <div className="flex-1">
@@ -114,7 +107,7 @@ export default function Categories() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="ابحث عن منتج أو باقة..."
-              className="pl-3 pr-9 h-10 bg-[#2D2D2D] border-[#C8A45C]/30 text-white rounded-full text-sm focus-visible:ring-[#C8A45C] focus-visible:border-[#C8A45C]"
+              className="pl-3 pr-9 h-10 bg-[var(--theme-card)] border-[var(--theme-primary)]/30 text-white rounded-full text-sm focus-visible:ring-[var(--theme-primary)] focus-visible:border-[var(--theme-primary)]"
             />
           </div>
         </div>
@@ -123,7 +116,7 @@ export default function Categories() {
       <div className="flex-1 p-4 max-w-5xl mx-auto w-full">
         {!search && groups.length > 0 && (
           <div className="mb-6">
-            <div className="mb-3 text-sm font-black text-[#FDE68A]">الخيارات والمجموعات المتاحة</div>
+            <div className="mb-3 text-sm font-black text-[var(--theme-accent)]">الخيارات والمجموعات المتاحة</div>
             <div className={getProductGridClass(PRODUCT_GRID_COLS)}>
               {groups.map((group, i) => (
                 <ProductCard
@@ -168,7 +161,7 @@ export default function Categories() {
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center h-64 text-center">
-            <div className="w-16 h-16 bg-[#2D2D2D] rounded-2xl flex items-center justify-center mb-4 border border-[#C8A45C]/30 text-[#C8A45C]">
+            <div className="w-16 h-16 bg-[var(--theme-card)] rounded-2xl flex items-center justify-center mb-4 border border-[var(--theme-primary)]/30 text-[var(--theme-primary)]">
               <Search className="w-8 h-8" />
             </div>
             <p className="text-white font-bold">لا توجد منتجات مطابقة</p>

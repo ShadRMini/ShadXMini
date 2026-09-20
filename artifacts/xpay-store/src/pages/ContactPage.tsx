@@ -433,7 +433,7 @@ export default function ContactPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#1A1A1A] text-white p-4 max-w-5xl mx-auto space-y-8" dir="rtl">
+      <div className="min-h-screen bg-[var(--theme-background)] text-white p-4 max-w-5xl mx-auto space-y-8" dir="rtl">
         <div className="text-center pt-8 pb-4 space-y-3">
           <Skeleton className="w-16 h-16 rounded-3xl mx-auto bg-zinc-800" />
           <Skeleton className="w-48 h-8 mx-auto bg-zinc-800" />
@@ -493,9 +493,9 @@ export default function ContactPage() {
         actionLabel: "إرسال بريد",
         actionHref: `mailto:${emailRaw}`,
         icon: Mail,
-        iconColor: "text-[#C8A45C]",
-        bgGlow: "bg-[#C8A45C]/10",
-        borderColor: "border-[#C8A45C]/40",
+        iconColor: "text-[var(--theme-primary)]",
+        bgGlow: "bg-[var(--theme-primary)]/10",
+        borderColor: "border-[var(--theme-primary)]/40",
       },
       {
         key: "phone",
@@ -505,15 +505,15 @@ export default function ContactPage() {
         actionLabel: "اتصال هاتفي",
         actionHref: `tel:${phoneRaw}`,
         icon: Phone,
-        iconColor: "text-[#FDE68A]",
-        bgGlow: "bg-[#FDE68A]/10",
-        borderColor: "border-[#FDE68A]/40",
+        iconColor: "text-[var(--theme-accent)]",
+        bgGlow: "bg-[var(--theme-accent)]/10",
+        borderColor: "border-[var(--theme-accent)]/40",
       },
     ];
 
     return (
       <div
-        className="min-h-screen pb-24 p-4 max-w-5xl mx-auto selection:bg-[#C8A45C] selection:text-black space-y-8"
+        className="min-h-screen pb-24 p-4 max-w-5xl mx-auto selection:bg-[var(--theme-primary)] selection:text-black space-y-8"
         dir="rtl"
         style={{
           backgroundColor: "var(--contact-bg-color, var(--theme-background, #1A1A1A))",
@@ -545,7 +545,7 @@ export default function ContactPage() {
                 key={card.key}
                 whileHover={{ y: -4 }}
                 transition={{ duration: 0.2 }}
-                className="w-full max-w-[280px] sm:w-[calc(50%-0.75rem)] sm:max-w-[320px] lg:w-[calc(25%-0.75rem)] border border-[#C8A45C]/20 hover:border-[#C8A45C]/60 rounded-3xl p-6 flex flex-col items-center text-center justify-between shadow-xl relative overflow-hidden group"
+                className="w-full max-w-[280px] sm:w-[calc(50%-0.75rem)] sm:max-w-[320px] lg:w-[calc(25%-0.75rem)] border border-[var(--theme-primary)]/20 hover:border-[var(--theme-primary)]/60 rounded-3xl p-6 flex flex-col items-center text-center justify-between shadow-xl relative overflow-hidden group"
                 style={{ backgroundColor: "var(--contact-card-color, var(--theme-card, #2D2D2D))" }}
               >
                 <div
@@ -553,21 +553,21 @@ export default function ContactPage() {
                 />
                 <div className="flex flex-col items-center w-full">
                   <div
-                    className={`w-14 h-14 rounded-2xl bg-[#1A1A1A] border ${card.borderColor} flex items-center justify-center mb-4 shadow-md group-hover:scale-105 transition-transform`}
+                    className={`w-14 h-14 rounded-2xl bg-[var(--theme-background)] border ${card.borderColor} flex items-center justify-center mb-4 shadow-md group-hover:scale-105 transition-transform`}
                   >
                     <Icon size={26} className={card.iconColor} />
                   </div>
-                  <h3 className="text-base font-bold text-white mb-1 group-hover:text-[#FDE68A] transition-colors text-center">
+                  <h3 className="text-base font-bold text-white mb-1 group-hover:text-[var(--theme-accent)] transition-colors text-center">
                     {card.title}
                   </h3>
                   <p className="text-xs text-zinc-400 mb-3 text-center">{card.subtitle}</p>
-                  <div className="flex items-center justify-center gap-2 bg-[#1A1A1A] px-3 py-1.5 rounded-xl border border-zinc-800 text-xs font-mono text-zinc-300 mb-4 w-full max-w-[220px]">
+                  <div className="flex items-center justify-center gap-2 bg-[var(--theme-background)] px-3 py-1.5 rounded-xl border border-zinc-800 text-xs font-mono text-zinc-300 mb-4 w-full max-w-[220px]">
                     <span className="truncate text-center" dir="ltr">
                       {card.value}
                     </span>
                     <button
                       onClick={() => handleCopy(card.value, card.key)}
-                      className="text-zinc-500 hover:text-[#C8A45C] transition p-1 cursor-pointer shrink-0"
+                      className="text-zinc-500 hover:text-[var(--theme-primary)] transition p-1 cursor-pointer shrink-0"
                       title="نسخ"
                     >
                       {isCopied ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
@@ -578,7 +578,7 @@ export default function ContactPage() {
                   href={card.actionHref}
                   target={card.key !== "phone" ? "_blank" : undefined}
                   rel="noreferrer"
-                  className="w-full inline-flex items-center justify-center gap-2 bg-[#C8A45C] hover:bg-[#DEB86D] text-[#1A1A1A] font-black text-xs py-2.5 rounded-xl shadow-md transition active:scale-95 cursor-pointer"
+                  className="w-full inline-flex items-center justify-center gap-2 bg-[var(--theme-primary)] hover:bg-[var(--theme-accent)] text-[var(--theme-background)] font-black text-xs py-2.5 rounded-xl shadow-md transition active:scale-95 cursor-pointer"
                 >
                   <span>{card.actionLabel}</span>
                   <ExternalLink size={13} />
@@ -780,7 +780,7 @@ export default function ContactPage() {
 
   return (
     <div
-      className="min-h-screen pb-24 p-4 selection:bg-[#C8A45C] selection:text-black transition-colors"
+      className="min-h-screen pb-24 p-4 selection:bg-[var(--theme-primary)] selection:text-black transition-colors"
       style={{
         backgroundColor: "var(--contact-bg-color, var(--contact-bg, var(--theme-background)))",
         color: "var(--contact-text-color, var(--contact-text, var(--theme-text-primary)))",

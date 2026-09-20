@@ -406,7 +406,7 @@ export default function DepositMethod() {
 
   if (isLoading && visibleMethods.length === 0) {
     return (
-      <div className="min-h-screen bg-[#1A1A1A] p-4 pt-8 text-white" dir="rtl">
+      <div className="min-h-screen bg-[var(--theme-background)] p-4 pt-8 text-white" dir="rtl">
         <Skeleton className="h-8 w-32 mb-8 bg-zinc-800" />
         <Skeleton className="h-48 w-full rounded-3xl mb-6 bg-zinc-800" />
         <Skeleton className="h-64 w-full rounded-3xl bg-zinc-800" />
@@ -416,7 +416,7 @@ export default function DepositMethod() {
 
   if (!method) {
     return (
-      <div className="min-h-screen bg-[#1A1A1A] p-4 text-center pt-20 text-zinc-400" dir="rtl">
+      <div className="min-h-screen bg-[var(--theme-background)] p-4 text-center pt-20 text-zinc-400" dir="rtl">
         طريقة الدفع غير موجودة
       </div>
     );
@@ -439,7 +439,7 @@ export default function DepositMethod() {
         <div className="flex items-center gap-3">
           <Link href="/deposit">
             <div 
-              className="bg-[#2D2D2D] p-2 rounded-xl border transition-colors cursor-pointer shadow-xs"
+              className="bg-[var(--theme-card)] p-2 rounded-xl border transition-colors cursor-pointer shadow-xs"
               style={{
                 borderColor: cfg?.border_color ? `${cfg.border_color}66` : "#C8A45C66",
                 color: cfg?.title_color || "#C8A45C",
@@ -473,7 +473,7 @@ export default function DepositMethod() {
       <div className="max-w-3xl mx-auto p-4 sm:p-6 space-y-6 mt-2">
         {/* Method Info Card */}
         <div 
-          className="p-5 sm:p-6 rounded-3xl bg-[#2D2D2D] border shadow-xl relative overflow-hidden"
+          className="p-5 sm:p-6 rounded-3xl bg-[var(--theme-card)] border shadow-xl relative overflow-hidden"
           style={{
             borderColor: cfg?.border_color ? `${cfg.border_color}55` : "#C8A45C55",
             color: cfg?.text_color || undefined,

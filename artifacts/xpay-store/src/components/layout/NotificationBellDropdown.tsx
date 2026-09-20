@@ -115,7 +115,7 @@ export default function NotificationBellDropdown() {
       {/* Bell Button with Badge */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 rounded-xl bg-[var(--bg-card)] border border-[#C8A45C]/35 hover:border-[#C8A45C] text-[#C8A45C] hover:text-[#FDE68A] transition active:scale-95 cursor-pointer shadow-xs"
+        className="relative p-2 rounded-xl bg-[var(--bg-card)] border border-[var(--theme-primary)]/35 hover:border-[var(--theme-primary)] text-[var(--theme-primary)] hover:text-[var(--theme-accent)] transition active:scale-95 cursor-pointer shadow-xs"
         title="الإشعارات والتنبيهات"
         aria-label="الإشعارات والتنبيهات"
         type="button"

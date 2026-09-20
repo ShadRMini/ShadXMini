@@ -243,7 +243,7 @@ export default function OrderDetail() {
               <div className="flex justify-between items-center">
                 <span style={{ color: "var(--text-muted, #9CA3AF)" }}>معرف الحساب / الرقم</span>
                 <div className="flex items-center gap-2">
-                  <span className="font-mono font-bold text-white bg-[#1A1A1A] px-2.5 py-1 rounded-lg border border-[#4B5563]">
+                  <span className="font-mono font-bold text-white bg-[var(--theme-background)] px-2.5 py-1 rounded-lg border border-[var(--theme-border)]">
                     {order.userIdentifier}
                   </span>
                   <button

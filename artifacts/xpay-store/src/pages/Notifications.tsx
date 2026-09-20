@@ -133,7 +133,7 @@ const NotificationCard = React.memo(function NotificationCard({
       case "order":
         return {
           icon: ShoppingBag,
-          colorClass: "text-[#C8A45C] bg-[#C8A45C]/15 border-[#C8A45C]/40",
+          colorClass: "text-[var(--theme-primary)] bg-[var(--theme-primary)]/15 border-[var(--theme-primary)]/40",
           name: "طلب",
         };
       case "payment":
@@ -171,13 +171,13 @@ const NotificationCard = React.memo(function NotificationCard({
       onClick={() => onCardClick(item)}
       className={`group relative rounded-2xl p-4 sm:p-5 border transition-all duration-200 cursor-pointer select-none overflow-hidden ${
         isUnread
-          ? "bg-[#333333] border-[#C8A45C]/40 border-r-4 border-r-[#C8A45C] shadow-lg shadow-black/40"
-          : "bg-[#2D2D2D] border-[#C8A45C]/20 opacity-85 hover:opacity-100 hover:border-[#C8A45C]/40"
+          ? "bg-[var(--theme-card)] border-[var(--theme-primary)]/40 border-r-4 border-r-[var(--theme-primary)] shadow-lg shadow-black/40"
+          : "bg-[var(--theme-card)] border-[var(--theme-primary)]/20 opacity-85 hover:opacity-100 hover:border-[var(--theme-primary)]/40"
       }`}
     >
       {/* Background glow on unread */}
       {isUnread && (
-        <div className="absolute top-0 right-0 w-32 h-32 bg-[#C8A45C]/5 rounded-full blur-2xl pointer-events-none" />
+        <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--theme-primary)]/5 rounded-full blur-2xl pointer-events-none" />
       )}
 
       <div className="flex items-start justify-between gap-3 relative z-10">
@@ -192,14 +192,14 @@ const NotificationCard = React.memo(function NotificationCard({
           <div className="flex-1 min-w-0 space-y-1.5">
             {/* Header row */}
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-[11px] font-bold px-2 py-0.5 rounded-md bg-[#1A1A1A] text-zinc-400 border border-zinc-800">
+              <span className="text-[11px] font-bold px-2 py-0.5 rounded-md bg-[var(--theme-background)] text-zinc-400 border border-zinc-800">
                 {meta.name}
               </span>
 
               {item.title && (
                 <h3
                   className={`text-sm sm:text-base font-bold truncate ${
-                    isUnread ? "text-[#FDE68A]" : "text-zinc-100"
+                    isUnread ? "text-[var(--theme-accent)]" : "text-zinc-100"
                   }`}
                 >
                   {item.title}
@@ -207,7 +207,7 @@ const NotificationCard = React.memo(function NotificationCard({
               )}
 
               {isUnread && (
-                <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-[#C8A45C] text-[#1A1A1A] shadow-sm shadow-[#C8A45C]/40 animate-pulse">
+                <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-[var(--theme-primary)] text-[var(--theme-background)] shadow-sm shadow-[var(--theme-primary)]/40 animate-pulse">
                   جديد
                 </span>
               )}
@@ -221,12 +221,12 @@ const NotificationCard = React.memo(function NotificationCard({
             {/* Footer row: Time & Link indicator */}
             <div className="flex items-center gap-3 pt-1 text-xs text-zinc-400 flex-wrap">
               <div className="flex items-center gap-1.5">
-                <Clock size={13} className="text-[#C8A45C]" />
+                <Clock size={13} className="text-[var(--theme-primary)]" />
                 <span>{relativeTime}</span>
               </div>
 
               {detectedLink && (
-                <div className="flex items-center gap-1 text-[#C8A45C] font-semibold text-[11px] hover:underline">
+                <div className="flex items-center gap-1 text-[var(--theme-primary)] font-semibold text-[11px] hover:underline">
                   <span>فتح الرابط</span>
                   <ExternalLink size={12} />
                 </div>
@@ -240,7 +240,7 @@ const NotificationCard = React.memo(function NotificationCard({
           {isUnread && (
             <button
               onClick={() => onMarkAsRead(item.id)}
-              className="p-2 rounded-xl bg-[#C8A45C]/15 hover:bg-[#C8A45C]/30 text-[#C8A45C] hover:text-[#FDE68A] border border-[#C8A45C]/30 transition active:scale-95 cursor-pointer"
+              className="p-2 rounded-xl bg-[var(--theme-primary)]/15 hover:bg-[var(--theme-primary)]/30 text-[var(--theme-primary)] hover:text-[var(--theme-accent)] border border-[var(--theme-primary)]/30 transition active:scale-95 cursor-pointer"
               title="تحديد كمقروء"
               aria-label="تحديد كمقروء"
             >
@@ -429,22 +429,22 @@ export default function NotificationsPage() {
   // If user is not authenticated
   if (!authLoading && !user) {
     return (
-      <div className="max-w-md mx-auto my-12 p-6 rounded-3xl bg-[#1A1A1A] border border-[#C8A45C]/30 text-center shadow-2xl text-white" dir="rtl">
-        <div className="w-16 h-16 rounded-2xl bg-[#C8A45C]/20 border border-[#C8A45C]/40 text-[#C8A45C] flex items-center justify-center mx-auto mb-4 shadow-lg shadow-[#C8A45C]/10">
+      <div className="max-w-md mx-auto my-12 p-6 rounded-3xl bg-[var(--theme-background)] border border-[var(--theme-primary)]/30 text-center shadow-2xl text-white" dir="rtl">
+        <div className="w-16 h-16 rounded-2xl bg-[var(--theme-primary)]/20 border border-[var(--theme-primary)]/40 text-[var(--theme-primary)] flex items-center justify-center mx-auto mb-4 shadow-lg shadow-[var(--theme-primary)]/10">
           <ShieldAlert size={32} />
         </div>
-        <h2 className="text-xl font-black text-[#FDE68A] mb-2">تسجيل الدخول مطلوب</h2>
+        <h2 className="text-xl font-black text-[var(--theme-accent)] mb-2">تسجيل الدخول مطلوب</h2>
         <p className="text-xs text-zinc-300 mb-6 leading-relaxed">
           يرجى تسجيل الدخول بحسابك لعرض إشعارات وتنبيهات طلباتك وشحناتك المالية.
         </p>
         <div className="flex gap-3">
           <Link href="/login" className="flex-1">
-            <Button className="w-full bg-[#C8A45C] hover:bg-[#DEB86D] text-[#1A1A1A] font-bold rounded-xl text-xs py-3 shadow-md">
+            <Button className="w-full bg-[var(--theme-primary)] hover:bg-[var(--theme-accent)] text-[var(--theme-background)] font-bold rounded-xl text-xs py-3 shadow-md">
               تسجيل الدخول
             </Button>
           </Link>
           <Link href="/register" className="flex-1">
-            <Button variant="outline" className="w-full border-zinc-700 hover:border-[#C8A45C] text-white rounded-xl text-xs py-3">
+            <Button variant="outline" className="w-full border-zinc-700 hover:border-[var(--theme-primary)] text-white rounded-xl text-xs py-3">
               حساب جديد
             </Button>
           </Link>
@@ -494,13 +494,13 @@ export default function NotificationsPage() {
                   الإشعارات والتنبيهات
                 </h1>
                 {unreadCount > 0 && (
-                  <span className="bg-[#C8A45C] text-[#1A1A1A] text-xs font-black px-2.5 py-0.5 rounded-full shadow-xs">
+                  <span className="bg-[var(--theme-primary)] text-[var(--theme-background)] text-xs font-black px-2.5 py-0.5 rounded-full shadow-xs">
                     {unreadCount} غير مقروء
                   </span>
                 )}
               </div>
               <p className="text-xs sm:text-sm text-zinc-300 mt-1 font-medium">
-                لديك <span className="text-[#FDE68A] font-bold">{notifications.length}</span> إشعار في حسابك
+                لديك <span className="text-[var(--theme-accent)] font-bold">{notifications.length}</span> إشعار في حسابك
               </p>
             </div>
           </div>
@@ -511,11 +511,11 @@ export default function NotificationsPage() {
             <button
               onClick={() => fetchNotifications(false)}
               disabled={refreshing || loading}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#1A1A1A] hover:bg-zinc-800 border border-zinc-700 hover:border-[#C8A45C]/50 text-zinc-300 text-xs font-bold transition active:scale-95 cursor-pointer disabled:opacity-50"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[var(--theme-background)] hover:bg-zinc-800 border border-zinc-700 hover:border-[var(--theme-primary)]/50 text-zinc-300 text-xs font-bold transition active:scale-95 cursor-pointer disabled:opacity-50"
               title="تحديث الإشعارات"
               aria-label="تحديث الإشعارات"
             >
-              <RefreshCw size={15} className={`text-[#C8A45C] ${refreshing ? "animate-spin" : ""}`} />
+              <RefreshCw size={15} className={`text-[var(--theme-primary)] ${refreshing ? "animate-spin" : ""}`} />
               <span className="hidden sm:inline">تحديث</span>
             </button>
 
@@ -524,9 +524,9 @@ export default function NotificationsPage() {
               <button
                 onClick={handleMarkAllAsRead}
                 disabled={markingAll}
-                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#C8A45C]/15 hover:bg-[#C8A45C]/30 border border-[#C8A45C]/40 text-[#FDE68A] text-xs font-bold transition active:scale-95 cursor-pointer disabled:opacity-50 shadow-xs"
+                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[var(--theme-primary)]/15 hover:bg-[var(--theme-primary)]/30 border border-[var(--theme-primary)]/40 text-[var(--theme-accent)] text-xs font-bold transition active:scale-95 cursor-pointer disabled:opacity-50 shadow-xs"
               >
-                <CheckCheck size={16} className="text-[#C8A45C]" />
+                <CheckCheck size={16} className="text-[var(--theme-primary)]" />
                 <span>{markingAll ? "جاري التحديث..." : "تحديد الكل كمقروء"}</span>
               </button>
             )}
@@ -553,8 +553,8 @@ export default function NotificationsPage() {
             }}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 ${
               filter === "all"
-                ? "bg-[#C8A45C] text-[#1A1A1A] shadow-md shadow-[#C8A45C]/25"
-                : "bg-[#1A1A1A] text-zinc-300 hover:text-white hover:bg-zinc-800 border border-zinc-700/60"
+                ? "bg-[var(--theme-primary)] text-[var(--theme-background)] shadow-md shadow-[var(--theme-primary)]/25"
+                : "bg-[var(--theme-background)] text-zinc-300 hover:text-white hover:bg-zinc-800 border border-zinc-700/60"
             }`}
           >
             الكل ({notifications.length})
@@ -567,15 +567,15 @@ export default function NotificationsPage() {
             }}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 flex items-center gap-1.5 ${
               filter === "unread"
-                ? "bg-[#C8A45C] text-[#1A1A1A] shadow-md shadow-[#C8A45C]/25"
-                : "bg-[#1A1A1A] text-zinc-300 hover:text-white hover:bg-zinc-800 border border-zinc-700/60"
+                ? "bg-[var(--theme-primary)] text-[var(--theme-background)] shadow-md shadow-[var(--theme-primary)]/25"
+                : "bg-[var(--theme-background)] text-zinc-300 hover:text-white hover:bg-zinc-800 border border-zinc-700/60"
             }`}
           >
             <span>غير مقروءة</span>
             {unreadCount > 0 && (
               <span
                 className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono font-bold ${
-                  filter === "unread" ? "bg-[#1A1A1A] text-[#FDE68A]" : "bg-[#C8A45C] text-[#1A1A1A]"
+                  filter === "unread" ? "bg-[var(--theme-background)] text-[var(--theme-accent)]" : "bg-[var(--theme-primary)] text-[var(--theme-background)]"
                 }`}
               >
                 {unreadCount}
@@ -590,11 +590,11 @@ export default function NotificationsPage() {
             }}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 flex items-center gap-1.5 ${
               filter === "order"
-                ? "bg-[#C8A45C] text-[#1A1A1A] shadow-md shadow-[#C8A45C]/25"
-                : "bg-[#1A1A1A] text-zinc-300 hover:text-white hover:bg-zinc-800 border border-zinc-700/60"
+                ? "bg-[var(--theme-primary)] text-[var(--theme-background)] shadow-md shadow-[var(--theme-primary)]/25"
+                : "bg-[var(--theme-background)] text-zinc-300 hover:text-white hover:bg-zinc-800 border border-zinc-700/60"
             }`}
           >
-            <ShoppingBag size={14} className={filter === "order" ? "text-[#1A1A1A]" : "text-[#C8A45C]"} />
+            <ShoppingBag size={14} className={filter === "order" ? "text-[var(--theme-background)]" : "text-[var(--theme-primary)]"} />
             <span>الطلبات</span>
           </button>
 
@@ -605,11 +605,11 @@ export default function NotificationsPage() {
             }}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 flex items-center gap-1.5 ${
               filter === "payment"
-                ? "bg-[#C8A45C] text-[#1A1A1A] shadow-md shadow-[#C8A45C]/25"
-                : "bg-[#1A1A1A] text-zinc-300 hover:text-white hover:bg-zinc-800 border border-zinc-700/60"
+                ? "bg-[var(--theme-primary)] text-[var(--theme-background)] shadow-md shadow-[var(--theme-primary)]/25"
+                : "bg-[var(--theme-background)] text-zinc-300 hover:text-white hover:bg-zinc-800 border border-zinc-700/60"
             }`}
           >
-            <CreditCard size={14} className={filter === "payment" ? "text-[#1A1A1A]" : "text-emerald-400"} />
+            <CreditCard size={14} className={filter === "payment" ? "text-[var(--theme-background)]" : "text-emerald-400"} />
             <span>المدفوعات</span>
           </button>
 
@@ -620,11 +620,11 @@ export default function NotificationsPage() {
             }}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 flex items-center gap-1.5 ${
               filter === "offer"
-                ? "bg-[#C8A45C] text-[#1A1A1A] shadow-md shadow-[#C8A45C]/25"
-                : "bg-[#1A1A1A] text-zinc-300 hover:text-white hover:bg-zinc-800 border border-zinc-700/60"
+                ? "bg-[var(--theme-primary)] text-[var(--theme-background)] shadow-md shadow-[var(--theme-primary)]/25"
+                : "bg-[var(--theme-background)] text-zinc-300 hover:text-white hover:bg-zinc-800 border border-zinc-700/60"
             }`}
           >
-            <Tag size={14} className={filter === "offer" ? "text-[#1A1A1A]" : "text-amber-400"} />
+            <Tag size={14} className={filter === "offer" ? "text-[var(--theme-background)]" : "text-amber-400"} />
             <span>العروض</span>
           </button>
 
@@ -635,11 +635,11 @@ export default function NotificationsPage() {
             }}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 flex items-center gap-1.5 ${
               filter === "system"
-                ? "bg-[#C8A45C] text-[#1A1A1A] shadow-md shadow-[#C8A45C]/25"
-                : "bg-[#1A1A1A] text-zinc-300 hover:text-white hover:bg-zinc-800 border border-zinc-700/60"
+                ? "bg-[var(--theme-primary)] text-[var(--theme-background)] shadow-md shadow-[var(--theme-primary)]/25"
+                : "bg-[var(--theme-background)] text-zinc-300 hover:text-white hover:bg-zinc-800 border border-zinc-700/60"
             }`}
           >
-            <Bell size={14} className={filter === "system" ? "text-[#1A1A1A]" : "text-sky-400"} />
+            <Bell size={14} className={filter === "system" ? "text-[var(--theme-background)]" : "text-sky-400"} />
             <span>النظام</span>
           </button>
         </div>
@@ -652,7 +652,7 @@ export default function NotificationsPage() {
           Array.from({ length: 4 }).map((_, i) => (
             <div
               key={i}
-              className="bg-[#2D2D2D] border border-[#C8A45C]/20 rounded-2xl p-5 flex items-start gap-4 animate-pulse"
+              className="bg-[var(--theme-card)] border border-[var(--theme-primary)]/20 rounded-2xl p-5 flex items-start gap-4 animate-pulse"
             >
               <div className="w-11 h-11 rounded-xl bg-zinc-800 shrink-0" />
               <div className="flex-1 space-y-2.5">
@@ -664,11 +664,11 @@ export default function NotificationsPage() {
           ))
         ) : filteredNotifications.length === 0 ? (
           // Empty State
-          <div className="p-12 text-center bg-[#2D2D2D] border border-[#C8A45C]/20 rounded-3xl shadow-xl">
+          <div className="p-12 text-center bg-[var(--theme-card)] border border-[var(--theme-primary)]/20 rounded-3xl shadow-xl">
             <div className="w-18 h-18 rounded-3xl bg-zinc-800/80 border border-zinc-700 flex items-center justify-center mx-auto mb-4 text-zinc-500 shadow-inner">
               <Bell size={32} />
             </div>
-            <h3 className="text-base sm:text-lg font-black text-[#FDE68A] mb-1.5">
+            <h3 className="text-base sm:text-lg font-black text-[var(--theme-accent)] mb-1.5">
               لا توجد إشعارات حالياً
             </h3>
             <p className="text-xs sm:text-sm text-zinc-400 max-w-md mx-auto leading-relaxed">
@@ -694,7 +694,7 @@ export default function NotificationsPage() {
               <div className="pt-4 text-center">
                 <button
                   onClick={() => setPage((p) => p + 1)}
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-[#2D2D2D] hover:bg-[#383838] border border-[#C8A45C]/40 text-[#FDE68A] text-xs font-bold transition shadow-lg active:scale-95 cursor-pointer"
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-[var(--theme-card)] hover:bg-[var(--theme-input-bg)] border border-[var(--theme-primary)]/40 text-[var(--theme-accent)] text-xs font-bold transition shadow-lg active:scale-95 cursor-pointer"
                 >
                   <ChevronDown size={16} />
                   <span>تحميل المزيد من الإشعارات ({totalFiltered - paginatedNotifications.length} متبقي)</span>
@@ -708,7 +708,7 @@ export default function NotificationsPage() {
       {/* Delete All Confirmation Modal */}
       {showDeleteAllModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xs p-4 animate-in fade-in" dir="rtl">
-          <div className="w-full max-w-md bg-[#2D2D2D] border border-red-500/40 rounded-3xl p-6 text-center shadow-2xl relative overflow-hidden">
+          <div className="w-full max-w-md bg-[var(--theme-card)] border border-red-500/40 rounded-3xl p-6 text-center shadow-2xl relative overflow-hidden">
             <div className="w-14 h-14 rounded-2xl bg-red-500/15 border border-red-500/30 text-red-400 flex items-center justify-center mx-auto mb-4">
               <AlertTriangle size={28} />
             </div>

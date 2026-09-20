@@ -271,7 +271,7 @@ export const THEME_PRESETS: ThemePreset[] = [
     id: "calm-indigo",
     name: "النيلي الهادئ",
     nameEn: "Calm Indigo",
-    description: "هدوء، اتزان وااحترافية باللون النيلي الداكن",
+    description: "هدوء، اتزان واحترافية باللون النيلي الداكن",
     dark: {
       primary: "#4F46E5",
       secondary: "#4338CA",

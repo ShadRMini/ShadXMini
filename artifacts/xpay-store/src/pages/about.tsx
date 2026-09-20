@@ -481,7 +481,7 @@ export default function About() {
                 {section.email && (
                   <div
                     onClick={() => copyToClipboard(section.email!, "البريد الإلكتروني")}
-                    className="flex items-center justify-between gap-2 p-3 rounded-2xl bg-black/25 border border-white/10 cursor-pointer hover:border-[#C8A45C] transition"
+                    className="flex items-center justify-between gap-2 p-3 rounded-2xl bg-black/25 border border-white/10 cursor-pointer hover:border-[var(--theme-primary)] transition"
                   >
                     <div className="flex items-center gap-2 truncate">
                       <Mail className="w-4 h-4 shrink-0" style={{ color: style.title_color }} />
@@ -494,7 +494,7 @@ export default function About() {
                 {section.phone && (
                   <div
                     onClick={() => copyToClipboard(section.phone!, "رقم الهاتف")}
-                    className="flex items-center justify-between gap-2 p-3 rounded-2xl bg-black/25 border border-white/10 cursor-pointer hover:border-[#C8A45C] transition"
+                    className="flex items-center justify-between gap-2 p-3 rounded-2xl bg-black/25 border border-white/10 cursor-pointer hover:border-[var(--theme-primary)] transition"
                   >
                     <div className="flex items-center gap-2 truncate">
                       <Phone className="w-4 h-4 shrink-0" style={{ color: style.title_color }} />
@@ -507,7 +507,7 @@ export default function About() {
                 {section.address && (
                   <div
                     onClick={() => copyToClipboard(section.address!, "العنوان")}
-                    className="flex items-center justify-between gap-2 p-3 rounded-2xl bg-black/25 border border-white/10 cursor-pointer hover:border-[#C8A45C] transition"
+                    className="flex items-center justify-between gap-2 p-3 rounded-2xl bg-black/25 border border-white/10 cursor-pointer hover:border-[var(--theme-primary)] transition"
                   >
                     <div className="flex items-center gap-2 truncate">
                       <MapPin className="w-4 h-4 shrink-0" style={{ color: style.title_color }} />

@@ -348,3 +348,8 @@ export const THEME_PRESETS: ThemePreset[] = [
     },
   },
 ];
+
+export function getThemePreset(presetId: string): ThemePreset {
+  const found = THEME_PRESETS.find((p) => p.id === presetId);
+  return found || THEME_PRESETS[0];
+}

@@ -211,7 +211,7 @@ export default function Login() {
                   onChange={(e) => setIdentifier(e.target.value)}
                   placeholder="أدخل اسم المستخدم أو الإيميل"
                   disabled={loading}
-                  className="w-full bg-[#3D3D3D] border border-zinc-600 rounded-xl pr-10 pl-3 py-3 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:border-[var(--theme-primary,#C8A45C)] transition"
+                  className="w-full bg-[var(--theme-input-bg)] border border-zinc-600 rounded-xl pr-10 pl-3 py-3 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:border-[var(--theme-primary,#C8A45C)] transition"
                 />
               </div>
             </div>
@@ -228,7 +228,7 @@ export default function Login() {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   disabled={loading}
-                  className="w-full bg-[#3D3D3D] border border-zinc-600 rounded-xl pr-10 pl-10 py-3 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:border-[var(--theme-primary,#C8A45C)] transition"
+                  className="w-full bg-[var(--theme-input-bg)] border border-zinc-600 rounded-xl pr-10 pl-10 py-3 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:border-[var(--theme-primary,#C8A45C)] transition"
                 />
                 <button
                   type="button"

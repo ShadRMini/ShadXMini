@@ -123,7 +123,7 @@ export default function BannerCarousel({ banners: propBanners, isLoading }: Bann
   if (isLoading && (!banners || banners.length === 0)) {
     return (
       <div className="w-full max-w-4xl mx-auto px-1 sm:px-2 mb-6">
-        <Skeleton className="w-full h-48 sm:h-64 md:h-72 rounded-3xl bg-[#2D2D2D] border border-[#C8A45C]/20 animate-pulse" />
+        <Skeleton className="w-full h-48 sm:h-64 md:h-72 rounded-3xl bg-[var(--theme-card)] border border-[var(--theme-primary)]/20 animate-pulse" />
       </div>
     );
   }
@@ -134,7 +134,7 @@ export default function BannerCarousel({ banners: propBanners, isLoading }: Bann
     <div className="w-full max-w-4xl mx-auto px-1 sm:px-2 mb-7 relative group select-none">
       {/* Carousel Container */}
       <div
-        className="overflow-hidden rounded-3xl border border-[#C8A45C]/40 bg-[#1A1A1A] shadow-[0_10px_30px_rgba(0,0,0,0.35)] relative"
+        className="overflow-hidden rounded-3xl border border-[var(--theme-primary)]/40 bg-[var(--theme-background)] shadow-[0_10px_30px_rgba(0,0,0,0.35)] relative"
         ref={emblaRef}
       >
         <div className="flex">
@@ -187,7 +187,7 @@ export default function BannerCarousel({ banners: propBanners, isLoading }: Bann
             return (
               <div
                 key={banner.id || index}
-                className="flex-[0_0_100%] min-w-0 relative min-h-[190px] sm:min-h-[230px] md:min-h-[260px] bg-gradient-to-br from-[#2D2D2D] via-[#1A1A1A] to-[#141414] overflow-hidden"
+                className="flex-[0_0_100%] min-w-0 relative min-h-[190px] sm:min-h-[230px] md:min-h-[260px] bg-gradient-to-br from-[var(--theme-card)] via-[var(--theme-background)] to-[#141414] overflow-hidden"
               >
                 <BannerWrapper>
                   {/* Background Image if exists */}
@@ -207,9 +207,9 @@ export default function BannerCarousel({ banners: propBanners, isLoading }: Bann
                   ) : (
                     /* Elegant Graphic Elements when no image */
                     <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                      <div className="absolute -top-12 -left-12 w-48 h-48 rounded-full bg-[#C8A45C]/15 blur-3xl" />
-                      <div className="absolute -bottom-12 -right-12 w-48 h-48 rounded-full bg-[#C8A45C]/10 blur-3xl" />
-                      <div className="absolute top-1/2 left-1/4 w-32 h-32 rounded-full bg-[#E5C378]/5 blur-2xl" />
+                      <div className="absolute -top-12 -left-12 w-48 h-48 rounded-full bg-[var(--theme-primary)]/15 blur-3xl" />
+                      <div className="absolute -bottom-12 -right-12 w-48 h-48 rounded-full bg-[var(--theme-primary)]/10 blur-3xl" />
+                      <div className="absolute top-1/2 left-1/4 w-32 h-32 rounded-full bg-[var(--theme-accent)]/5 blur-2xl" />
                     </div>
                   )}
 
@@ -220,16 +220,16 @@ export default function BannerCarousel({ banners: propBanners, isLoading }: Bann
                       <div className="flex items-center justify-between gap-2">
                         <div>
                           {showFeatured && (
-                            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#C8A45C]/20 border border-[#C8A45C]/40 text-[#FDE68A] text-[11px] sm:text-xs font-bold shadow-xs">
-                              <Sparkles className="w-3.5 h-3.5 text-[#C8A45C]" />
+                            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--theme-primary)]/20 border border-[var(--theme-primary)]/40 text-[var(--theme-accent)] text-[11px] sm:text-xs font-bold shadow-xs">
+                              <Sparkles className="w-3.5 h-3.5 text-[var(--theme-primary)]" />
                               <span>عرض مميز</span>
                             </div>
                           )}
                         </div>
                         <div>
                           {showReliable && (
-                            <div className="flex items-center gap-1 text-[10px] sm:text-xs text-zinc-300 bg-black/40 px-2.5 py-1 rounded-full border border-[#C8A45C]/20">
-                              <ShieldCheck className="w-3.5 h-3.5 text-[#C8A45C]" />
+                            <div className="flex items-center gap-1 text-[10px] sm:text-xs text-zinc-300 bg-black/40 px-2.5 py-1 rounded-full border border-[var(--theme-primary)]/20">
+                              <ShieldCheck className="w-3.5 h-3.5 text-[var(--theme-primary)]" />
                               <span>خدمة موثوقة</span>
                             </div>
                           )}
@@ -241,11 +241,11 @@ export default function BannerCarousel({ banners: propBanners, isLoading }: Bann
 
                     {/* Middle Content */}
                     <div className="my-auto py-2 max-w-xl">
-                      <h2 className="text-lg sm:text-2xl md:text-3xl font-black text-[#FDE68A] leading-snug sm:leading-tight mb-2 drop-shadow-md">
+                      <h2 className="text-lg sm:text-2xl md:text-3xl font-black text-[var(--theme-accent)] leading-snug sm:leading-tight mb-2 drop-shadow-md">
                         {banner.title}
                       </h2>
                       {banner.subtitle && (
-                        <p className="text-xs sm:text-sm md:text-base text-[#E5E7EB] line-clamp-2 leading-relaxed max-w-lg drop-shadow-xs font-medium">
+                        <p className="text-xs sm:text-sm md:text-base text-[var(--theme-text-secondary)] line-clamp-2 leading-relaxed max-w-lg drop-shadow-xs font-medium">
                           {banner.subtitle}
                         </p>
                       )}
@@ -256,7 +256,7 @@ export default function BannerCarousel({ banners: propBanners, isLoading }: Bann
                       <div className="flex items-center justify-between gap-4 pt-1">
                         <div>
                           {showDiscover && (
-                            <div className="inline-flex items-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl sm:rounded-2xl bg-[#C8A45C] hover:bg-[#B8954A] text-[#1A1A1A] font-black text-xs sm:text-sm transition-all shadow-md shadow-[#C8A45C]/20 cursor-pointer group-hover:shadow-lg">
+                            <div className="inline-flex items-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl sm:rounded-2xl bg-[var(--theme-primary)] hover:bg-[var(--theme-secondary)] text-[var(--theme-background)] font-black text-xs sm:text-sm transition-all shadow-md shadow-[var(--theme-primary)]/20 cursor-pointer group-hover:shadow-lg">
                               <span>{banner.ctaText || "اكتشف الآن"}</span>
                               {isExternal ? (
                                 <ExternalLink className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5]" />
@@ -269,8 +269,8 @@ export default function BannerCarousel({ banners: propBanners, isLoading }: Bann
 
                         <div>
                           {showAutoExec && (
-                            <div className="flex items-center gap-1.5 text-[11px] sm:text-xs text-zinc-300 bg-black/40 px-3 py-1.5 rounded-full border border-[#C8A45C]/20">
-                              <Zap className="w-3.5 h-3.5 text-[#C8A45C]" />
+                            <div className="flex items-center gap-1.5 text-[11px] sm:text-xs text-zinc-300 bg-black/40 px-3 py-1.5 rounded-full border border-[var(--theme-primary)]/20">
+                              <Zap className="w-3.5 h-3.5 text-[var(--theme-primary)]" />
                               <span>تنفيذ تلقائي وفوري</span>
                             </div>
                           )}
@@ -295,7 +295,7 @@ export default function BannerCarousel({ banners: propBanners, isLoading }: Bann
                 scrollPrev();
               }}
               aria-label="السابق"
-              className="hidden sm:flex absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-[#1A1A1A]/85 hover:bg-[#2D2D2D] border border-[#C8A45C]/40 text-[#FDE68A] items-center justify-center transition-all opacity-0 group-hover:opacity-100 shadow-md cursor-pointer z-20"
+              className="hidden sm:flex absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-[var(--theme-background)]/85 hover:bg-[var(--theme-card)] border border-[var(--theme-primary)]/40 text-[var(--theme-accent)] items-center justify-center transition-all opacity-0 group-hover:opacity-100 shadow-md cursor-pointer z-20"
             >
               <ChevronRight className="w-5 h-5" />
             </button>
@@ -305,7 +305,7 @@ export default function BannerCarousel({ banners: propBanners, isLoading }: Bann
                 scrollNext();
               }}
               aria-label="التالي"
-              className="hidden sm:flex absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-[#1A1A1A]/85 hover:bg-[#2D2D2D] border border-[#C8A45C]/40 text-[#FDE68A] items-center justify-center transition-all opacity-0 group-hover:opacity-100 shadow-md cursor-pointer z-20"
+              className="hidden sm:flex absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-[var(--theme-background)]/85 hover:bg-[var(--theme-card)] border border-[var(--theme-primary)]/40 text-[var(--theme-accent)] items-center justify-center transition-all opacity-0 group-hover:opacity-100 shadow-md cursor-pointer z-20"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
@@ -323,8 +323,8 @@ export default function BannerCarousel({ banners: propBanners, isLoading }: Bann
               aria-label={`انتقل إلى البانر ${index + 1}`}
               className={`transition-all duration-300 rounded-full cursor-pointer ${
                 index === selectedIndex
-                  ? "w-6 h-2 bg-[#C8A45C] shadow-xs shadow-[#C8A45C]/50"
-                  : "w-2 h-2 bg-zinc-400 hover:bg-[#C8A45C]/60"
+                  ? "w-6 h-2 bg-[var(--theme-primary)] shadow-xs shadow-[var(--theme-primary)]/50"
+                  : "w-2 h-2 bg-zinc-400 hover:bg-[var(--theme-primary)]/60"
               }`}
             />
           ))}

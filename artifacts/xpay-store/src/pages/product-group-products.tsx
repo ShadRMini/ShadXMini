@@ -71,23 +71,16 @@ export default function ProductGroupProducts() {
   const sortedProducts = useMemo(() => products, [products]);
 
   return (
-    <div 
-      className="min-h-screen text-white flex flex-col animate-in slide-in-from-right-4 duration-300"
-      style={{ backgroundColor: "var(--theme-background, #1A1A1A)" }}
-      dir="rtl"
-    >
-      <div 
-        className="sticky top-0 z-10 backdrop-blur-xl border-b border-[var(--theme-border,rgba(200,164,92,0.3))] px-4 py-3 flex items-center gap-3"
-        style={{ backgroundColor: "var(--theme-background, #1A1A1A)" }}
-      >
+    <div className="min-h-screen bg-[var(--theme-background)] text-white flex flex-col animate-in slide-in-from-right-4 duration-300" dir="rtl">
+      <div className="sticky top-0 z-10 bg-[var(--theme-background)]/90 backdrop-blur-xl border-b border-[var(--theme-primary)]/30 px-4 py-3 flex items-center gap-3">
         <Link href={group ? `/categories/${group.categoryId}` : "/"}>
-          <div className="bg-[#2D2D2D] p-2 rounded-full cursor-pointer hover:bg-[#3D3D3D] border border-[#C8A45C]/30 hover:border-[#C8A45C] transition-colors">
-            <ChevronRight className="w-5 h-5 text-[#C8A45C]" />
+          <div className="bg-[var(--theme-card)] p-2 rounded-full cursor-pointer hover:bg-[var(--theme-input-bg)] border border-[var(--theme-primary)]/30 hover:border-[var(--theme-primary)] transition-colors">
+            <ChevronRight className="w-5 h-5 text-[var(--theme-primary)]" />
           </div>
         </Link>
         <div className="flex-1">
-          <div className="text-xs text-[#C8A45C]">اختر النوع أو الباقة</div>
-          <div className="text-lg font-black text-[#FDE68A]">{group?.name || "مجموعة المنتجات"}</div>
+          <div className="text-xs text-[var(--theme-primary)]">اختر النوع أو الباقة</div>
+          <div className="text-lg font-black text-[var(--theme-accent)]">{group?.name || "مجموعة المنتجات"}</div>
         </div>
       </div>
 
@@ -119,7 +112,7 @@ export default function ProductGroupProducts() {
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center h-64 text-center">
-            <div className="w-16 h-16 bg-[#2D2D2D] rounded-2xl flex items-center justify-center mb-4 border border-[#C8A45C]/30 text-[#C8A45C]">
+            <div className="w-16 h-16 bg-[var(--theme-card)] rounded-2xl flex items-center justify-center mb-4 border border-[var(--theme-primary)]/30 text-[var(--theme-primary)]">
               <Search className="w-8 h-8" />
             </div>
             <p className="text-white font-bold">لا توجد منتجات داخل هذه المجموعة</p>
