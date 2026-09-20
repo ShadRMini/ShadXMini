@@ -93,8 +93,15 @@ export default function Categories() {
   );
 
   return (
-    <div className="min-h-screen bg-[#1A1A1A] text-white flex flex-col animate-in slide-in-from-right-4 duration-300" dir="rtl">
-      <div className="sticky top-0 z-10 bg-[#1A1A1A]/90 backdrop-blur-xl border-b border-[#C8A45C]/30 px-4 py-3 flex items-center gap-3">
+    <div 
+      className="min-h-screen text-white flex flex-col animate-in slide-in-from-right-4 duration-300"
+      style={{ backgroundColor: "var(--theme-background, #1A1A1A)" }}
+      dir="rtl"
+    >
+      <div 
+        className="sticky top-0 z-10 backdrop-blur-xl border-b border-[var(--theme-border,rgba(200,164,92,0.3))] px-4 py-3 flex items-center gap-3"
+        style={{ backgroundColor: "var(--theme-background, #1A1A1A)" }}
+      >
         <Link href="/">
           <div className="bg-[#2D2D2D] p-2 rounded-full cursor-pointer hover:bg-[#3D3D3D] border border-[#C8A45C]/30 hover:border-[#C8A45C] transition-all">
             <ChevronRight className="w-5 h-5 text-[#C8A45C]" />

@@ -72,9 +72,21 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   ];
 
   return (
-    <div className="min-h-screen bg-[var(--bg-primary,#1A1A1A)] text-[var(--text-primary,#FFFFFF)] flex transition-colors duration-200" dir="rtl">
+    <div 
+      className="min-h-screen flex transition-colors duration-300"
+      style={{
+        backgroundColor: "var(--theme-background, #1A1A1A)",
+        color: "var(--theme-text-primary, #FFFFFF)",
+      }}
+      dir="rtl"
+    >
       {/* Desktop Sidebar (visible on lg and above screens) */}
-      <aside className="hidden lg:block w-72 h-screen sticky top-0 border-l border-[var(--border-color,rgba(200,164,92,0.25))] z-30 shadow-2xl shrink-0 bg-[var(--bg-primary,#1A1A1A)]">
+      <aside 
+        className="hidden lg:block w-72 h-screen sticky top-0 border-l border-[var(--theme-border,rgba(200,164,92,0.25))] z-30 shadow-2xl shrink-0 transition-colors duration-300"
+        style={{
+          backgroundColor: "var(--theme-background, #1A1A1A)",
+        }}
+      >
         <Sidebar brandLogo={brandLogo} />
       </aside>
 
@@ -88,7 +100,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           />
 
           {/* Sliding Drawer Container (RTL from right) */}
-          <div className="fixed inset-y-0 right-0 max-w-[300px] w-full bg-[var(--bg-primary,#1A1A1A)] shadow-2xl z-50 transform transition-transform duration-300 ease-in-out animate-in slide-in-from-right border-l border-[var(--border-color,rgba(200,164,92,0.25))]">
+          <div 
+            className="fixed inset-y-0 right-0 max-w-[300px] w-full shadow-2xl z-50 transform transition-transform duration-300 ease-in-out animate-in slide-in-from-right border-l border-[var(--theme-border,rgba(200,164,92,0.25))]"
+            style={{
+              backgroundColor: "var(--theme-background, #1A1A1A)",
+            }}
+          >
             <Sidebar brandLogo={brandLogo} onClose={() => setDrawerOpen(false)} />
           </div>
         </div>

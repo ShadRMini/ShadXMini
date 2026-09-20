@@ -674,6 +674,21 @@ export default function ProductDetail() {
     );
   };
 
+  const isDefaultGoldOrEmpty = (val?: string) => {
+    if (!val) return true;
+    const clean = String(val).trim().toLowerCase();
+    return [
+      "", "initial", "none", "inherit", "unset",
+      "#1a1a1a", "#2d2d2d", "#c8a45c", "#0f172a", "#b8954a", "#fde68a",
+      "#3d3d3d", "#242424", "#ffffff", "#f5ca35", "#dcb220", "#e5e7eb"
+    ].includes(clean);
+  };
+
+  const getCustomOrFallback = (val: string | undefined, fallbackCssVar: string) => {
+    if (val && !isDefaultGoldOrEmpty(val)) return val;
+    return fallbackCssVar;
+  };
+
   const imageSizeVal = customization.image_size || settings.product_image_size || "250px";
   const imageSizeStyle = {
     width: imageSizeVal,
@@ -682,8 +697,14 @@ export default function ProductDetail() {
   };
 
   const customBgStyle = {
-    backgroundColor: customization.page_bg_color || customization.bg_color || settings.product_bg_color || "var(--product-bg-color, var(--theme-background, #1A1A1A))",
-    color: customization.general_text_color || customization.text_color || settings.product_text_color || "var(--product-text-color, var(--theme-text-primary, #FFFFFF))",
+    backgroundColor: getCustomOrFallback(
+      customization.page_bg_color || customization.bg_color || settings.product_bg_color,
+      "var(--product-bg-color, var(--theme-background, #1A1A1A))"
+    ),
+    color: getCustomOrFallback(
+      customization.general_text_color || customization.text_color || settings.product_text_color,
+      "var(--product-text-color, var(--theme-text-primary, #FFFFFF))"
+    ),
     fontFamily: customization.font_family || "var(--theme-font-arabic, 'Cairo', sans-serif)",
   };
 
@@ -771,7 +792,12 @@ export default function ProductDetail() {
 
             <h1
               className="text-2xl sm:text-3xl font-black leading-snug tracking-tight"
-              style={{ color: customization.product_name_color || "#FFFFFF" }}
+              style={{
+                color: getCustomOrFallback(
+                  customization.product_name_color || customization.title_color,
+                  "var(--product-product-name-color, var(--product-title-color, var(--theme-text-primary, #FFFFFF)))"
+                )
+              }}
             >
               {displayTitle}
             </h1>
@@ -787,8 +813,13 @@ export default function ProductDetail() {
         return (
           <div
             key={sec.id}
-            className="border border-[#C8A45C]/40 p-4 rounded-2xl shadow-inner space-y-3"
-            style={{ backgroundColor: customization.info_box_bg_color || "#1A1A1A" }}
+            className="border border-[var(--theme-border,rgba(200,164,92,0.4))] p-4 rounded-2xl shadow-inner space-y-3"
+            style={{
+              backgroundColor: getCustomOrFallback(
+                customization.info_box_bg_color,
+                "var(--product-card-color, var(--theme-card, #242424))"
+              )
+            }}
           >
             {hasVipDiscount && (
               <div className="flex items-center justify-between bg-gradient-to-r from-[#C8A45C]/20 via-[#C8A45C]/10 to-transparent border border-[#C8A45C]/40 px-3 py-1.5 rounded-xl text-xs">
@@ -808,9 +839,27 @@ export default function ProductDetail() {
 
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-xs font-semibold mb-0.5" style={{ color: customization.unit_price_color || "#E5E7EB" }}>سعر الوحدة</div>
+                <div 
+                  className="text-xs font-semibold mb-0.5" 
+                  style={{ 
+                    color: getCustomOrFallback(
+                      customization.unit_price_color,
+                      "var(--theme-text-secondary, #9CA3AF)"
+                    ) 
+                  }}
+                >
+                  سعر الوحدة
+                </div>
                 <div className="flex items-baseline gap-2">
-                  <div className="text-2xl font-black font-mono" style={{ color: customization.unit_price_color || customization.price_color || "#FDE68A" }}>
+                  <div 
+                    className="text-2xl font-black font-mono" 
+                    style={{ 
+                      color: getCustomOrFallback(
+                        customization.unit_price_color || customization.price_color,
+                        "var(--product-price-color, var(--theme-accent, #FDE68A))"
+                      ) 
+                    }}
+                  >
                     {unitFormatted.primary}
                   </div>
                   {hasVipDiscount && (
@@ -827,14 +876,32 @@ export default function ProductDetail() {
               </div>
 
               <div className="text-left border-r border-zinc-700/80 pr-4">
-                <div className="text-xs font-semibold" style={{ color: customization.total_price_color || "#C8A45C" }}>المجموع الكلي</div>
+                <div 
+                  className="text-xs font-semibold" 
+                  style={{ 
+                    color: getCustomOrFallback(
+                      customization.total_price_color || customization.price_color,
+                      "var(--product-total-price-color, var(--theme-primary, #C8A45C))"
+                    ) 
+                  }}
+                >
+                  المجموع الكلي
+                </div>
                 <div className="flex items-baseline justify-end gap-2">
                   {hasVipDiscount && (
                     <span className="text-xs line-through text-zinc-500 font-mono">
                       {baseTotalFormatted.primary}
                     </span>
                   )}
-                  <div className="text-2xl font-black font-mono" style={{ color: customization.total_price_color || customization.price_color || "#FDE68A" }}>
+                  <div 
+                    className="text-2xl font-black font-mono" 
+                    style={{ 
+                      color: getCustomOrFallback(
+                        customization.total_price_color || customization.price_color,
+                        "var(--product-total-price-color, var(--theme-primary, #C8A45C))"
+                      ) 
+                    }}
+                  >
                     {totalFormatted.primary}
                   </div>
                 </div>
