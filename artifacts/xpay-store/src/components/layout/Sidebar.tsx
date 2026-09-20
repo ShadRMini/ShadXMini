@@ -21,8 +21,8 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useStoreSettings } from "@/lib/store-settings-context";
+import { useAppData } from "@/contexts/AppDataContext";
 import { getStoreThemeMode, setStoreThemeMode, toggleStoreThemeMode, applyStoreTheme } from "@/lib/theme";
-import { getPublicJson } from "@/lib/public-api";
 import { toast } from "sonner";
 
 interface SidebarProps {
@@ -84,26 +84,9 @@ export default function Sidebar({ brandLogo, onClose }: SidebarProps) {
 
   const isDark = mode === "dark";
 
-  // Unread notifications count
-  const [unreadNotifications, setUnreadNotifications] = useState<number>(0);
-
-  useEffect(() => {
-    if (!user) {
-      setUnreadNotifications(0);
-      return;
-    }
-    const fetchUnread = async () => {
-      try {
-        const res = await getPublicJson<{ count: number }>("/me/notifications/unread-count");
-        setUnreadNotifications(Number(res?.count || 0));
-      } catch {
-        // Ignore
-      }
-    };
-    fetchUnread();
-    const interval = setInterval(fetchUnread, 30000);
-    return () => clearInterval(interval);
-  }, [user]);
+  // Unread notifications count from central AppDataContext
+  const { unreadCount } = useAppData();
+  const unreadNotifications = user ? unreadCount : 0;
 
   const allSidebarLinks = [
     { href: "/", label: "الرئيسية", icon: Home, guestAllowed: true },

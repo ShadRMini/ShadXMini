@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { setAuthTokenGetter } from "@workspace/api-client-react";
+import { apiFetch, clearApiCache } from "@/lib/api-client";
 
 export type UserProfile = {
   id: string;
@@ -83,20 +84,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return null;
       }
 
-      const baseUrl = apiBaseUrl();
-      const headers: Record<string, string> = {
-        "Accept": "application/json",
-        "Authorization": `Bearer ${storedToken}`,
-      };
-
-      const res = await fetch(`${baseUrl}/api/me?_=${Date.now()}`, {
-        headers,
-        credentials: "include",
+      const data = await apiFetch<any>("/api/me", {
         signal,
-      });
-
-      if (!res.ok) {
-        if (res.status === 401 || res.status === 403) {
+        skipCache: true,
+      }).catch((err) => {
+        if (err?.message?.includes("401") || err?.message?.includes("403")) {
           // Token expired or invalid
           localStorage.removeItem(TOKEN_KEY);
           localStorage.removeItem(USER_KEY);
@@ -107,9 +99,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUser(null);
         }
         return null;
-      }
+      });
 
-      const data = await res.json();
       if (data && !data.identityMissing && data.id && data.id !== "0") {
         setUser(data);
         localStorage.setItem(USER_KEY, JSON.stringify(data));
@@ -165,8 +156,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (e) {
       console.error("Storage write error", e);
     }
+    clearApiCache();
     setToken(newToken);
     setUser(newUser);
+    try {
+      window.dispatchEvent(new Event("xpay_auth_change"));
+    } catch {}
   }, []);
 
   const logout = useCallback(async () => {
@@ -180,6 +175,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.removeItem("xpay_auth_token");
       localStorage.removeItem("xpay_auth_user");
       sessionStorage.clear();
+      clearApiCache();
+      window.dispatchEvent(new Event("xpay_auth_change"));
     } catch (e) {
       console.error("Storage clear error:", e);
     }

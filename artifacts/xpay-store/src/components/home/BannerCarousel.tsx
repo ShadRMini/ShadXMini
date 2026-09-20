@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { getPublicJson } from "@/lib/public-api";
 import { useAuth } from "@/lib/auth-context";
 import { useStoreSettings } from "@/lib/store-settings-context";
+import { useAppData } from "@/contexts/AppDataContext";
 import { toast } from "sonner";
 
 export interface BannerItem {
@@ -69,10 +70,17 @@ export default function BannerCarousel({ banners: propBanners, isLoading }: Bann
     [Autoplay({ delay: 4500, stopOnInteraction: false })]
   );
 
+  const { banners: contextBanners } = useAppData();
+
   // Fetch banners if not provided
   useEffect(() => {
     if (propBanners && propBanners.length > 0) {
       setBanners(propBanners);
+      return;
+    }
+
+    if (contextBanners && contextBanners.length > 0) {
+      setBanners(contextBanners);
       return;
     }
 
@@ -90,7 +98,7 @@ export default function BannerCarousel({ banners: propBanners, isLoading }: Bann
     return () => {
       active = false;
     };
-  }, [propBanners]);
+  }, [propBanners, contextBanners]);
 
   const onSelect = useCallback(() => {
     if (!emblaApi) return;

@@ -3,6 +3,7 @@ import { Link } from "wouter";
 import { Bell, Check, CheckCheck, Clock, ExternalLink } from "lucide-react";
 import { getPublicJson, apiRequest } from "@/lib/public-api";
 import { useAuth } from "@/lib/auth-context";
+import { useAppData } from "@/contexts/AppDataContext";
 
 export interface NotificationItem {
   id: number;
@@ -18,22 +19,11 @@ export interface NotificationItem {
 
 export default function NotificationBellDropdown() {
   const { user } = useAuth();
-  const [unreadCount, setUnreadCount] = useState<number>(0);
+  const { unreadCount, setUnreadCount } = useAppData();
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-
-  // Poll for unread count every 30 seconds
-  const fetchUnreadCount = async () => {
-    if (!user) return;
-    try {
-      const res = await getPublicJson<{ count: number }>("/me/notifications/unread-count");
-      setUnreadCount(Number(res?.count || 0));
-    } catch {
-      // Ignore if unauthenticated or network error
-    }
-  };
 
   const fetchRecentNotifications = async () => {
     if (!user) return;
@@ -52,14 +42,9 @@ export default function NotificationBellDropdown() {
 
   useEffect(() => {
     if (!user) {
-      setUnreadCount(0);
       setNotifications([]);
       return;
     }
-
-    fetchUnreadCount();
-    const interval = setInterval(fetchUnreadCount, 30000);
-    return () => clearInterval(interval);
   }, [user]);
 
   // When dropdown opens, fetch latest 5 notifications

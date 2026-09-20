@@ -13,6 +13,8 @@ import PageLoading from "@/components/PageLoading";
 import { PopupNotification } from "@/components/PopupNotification";
 import { loadAndApplyStoreTheme, DEFAULT_STORE_THEME, applyStoreTheme } from "@/lib/theme";
 import { getPublicJson } from "@/lib/public-api";
+import { apiFetch } from "@/lib/api-client";
+import { AppDataProvider } from "@/contexts/AppDataContext";
 import { setCachedShamCash } from "@/lib/shamcash-cache";
 import { Wrench, Construction, Clock, ShieldAlert, Server, MessageCircle } from "lucide-react";
 
@@ -274,8 +276,7 @@ function App() {
 
   useEffect(() => {
     let cancelled = false;
-    fetch(`${apiBaseUrl()}/api/app-settings`)
-      .then((res) => (res.ok ? res.json() : null))
+    apiFetch<AppSettings>("/api/app-settings")
       .then((data) => {
         if (!cancelled) setSettings(data);
       })
@@ -318,14 +319,16 @@ function App() {
       <StoreSettingsProvider>
         <CurrencyProvider>
           <AuthProvider>
-            <TooltipProvider>
-              <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-                <Router />
-              </WouterRouter>
-              {settings && <StorePopup settings={settings} />}
-              <PopupNotification />
-              <Toaster theme="dark" position="top-center" dir="rtl" />
-            </TooltipProvider>
+            <AppDataProvider>
+              <TooltipProvider>
+                <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+                  <Router />
+                </WouterRouter>
+                {settings && <StorePopup settings={settings} />}
+                <PopupNotification />
+                <Toaster theme="dark" position="top-center" dir="rtl" />
+              </TooltipProvider>
+            </AppDataProvider>
           </AuthProvider>
         </CurrencyProvider>
       </StoreSettingsProvider>

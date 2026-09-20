@@ -39,6 +39,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import ProductCard from "@/components/product/ProductCard";
 import { useCurrency } from "@/lib/currency-context";
 import { useAuth } from "@/lib/auth-context";
+import { apiFetch } from "@/lib/api-client";
 
 type PurchaseMode = "apps" | "games" | "balance";
 
@@ -358,9 +359,7 @@ export default function ProductDetail() {
 
   // Fetch product page config from API
   useEffect(() => {
-    const baseUrl = (import.meta.env.VITE_API_URL || "").replace(/\/+$/, "");
-    fetch(`${baseUrl}/api/public/product-page-config?_=${Date.now()}`)
-      .then((res) => (res.ok ? res.json() : null))
+    apiFetch<any>("/api/public/product-page-config")
       .then((data) => {
         if (data && typeof data === "object") {
           if (Array.isArray(data.sections) && data.sections.length > 0) {
@@ -390,12 +389,9 @@ export default function ProductDetail() {
   useEffect(() => {
     if (!id) return;
     const token = localStorage.getItem("xpay_store_auth_token");
-    const baseUrl = (import.meta.env.VITE_API_URL || "").replace(/\/+$/, "");
-    const headers: Record<string, string> = { Accept: "application/json" };
-    if (token) headers["Authorization"] = `Bearer ${token}`;
+    if (!token) return;
 
-    fetch(`${baseUrl}/api/favorites?_=${Date.now()}`, { headers, credentials: "include" })
-      .then((res) => (res.ok ? res.json() : []))
+    apiFetch<any[]>("/api/favorites")
       .then((data) => {
         if (Array.isArray(data)) {
           const match = data.some((item: any) => String(item.id) === String(id));
@@ -414,15 +410,7 @@ export default function ProductDetail() {
       return;
     }
 
-    const baseUrl = (import.meta.env.VITE_API_URL || "").replace(/\/+$/, "");
-    fetch(`${baseUrl}/api/me/vip-details?_=${Date.now()}`, {
-      headers: {
-        Accept: "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      credentials: "include",
-    })
-      .then((res) => (res.ok ? res.json() : null))
+    apiFetch<any>("/api/me/vip-details")
       .then((data) => {
         if (data && typeof data === "object") {
           let fixedDiscount = Number(data.discountFixedAmount ?? data.discount_fixed_amount ?? data.currentLevel?.discountFixedAmount ?? data.currentLevel?.discount_fixed_amount ?? 0);

@@ -3,6 +3,8 @@ import { Link } from "wouter";
 import { Heart, Trash2, ShoppingBag, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
+import { apiFetch } from "@/lib/api-client";
+import { apiRequest } from "@/lib/public-api";
 
 type FavoriteProduct = {
   favoriteId: string;
@@ -34,21 +36,7 @@ export default function Favorites() {
   const fetchFavorites = async () => {
     try {
       setLoading(true);
-      const baseUrl = apiBaseUrl();
-      const token = localStorage.getItem("xpay_store_auth_token");
-      const headers: Record<string, string> = { Accept: "application/json" };
-      if (token) headers["Authorization"] = `Bearer ${token}`;
-
-      const res = await fetch(`${baseUrl}/api/favorites?_=${Date.now()}`, {
-        headers,
-        credentials: "include",
-      });
-
-      if (!res.ok) {
-        throw new Error("فشل تحميل قائمة المفضلة");
-      }
-
-      const data = await res.json();
+      const data = await apiFetch<any[]>("/api/favorites");
       setFavorites(Array.isArray(data) ? data : []);
     } catch (err: any) {
       setError(err.message || "حدث خطأ");
@@ -66,21 +54,9 @@ export default function Favorites() {
     e.stopPropagation();
 
     try {
-      const baseUrl = apiBaseUrl();
-      const token = localStorage.getItem("xpay_store_auth_token");
-      const headers: Record<string, string> = { Accept: "application/json" };
-      if (token) headers["Authorization"] = `Bearer ${token}`;
-
-      const res = await fetch(`${baseUrl}/api/favorites/${productId}`, {
-        method: "DELETE",
-        headers,
-        credentials: "include",
-      });
-
-      if (res.ok) {
-        setFavorites((prev) => prev.filter((p) => p.id !== productId));
-        toast.success("تمت إزالة المنتج من المفضلة");
-      }
+      await apiRequest(`/favorites/${productId}`, { method: "DELETE" });
+      setFavorites((prev) => prev.filter((p) => p.id !== productId));
+      toast.success("تمت إزالة المنتج من المفضلة");
     } catch {
       toast.error("فشل حذف المنتج من المفضلة");
     }

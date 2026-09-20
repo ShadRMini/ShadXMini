@@ -1,4 +1,5 @@
 import React from "react";
+import { apiFetch } from "./api-client";
 import {
   LogIn,
   UserPlus,
@@ -238,9 +239,8 @@ export async function fetchAuthPagesConfig(baseUrl: string): Promise<{
   useLegacy: boolean;
 }> {
   try {
-    const res = await fetch(`${baseUrl}/api/public/auth-pages-config`);
-    if (res.ok) {
-      const data = await res.json();
+    const data = await apiFetch<any>("/api/public/auth-pages-config");
+    if (data) {
       return {
         config: data.config ? { ...DEFAULT_AUTH_PAGES_CONFIG, ...data.config } : DEFAULT_AUTH_PAGES_CONFIG,
         useLegacy: data.use_legacy_auth_pages === true || data.use_legacy_auth_pages === "true",

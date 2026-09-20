@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/lib/auth-context";
+import { apiFetch } from "@/lib/api-client";
 import {
   Lock,
   User,
@@ -70,8 +71,7 @@ export default function Login() {
       if (useLegacy) setUseLegacyLayout(true);
     });
 
-    fetch(`${baseUrl}/api/settings/public`)
-      .then((res) => (res.ok ? res.json() : null))
+    apiFetch<any>("/api/settings/public")
       .then((data) => {
         const logo = data?.brand_logo_url || data?.brandLogoUrl || data?.site_logo || data?.siteLogo || "";
         if (logo) setBrandLogo(logo);

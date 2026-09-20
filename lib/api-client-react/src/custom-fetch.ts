@@ -529,12 +529,61 @@ export async function customFetch<T = unknown>(
 
   const requestInfo = { method, url: resolveUrl(input) };
 
-  const response = await fetch(input, { cache: "no-store", ...init, method, headers });
-
-  if (!response.ok) {
-    const errorData = await parseErrorBody(response, method);
-    throw new ApiError(response, errorData, requestInfo);
+  // Invalidate cache on mutations
+  if (method !== "GET") {
+    clearCustomFetchCache();
+    const response = await fetch(input, { cache: "no-store", ...init, method, headers });
+    if (!response.ok) {
+      const errorData = await parseErrorBody(response, method);
+      throw new ApiError(response, errorData, requestInfo);
+    }
+    return (await parseSuccessBody(response, responseType, requestInfo)) as T;
   }
 
-  return (await parseSuccessBody(response, responseType, requestInfo)) as T;
+  // GET request caching and in-flight deduplication
+  const cacheKey = `${requestInfo.url}|${headers.get("authorization") || ""}`;
+  const now = Date.now();
+
+  const cached = customFetchCache.get(cacheKey);
+  if (cached && now < cached.expiry) {
+    return cached.data as T;
+  }
+
+  if (customFetchInflight.has(cacheKey)) {
+    return customFetchInflight.get(cacheKey)! as Promise<T>;
+  }
+
+  const promise = (async () => {
+    try {
+      const response = await fetch(input, { cache: "no-store", ...init, method, headers });
+      if (!response.ok) {
+        const errorData = await parseErrorBody(response, method);
+        throw new ApiError(response, errorData, requestInfo);
+      }
+      const data = (await parseSuccessBody(response, responseType, requestInfo)) as T;
+      customFetchCache.set(cacheKey, { data, expiry: Date.now() + CUSTOM_FETCH_CACHE_TTL });
+      return data;
+    } finally {
+      customFetchInflight.delete(cacheKey);
+    }
+  })();
+
+  customFetchInflight.set(cacheKey, promise);
+  return promise;
+}
+
+const customFetchInflight = new Map<string, Promise<any>>();
+const customFetchCache = new Map<string, { data: any; expiry: number }>();
+const CUSTOM_FETCH_CACHE_TTL = 30_000;
+
+export function clearCustomFetchCache(prefix?: string) {
+  if (!prefix) {
+    customFetchCache.clear();
+    return;
+  }
+  for (const key of customFetchCache.keys()) {
+    if (key.includes(prefix)) {
+      customFetchCache.delete(key);
+    }
+  }
 }

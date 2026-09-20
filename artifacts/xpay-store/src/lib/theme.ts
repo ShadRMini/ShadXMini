@@ -1,4 +1,5 @@
 import { getThemePreset, THEME_PRESETS, ThemePreset } from "./theme-presets";
+import { apiFetch } from "./api-client";
 
 export interface StoreThemeSettings {
   primary: string;
@@ -747,17 +748,16 @@ export async function loadAndApplyStoreTheme(apiBase = ""): Promise<StoreThemeSe
   }
 
   const endpoints = [
-    `${apiBase}/api/public/theme-settings`,
-    `${apiBase}/api/theme-settings`,
-    `${apiBase}/api/theme`,
+    "/api/public/theme-settings",
+    "/api/theme-settings",
+    "/api/theme",
   ];
 
   console.log("[Theme] Fetching theme settings...");
   for (const endpoint of endpoints) {
     try {
-      const res = await fetch(endpoint);
-      if (res.ok) {
-        const data: StoreThemeSettings = await res.json();
+      const data = await apiFetch<StoreThemeSettings>(endpoint);
+      if (data && typeof data === "object") {
         console.log("[Theme] Received from endpoint:", endpoint, data);
         setCachedThemeSettings(data);
         applyStoreTheme(data);

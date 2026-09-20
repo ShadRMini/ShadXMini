@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
+import { useAppData } from "@/contexts/AppDataContext";
 import { ExternalLink, X, Bell, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -16,40 +17,34 @@ interface PopupSettings {
   popupShowOnlyOnce: boolean;
 }
 
-function apiBaseUrl() {
-  return (import.meta.env.VITE_API_URL || "").replace(/\/+$/, "");
-}
-
 export function PopupNotification() {
   const { user } = useAuth();
-  const [settings, setSettings] = useState<PopupSettings | null>(null);
+  const { popupSettings } = useAppData();
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
-    if (!user) return; // Only show for logged in users
+    if (!user || !popupSettings) {
+      setIsOpen(false);
+      return;
+    }
 
-    const baseUrl = apiBaseUrl();
-    fetch(`${baseUrl}/api/public/popup-settings`)
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (data && data.popupEnabled) {
-          const storageKey = `xpay_popup_seen_${user.id}_${data.popupTitle || "default"}`;
-          const alreadySeen = localStorage.getItem(storageKey);
-          
-          if (data.popupShowOnlyOnce && alreadySeen) {
-            setIsOpen(false);
-          } else {
-            setSettings(data);
-            setIsOpen(true);
-          }
-        }
-      })
-      .catch((err) => {
-        console.error("Failed to load popup settings:", err);
-      });
-  }, [user]);
+    if (popupSettings.popupEnabled) {
+      const storageKey = `xpay_popup_seen_${user.id}_${popupSettings.popupTitle || "default"}`;
+      const alreadySeen = localStorage.getItem(storageKey);
+      
+      if (popupSettings.popupShowOnlyOnce && alreadySeen) {
+        setIsOpen(false);
+      } else {
+        setIsOpen(true);
+      }
+    } else {
+      setIsOpen(false);
+    }
+  }, [user, popupSettings]);
 
-  if (!isOpen || !settings || !user) return null;
+  if (!isOpen || !popupSettings || !user) return null;
+
+  const settings: PopupSettings = popupSettings;
 
   const markAsSeen = () => {
     const storageKey = `xpay_popup_seen_${user.id}_${settings.popupTitle || "default"}`;

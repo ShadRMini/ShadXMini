@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "wouter";
+import { apiFetch } from "@/lib/api-client";
 import {
   Info,
   ShieldCheck,
@@ -159,8 +160,7 @@ export default function About() {
     let active = true;
     const baseUrl = (import.meta.env.VITE_API_URL || "").replace(/\/+$/, "");
 
-    fetch(`${baseUrl}/api/public/about-config`)
-      .then((res) => (res.ok ? res.json() : null))
+    apiFetch<any>("/api/public/about-config")
       .then((data) => {
         if (!active) return;
         if (data) {

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Megaphone, X } from "lucide-react";
-import { getPublicJson } from "@/lib/public-api";
+import { useAppData } from "@/contexts/AppDataContext";
+import { useStoreSettings } from "@/lib/store-settings-context";
 
 interface NewsItem {
   id: number | string;
@@ -10,50 +11,26 @@ interface NewsItem {
 }
 
 export default function AnnouncementBar() {
-  const [news, setNews] = useState<NewsItem[]>([]);
+  const { news: globalNews, loading: globalLoading } = useAppData();
+  const storeSettings = useStoreSettings();
   const [closed, setClosed] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [speed, setSpeed] = useState<number>(15);
 
+  // Check if dismissed in this session
   useEffect(() => {
-    let active = true;
-
-    // Check if dismissed in this session
     const isDismissed = sessionStorage.getItem("xpay_announcement_dismissed");
     if (isDismissed === "true") {
       setClosed(true);
-      setLoading(false);
-      return;
     }
-
-    Promise.all([
-      getPublicJson<NewsItem[]>("/news").catch(() => []),
-      getPublicJson<any>("/public-settings").catch(() => ({})),
-    ])
-      .then(([newsData, settingsData]) => {
-        if (!active) return;
-        if (Array.isArray(newsData)) {
-          const activeNews = newsData.filter((item) => item.active !== false && item.content?.trim());
-          setNews(activeNews);
-        }
-        if (settingsData && settingsData.news_ticker_speed) {
-          const s = Number(settingsData.news_ticker_speed);
-          if (!isNaN(s) && s > 0) {
-            setSpeed(s);
-          }
-        }
-      })
-      .catch((err) => {
-        console.warn("Could not load news announcements or settings:", err);
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-
-    return () => {
-      active = false;
-    };
   }, []);
+
+  const speed =
+    storeSettings?.newsTickerSpeed ||
+    Number((storeSettings as any)?.news_ticker_speed) ||
+    15;
+
+  const news = (globalNews || []).filter(
+    (item: any) => item.active !== false && item.content?.trim()
+  );
 
   const handleDismiss = () => {
     setClosed(true);
@@ -64,7 +41,7 @@ export default function AnnouncementBar() {
     }
   };
 
-  if (closed || loading || news.length === 0) {
+  if (closed || globalLoading || news.length === 0) {
     return null;
   }
 
