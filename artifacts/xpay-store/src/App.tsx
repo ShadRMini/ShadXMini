@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState, lazy, Suspense } from "react";
 import { Switch, Route, Router as WouterRouter } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/sonner";
@@ -8,39 +8,40 @@ import { StoreSettingsProvider } from "@/lib/store-settings-context";
 import { CurrencyProvider } from "@/lib/currency-context";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { Redirect } from "wouter";
-import NotFound from "@/pages/not-found";
-import Home from "@/pages/home";
-import Categories from "@/pages/categories";
-import ProductGroupProducts from "@/pages/product-group-products";
-import ProductDetail from "@/pages/product-detail";
-import Orders from "@/pages/orders";
-import OrderDetail from "@/pages/order-detail";
-import Deposit from "@/pages/deposit";
-import DepositPayPage from "@/pages/DepositPayPage";
-import DepositMethod from "@/pages/deposit-method";
-import ShamCashInvoiceVerify from "@/pages/shamcash-invoice-verify";
-import WalletPage from "@/pages/WalletPage";
-import DepositShamCash from "@/pages/DepositShamCash";
-import DepositBinancePay from "@/pages/DepositBinancePay";
-import DepositInvoicePay from "@/pages/DepositInvoicePay";
-import DepositsList from "@/pages/deposits";
-import Profile from "@/pages/profile";
-import SettingsPage from "@/pages/settings";
-import Support from "@/pages/support";
-import ContactPage from "@/pages/ContactPage";
-import Favorites from "@/pages/favorites";
-import About from "@/pages/about";
-import Login from "@/pages/login";
-import Register from "@/pages/register";
-import NotificationsPage from "@/pages/Notifications";
-import LoyaltyLevels from "@/pages/LoyaltyLevels";
-import IdentityVerification from "@/pages/IdentityVerification";
 import AppLayout from "@/components/layout/AppLayout";
+import PageLoading from "@/components/PageLoading";
 import { PopupNotification } from "@/components/PopupNotification";
 import { loadAndApplyStoreTheme, DEFAULT_STORE_THEME, applyStoreTheme } from "@/lib/theme";
 import { getPublicJson } from "@/lib/public-api";
 import { setCachedShamCash } from "@/lib/shamcash-cache";
 import { Wrench, Construction, Clock, ShieldAlert, Server, MessageCircle } from "lucide-react";
+
+// Lazy-loaded Pages
+const NotFound = lazy(() => import("@/pages/not-found"));
+const Home = lazy(() => import("@/pages/home"));
+const Categories = lazy(() => import("@/pages/categories"));
+const ProductGroupProducts = lazy(() => import("@/pages/product-group-products"));
+const ProductDetail = lazy(() => import("@/pages/product-detail"));
+const Orders = lazy(() => import("@/pages/orders"));
+const OrderDetail = lazy(() => import("@/pages/order-detail"));
+const Deposit = lazy(() => import("@/pages/deposit"));
+const DepositMethod = lazy(() => import("@/pages/deposit-method"));
+const ShamCashInvoiceVerify = lazy(() => import("@/pages/shamcash-invoice-verify"));
+const WalletPage = lazy(() => import("@/pages/WalletPage"));
+const DepositShamCash = lazy(() => import("@/pages/DepositShamCash"));
+const DepositBinancePay = lazy(() => import("@/pages/DepositBinancePay"));
+const DepositInvoicePay = lazy(() => import("@/pages/DepositInvoicePay"));
+const DepositsList = lazy(() => import("@/pages/deposits"));
+const Profile = lazy(() => import("@/pages/profile"));
+const SettingsPage = lazy(() => import("@/pages/settings"));
+const ContactPage = lazy(() => import("@/pages/ContactPage"));
+const Favorites = lazy(() => import("@/pages/favorites"));
+const About = lazy(() => import("@/pages/about"));
+const Login = lazy(() => import("@/pages/login"));
+const Register = lazy(() => import("@/pages/register"));
+const NotificationsPage = lazy(() => import("@/pages/Notifications"));
+const LoyaltyLevels = lazy(() => import("@/pages/LoyaltyLevels"));
+const IdentityVerification = lazy(() => import("@/pages/IdentityVerification"));
 
 const queryClient = new QueryClient();
 
@@ -193,49 +194,51 @@ function StorePopup({ settings }: { settings: AppSettings }) {
 
 function Router() {
   return (
-    <Switch>
-      {/* Auth routes without AppLayout */}
-      <Route path="/login" component={Login} />
-      <Route path="/register" component={Register} />
+    <Suspense fallback={<PageLoading />}>
+      <Switch>
+        {/* Auth routes without AppLayout */}
+        <Route path="/login" component={Login} />
+        <Route path="/register" component={Register} />
 
-      {/* Main Store routes with AppLayout and Protection */}
-      <Route>
-        <AppLayout>
-          <Switch>
-            <Route path="/" component={() => <ProtectedRoute component={Home} allowGuest={true} />} />
-            <Route path="/categories/:id" component={() => <ProtectedRoute component={Categories} />} />
-            <Route path="/groups/:id" component={() => <ProtectedRoute component={ProductGroupProducts} />} />
-            <Route path="/products/:id" component={() => <ProtectedRoute component={ProductDetail} />} />
-            <Route path="/orders" component={() => <ProtectedRoute component={Orders} />} />
-            <Route path="/orders/:id" component={() => <ProtectedRoute component={OrderDetail} />} />
-            <Route path="/wallet" component={() => <ProtectedRoute component={WalletPage} />} />
-            <Route path="/deposit" component={() => <ProtectedRoute component={WalletPage} />} />
-            <Route path="/deposit/shamcash" component={() => <ProtectedRoute component={DepositShamCash} />} />
-            <Route path="/deposit/binance-pay" component={() => <ProtectedRoute component={DepositBinancePay} />} />
-            <Route path="/deposit/pay/:invoiceId" component={() => <ProtectedRoute component={DepositInvoicePay} />} />
-            <Route path="/deposit-legacy" component={() => <ProtectedRoute component={Deposit} />} />
-            <Route path="/deposit/:method/invoice" component={() => <ProtectedRoute component={ShamCashInvoiceVerify} />} />
-            <Route path="/deposit/:method" component={() => <ProtectedRoute component={DepositMethod} />} />
-            <Route path="/deposits" component={() => <ProtectedRoute component={DepositsList} />} />
-            <Route path="/favorites" component={() => <ProtectedRoute component={Favorites} />} />
-            <Route path="/notifications" component={() => <ProtectedRoute component={NotificationsPage} />} />
-            <Route path="/loyalty" component={() => <ProtectedRoute component={LoyaltyLevels} />} />
-            <Route path="/levels" component={() => <ProtectedRoute component={LoyaltyLevels} />} />
-            <Route path="/vip" component={() => <ProtectedRoute component={LoyaltyLevels} />} />
-            <Route path="/identity-verification" component={() => <ProtectedRoute component={IdentityVerification} />} />
-            <Route path="/profile" component={() => <ProtectedRoute component={Profile} />} />
-            <Route path="/settings" component={() => <ProtectedRoute component={SettingsPage} />} />
-            <Route path="/profile/edit" component={() => <ProtectedRoute component={SettingsPage} />} />
-            <Route path="/support" component={() => <ProtectedRoute component={ContactPage} allowGuest={true} />} />
-            <Route path="/contact" component={() => <ProtectedRoute component={ContactPage} allowGuest={true} />} />
-            <Route path="/about" component={() => <ProtectedRoute component={About} allowGuest={true} />} />
-            <Route path="/currencies" component={() => <Redirect to="/" />} />
-            <Route path="/currency" component={() => <Redirect to="/" />} />
-            <Route component={NotFound} />
-          </Switch>
-        </AppLayout>
-      </Route>
-    </Switch>
+        {/* Main Store routes with AppLayout and Protection */}
+        <Route>
+          <AppLayout>
+            <Switch>
+              <Route path="/" component={() => <ProtectedRoute component={Home} allowGuest={true} />} />
+              <Route path="/categories/:id" component={() => <ProtectedRoute component={Categories} />} />
+              <Route path="/groups/:id" component={() => <ProtectedRoute component={ProductGroupProducts} />} />
+              <Route path="/products/:id" component={() => <ProtectedRoute component={ProductDetail} />} />
+              <Route path="/orders" component={() => <ProtectedRoute component={Orders} />} />
+              <Route path="/orders/:id" component={() => <ProtectedRoute component={OrderDetail} />} />
+              <Route path="/wallet" component={() => <ProtectedRoute component={WalletPage} />} />
+              <Route path="/deposit" component={() => <ProtectedRoute component={WalletPage} />} />
+              <Route path="/deposit/shamcash" component={() => <ProtectedRoute component={DepositShamCash} />} />
+              <Route path="/deposit/binance-pay" component={() => <ProtectedRoute component={DepositBinancePay} />} />
+              <Route path="/deposit/pay/:invoiceId" component={() => <ProtectedRoute component={DepositInvoicePay} />} />
+              <Route path="/deposit-legacy" component={() => <ProtectedRoute component={Deposit} />} />
+              <Route path="/deposit/:method/invoice" component={() => <ProtectedRoute component={ShamCashInvoiceVerify} />} />
+              <Route path="/deposit/:method" component={() => <ProtectedRoute component={DepositMethod} />} />
+              <Route path="/deposits" component={() => <ProtectedRoute component={DepositsList} />} />
+              <Route path="/favorites" component={() => <ProtectedRoute component={Favorites} />} />
+              <Route path="/notifications" component={() => <ProtectedRoute component={NotificationsPage} />} />
+              <Route path="/loyalty" component={() => <ProtectedRoute component={LoyaltyLevels} />} />
+              <Route path="/levels" component={() => <ProtectedRoute component={LoyaltyLevels} />} />
+              <Route path="/vip" component={() => <ProtectedRoute component={LoyaltyLevels} />} />
+              <Route path="/identity-verification" component={() => <ProtectedRoute component={IdentityVerification} />} />
+              <Route path="/profile" component={() => <ProtectedRoute component={Profile} />} />
+              <Route path="/settings" component={() => <ProtectedRoute component={SettingsPage} />} />
+              <Route path="/profile/edit" component={() => <ProtectedRoute component={SettingsPage} />} />
+              <Route path="/support" component={() => <ProtectedRoute component={ContactPage} allowGuest={true} />} />
+              <Route path="/contact" component={() => <ProtectedRoute component={ContactPage} allowGuest={true} />} />
+              <Route path="/about" component={() => <ProtectedRoute component={About} allowGuest={true} />} />
+              <Route path="/currencies" component={() => <Redirect to="/" />} />
+              <Route path="/currency" component={() => <Redirect to="/" />} />
+              <Route component={NotFound} />
+            </Switch>
+          </AppLayout>
+        </Route>
+      </Switch>
+    </Suspense>
   );
 }
 

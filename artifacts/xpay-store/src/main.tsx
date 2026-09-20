@@ -42,11 +42,17 @@ async function registerTelegramSession() {
 
 async function bootstrap() {
   try {
-    const webApp = (globalThis as any)?.Telegram?.WebApp;
-    webApp?.ready?.();
-    webApp?.expand?.();
-    await waitForTelegramIdentity();
-    await registerTelegramSession();
+    const isTelegramWebApp =
+      typeof window !== "undefined" &&
+      Boolean((window as any).Telegram?.WebApp?.initData);
+
+    if (isTelegramWebApp) {
+      const webApp = (globalThis as any)?.Telegram?.WebApp;
+      webApp?.ready?.();
+      webApp?.expand?.();
+      await waitForTelegramIdentity(1500);
+      await registerTelegramSession();
+    }
   } catch {
     // The store must still render outside Telegram for diagnostics.
   }
