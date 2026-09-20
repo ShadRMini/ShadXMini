@@ -60,9 +60,14 @@ export async function getShamCashSettings() {
       : rawExpiry || 15
   );
 
+  let cleanApiBaseUrl = String(apiBaseUrl).trim();
+  if (cleanApiBaseUrl.startsWith("https://sam-api.pro")) {
+    cleanApiBaseUrl = cleanApiBaseUrl.replace("https://sam-api.pro", "https://www.sam-api.pro");
+  }
+
   return {
-    apiBaseUrl: String(apiBaseUrl).trim(),
-    payBaseUrl: String(apiBaseUrl).trim().replace(/\/api\/?$/i, ""),
+    apiBaseUrl: cleanApiBaseUrl,
+    payBaseUrl: cleanApiBaseUrl.replace(/\/api\/?$/i, ""),
     apiKey: String(apiKey).trim(),
     shamcashIdentifier: String(shamcashIdentifier).trim(),
     webhookSecret: String(webhookSecret).trim(),

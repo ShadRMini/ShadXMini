@@ -336,7 +336,7 @@ export async function ensureDatabaseSchema() {
 
     // Seed default ShamCash settings if missing
     const shamcashKeys = [
-      { key: "shamcash_api_base_url", val: "https://sam-api.pro/api" },
+      { key: "shamcash_api_base_url", val: process.env.SAM_API_BASE_URL || "https://www.sam-api.pro/api" },
       { key: "shamcash_api_key", val: process.env.SAM_API_KEY || "" },
       { key: "shamcash_shamcash_identifier", val: process.env.SAM_SHAMCASH_IDENTIFIER || "" },
       { key: "shamcash_invoice_expiry_minutes", val: 15 },

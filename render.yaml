@@ -31,6 +31,14 @@ services:
         sync: false
       - key: SAM_WEBHOOK_SECRET
         sync: false
+      - key: SAM_API_KEY
+        sync: false
+      - key: SAM_API_BASE_URL
+        value: "https://www.sam-api.pro/api"
+      - key: SAM_SHAMCASH_IDENTIFIER
+        sync: false
+      - key: SHAMCASH_SYNC_ENABLED
+        value: "true"
       - key: ADMIN_SEED_USERNAME
         sync: false
       - key: ADMIN_SEED_EMAIL

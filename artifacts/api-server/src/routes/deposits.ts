@@ -21,6 +21,7 @@ import {
 } from "../lib/notifications.js";
 import { rateLimit } from "../lib/rateLimit.js";
 import { createShamCashInvoice, getShamCashSettings } from "../services/shamcash.service.js";
+import { logger } from "../lib/logger.js";
 
 const router: IRouter = Router();
 const SAM_API_BASE_URL = process.env.SAM_API_BASE_URL || "https://www.sam-api.pro/api";
@@ -419,7 +420,96 @@ async function applyDepositStatusChangeAuto(id: number, status: "approved" | "re
   return { updated };
 }
 
-async function syncShamCashInvoiceStatus(invoiceId: string): Promise<{
+// ==========================================
+// ShamCash API Sync, Backoff & Circuit Breaker
+// ==========================================
+
+export function isShamCashSyncEnabled(): boolean {
+  const envVal = String(process.env.SHAMCASH_SYNC_ENABLED ?? "true").toLowerCase().trim();
+  return envVal !== "false" && envVal !== "0";
+}
+
+interface SamApiCircuitBreakerState {
+  consecutiveFailures: number;
+  openUntil: number;
+  lastLoggedOpenAt: number;
+}
+
+const samApiCircuitBreaker: SamApiCircuitBreakerState = {
+  consecutiveFailures: 0,
+  openUntil: 0,
+  lastLoggedOpenAt: 0,
+};
+
+function recordSamApiSuccess() {
+  samApiCircuitBreaker.consecutiveFailures = 0;
+}
+
+function recordSamApiFailure(reason: string) {
+  samApiCircuitBreaker.consecutiveFailures += 1;
+  if (samApiCircuitBreaker.consecutiveFailures >= 5) {
+    samApiCircuitBreaker.openUntil = Date.now() + 15 * 60 * 1000; // 15-minute circuit break
+    const now = Date.now();
+    if (now - samApiCircuitBreaker.lastLoggedOpenAt > 5 * 60 * 1000) {
+      logger.warn(
+        {
+          consecutiveFailures: samApiCircuitBreaker.consecutiveFailures,
+          openUntil: new Date(samApiCircuitBreaker.openUntil).toISOString(),
+          lastReason: reason,
+        },
+        "[syncShamCashInvoiceStatus] Circuit breaker OPEN: Pausing SAM API sync for 15 minutes after 5 consecutive failures"
+      );
+      samApiCircuitBreaker.lastLoggedOpenAt = now;
+    }
+  }
+}
+
+interface InvoiceBackoffRecord {
+  attempts: number;
+  nextAllowedTime: number;
+  loggedNonJson?: boolean;
+}
+
+const invoiceBackoffMap = new Map<string, InvoiceBackoffRecord>();
+const BACKOFF_DELAYS_MS = [1000, 2000, 4000, 8000, 30000, 60000];
+
+function canAttemptInvoiceSync(invoiceId: string): boolean {
+  const state = invoiceBackoffMap.get(invoiceId);
+  if (!state) return true;
+  return Date.now() >= state.nextAllowedTime;
+}
+
+function recordInvoiceSyncAttempt(invoiceId: string) {
+  const state = invoiceBackoffMap.get(invoiceId);
+  const attempts = (state?.attempts ?? 0) + 1;
+  const delayIdx = Math.min(attempts - 1, BACKOFF_DELAYS_MS.length - 1);
+  const delayMs = BACKOFF_DELAYS_MS[delayIdx];
+  const nextAllowedTime = Date.now() + delayMs;
+
+  invoiceBackoffMap.set(invoiceId, {
+    attempts,
+    nextAllowedTime,
+    loggedNonJson: state?.loggedNonJson ?? false,
+  });
+
+  if (invoiceBackoffMap.size > 2000) {
+    const now = Date.now();
+    for (const [k, v] of invoiceBackoffMap.entries()) {
+      if (now > v.nextAllowedTime + 3600000) {
+        invoiceBackoffMap.delete(k);
+      }
+    }
+  }
+}
+
+function clearInvoiceSyncRecord(invoiceId: string) {
+  invoiceBackoffMap.delete(invoiceId);
+}
+
+async function syncShamCashInvoiceStatus(
+  invoiceId: string,
+  force = false
+): Promise<{
   found: boolean;
   status?: string;
   synced?: "approved" | "rejected" | "pending";
@@ -436,30 +526,126 @@ async function syncShamCashInvoiceStatus(invoiceId: string): Promise<{
   if (!dep) return { found: false };
   if (dep.status !== "pending") return { found: true, status: dep.status, synced: dep.status as any };
 
-  const payResp = await fetch(`${SAM_PAY_BASE_URL.replace(/\/+$/, "")}/pay/${encodeURIComponent(cleanInvoiceId)}`);
-  const payJson: any = await payResp.json().catch((jsonErr) => {
-    console.warn("[syncShamCashInvoiceStatus] ⚠️ Failed to parse response JSON from pay endpoint:", jsonErr?.message);
-    return {};
-  });
-  const samStatus = String(payJson?.status || "").toLowerCase();
+  // Circuit breaker check (bypassed only if force is explicitly true)
+  if (!force && Date.now() < samApiCircuitBreaker.openUntil) {
+    return { found: true, status: dep.status, synced: "pending" };
+  }
 
-  if (samStatus === "paid") {
-    const rawTxRef = normalizeShamCashTransactionRef(payJson?.transactionRef || payJson?.transaction_ref);
+  // Per-invoice exponential backoff check
+  if (!force && !canAttemptInvoiceSync(cleanInvoiceId)) {
+    return { found: true, status: dep.status, synced: "pending" };
+  }
+
+  const dbSettings = await getShamCashSettings().catch(() => null);
+  const apiBaseUrl = (
+    dbSettings?.apiBaseUrl ||
+    process.env.SAM_API_BASE_URL ||
+    "https://www.sam-api.pro/api"
+  ).replace(/\/+$/, "");
+
+  const apiKey = (
+    dbSettings?.apiKey ||
+    process.env.SAM_API_KEY ||
+    ""
+  ).trim();
+
+  // Official documentation endpoint: GET /v1/invoices/{invoiceId}
+  const url = `${apiBaseUrl}/v1/invoices/${encodeURIComponent(cleanInvoiceId)}`;
+
+  let payResp: Response;
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000);
+    payResp = await fetch(url, {
+      method: "GET",
+      headers: {
+        ...(apiKey ? { Authorization: `Bearer ${apiKey}`, "X-Api-Key": apiKey } : {}),
+        Accept: "application/json",
+      },
+      signal: controller.signal,
+    });
+    clearTimeout(timeout);
+  } catch (netErr: any) {
+    recordInvoiceSyncAttempt(cleanInvoiceId);
+    recordSamApiFailure(`Network error: ${netErr?.message || netErr}`);
+    return { found: true, status: dep.status, synced: "pending" };
+  }
+
+  // Fail-Safe: Check Content-Type before parsing JSON
+  const contentType = payResp.headers.get("content-type") || "";
+  if (!contentType.includes("application/json")) {
+    const text = await payResp.text().catch(() => "");
+    const state = invoiceBackoffMap.get(cleanInvoiceId);
+    if (!state?.loggedNonJson) {
+      logger.warn(
+        {
+          invoiceId: cleanInvoiceId,
+          status: payResp.status,
+          contentType,
+          htmlPreview: text.substring(0, 200),
+        },
+        "[syncShamCashInvoiceStatus] Non-JSON response from SAM API"
+      );
+      if (state) state.loggedNonJson = true;
+    }
+    recordInvoiceSyncAttempt(cleanInvoiceId);
+    recordSamApiFailure(`Non-JSON response (${payResp.status}, content-type: ${contentType})`);
+    return { found: true, status: dep.status, synced: "pending" };
+  }
+
+  let payJson: any = null;
+  try {
+    payJson = await payResp.json();
+  } catch (jsonErr: any) {
+    logger.warn(
+      { invoiceId: cleanInvoiceId, error: jsonErr?.message },
+      "[syncShamCashInvoiceStatus] Failed to parse JSON from SAM API invoice endpoint"
+    );
+    recordInvoiceSyncAttempt(cleanInvoiceId);
+    recordSamApiFailure(`JSON parse error: ${jsonErr?.message}`);
+    return { found: true, status: dep.status, synced: "pending" };
+  }
+
+  recordSamApiSuccess();
+
+  const invoiceData = payJson?.data || payJson?.invoice || payJson;
+  const samStatus = String(invoiceData?.status || "").toLowerCase().trim();
+
+  if (samStatus === "paid" || samStatus === "completed" || samStatus === "success") {
+    const rawTxRef = normalizeShamCashTransactionRef(
+      invoiceData?.transactionRef ||
+      invoiceData?.transaction_ref ||
+      payJson?.transactionRef ||
+      payJson?.transaction_ref
+    );
     await approveShamCashDepositAtomic({
       depositId: dep.id,
       transactionRef: rawTxRef || null,
       invoiceId: cleanInvoiceId,
     });
+    clearInvoiceSyncRecord(cleanInvoiceId);
     return { found: true, status: samStatus, synced: "approved" };
   }
-  if (samStatus === "expired") {
+
+  if (samStatus === "expired" || samStatus === "cancelled" || samStatus === "failed") {
     await applyDepositStatusChangeAuto(dep.id, "rejected");
+    clearInvoiceSyncRecord(cleanInvoiceId);
     return { found: true, status: samStatus, synced: "rejected" };
   }
+
+  // Invoice is still pending
+  recordInvoiceSyncAttempt(cleanInvoiceId);
   return { found: true, status: samStatus || "pending", synced: "pending" };
 }
 
 async function syncPendingShamCashDepositsForUser(userId: number): Promise<void> {
+  if (!isShamCashSyncEnabled()) {
+    return;
+  }
+  if (Date.now() < samApiCircuitBreaker.openUntil) {
+    return;
+  }
+
   const pending = await db
     .select({ transactionId: depositsTable.transactionId })
     .from(depositsTable)
@@ -469,7 +655,7 @@ async function syncPendingShamCashDepositsForUser(userId: number): Promise<void>
 
   for (const dep of pending) {
     try {
-      await syncShamCashInvoiceStatus(String(dep.transactionId || ""));
+      await syncShamCashInvoiceStatus(String(dep.transactionId || ""), false);
     } catch (error) {
       console.error("ShamCash pending sync failed:", error);
     }
@@ -582,7 +768,7 @@ router.get("/deposits/shamcash/invoice/:invoiceId", async (req, res) => {
       return;
     }
 
-    const syncRes = await syncShamCashInvoiceStatus(invoiceId);
+    const syncRes = await syncShamCashInvoiceStatus(invoiceId, true);
 
     // Refresh dep from DB in case status changed during sync
     const [refreshedDep] = await db
@@ -630,7 +816,7 @@ router.post("/deposits/shamcash/:invoiceId/sync", async (req, res) => {
       return;
     }
 
-    const result = await syncShamCashInvoiceStatus(invoiceId);
+    const result = await syncShamCashInvoiceStatus(invoiceId, true);
     res.json({ ok: true, ...result });
   } catch (error: any) {
     console.error("ShamCash manual sync failed:", error);
