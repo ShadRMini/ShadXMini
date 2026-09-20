@@ -9,16 +9,32 @@ const { Pool } = pg;
 let pool: any;
 let db: any;
 
-try {
-  if (process.env.DATABASE_URL) {
+if (process.env.NODE_ENV === "production") {
+  if (!process.env.DATABASE_URL) {
+    throw new Error("DATABASE_URL is required in production. Refusing to run with JSON fallback.");
+  }
+  try {
     pool = new Pool({ connectionString: process.env.DATABASE_URL });
     db = drizzle(pool, { schema });
+  } catch (e) {
+    console.error("FATAL: Failed to connect to PostgreSQL in production:", e);
+    process.exit(1);
   }
-} catch (e) {
-  console.warn("[AI Studio] Error connecting to PostgreSQL:", e);
+} else {
+  try {
+    if (process.env.DATABASE_URL) {
+      pool = new Pool({ connectionString: process.env.DATABASE_URL });
+      db = drizzle(pool, { schema });
+    }
+  } catch (e) {
+    console.warn("[AI Studio] Error connecting to PostgreSQL in development:", e);
+  }
 }
 
 if (!db) {
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("DATABASE_URL is required in production. Refusing to run with JSON fallback.");
+  }
   console.warn("[AI Studio] DATABASE_URL not set or database offline — using smart fallback store");
 
   const STORE_PATH = path.resolve(process.cwd(), ".local_db_store.json");

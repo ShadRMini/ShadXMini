@@ -13,6 +13,8 @@ services:
         value: production
       - key: PORT
         value: "3000"
+      - key: ENABLE_TELEGRAM_WEBHOOKS
+        value: "false"
       - key: DATABASE_URL
         sync: false
       - key: JWT_SECRET
@@ -22,4 +24,16 @@ services:
       - key: CLIENT_URL
         sync: false
       - key: TELEGRAM_STORE_BOT_TOKEN
+        sync: false
+      - key: TELEGRAM_ADMIN_WEBHOOK_SECRET
+        sync: false
+      - key: TELEGRAM_STORE_WEBHOOK_SECRET
+        sync: false
+      - key: SAM_WEBHOOK_SECRET
+        sync: false
+      - key: ADMIN_SEED_USERNAME
+        sync: false
+      - key: ADMIN_SEED_EMAIL
+        sync: false
+      - key: ADMIN_SEED_PASSWORD
         sync: false

@@ -1,4 +1,5 @@
 import { Router, type IRouter } from "express";
+import { timingSafeEqual } from "node:crypto";
 import { db, depositsTable, paymentMethodsTable, usersTable } from "@workspace/db";
 import { and, desc, eq, or, sql } from "drizzle-orm";
 import {
@@ -1041,11 +1042,23 @@ router.post("/deposits/shamcash/verify", async (req, res) => {
   }
 });
 
+function safeTimingEqual(a: string, b: string): boolean {
+  if (!a || !b) return false;
+  const bufA = Buffer.from(a);
+  const bufB = Buffer.from(b);
+  if (bufA.length !== bufB.length) return false;
+  return timingSafeEqual(bufA, bufB);
+}
+
 async function handleShamCashWebhook(req: any, res: any) {
   try {
     await ensureDepositsTelegramMessageColumn();
-    const secret = String(req.params?.secret || req.headers["x-webhook-secret"] || req.query.secret || "");
-    if (SAM_WEBHOOK_SECRET && secret !== SAM_WEBHOOK_SECRET) {
+
+    // P0-4: Fail-closed secret verification strictly from header
+    const configuredSecret = process.env.SAM_WEBHOOK_SECRET || SAM_WEBHOOK_SECRET;
+    const secretHeader = String(req.headers["x-webhook-secret"] || "");
+
+    if (!configuredSecret || !secretHeader || !safeTimingEqual(secretHeader, configuredSecret)) {
       res.status(401).json({ error: "invalid_webhook_secret" });
       return;
     }
@@ -1069,6 +1082,23 @@ async function handleShamCashWebhook(req: any, res: any) {
     }
 
     if (event === "invoice.paid") {
+      // P0-4: اعتماده فقط إذا كانت حالته pending
+      if (dep.status !== "pending") {
+        res.status(200).json({ ok: true, ignored: "deposit_already_processed", currentStatus: dep.status });
+        return;
+      }
+
+      // P0-4: تحقق من المبلغ ورقم الفاتورة مقابل الإيداع
+      const bodyAmount = Number(req.body?.amount ?? req.body?.paidAmount);
+      if (bodyAmount !== undefined && !isNaN(bodyAmount) && bodyAmount > 0) {
+        const depAmount = Number(dep.amount);
+        if (Math.abs(bodyAmount - depAmount) > 0.01) {
+          console.error(`[ShamCash Webhook] Amount mismatch for invoice ${invoiceId}: expected ${depAmount}, received ${bodyAmount}`);
+          res.status(400).json({ error: "amount_mismatch" });
+          return;
+        }
+      }
+
       const transactionRef = normalizeShamCashTransactionRef(req.body?.transactionRef);
 
       // إذا وُجد transactionRef: فحص سريع أولي لمنع التكرار
@@ -1118,7 +1148,6 @@ async function handleShamCashWebhook(req: any, res: any) {
 }
 
 router.post("/webhooks/shamcash", handleShamCashWebhook);
-router.post("/webhooks/shamcash/:secret", handleShamCashWebhook);
 
 // ==========================================
 // 🚀 Binance Pay Deposit Endpoints

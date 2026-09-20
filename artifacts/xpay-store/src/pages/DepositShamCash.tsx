@@ -106,7 +106,6 @@ export function DepositShamCash() {
         const cachedTg = localStorage.getItem("xpay_telegram_identity");
         if (cachedTg) {
           const parsed = JSON.parse(cachedTg);
-          if (parsed?.id) tgHeaders["x-telegram-id"] = String(parsed.id);
           if (parsed?.initDataRaw) tgHeaders["x-telegram-init-data"] = String(parsed.initDataRaw);
         }
       } catch {

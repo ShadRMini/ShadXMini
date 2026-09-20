@@ -16,10 +16,16 @@ const app: Express = express();
 app.set("trust proxy", 1);
 app.disable("etag");
 
-const allowedOrigins = process.env.CLIENT_URL?.split(",").map(s => s.trim()) || [
+const rawClientUrls = process.env.CLIENT_URL
+  ? process.env.CLIENT_URL.split(",").map((s) => s.trim().replace(/\/+$/, "")).filter(Boolean)
+  : [];
+
+const defaultOrigins = [
   "http://localhost:5173",
   "http://localhost:3000",
 ];
+
+const configuredOrigins = new Set([...rawClientUrls, ...defaultOrigins]);
 
 app.use(
   pinoHttp({
@@ -44,17 +50,40 @@ app.use(
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (
-        !origin ||
-        allowedOrigins.includes(origin) ||
-        process.env.NODE_ENV !== "production" ||
-        origin.includes("localhost") ||
-        origin.includes(".app") ||
-        origin.includes("googleusercontent.com")
-      ) {
+      // Allow requests with no origin (like server-to-server, curl, Telegram webhooks)
+      if (!origin) {
         callback(null, true);
+        return;
+      }
+
+      const normalizedOrigin = origin.replace(/\/+$/, "");
+
+      if (process.env.NODE_ENV === "production") {
+        // P0-6: In production, allow ONLY configured CLIENT_URL domains
+        const isAllowed =
+          rawClientUrls.includes(normalizedOrigin) ||
+          (rawClientUrls.length === 0 && configuredOrigins.has(normalizedOrigin));
+
+        if (isAllowed) {
+          callback(null, true);
+        } else {
+          callback(new Error(`CORS origin not allowed: ${origin}`));
+        }
       } else {
-        callback(null, true);
+        // In non-production: allow localhost, preview containers, and local ports
+        const isDevAllowed =
+          configuredOrigins.has(normalizedOrigin) ||
+          normalizedOrigin.includes("localhost") ||
+          normalizedOrigin.includes("127.0.0.1") ||
+          normalizedOrigin.includes(".app") ||
+          normalizedOrigin.includes("googleusercontent.com") ||
+          normalizedOrigin.includes("webcontainer.io");
+
+        if (isDevAllowed) {
+          callback(null, true);
+        } else {
+          callback(new Error(`CORS origin not allowed in development: ${origin}`));
+        }
       }
     },
     credentials: true,
@@ -74,9 +103,46 @@ app.use("/api", (_req, res, next) => {
   next();
 });
 
+// P0-4 (Updated): Enforce required webhook secrets at startup in production
+if (process.env.NODE_ENV === "production") {
+  const missingSecrets: string[] = [];
+  const enableTelegramWebhooks = process.env.ENABLE_TELEGRAM_WEBHOOKS === "true";
+
+  // Only require Telegram secrets if Telegram webhooks are explicitly enabled
+  if (enableTelegramWebhooks) {
+    if (!process.env.TELEGRAM_ADMIN_WEBHOOK_SECRET) missingSecrets.push("TELEGRAM_ADMIN_WEBHOOK_SECRET");
+    if (!process.env.TELEGRAM_STORE_WEBHOOK_SECRET) missingSecrets.push("TELEGRAM_STORE_WEBHOOK_SECRET");
+  }
+
+  // SAM_WEBHOOK_SECRET remains strictly mandatory in production
+  if (!process.env.SAM_WEBHOOK_SECRET) missingSecrets.push("SAM_WEBHOOK_SECRET");
+
+  if (missingSecrets.length > 0) {
+    const msg = `[Security Fatal] Missing required webhook secrets in production: ${missingSecrets.join(", ")}`;
+    logger.error({ missingSecrets }, msg);
+    throw new Error(msg);
+  }
+}
+
 ensureDatabaseSchema();
-primeTelegramIntegrations();
+if (process.env.ENABLE_TELEGRAM_WEBHOOKS === "true") {
+  primeTelegramIntegrations();
+}
 seedSuperAdmin();
+
+// Return 503 Service Unavailable for Telegram webhooks if disabled
+if (process.env.ENABLE_TELEGRAM_WEBHOOKS !== "true") {
+  const handleDisabledTelegramWebhook = (_req: express.Request, res: express.Response) => {
+    res.status(503).json({
+      error: "Telegram webhooks are disabled on this instance (ENABLE_TELEGRAM_WEBHOOKS=false)",
+    });
+  };
+
+  app.use("/api/webhooks/telegram", handleDisabledTelegramWebhook);
+  app.use("/api/telegram/admin/webhook", handleDisabledTelegramWebhook);
+  app.use("/api/telegram/admin/callback", handleDisabledTelegramWebhook);
+  app.use("/api/telegram/store/webhook", handleDisabledTelegramWebhook);
+}
 
 app.use("/api", router);
 app.use("/api", adminRouter);

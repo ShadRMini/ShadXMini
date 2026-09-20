@@ -4,6 +4,8 @@ import { asc, eq, sql } from "drizzle-orm";
 import { ListPaymentMethodsResponse, ListSocialLinksResponse } from "@workspace/api-zod";
 import { getOrCreateCurrentUser } from "../lib/currentUser.js";
 import { DEFAULT_VALUES_TO_REJECT } from "../lib/sanitizers.js";
+import { requireAdmin } from "../lib/adminAuth.js";
+import { rateLimit } from "../lib/rateLimit.js";
 
 const router: IRouter = Router();
 
@@ -477,7 +479,7 @@ router.get(["/theme", "/theme-settings", "/public/theme-settings", "/admin/theme
   }
 });
 
-router.put(["/admin/theme-settings", "/theme-settings"], async (req, res) => {
+router.put(["/admin/theme-settings", "/theme-settings"], requireAdmin, async (req, res) => {
   try {
     const body = req.body || {};
     const allowedKeys = [
@@ -1033,22 +1035,34 @@ const getPublicContactConfigHandler = async (_req: any, res: any) => {
 router.get("/public/contact-config", getPublicContactConfigHandler);
 router.get("/contact-config", getPublicContactConfigHandler);
 
+const contactRateLimit = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  max: 5,
+  keyPrefix: "contact_msg",
+  message: "تم تجاوز عدد الرسائل المسموح بإرسالها. يرجى الانتظار 10 دقائق والمحاولة لاحقاً.",
+});
+
 // POST /api/public/contact-messages & /api/contact-messages
 const handleCreateContactMessage = async (req: any, res: any) => {
   try {
     const { name, email, subject, message } = req.body || {};
 
-    if (!name || typeof name !== "string" || !name.trim()) {
-      return res.status(400).json({ error: "الاسم الكامل مطلوب" });
+    const trimName = String(name || "").trim();
+    const trimEmail = String(email || "").trim();
+    const trimSubject = String(subject || "").trim();
+    const trimMessage = String(message || "").trim();
+
+    if (!trimName || trimName.length < 2 || trimName.length > 100) {
+      return res.status(400).json({ error: "الاسم الكامل يجب أن يتراوح بين حرفين و 100 حرف" });
     }
-    if (!email || typeof email !== "string" || !email.trim()) {
-      return res.status(400).json({ error: "البريد الإلكتروني مطلوب" });
+    if (!trimEmail || trimEmail.length > 150 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimEmail)) {
+      return res.status(400).json({ error: "البريد الإلكتروني غير صالح (الحد الأقصى 150 حرف)" });
     }
-    if (!subject || typeof subject !== "string" || !subject.trim()) {
-      return res.status(400).json({ error: "الموضوع مطلوب" });
+    if (!trimSubject || trimSubject.length < 3 || trimSubject.length > 200) {
+      return res.status(400).json({ error: "الموضوع يجب أن يتراوح بين 3 أحرف و 200 حرف" });
     }
-    if (!message || typeof message !== "string" || message.trim().length < 5) {
-      return res.status(400).json({ error: "الرسالة يجب أن تحتوي على 5 أحرف على الأقل" });
+    if (!trimMessage || trimMessage.length < 5 || trimMessage.length > 3000) {
+      return res.status(400).json({ error: "الرسالة يجب أن تتراوح بين 5 أحرف و 3000 حرف" });
     }
 
     let userId: number | null = null;
@@ -1061,7 +1075,7 @@ const handleCreateContactMessage = async (req: any, res: any) => {
 
     const inserted: any = await db.execute(sql`
       INSERT INTO contact_messages (user_id, name, email, subject, message, status)
-      VALUES (${userId}, ${name.trim()}, ${email.trim()}, ${subject.trim()}, ${message.trim()}, 'new')
+      VALUES (${userId}, ${trimName}, ${trimEmail}, ${trimSubject}, ${trimMessage}, 'new')
       RETURNING *
     `);
 
@@ -1077,9 +1091,9 @@ const handleCreateContactMessage = async (req: any, res: any) => {
   }
 };
 
-router.post("/public/contact-messages", handleCreateContactMessage);
-router.post("/contact-messages", handleCreateContactMessage);
-router.post("/contact", handleCreateContactMessage);
+router.post("/public/contact-messages", contactRateLimit, handleCreateContactMessage);
+router.post("/contact-messages", contactRateLimit, handleCreateContactMessage);
+router.post("/contact", contactRateLimit, handleCreateContactMessage);
 
 const getPopupSettingsHandler = async (_req: any, res: any) => {
   const rows = await db.select().from(settingsTable);

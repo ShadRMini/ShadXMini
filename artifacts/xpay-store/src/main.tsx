@@ -32,7 +32,6 @@ async function registerTelegramSession() {
     headers: {
       "Content-Type": "application/json",
       ...(webApp?.initData ? { "x-telegram-init-data": encodeURIComponent(String(webApp.initData)) } : {}),
-      "x-telegram-id": String(user.id),
     },
     body: JSON.stringify({ user }),
   }).catch((error) => {

@@ -1,48 +1,45 @@
 import bcrypt from "bcryptjs";
 import { db, adminsTable, usersTable } from "@workspace/db";
-import { eq, or, sql } from "drizzle-orm";
+import { count, eq, or, sql } from "drizzle-orm";
 
 export async function seedSuperAdmin() {
   try {
-    const adminUsername = "ShadMini";
-    const adminEmail = "shadyrahimox@gmail.com";
-    const rawPassword = "qhA-qTp-2yF-S6K";
-    const hashedPassword = await bcrypt.hash(rawPassword, 10);
+    const adminUsername = process.env.ADMIN_SEED_USERNAME?.trim();
+    const adminEmail = process.env.ADMIN_SEED_EMAIL?.trim();
+    const rawPassword = process.env.ADMIN_SEED_PASSWORD?.trim();
 
-    // 1. Seed into admins table
-    const existingAdmins = await db
-      .select()
-      .from(adminsTable)
-      .where(or(eq(adminsTable.username, adminUsername), eq(adminsTable.email, adminEmail)))
-      .limit(1);
+    // Check if any admin already exists in the system
+    const existingAdminsCount = await db
+      .select({ val: count() })
+      .from(adminsTable);
 
-    if (existingAdmins.length === 0) {
-      await db.insert(adminsTable).values({
-        username: adminUsername,
-        password: hashedPassword,
-        fullName: "ShadMini Super Admin",
-        email: adminEmail,
-        role: "super_admin",
-        active: true,
-        permissions: { all: true },
-      });
-      console.log("[Seed] Super Admin created in admins table:", adminEmail);
-    } else {
-      await db
-        .update(adminsTable)
-        .set({
-          username: adminUsername,
-          password: hashedPassword,
-          fullName: "ShadMini Super Admin",
-          email: adminEmail,
-          role: "super_admin",
-          active: true,
-        })
-        .where(eq(adminsTable.id, existingAdmins[0]!.id));
-      console.log("[Seed] Super Admin updated in admins table:", adminEmail);
+    const totalAdmins = Number(existingAdminsCount[0]?.val ?? 0);
+    if (totalAdmins > 0) {
+      console.log("[Seed] Admin accounts already exist (%d found). Skipping initial admin seed.", totalAdmins);
+      return;
     }
 
-    // 2. Seed into users table for unified access
+    // Only create initial admin if credentials are provided in env
+    if (!adminUsername || !adminEmail || !rawPassword) {
+      console.log("[Seed] No admin accounts exist, but ADMIN_SEED_USERNAME, ADMIN_SEED_EMAIL, or ADMIN_SEED_PASSWORD not set. Skipping seed.");
+      return;
+    }
+
+    const hashedPassword = await bcrypt.hash(rawPassword, 10);
+
+    // 1. Create super admin in adminsTable
+    await db.insert(adminsTable).values({
+      username: adminUsername,
+      password: hashedPassword,
+      fullName: `${adminUsername} Super Admin`,
+      email: adminEmail,
+      role: "super_admin",
+      active: true,
+      permissions: { all: true },
+    });
+    console.log("[Seed] Super Admin created in admins table:", adminEmail);
+
+    // 2. Seed into users table for unified store/client access if not exists
     const existingUsers = await db
       .select()
       .from(usersTable)
@@ -68,25 +65,13 @@ export async function seedSuperAdmin() {
         passwordHash: hashedPassword,
         role: "super_admin",
         vipLevel: 4,
-        balanceUsd: "1000",
+        balanceUsd: "0",
         balanceSyp: "0",
       });
       console.log("[Seed] Super Admin created in users table with displayId:", nextDisplayId, adminEmail);
-    } else {
-      await db
-        .update(usersTable)
-        .set({
-          username: adminUsername,
-          email: adminEmail,
-          passwordHash: hashedPassword,
-          role: "super_admin",
-          vipLevel: 4,
-          banned: false,
-        })
-        .where(eq(usersTable.id, existingUsers[0]!.id));
-      console.log("[Seed] Super Admin updated in users table:", adminEmail);
     }
   } catch (error) {
     console.error("[Seed Super Admin Error]:", error);
   }
 }
+

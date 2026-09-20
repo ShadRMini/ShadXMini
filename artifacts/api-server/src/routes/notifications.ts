@@ -3,6 +3,7 @@ import { db, notificationsTable } from "@workspace/db";
 import { and, desc, eq, or, sql } from "drizzle-orm";
 import { getOrCreateCurrentUser } from "../lib/currentUser.js";
 import { createInternalNotification } from "../lib/notifications.js";
+import { requireAdmin } from "../lib/adminAuth.js";
 
 const router: IRouter = Router();
 
@@ -192,7 +193,14 @@ async function handleDeleteNotification(req: Request, res: Response) {
       return res.status(400).json({ error: "معرف الإشعار غير صالح" });
     }
 
-    await db.delete(notificationsTable).where(eq(notificationsTable.id, id));
+    await db
+      .delete(notificationsTable)
+      .where(
+        and(
+          eq(notificationsTable.id, id),
+          eq(notificationsTable.targetUserId, user.id)
+        )
+      );
     res.json({ ok: true, message: "تم حذف الإشعار بنجاح" });
   } catch (error: any) {
     console.error("Delete notification error:", error);
@@ -214,14 +222,9 @@ async function handleDeleteAllNotifications(req: Request, res: Response) {
     const currentUserId = user.id;
     await db
       .delete(notificationsTable)
-      .where(
-        or(
-          eq(notificationsTable.targetUserId, currentUserId),
-          eq(notificationsTable.targetType, "all")
-        )
-      );
+      .where(eq(notificationsTable.targetUserId, currentUserId));
 
-    res.json({ ok: true, message: "تم حذف جميع الإشعارات بنجاح" });
+    res.json({ ok: true, message: "تم حذف جميع إشعاراتك بنجاح" });
   } catch (error: any) {
     console.error("Delete all notifications error:", error);
     res.status(500).json({ error: error.message || "فشل حذف الإشعارات" });
@@ -231,8 +234,8 @@ async function handleDeleteAllNotifications(req: Request, res: Response) {
 router.delete("/me/notifications/delete-all", handleDeleteAllNotifications);
 router.delete("/notifications/delete-all", handleDeleteAllNotifications);
 
-// POST /notifications - Create notification endpoint (Admin or System)
-router.post("/notifications", async (req: Request, res: Response) => {
+// POST /notifications - Create notification endpoint (Admin Only)
+router.post("/notifications", requireAdmin, async (req: Request, res: Response) => {
   try {
     const { targetType, targetUserId, title, content } = req.body;
     if (!content || typeof content !== "string" || !content.trim()) {

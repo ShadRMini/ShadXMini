@@ -382,10 +382,45 @@ router.get("/orders/:id", async (req, res) => {
   res.json(GetOrderResponse.parse(rowToOrder(rows[0]!.o, rows[0]!.p)));
 });
 
+// P0-5: In-memory Idempotency Store
+const idempotencyStore = new Map<string, { timestamp: number; response: any }>();
+
+function getCachedIdempotentResponse(key: string, userId: number): any | null {
+  const compositeKey = `${userId}:${key}`;
+  const cached = idempotencyStore.get(compositeKey);
+  if (!cached) return null;
+  if (Date.now() - cached.timestamp > 10 * 60 * 1000) {
+    idempotencyStore.delete(compositeKey);
+    return null;
+  }
+  return cached.response;
+}
+
+function setCachedIdempotentResponse(key: string, userId: number, response: any): void {
+  const compositeKey = `${userId}:${key}`;
+  idempotencyStore.set(compositeKey, { timestamp: Date.now(), response });
+  if (idempotencyStore.size > 5000) {
+    const oldest = idempotencyStore.keys().next().value;
+    if (oldest) idempotencyStore.delete(oldest);
+  }
+}
+
 router.post("/orders", async (req, res) => {
   try {
+    const idempotencyKey = String(
+      req.headers["idempotency-key"] || req.headers["x-idempotency-key"] || ""
+    ).trim();
+
     const body = CreateOrderBody.parse(req.body);
     const user = await getOrCreateCurrentUserStrict(req);
+
+    if (idempotencyKey) {
+      const cached = getCachedIdempotentResponse(idempotencyKey, user.id);
+      if (cached) {
+        res.json(cached);
+        return;
+      }
+    }
 
     const product = (
       await db.select().from(productsTable).where(eq(productsTable.id, Number(body.productId))).limit(1)
@@ -553,6 +588,65 @@ router.post("/orders", async (req, res) => {
 
     const playerId = resolvedIdentifier || `user_${user.id}`;
 
+    const baseMeta: any = {
+      pricing: {
+        providerUnitPriceUsd,
+        dashboardMarkupUsd,
+        baseFinalUnitPriceUsd,
+        finalUnitPriceUsd,
+        unitDiscountUsd,
+        vipLevel: userVipLevelOrder,
+        vipDiscountFixed: appliedVipDiscountFixed,
+        vipDiscountPercent: null,
+      },
+    };
+
+    if (body.customParams && typeof body.customParams === "object" && Object.keys(body.customParams).length > 0) {
+      baseMeta.customParams = body.customParams;
+    }
+
+    // P0-5: Step 1 & 2: Deduct balance in transaction BEFORE contacting provider
+    // Using conditional atomic update (balanceUsd >= totalUsd) to prevent race conditions
+    const deductionResult = await db.transaction(async (tx) => {
+      const [updatedUser] = await tx
+        .update(usersTable)
+        .set({
+          balanceUsd: sql`${usersTable.balanceUsd} - ${String(totalUsd)}`,
+          totalSpent: sql`${usersTable.totalSpent} + ${String(totalUsd)}`,
+        })
+        .where(and(eq(usersTable.id, user.id), sql`${usersTable.balanceUsd} >= ${String(totalUsd)}`))
+        .returning();
+
+      if (!updatedUser) {
+        return null;
+      }
+
+      const [createdOrder] = await tx
+        .insert(ordersTable)
+        .values({
+          orderNumber,
+          userId: user.id,
+          productId: product.id,
+          quantity: String(body.quantity),
+          userIdentifier: resolvedIdentifier || null,
+          totalUsd,
+          totalSyp: String(totalSyp),
+          status: "wait",
+          meta: baseMeta,
+        })
+        .returning();
+
+      return { updatedUser, order: createdOrder };
+    });
+
+    if (!deductionResult) {
+      res.status(400).json({ error: "رصيدك غير كافٍ لإتمام الطلب" });
+      return;
+    }
+
+    const o = deductionResult.order;
+
+    // P0-5: Step 3: Contact provider ONLY after balance deduction succeeds
     if (product.providerId && providerForOrder && adapterForOrder) {
       try {
         providerOrderResult = await adapterForOrder.placeOrder(
@@ -594,25 +688,12 @@ router.post("/orders", async (req, res) => {
       }
     }
 
-    const meta: any = {
-      pricing: {
-        providerUnitPriceUsd,
-        dashboardMarkupUsd,
-        baseFinalUnitPriceUsd,
-        finalUnitPriceUsd,
-        unitDiscountUsd,
-        vipLevel: userVipLevelOrder,
-        vipDiscountFixed: appliedVipDiscountFixed,
-        vipDiscountPercent: null,
-      },
+    let finalMeta: any = {
+      ...baseMeta,
     };
 
-    if (body.customParams && typeof body.customParams === "object" && Object.keys(body.customParams).length > 0) {
-      meta.customParams = body.customParams;
-    }
-
     if (providerOrderResult) {
-      meta.provider = {
+      finalMeta.provider = {
         providerOrderId: providerOrderResult.providerOrderId,
         status: providerOrderResult.status,
         rawResponse: providerOrderResult.rawResponse,
@@ -621,56 +702,40 @@ router.post("/orders", async (req, res) => {
       };
 
       if (immediateProviderCheck) {
-        meta.provider.immediateCheck = {
+        finalMeta.provider.immediateCheck = {
           status: immediateProviderCheck.remoteStatus,
           rawData: immediateProviderCheck.rawData,
           replayApi: immediateProviderCheck.replayApi,
           checkedAt: new Date().toISOString(),
         };
-        meta.provider.status = immediateProviderCheck.remoteStatus || meta.provider.status;
-        meta.provider.replayApi = immediateProviderCheck.replayApi || meta.provider.replayApi;
+        finalMeta.provider.status = immediateProviderCheck.remoteStatus || finalMeta.provider.status;
+        finalMeta.provider.replayApi = immediateProviderCheck.replayApi || finalMeta.provider.replayApi;
       }
     }
 
-    const inserted = await db.transaction(async (tx) => {
-      const [updatedUser] = await tx
-        .update(usersTable)
-        .set({
-          balanceUsd: sql`${usersTable.balanceUsd} - ${String(totalUsd)}`,
-          totalSpent: sql`${usersTable.totalSpent} + ${String(totalUsd)}`,
-        })
-        .where(and(eq(usersTable.id, user.id), sql`${usersTable.balanceUsd} >= ${String(totalUsd)}`))
-        .returning();
-
-      if (!updatedUser) throw new ValidationError("رصيدك غير كافٍ لإتمام الطلب");
-
-      return tx
-        .insert(ordersTable)
-        .values({
-          orderNumber,
-          userId: user.id,
-          productId: product.id,
-          quantity: String(body.quantity),
-          userIdentifier: resolvedIdentifier || null,
-          totalUsd,
-          totalSyp: String(totalSyp),
-          status: finalOrderStatus,
-          meta,
-        })
-        .returning();
-    });
-
-    const o = inserted[0]!;
-    let finalMeta = meta;
-
+    // P0-5: Step 4: If provider failed or rejected, refund balance in transaction
     if (finalOrderStatus === "reject") {
       finalMeta = await refundRejectedOrderIfNeeded({
         orderId: o.id,
         userId: user.id,
         totalUsd,
-        meta,
+        meta: finalMeta,
       });
+      await db
+        .update(ordersTable)
+        .set({
+          status: "reject",
+          meta: finalMeta,
+        })
+        .where(eq(ordersTable.id, o.id));
     } else {
+      await db
+        .update(ordersTable)
+        .set({
+          status: finalOrderStatus,
+          meta: finalMeta,
+        })
+        .where(eq(ordersTable.id, o.id));
       updateUserVipLevel(user.id).catch((err) => console.warn("[Auto VIP Update Warning]:", err));
     }
 
@@ -710,7 +775,12 @@ router.post("/orders", async (req, res) => {
       console.error("Notify order user failed:", error);
     }
 
-    res.json(CreateOrderResponse.parse(rowToOrder({ ...o, meta: finalMeta }, product)));
+    const responseData = CreateOrderResponse.parse(rowToOrder({ ...o, status: finalOrderStatus, meta: finalMeta }, product));
+    if (idempotencyKey) {
+      setCachedIdempotentResponse(idempotencyKey, user.id, responseData);
+    }
+
+    res.json(responseData);
   } catch (error) {
     if (error instanceof ValidationError) {
       res.status(error.statusCode).json({ error: error.message });

@@ -1,4 +1,5 @@
-﻿import { Router, type IRouter } from "express";
+import { Router, type IRouter } from "express";
+import { timingSafeEqual } from "node:crypto";
 import { and, eq, sql } from "drizzle-orm";
 import { db, ordersTable, usersTable } from "@workspace/db";
 
@@ -214,13 +215,22 @@ async function broadcastToStoreUsers(chatId: string | number, telegramUser: any,
   });
 }
 
-router.post("/telegram/store/webhook", async (req, res) => {
-  if (STORE_WEBHOOK_SECRET) {
-    const secret = req.headers["x-telegram-bot-api-secret-token"];
-    if (String(secret || "") !== STORE_WEBHOOK_SECRET) {
-      res.status(401).json({ ok: false });
-      return;
-    }
+function safeTimingEqual(a: string, b: string): boolean {
+  if (!a || !b) return false;
+  const bufA = Buffer.from(a);
+  const bufB = Buffer.from(b);
+  if (bufA.length !== bufB.length) return false;
+  return timingSafeEqual(bufA, bufB);
+}
+
+async function handleStoreWebhook(req: any, res: any) {
+  // P0-4: Fail-closed secret verification strictly via timingSafeEqual
+  const expected = process.env.TELEGRAM_STORE_WEBHOOK_SECRET || STORE_WEBHOOK_SECRET;
+  const secret = String(req.headers["x-telegram-bot-api-secret-token"] || "");
+
+  if (!expected || !secret || !safeTimingEqual(secret, expected)) {
+    res.status(401).json({ ok: false, error: "invalid_secret" });
+    return;
   }
 
   const msg = req.body?.message;
@@ -281,7 +291,17 @@ router.post("/telegram/store/webhook", async (req, res) => {
   });
 
   res.json({ ok: true });
-});
+}
+
+if (process.env.ENABLE_TELEGRAM_WEBHOOKS === "true") {
+  router.post("/telegram/store/webhook", handleStoreWebhook);
+} else {
+  router.all("/telegram/store/webhook", (_req, res) => {
+    res.status(503).json({
+      error: "Telegram webhooks are disabled (ENABLE_TELEGRAM_WEBHOOKS=false)",
+    });
+  });
+}
 
 router.post("/telegram/store/session", async (req, res) => {
   const telegramUser = req.body?.user || req.body || {};

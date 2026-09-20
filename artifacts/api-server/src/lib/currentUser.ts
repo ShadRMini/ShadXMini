@@ -166,7 +166,7 @@ function tryReadVerifiedIdentityFromAnyRaw(rawInput?: string): { telegramId: str
 }
 
 function allowUnverifiedTelegramIdentity(): boolean {
-  return process.env.NODE_ENV !== "production" || process.env.ALLOW_UNVERIFIED_TELEGRAM_ID === "true";
+  return process.env.NODE_ENV !== "production" && process.env.ALLOW_UNVERIFIED_TELEGRAM_ID === "true";
 }
 
 function readAuthTokenFromReq(req?: Request): string | null {
@@ -351,42 +351,46 @@ export async function getOrCreateCurrentUser(req?: Request) {
     return upsertCurrentUserByIdentity(verifiedIdentity);
   }
 
-  const tgIdRaw =
-    (hdr["x-telegram-id"] as string | undefined) ||
-    (req?.query?.["tg_id"] as string | undefined) ||
-    ((req as any)?.body?.telegramId as string | undefined);
+  // 3. Unverified Telegram ID fallback: strictly forbidden in production!
+  // Allowed ONLY in non-production environments with explicit ALLOW_UNVERIFIED_TELEGRAM_ID=true
+  if (allowUnverifiedTelegramIdentity()) {
+    const tgIdRaw =
+      (hdr["x-telegram-id"] as string | undefined) ||
+      (req?.query?.["tg_id"] as string | undefined) ||
+      ((req as any)?.body?.telegramId as string | undefined);
 
-  const usernameRaw =
-    (hdr["x-telegram-username"] as string | undefined) ||
-    (req?.query?.["tg_username"] as string | undefined) ||
-    ((req as any)?.body?.telegramUsername as string | undefined) ||
-    [hdr["x-telegram-first-name"], hdr["x-telegram-last-name"]]
-      .filter(Boolean)
-      .join(" ") ||
-    DEFAULT_USERNAME;
+    const usernameRaw =
+      (hdr["x-telegram-username"] as string | undefined) ||
+      (req?.query?.["tg_username"] as string | undefined) ||
+      ((req as any)?.body?.telegramUsername as string | undefined) ||
+      [hdr["x-telegram-first-name"], hdr["x-telegram-last-name"]]
+        .filter(Boolean)
+        .join(" ") ||
+      DEFAULT_USERNAME;
 
-  const telegramId = String(tgIdRaw || "").trim();
+    const telegramId = String(tgIdRaw || "").trim();
+    if (telegramId) {
+      return upsertCurrentUserByIdentity({
+        telegramId,
+        username: normalizeUsername(String(usernameRaw)),
+      });
+    }
+
+    const allowFallback = process.env.ALLOW_DEFAULT_TELEGRAM_ID === "true";
+    if (allowFallback) {
+      return upsertCurrentUserByIdentity({
+        telegramId: DEFAULT_TELEGRAM_ID,
+        username: DEFAULT_USERNAME,
+      });
+    }
+  }
+
   const hasAnyInitData = Boolean(
     String(initDataRaw || queryTgWebAppData || bodyInitData || bodyTgWebAppData || "").trim(),
   );
 
-  if (telegramId) {
-    return upsertCurrentUserByIdentity({
-      telegramId,
-      username: normalizeUsername(String(usernameRaw)),
-    });
-  }
-
-  if (hasAnyInitData && !allowUnverifiedTelegramIdentity()) {
+  if (hasAnyInitData) {
     invalidIdentityError();
-  }
-
-  const allowFallback = process.env.ALLOW_DEFAULT_TELEGRAM_ID === "true";
-  if (allowFallback && allowUnverifiedTelegramIdentity()) {
-    return upsertCurrentUserByIdentity({
-      telegramId: DEFAULT_TELEGRAM_ID,
-      username: DEFAULT_USERNAME,
-    });
   }
 
   identityError();

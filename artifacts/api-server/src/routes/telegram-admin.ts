@@ -1,4 +1,5 @@
-﻿import { Router, type IRouter } from "express";
+import { Router, type IRouter } from "express";
+import { timingSafeEqual } from "node:crypto";
 import { db, depositsTable, settingsTable, usersTable } from "@workspace/db";
 import { eq, sql } from "drizzle-orm";
 import {
@@ -138,26 +139,23 @@ async function applyDepositDecision(depositId: number, status: "approved" | "rej
   return { ok: true as const, message: status === "approved" ? "تمت الموافقة ✅" : "تم الرفض ❌" };
 }
 
+function safeTimingEqual(a: string, b: string): boolean {
+  if (!a || !b) return false;
+  const bufA = Buffer.from(a);
+  const bufB = Buffer.from(b);
+  if (bufA.length !== bufB.length) return false;
+  return timingSafeEqual(bufA, bufB);
+}
+
 async function handleAdminCallback(req: any, res: any) {
   try {
-    const expected = getTelegramWebhookSecret();
-    const strictSecret = process.env.TELEGRAM_ADMIN_WEBHOOK_STRICT === "true";
-    if (expected) {
-      const secretHeader = String(req.headers["x-telegram-bot-api-secret-token"] || "");
-      if (secretHeader) {
-        if (secretHeader !== expected) {
-          if (strictSecret) {
-            res.status(401).json({ ok: false, error: "invalid_secret" });
-            return;
-          }
-          console.warn("Admin Telegram callback with invalid secret header. Allowed because strict mode is disabled.");
-        }
-      } else if (strictSecret) {
-        res.status(401).json({ ok: false, error: "missing_secret" });
-        return;
-      } else {
-        console.warn("Admin Telegram callback without secret header. Allowed because strict mode is disabled.");
-      }
+    // P0-4: Fail-closed secret verification strictly via timingSafeEqual
+    const expected = process.env.TELEGRAM_ADMIN_WEBHOOK_SECRET || getTelegramWebhookSecret();
+    const secretHeader = String(req.headers["x-telegram-bot-api-secret-token"] || "");
+
+    if (!expected || !secretHeader || !safeTimingEqual(secretHeader, expected)) {
+      res.status(401).json({ ok: false, error: "invalid_secret" });
+      return;
     }
 
     const update = req.body as TelegramUpdate;
@@ -210,7 +208,17 @@ async function handleAdminCallback(req: any, res: any) {
   }
 }
 
-router.post("/telegram/admin/callback", handleAdminCallback);
-router.post("/telegram/admin/webhook", handleAdminCallback);
+if (process.env.ENABLE_TELEGRAM_WEBHOOKS === "true") {
+  router.post("/telegram/admin/callback", handleAdminCallback);
+  router.post("/telegram/admin/webhook", handleAdminCallback);
+} else {
+  const disabledHandler = (_req: any, res: any) => {
+    res.status(503).json({
+      error: "Telegram webhooks are disabled (ENABLE_TELEGRAM_WEBHOOKS=false)",
+    });
+  };
+  router.all("/telegram/admin/callback", disabledHandler);
+  router.all("/telegram/admin/webhook", disabledHandler);
+}
 
 export default router;
