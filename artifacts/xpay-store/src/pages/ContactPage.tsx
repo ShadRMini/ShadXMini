@@ -590,16 +590,16 @@ export default function ContactPage() {
 
         {/* Legacy Form */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-          <div className="lg:col-span-2 bg-[#2D2D2D] border border-[#C8A45C]/25 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
-            <div className="flex items-center gap-3 mb-6 border-b border-zinc-800/80 pb-4">
-              <div className="w-10 h-10 rounded-xl bg-[#C8A45C]/15 border border-[#C8A45C]/40 flex items-center justify-center text-[#C8A45C]">
+          <div className="lg:col-span-2 bg-[var(--theme-card)] border border-[var(--theme-border)] rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
+            <div className="flex items-center gap-3 mb-6 border-b border-[var(--theme-border)] pb-4">
+              <div className="w-10 h-10 rounded-xl bg-[var(--theme-primary)]/15 border border-[var(--theme-primary)]/30 flex items-center justify-center text-[var(--theme-primary)]">
                 <SendHorizontal size={20} />
               </div>
               <div>
-                <h2 className="text-lg sm:text-xl font-black text-[#FDE68A]">
+                <h2 className="text-lg sm:text-xl font-black text-[var(--theme-primary)]">
                   أو أرسل لنا رسالة مباشرة
                 </h2>
-                <p className="text-xs text-zinc-400 mt-0.5">
+                <p className="text-xs text-[var(--theme-text-muted)] mt-0.5">
                   فريق الدعم الفني سيقوم بالرد على بريدك الإلكتروني في أقرب وقت.
                 </p>
               </div>
@@ -608,8 +608,8 @@ export default function ContactPage() {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-zinc-300 mb-1.5">
-                    الاسم الكامل <span className="text-[#C8A45C]">*</span>
+                  <label className="block text-xs font-bold text-[var(--theme-text-primary)] mb-1.5">
+                    الاسم الكامل <span className="text-[var(--theme-primary)]">*</span>
                   </label>
                   <input
                     type="text"
@@ -617,12 +617,12 @@ export default function ContactPage() {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="مثال: أحمد محمد"
-                    className="w-full bg-[#3D3D3D] border border-[#4B5563] focus:border-[#C8A45C] rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-white placeholder-zinc-500 focus:outline-none transition shadow-inner"
+                    className="w-full bg-[var(--theme-input-bg)] border border-[var(--theme-border)] focus:border-[var(--theme-primary)] rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-[var(--theme-text-primary)] placeholder-[var(--theme-text-muted)] focus:outline-none transition shadow-inner"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-zinc-300 mb-1.5">
-                    البريد الإلكتروني <span className="text-[#C8A45C]">*</span>
+                  <label className="block text-xs font-bold text-[var(--theme-text-primary)] mb-1.5">
+                    البريد الإلكتروني <span className="text-[var(--theme-primary)]">*</span>
                   </label>
                   <input
                     type="email"
@@ -630,20 +630,20 @@ export default function ContactPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="name@example.com"
-                    className="w-full bg-[#3D3D3D] border border-[#4B5563] focus:border-[#C8A45C] rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-white placeholder-zinc-500 focus:outline-none transition shadow-inner"
+                    className="w-full bg-[var(--theme-input-bg)] border border-[var(--theme-border)] focus:border-[var(--theme-primary)] rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-[var(--theme-text-primary)] placeholder-[var(--theme-text-muted)] focus:outline-none transition shadow-inner"
                     dir="ltr"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-zinc-300 mb-1.5">
-                  موضوع الرسالة <span className="text-[#C8A45C]">*</span>
+                <label className="block text-xs font-bold text-[var(--theme-text-primary)] mb-1.5">
+                  موضوع الرسالة <span className="text-[var(--theme-primary)]">*</span>
                 </label>
                 <select
                   value={subject}
                   onChange={(e) => setSubject(e.target.value)}
-                  className="w-full bg-[#3D3D3D] border border-[#4B5563] focus:border-[#C8A45C] rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-white focus:outline-none transition cursor-pointer"
+                  className="w-full bg-[var(--theme-input-bg)] border border-[var(--theme-border)] focus:border-[var(--theme-primary)] rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-[var(--theme-text-primary)] focus:outline-none transition cursor-pointer"
                 >
                   <option value="استفسار عام">استفسار عام</option>
                   <option value="مشكلة تقنية">مشكلة تقنية في الطلب أو الرصيد</option>
@@ -655,10 +655,10 @@ export default function ContactPage() {
 
               <div>
                 <div className="flex justify-between items-center mb-1.5">
-                  <label className="block text-xs font-bold text-zinc-300">
-                    تفاصيل الرسالة <span className="text-[#C8A45C]">*</span>
+                  <label className="block text-xs font-bold text-[var(--theme-text-primary)]">
+                    تفاصيل الرسالة <span className="text-[var(--theme-primary)]">*</span>
                   </label>
-                  <span className="text-[11px] text-zinc-500 font-mono">
+                  <span className="text-[11px] text-[var(--theme-text-muted)] font-mono">
                     {message.length} حرف (حد أدنى 10)
                   </span>
                 </div>
@@ -668,14 +668,14 @@ export default function ContactPage() {
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   placeholder="اكتب استفسارك بالتفصيل وسنقوم بمساعدتك بأسرع ما يمكن..."
-                  className="w-full bg-[#3D3D3D] border border-[#4B5563] focus:border-[#C8A45C] rounded-xl p-3.5 text-xs sm:text-sm text-white placeholder-zinc-500 focus:outline-none transition resize-none shadow-inner"
+                  className="w-full bg-[var(--theme-input-bg)] border border-[var(--theme-border)] focus:border-[var(--theme-primary)] rounded-xl p-3.5 text-xs sm:text-sm text-[var(--theme-text-primary)] placeholder-[var(--theme-text-muted)] focus:outline-none transition resize-none shadow-inner"
                 />
               </div>
 
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full inline-flex items-center justify-center gap-2 bg-[#C8A45C] hover:bg-[#DEB86D] text-[#1A1A1A] font-black text-sm py-3.5 rounded-xl shadow-lg transition active:scale-[0.98] cursor-pointer disabled:opacity-50"
+                className="w-full inline-flex items-center justify-center gap-2 bg-[var(--theme-primary)] hover:opacity-90 text-white font-black text-sm py-3.5 rounded-xl shadow-lg transition active:scale-[0.98] cursor-pointer disabled:opacity-50"
               >
                 <Send size={16} className={submitting ? "animate-spin" : ""} />
                 <span>{submitting ? "جاري إرسال رسالتك..." : "إرسال الرسالة الآن"}</span>
@@ -684,20 +684,20 @@ export default function ContactPage() {
           </div>
 
           <div className="space-y-4">
-            <div className="bg-[#2D2D2D] border border-[#C8A45C]/20 rounded-3xl p-6 shadow-xl space-y-4">
+            <div className="bg-[var(--theme-card)] border border-[var(--theme-border)] rounded-3xl p-6 shadow-xl space-y-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-[#C8A45C]/15 border border-[#C8A45C]/30 flex items-center justify-center text-[#C8A45C]">
+                <div className="w-10 h-10 rounded-xl bg-[var(--theme-primary)]/15 border border-[var(--theme-primary)]/30 flex items-center justify-center text-[var(--theme-primary)]">
                   <Clock size={20} />
                 </div>
-                <h3 className="font-bold text-white text-sm sm:text-base">ساعات العمل والرد</h3>
+                <h3 className="font-bold text-[var(--theme-text-primary)] text-sm sm:text-base">ساعات العمل والرد</h3>
               </div>
-              <p className="text-xs text-zinc-300 leading-relaxed">
+              <p className="text-xs text-[var(--theme-text-secondary)] leading-relaxed">
                 فريق خدمة العملاء متواجد لمتابعة طلباتكم واستفساراتكم يومياً:
               </p>
-              <div className="bg-[#1A1A1A] p-3.5 rounded-2xl border border-zinc-800 space-y-2 text-xs">
-                <div className="flex justify-between items-center text-zinc-300">
+              <div className="bg-[var(--theme-input-bg)] p-3.5 rounded-2xl border border-[var(--theme-border)] space-y-2 text-xs">
+                <div className="flex justify-between items-center text-[var(--theme-text-primary)]">
                   <span className="font-bold">طيلة أيام الأسبوع:</span>
-                  <span className="text-[#FDE68A] font-mono font-bold">10:00 ص - 12:00 م</span>
+                  <span className="text-[var(--theme-primary)] font-mono font-bold">10:00 ص - 12:00 م</span>
                 </div>
               </div>
             </div>
@@ -705,14 +705,14 @@ export default function ContactPage() {
         </div>
 
         {/* Legacy FAQ */}
-        <div className="bg-[#2D2D2D] border border-[#C8A45C]/25 rounded-3xl p-6 sm:p-8 shadow-2xl">
-          <div className="flex items-center gap-3 mb-6 border-b border-zinc-800/80 pb-4">
-            <div className="w-10 h-10 rounded-xl bg-[#C8A45C]/15 border border-[#C8A45C]/40 flex items-center justify-center text-[#C8A45C]">
+        <div className="bg-[var(--theme-card)] border border-[var(--theme-border)] rounded-3xl p-6 sm:p-8 shadow-2xl">
+          <div className="flex items-center gap-3 mb-6 border-b border-[var(--theme-border)] pb-4">
+            <div className="w-10 h-10 rounded-xl bg-[var(--theme-primary)]/15 border border-[var(--theme-primary)]/30 flex items-center justify-center text-[var(--theme-primary)]">
               <HelpCircle size={20} />
             </div>
             <div>
-              <h2 className="text-lg sm:text-xl font-black text-[#FDE68A]">الأسئلة الشائعة</h2>
-              <p className="text-xs text-zinc-400 mt-0.5">
+              <h2 className="text-lg sm:text-xl font-black text-[var(--theme-primary)]">الأسئلة الشائعة</h2>
+              <p className="text-xs text-[var(--theme-text-muted)] mt-0.5">
                 إجابات سريعة على أبرز الاستفسارات التي يطرحها عملاؤنا الكرام.
               </p>
             </div>
@@ -725,8 +725,8 @@ export default function ContactPage() {
                   key={faq.id}
                   className={`rounded-2xl border transition-all duration-200 overflow-hidden ${
                     isOpen
-                      ? "bg-[#1A1A1A] border-[#C8A45C]/50 shadow-md"
-                      : "bg-[#1A1A1A]/60 border-zinc-800 hover:border-zinc-700"
+                      ? "bg-[var(--theme-input-bg)] border-[var(--theme-primary)] shadow-md"
+                      : "bg-[var(--theme-card)] border-[var(--theme-border)] hover:border-[var(--theme-primary)]/50"
                   }`}
                 >
                   <button
@@ -735,7 +735,7 @@ export default function ContactPage() {
                   >
                     <span
                       className={`text-xs sm:text-sm font-bold transition-colors ${
-                        isOpen ? "text-[#FDE68A]" : "text-white"
+                        isOpen ? "text-[var(--theme-primary)]" : "text-[var(--theme-text-primary)]"
                       }`}
                     >
                       {faq.question}
@@ -743,8 +743,8 @@ export default function ContactPage() {
                     <div
                       className={`w-7 h-7 rounded-xl flex items-center justify-center shrink-0 border transition-transform ${
                         isOpen
-                          ? "bg-[#C8A45C] text-[#1A1A1A] border-[#C8A45C] rotate-180"
-                          : "bg-zinc-800 text-zinc-400 border-zinc-700"
+                          ? "bg-[var(--theme-primary)] text-white border-[var(--theme-primary)] rotate-180"
+                          : "bg-[var(--theme-input-bg)] text-[var(--theme-text-muted)] border-[var(--theme-border)]"
                       }`}
                     >
                       <ChevronDown size={16} />
@@ -758,7 +758,7 @@ export default function ContactPage() {
                         exit={{ height: 0, opacity: 0 }}
                         transition={{ duration: 0.2 }}
                       >
-                        <div className="px-4 pb-5 sm:px-5 text-xs sm:text-sm text-zinc-300 leading-relaxed border-t border-zinc-800/80 pt-3">
+                        <div className="px-4 pb-5 sm:px-5 text-xs sm:text-sm text-[var(--theme-text-secondary)] leading-relaxed border-t border-[var(--theme-border)] pt-3">
                           {faq.answer}
                         </div>
                       </motion.div>
@@ -938,20 +938,20 @@ export default function ContactPage() {
                   sections.map.visible ? "lg:col-span-2" : "w-full"
                 } rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden border`}
                 style={{
-                  backgroundColor: styles.card_bg || "var(--contact-card-color, var(--theme-card, #2D2D2D))",
-                  borderColor: `${styles.border_color || "#C8A45C"}40`,
+                  backgroundColor: sanitizeColor(styles.card_bg, "var(--contact-card-color, var(--theme-card))"),
+                  borderColor: "var(--theme-border)",
                 }}
               >
                 <div
                   className="flex items-center gap-3 mb-6 pb-4 border-b"
-                  style={{ borderColor: `${styles.border_color || "#C8A45C"}20` }}
+                  style={{ borderColor: "var(--theme-border)" }}
                 >
                   <div
                     className="w-10 h-10 rounded-xl flex items-center justify-center border"
                     style={{
-                      backgroundColor: `${styles.title_color || "#C8A45C"}20`,
-                      borderColor: `${styles.border_color || "#C8A45C"}50`,
-                      color: styles.title_color || "#C8A45C",
+                      backgroundColor: "color-mix(in srgb, var(--theme-primary) 15%, transparent)",
+                      borderColor: "var(--theme-border)",
+                      color: "var(--theme-primary)",
                     }}
                   >
                     <SendHorizontal size={20} />
@@ -966,7 +966,7 @@ export default function ContactPage() {
                     {sections.form.subtitle && (
                       <p
                         className="text-xs mt-0.5"
-                        style={{ color: styles.text_color || "#E5E7EB", opacity: 0.8 }}
+                        style={{ color: "var(--theme-text-muted)" }}
                       >
                         {sections.form.subtitle}
                       </p>
@@ -981,11 +981,11 @@ export default function ContactPage() {
                       <div>
                         <label
                           className="block text-xs font-bold mb-1.5"
-                          style={{ color: styles.text_color || "#E5E7EB" }}
+                          style={{ color: "var(--theme-text-primary)" }}
                         >
                           {form_fields.name.label || "الاسم الكامل"}
                           {form_fields.name.required && (
-                            <span style={{ color: styles.title_color || "#C8A45C" }}> *</span>
+                            <span style={{ color: "var(--theme-primary)" }}> *</span>
                           )}
                         </label>
                         <input
@@ -994,11 +994,11 @@ export default function ContactPage() {
                           value={name}
                           onChange={(e) => setName(e.target.value)}
                           placeholder={form_fields.name.placeholder || "أدخل اسمك الكامل"}
-                          className="w-full rounded-xl px-3.5 py-2.5 text-xs sm:text-sm placeholder-zinc-500 focus:outline-none transition shadow-inner border"
+                          className="w-full rounded-xl px-3.5 py-2.5 text-xs sm:text-sm placeholder-[var(--theme-text-muted)] focus:outline-none transition shadow-inner border"
                           style={{
-                            backgroundColor: `${styles.bg_color || "#1A1A1A"}EE`,
-                            borderColor: `${styles.border_color || "#C8A45C"}30`,
-                            color: styles.text_color || "#FFFFFF",
+                            backgroundColor: sanitizeColor(styles.bg_color, "var(--theme-input-bg)"),
+                            borderColor: "var(--theme-border)",
+                            color: "var(--theme-text-primary)",
                           }}
                         />
                       </div>
@@ -1009,11 +1009,11 @@ export default function ContactPage() {
                       <div>
                         <label
                           className="block text-xs font-bold mb-1.5"
-                          style={{ color: styles.text_color || "#E5E7EB" }}
+                          style={{ color: "var(--theme-text-primary)" }}
                         >
                           {form_fields.email.label || "البريد الإلكتروني"}
                           {form_fields.email.required && (
-                            <span style={{ color: styles.title_color || "#C8A45C" }}> *</span>
+                            <span style={{ color: "var(--theme-primary)" }}> *</span>
                           )}
                         </label>
                         <input
@@ -1022,11 +1022,11 @@ export default function ContactPage() {
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
                           placeholder={form_fields.email.placeholder || "name@example.com"}
-                          className="w-full rounded-xl px-3.5 py-2.5 text-xs sm:text-sm placeholder-zinc-500 focus:outline-none transition shadow-inner border"
+                          className="w-full rounded-xl px-3.5 py-2.5 text-xs sm:text-sm placeholder-[var(--theme-text-muted)] focus:outline-none transition shadow-inner border"
                           style={{
-                            backgroundColor: `${styles.bg_color || "#1A1A1A"}EE`,
-                            borderColor: `${styles.border_color || "#C8A45C"}30`,
-                            color: styles.text_color || "#FFFFFF",
+                            backgroundColor: sanitizeColor(styles.bg_color, "var(--theme-input-bg)"),
+                            borderColor: "var(--theme-border)",
+                            color: "var(--theme-text-primary)",
                           }}
                           dir="ltr"
                         />
@@ -1039,11 +1039,11 @@ export default function ContactPage() {
                     <div>
                       <label
                         className="block text-xs font-bold mb-1.5"
-                        style={{ color: styles.text_color || "#E5E7EB" }}
+                        style={{ color: "var(--theme-text-primary)" }}
                       >
                         {form_fields.subject.label || "موضوع الرسالة"}
                         {form_fields.subject.required && (
-                          <span style={{ color: styles.title_color || "#C8A45C" }}> *</span>
+                          <span style={{ color: "var(--theme-primary)" }}> *</span>
                         )}
                       </label>
                       {form_fields.subject.options && form_fields.subject.options.length > 0 ? (
@@ -1053,16 +1053,16 @@ export default function ContactPage() {
                           onChange={(e) => setSubject(e.target.value)}
                           className="w-full rounded-xl px-3.5 py-2.5 text-xs sm:text-sm focus:outline-none transition cursor-pointer border"
                           style={{
-                            backgroundColor: `${styles.bg_color || "#1A1A1A"}EE`,
-                            borderColor: `${styles.border_color || "#C8A45C"}30`,
-                            color: styles.text_color || "#FFFFFF",
+                            backgroundColor: sanitizeColor(styles.bg_color, "var(--theme-input-bg)"),
+                            borderColor: "var(--theme-border)",
+                            color: "var(--theme-text-primary)",
                           }}
                         >
                           {form_fields.subject.options.map((opt) => (
                             <option
                               key={opt}
                               value={opt}
-                              style={{ backgroundColor: "#2D2D2D", color: "#FFFFFF" }}
+                              style={{ backgroundColor: "var(--theme-card)", color: "var(--theme-text-primary)" }}
                             >
                               {opt}
                             </option>
@@ -1075,11 +1075,11 @@ export default function ContactPage() {
                           value={subject}
                           onChange={(e) => setSubject(e.target.value)}
                           placeholder={form_fields.subject.placeholder || "الموضوع..."}
-                          className="w-full rounded-xl px-3.5 py-2.5 text-xs sm:text-sm placeholder-zinc-500 focus:outline-none transition shadow-inner border"
+                          className="w-full rounded-xl px-3.5 py-2.5 text-xs sm:text-sm placeholder-[var(--theme-text-muted)] focus:outline-none transition shadow-inner border"
                           style={{
-                            backgroundColor: `${styles.bg_color || "#1A1A1A"}EE`,
-                            borderColor: `${styles.border_color || "#C8A45C"}30`,
-                            color: styles.text_color || "#FFFFFF",
+                            backgroundColor: sanitizeColor(styles.bg_color, "var(--theme-input-bg)"),
+                            borderColor: "var(--theme-border)",
+                            color: "var(--theme-text-primary)",
                           }}
                         />
                       )}
@@ -1092,14 +1092,14 @@ export default function ContactPage() {
                       <div className="flex justify-between items-center mb-1.5">
                         <label
                           className="block text-xs font-bold"
-                          style={{ color: styles.text_color || "#E5E7EB" }}
+                          style={{ color: "var(--theme-text-primary)" }}
                         >
                           {form_fields.message.label || "الرسالة"}
                           {form_fields.message.required && (
-                            <span style={{ color: styles.title_color || "#C8A45C" }}> *</span>
+                            <span style={{ color: "var(--theme-primary)" }}> *</span>
                           )}
                         </label>
-                        <span className="text-[11px] font-mono opacity-60">
+                        <span className="text-[11px] font-mono text-[var(--theme-text-muted)]">
                           {message.length} حرف
                         </span>
                       </div>
@@ -1111,11 +1111,11 @@ export default function ContactPage() {
                         placeholder={
                           form_fields.message.placeholder || "اكتب استفسارك بالتفصيل..."
                         }
-                        className="w-full rounded-xl p-3.5 text-xs sm:text-sm placeholder-zinc-500 focus:outline-none transition resize-none shadow-inner border"
+                        className="w-full rounded-xl p-3.5 text-xs sm:text-sm placeholder-[var(--theme-text-muted)] focus:outline-none transition resize-none shadow-inner border"
                         style={{
-                          backgroundColor: `${styles.bg_color || "#1A1A1A"}EE`,
-                          borderColor: `${styles.border_color || "#C8A45C"}30`,
-                          color: styles.text_color || "#FFFFFF",
+                          backgroundColor: sanitizeColor(styles.bg_color, "var(--theme-input-bg)"),
+                          borderColor: "var(--theme-border)",
+                          color: "var(--theme-text-primary)",
                         }}
                       />
                     </div>
@@ -1127,8 +1127,8 @@ export default function ContactPage() {
                     disabled={submitting}
                     className="w-full inline-flex items-center justify-center gap-2 font-black text-sm py-3.5 rounded-xl shadow-lg transition active:scale-[0.98] cursor-pointer disabled:opacity-50"
                     style={{
-                      backgroundColor: styles.title_color || "var(--contact-button-color, var(--theme-primary, #C8A45C))",
-                      color: styles.bg_color || "#1A1A1A",
+                      backgroundColor: sanitizeColor(styles.title_color, "var(--contact-button-color, var(--theme-primary))"),
+                      color: "#FFFFFF",
                     }}
                   >
                     <Send size={16} className={submitting ? "animate-spin" : ""} />
@@ -1143,24 +1143,24 @@ export default function ContactPage() {
               <div
                 className="rounded-3xl p-6 shadow-xl space-y-4 border"
                 style={{
-                  backgroundColor: styles.card_bg || "var(--contact-card-color, var(--theme-card, #2D2D2D))",
-                  borderColor: `${styles.border_color || "#C8A45C"}30`,
+                  backgroundColor: sanitizeColor(styles.card_bg, "var(--contact-card-color, var(--theme-card))"),
+                  borderColor: "var(--theme-border)",
                 }}
               >
                 <div className="flex items-center gap-3">
                   <div
                     className="w-10 h-10 rounded-xl flex items-center justify-center border"
                     style={{
-                      backgroundColor: `${styles.title_color || "#C8A45C"}20`,
-                      borderColor: `${styles.border_color || "#C8A45C"}40`,
-                      color: styles.title_color || "#C8A45C",
+                      backgroundColor: "color-mix(in srgb, var(--theme-primary) 15%, transparent)",
+                      borderColor: "var(--theme-border)",
+                      color: "var(--theme-primary)",
                     }}
                   >
                     <MapPin size={20} />
                   </div>
                   <h3
                     className="font-bold text-sm sm:text-base"
-                    style={{ color: styles.title_color || "#C8A45C" }}
+                    style={{ color: sanitizeColor(styles.title_color, "var(--theme-primary)") }}
                   >
                     {sections.map.title || "موقعنا على الخريطة"}
                   </h3>
@@ -1169,8 +1169,8 @@ export default function ContactPage() {
                 <div
                   className="rounded-2xl overflow-hidden border h-52 relative"
                   style={{
-                    borderColor: `${styles.border_color || "#C8A45C"}30`,
-                    backgroundColor: styles.bg_color || "#1A1A1A",
+                    borderColor: "var(--theme-border)",
+                    backgroundColor: "var(--theme-input-bg)",
                   }}
                 >
                   <iframe
@@ -1198,20 +1198,20 @@ export default function ContactPage() {
           <div
             className="rounded-3xl p-6 sm:p-8 shadow-2xl border"
             style={{
-              backgroundColor: styles.card_bg || "var(--contact-card-color, var(--theme-card, #2D2D2D))",
-              borderColor: `${styles.border_color || "#C8A45C"}30`,
+              backgroundColor: sanitizeColor(styles.card_bg, "var(--contact-card-color, var(--theme-card))"),
+              borderColor: "var(--theme-border)",
             }}
           >
             <div
               className="flex items-center gap-3 mb-6 pb-4 border-b"
-              style={{ borderColor: `${styles.border_color || "#C8A45C"}20` }}
+              style={{ borderColor: "var(--theme-border)" }}
             >
               <div
                 className="w-10 h-10 rounded-xl flex items-center justify-center border"
                 style={{
-                  backgroundColor: `${styles.title_color || "#C8A45C"}20`,
-                  borderColor: `${styles.border_color || "#C8A45C"}40`,
-                  color: styles.title_color || "#C8A45C",
+                  backgroundColor: "color-mix(in srgb, var(--theme-primary) 15%, transparent)",
+                  borderColor: "var(--theme-border)",
+                  color: "var(--theme-primary)",
                 }}
               >
                 <HelpCircle size={20} />
@@ -1225,7 +1225,7 @@ export default function ContactPage() {
                 </h2>
                 <p
                   className="text-xs mt-0.5"
-                  style={{ color: styles.text_color || "#E5E7EB", opacity: 0.8 }}
+                  style={{ color: "var(--theme-text-muted)" }}
                 >
                   إجابات سريعة ومباشرة على أبرز الاستفسارات الشائعة
                 </p>
@@ -1242,11 +1242,11 @@ export default function ContactPage() {
                     className="rounded-2xl border transition-all duration-200 overflow-hidden"
                     style={{
                       backgroundColor: isOpen
-                        ? `${styles.bg_color || "#1A1A1A"}FA`
-                        : `${styles.bg_color || "#1A1A1A"}80`,
+                        ? sanitizeColor(styles.bg_color, "var(--contact-faq-bg, var(--theme-input-bg))")
+                        : sanitizeColor(styles.card_bg, "var(--contact-card-color, var(--theme-card))"),
                       borderColor: isOpen
-                        ? styles.border_color || "#C8A45C"
-                        : `${styles.border_color || "#C8A45C"}25`,
+                        ? sanitizeColor(styles.border_color, "var(--contact-border-color, var(--theme-primary))")
+                        : "var(--theme-border)",
                     }}
                   >
                     <button
@@ -1258,8 +1258,8 @@ export default function ContactPage() {
                         className="text-xs sm:text-sm font-bold transition-colors"
                         style={{
                           color: isOpen
-                            ? styles.title_color || "#FDE68A"
-                            : styles.text_color || "#FFFFFF",
+                            ? sanitizeColor(styles.title_color, "var(--contact-title-color, var(--theme-primary))")
+                            : sanitizeColor(styles.text_color, "var(--contact-text-color, var(--theme-text-primary))"),
                         }}
                       >
                         {faq.question}
@@ -1269,10 +1269,10 @@ export default function ContactPage() {
                         style={{
                           transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
                           backgroundColor: isOpen
-                            ? styles.title_color || "#C8A45C"
-                            : `${styles.card_bg || "#2D2D2D"}`,
-                          color: isOpen ? styles.bg_color || "#1A1A1A" : "#FFFFFF",
-                          borderColor: `${styles.border_color || "#C8A45C"}40`,
+                            ? sanitizeColor(styles.title_color, "var(--contact-button-color, var(--theme-primary))")
+                            : "var(--theme-input-bg)",
+                          color: isOpen ? "#FFFFFF" : "var(--theme-text-primary)",
+                          borderColor: "var(--theme-border)",
                         }}
                       >
                         <ChevronDown size={16} />
@@ -1290,9 +1290,8 @@ export default function ContactPage() {
                           <div
                             className="px-4 pb-5 sm:px-5 text-xs sm:text-sm leading-relaxed border-t pt-3"
                             style={{
-                              borderColor: `${styles.border_color || "#C8A45C"}15`,
-                              color: styles.text_color || "#E5E7EB",
-                              opacity: 0.9,
+                              borderColor: "var(--theme-border)",
+                              color: sanitizeColor(styles.text_color, "var(--contact-text-color, var(--theme-text-secondary))"),
                             }}
                           >
                             {faq.answer}

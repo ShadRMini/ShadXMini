@@ -268,7 +268,7 @@ export default function Sidebar({ brandLogo, onClose }: SidebarProps) {
             style={{ borderColor: "var(--theme-border, rgba(200, 164, 92, 0.15))" }}
           >
             <span className="font-medium" style={{ color: "var(--theme-text-muted, #9CA3AF)" }}>الرصيد المتاح:</span>
-            <span className="text-sm font-extrabold" style={{ color: "var(--theme-accent, var(--theme-primary, #C8A45C))" }}>
+            <span className="text-sm font-extrabold" style={{ color: "var(--theme-primary, var(--theme-text-primary, #3B82F6))" }}>
               ${Number(user.balanceUsd || 0).toFixed(2)}
             </span>
           </div>

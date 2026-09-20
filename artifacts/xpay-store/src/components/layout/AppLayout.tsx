@@ -165,10 +165,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     }}
                   >
                     <span className="text-[11px] font-bold" style={{ color: "var(--theme-text-muted, #9CA3AF)" }}>الرصيد:</span>
-                    <span className="text-xs font-black" style={{ color: "var(--theme-accent, #FDE68A)" }}>
+                    <span className="text-xs font-black" style={{ color: "var(--theme-primary, var(--theme-text-primary, #3B82F6))" }}>
                       ${Number(user.balanceUsd || 0).toFixed(2)}
                     </span>
-                    <Plus size={13} style={{ color: "var(--theme-primary, #C8A45C)" }} />
+                    <Plus size={13} style={{ color: "var(--theme-primary, #3B82F6)" }} />
                   </div>
                 </Link>
               </>
