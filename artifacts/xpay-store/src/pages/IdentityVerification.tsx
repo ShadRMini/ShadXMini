@@ -465,27 +465,27 @@ export default function IdentityVerification() {
 
             {/* APPROVED STATUS */}
             {verification.status === "approved" && (
-              <div className="bg-[var(--theme-card)] border border-emerald-500/50 rounded-3xl p-6 shadow-2xl relative overflow-hidden space-y-5">
-                <div className="flex items-center gap-3.5 border-b border-emerald-500/20 pb-4">
-                  <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+              <div className="bg-[var(--theme-card)] border border-[var(--theme-primary)]/40 rounded-3xl p-6 shadow-2xl relative overflow-hidden space-y-5">
+                <div className="flex items-center gap-3.5 border-b border-[var(--theme-border)] pb-4">
+                  <div className="w-12 h-12 rounded-2xl bg-[var(--theme-primary)]/15 text-[var(--theme-primary)] border border-[var(--theme-primary)]/30 flex items-center justify-center shrink-0 shadow-sm">
                     <CheckCircle2 className="w-7 h-7" />
                   </div>
                   <div>
-                    <span className="inline-block px-3 py-1 rounded-full text-[11px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/35 mb-1">
+                    <span className="inline-block px-3 py-1 rounded-full text-[11px] font-black bg-[var(--theme-primary)]/15 text-[var(--theme-primary)] border border-[var(--theme-primary)]/35 mb-1">
                       حساب موثق رسمياً ✅
                     </span>
                     <h2 className="text-base font-bold text-[var(--theme-text-primary)]">تم توثيق هويتك بنجاح</h2>
                   </div>
                 </div>
 
-                <div className="space-y-2.5 text-xs text-[var(--theme-text-primary)] bg-[var(--theme-background)] p-4 rounded-2xl border border-[var(--theme-border)]">
+                <div className="space-y-2.5 text-xs text-[var(--theme-text-primary)] bg-[var(--theme-background)] p-4 rounded-2xl border border-[var(--theme-border)] shadow-inner">
                   <div className="flex justify-between border-b border-[var(--theme-border)] pb-2">
-                    <span className="text-[var(--theme-text-muted)]">الاسم المعتمد:</span>
-                    <span className="font-bold text-[var(--theme-accent)]">{verification.full_name}</span>
+                    <span className="text-[var(--theme-text-muted)] font-bold">الاسم المعتمد:</span>
+                    <span className="font-extrabold text-[var(--theme-primary)] text-sm">{verification.full_name}</span>
                   </div>
                   {verification.reviewed_at && (
                     <div className="flex justify-between pt-0.5">
-                      <span className="text-[var(--theme-text-muted)]">تاريخ الاعتماد:</span>
+                      <span className="text-[var(--theme-text-muted)] font-bold">تاريخ الاعتماد:</span>
                       <span className="font-medium text-[var(--theme-text-secondary)]">
                         {new Date(verification.reviewed_at).toLocaleString("ar")}
                       </span>
@@ -493,8 +493,8 @@ export default function IdentityVerification() {
                   )}
                 </div>
 
-                <div className="bg-emerald-950/40 border border-emerald-500/30 rounded-2xl p-3.5 text-xs text-emerald-200 leading-relaxed flex items-start gap-2.5">
-                  <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                <div className="bg-[var(--theme-input-bg)] border border-[var(--theme-border)] rounded-2xl p-3.5 text-xs text-[var(--theme-text-primary)] leading-relaxed flex items-start gap-2.5 shadow-sm">
+                  <ShieldCheck className="w-4 h-4 text-[var(--theme-primary)] shrink-0 mt-0.5" />
                   <span>
                     حسابك موثق بالكامل. يمكنك الآن الاستفادة من حدود الشحن المرتفعة والمعاملات السريعة بدون أي قيود.
                   </span>

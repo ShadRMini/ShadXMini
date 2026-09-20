@@ -699,11 +699,11 @@ export async function ensureDatabaseSchema() {
             { id: "faq3", question: "كيف أتوثيق حسابي؟", answer: "يمكنك توثيق حسابك من خلال صفحة توثيق الهوية في القائمة الجانبية.", order: 3 }
           ],
           styles: {
-            bg_color: "#1A1A1A",
-            card_bg: "#2D2D2D",
-            title_color: "#C8A45C",
-            text_color: "#E5E7EB",
-            border_color: "#C8A45C"
+            bg_color: "",
+            card_bg: "",
+            title_color: "",
+            text_color: "",
+            border_color: ""
           }
         }
       },
@@ -726,6 +726,30 @@ export async function ensureDatabaseSchema() {
           ON CONFLICT (key) DO NOTHING
         `);
       }
+    }
+
+    // Clean legacy default hardcoded colors from contact_page_config in DB if present
+    try {
+      const contactRow: any = await db.execute(sql`SELECT value FROM settings WHERE key = 'contact_page_config'`);
+      const cRows = contactRow?.rows || contactRow;
+      if (cRows && cRows.length > 0 && cRows[0]?.value) {
+        let val = cRows[0].value;
+        if (typeof val === "string") {
+          try { val = JSON.parse(val); } catch {}
+        }
+        if (val && val.styles && (val.styles.title_color === "#C8A45C" || val.styles.bg_color === "#1A1A1A")) {
+          val.styles = {
+            bg_color: "",
+            card_bg: "",
+            title_color: "",
+            text_color: "",
+            border_color: ""
+          };
+          await db.execute(sql`UPDATE settings SET value = ${JSON.stringify(val)}::jsonb WHERE key = 'contact_page_config'`);
+        }
+      }
+    } catch (e) {
+      console.warn("Notice during contact_page_config cleanup:", e);
     }
 
     await db.execute(sql`

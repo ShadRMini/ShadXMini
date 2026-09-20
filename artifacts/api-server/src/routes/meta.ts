@@ -1018,11 +1018,11 @@ const DEFAULT_PUBLIC_CONTACT_CONFIG = {
     { id: "faq3", question: "كيف أتوثيق حسابي؟", answer: "يمكنك توثيق حسابك من خلال صفحة توثيق الهوية في القائمة الجانبية.", order: 3 }
   ],
   styles: {
-    bg_color: "#1A1A1A",
-    card_bg: "#2D2D2D",
-    title_color: "#C8A45C",
-    text_color: "#E5E7EB",
-    border_color: "#C8A45C"
+    bg_color: "",
+    card_bg: "",
+    title_color: "",
+    text_color: "",
+    border_color: ""
   }
 };
 
@@ -1036,6 +1036,19 @@ const getPublicContactConfigHandler = async (_req: any, res: any) => {
       config = DEFAULT_PUBLIC_CONTACT_CONFIG;
     } else if (typeof config === "string") {
       try { config = JSON.parse(config); } catch { config = DEFAULT_PUBLIC_CONTACT_CONFIG; }
+    }
+
+    if (config && config.styles && typeof config.styles === "object") {
+      const sanitizedStyles: Record<string, string> = { ...config.styles };
+      for (const [key, val] of Object.entries(sanitizedStyles)) {
+        if (typeof val === "string" && DEFAULT_VALUES_TO_REJECT.includes(val.trim().toLowerCase())) {
+          sanitizedStyles[key] = "";
+        }
+      }
+      config = {
+        ...config,
+        styles: sanitizedStyles
+      };
     }
 
     const legacyRaw = map.get("use_legacy_contact_page");

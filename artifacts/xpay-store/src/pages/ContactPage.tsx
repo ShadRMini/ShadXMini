@@ -185,13 +185,36 @@ const DEFAULT_CONFIG: ContactPageConfig = {
     },
   ],
   styles: {
-    bg_color: "#1A1A1A",
-    card_bg: "#2D2D2D",
-    title_color: "#C8A45C",
-    text_color: "#E5E7EB",
-    border_color: "#C8A45C",
+    bg_color: "",
+    card_bg: "",
+    title_color: "",
+    text_color: "",
+    border_color: "",
   },
 };
+
+const REJECTED_COLORS = [
+  "#1a1a1a",
+  "#2d2d2d",
+  "#c8a45c",
+  "#fde68a",
+  "#e5e7eb",
+  "#3d3d3d",
+  "#242424",
+  "#ffffff",
+  "#b8954a",
+  "#111827",
+  "#374151",
+];
+
+function sanitizeColor(val: string | undefined, fallbackCssVar: string): string {
+  if (!val || typeof val !== "string") return fallbackCssVar;
+  const normalized = val.trim().toLowerCase();
+  if (REJECTED_COLORS.includes(normalized)) {
+    return fallbackCssVar;
+  }
+  return val;
+}
 
 const FAQ_LIST_LEGACY = [
   {
@@ -499,15 +522,15 @@ export default function ContactPage() {
       >
         <div className="text-center pt-4 pb-2">
           <div
-            className="inline-flex items-center justify-center w-16 h-16 rounded-3xl border border-[#C8A45C]/40 shadow-xl shadow-[#C8A45C]/10 mb-4 text-[#C8A45C]"
-            style={{ backgroundColor: "var(--contact-card-color, var(--theme-card, #2D2D2D))" }}
+            className="inline-flex items-center justify-center w-16 h-16 rounded-3xl border border-[var(--theme-border)] shadow-xl mb-4 text-[var(--theme-primary)]"
+            style={{ backgroundColor: "var(--contact-card-color, var(--theme-card))" }}
           >
             <Headphones size={32} />
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-[#C8A45C] mb-2 tracking-wide">
+          <h1 className="text-2xl sm:text-3xl font-black mb-2 tracking-wide text-[var(--theme-primary)]">
             تواصل معنا
           </h1>
-          <p className="text-sm sm:text-base text-zinc-400 max-w-xl mx-auto leading-relaxed">
+          <p className="text-sm sm:text-base text-[var(--theme-text-muted)] max-w-xl mx-auto leading-relaxed">
             نحن هنا لمساعدتك والإجابة على كافة استفساراتك. اختر القناة الأنسب لك أو أرسل لنا رسالة مباشرة.
           </p>
         </div>
@@ -798,11 +821,11 @@ export default function ContactPage() {
               <div className="flex items-center gap-2">
                 <span
                   className="w-2 h-2 rounded-full"
-                  style={{ backgroundColor: styles.title_color || "#C8A45C" }}
+                  style={{ backgroundColor: sanitizeColor(styles.title_color, "var(--contact-title-color, var(--contact-title, var(--theme-primary)))") }}
                 />
                 <h2
                   className="text-base sm:text-lg font-bold"
-                  style={{ color: styles.title_color || "#C8A45C" }}
+                  style={{ color: sanitizeColor(styles.title_color, "var(--contact-title-color, var(--contact-title, var(--theme-primary)))") }}
                 >
                   {sections.channels.title}
                 </h2>
@@ -936,7 +959,7 @@ export default function ContactPage() {
                   <div>
                     <h2
                       className="text-lg sm:text-xl font-black"
-                      style={{ color: styles.title_color || "#FDE68A" }}
+                      style={{ color: sanitizeColor(styles.title_color, "var(--contact-title-color, var(--contact-title, var(--theme-primary)))") }}
                     >
                       {sections.form.title || "أرسل لنا رسالة"}
                     </h2>
@@ -1196,7 +1219,7 @@ export default function ContactPage() {
               <div>
                 <h2
                   className="text-lg sm:text-xl font-black"
-                  style={{ color: styles.title_color || "#FDE68A" }}
+                  style={{ color: sanitizeColor(styles.title_color, "var(--contact-title-color, var(--contact-title, var(--theme-primary)))") }}
                 >
                   {sections.faq.title || "الأسئلة الشائعة"}
                 </h2>
