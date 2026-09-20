@@ -486,14 +486,17 @@ function rowToDeposit(d: typeof depositsTable.$inferSelect) {
     mappedStatus = "pending";
   }
 
+  const curr = String(d.currency || "USD").toUpperCase();
+  const validCurrency: "USD" | "SYP" = curr === "SYP" ? "SYP" : "USD";
+
   return {
     id: String(d.id),
-    amountUsd: Number(d.amountUsd),
+    amountUsd: Number(d.amountUsd || 0),
     amountSyp: d.amountSyp != null ? Number(d.amountSyp) : undefined,
-    currency: d.currency as "USD" | "SYP",
-    method: d.method,
-    methodLabel: d.methodLabel,
-    transactionId: d.transactionId,
+    currency: validCurrency,
+    method: String(d.method || "manual"),
+    methodLabel: String(d.methodLabel || d.method || "Deposit"),
+    transactionId: String(d.transactionId || `DEP-${d.id}`),
     status: mappedStatus,
     createdAt: (d.createdAt instanceof Date ? d.createdAt : new Date(d.createdAt || Date.now())).toISOString(),
   };
