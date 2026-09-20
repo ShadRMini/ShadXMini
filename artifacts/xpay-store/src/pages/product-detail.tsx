@@ -427,7 +427,7 @@ export default function ProductDetail() {
         if (data && typeof data === "object") {
           let fixedDiscount = Number(data.discountFixedAmount ?? data.discount_fixed_amount ?? data.currentLevel?.discountFixedAmount ?? data.currentLevel?.discount_fixed_amount ?? 0);
           const lvl = Number(user?.vipLevel || data.currentLevel?.levelOrder || data.currentLevel?.level_order || 1);
-          if (fixedDiscount <= 0 && lvl > 1) {
+          if ((isNaN(fixedDiscount) || fixedDiscount <= 0.0001) && lvl > 1) {
             if (lvl === 2) fixedDiscount = 0.01;
             else if (lvl === 3) fixedDiscount = 0.02;
             else if (lvl === 4) fixedDiscount = 0.03;
