@@ -516,8 +516,8 @@ export default function ContactPage() {
         className="min-h-screen pb-24 p-4 max-w-5xl mx-auto selection:bg-[var(--theme-primary)] selection:text-black space-y-8"
         dir="rtl"
         style={{
-          backgroundColor: "var(--contact-bg-color, var(--theme-background, #1A1A1A))",
-          color: "var(--contact-text-color, var(--theme-text-primary, #FFFFFF))",
+          backgroundColor: "var(--contact-bg-color, var(--theme-background))",
+          color: "var(--contact-text-color, var(--theme-text-primary))",
         }}
       >
         <div className="text-center pt-4 pb-2">
@@ -546,7 +546,7 @@ export default function ContactPage() {
                 whileHover={{ y: -4 }}
                 transition={{ duration: 0.2 }}
                 className="w-full max-w-[280px] sm:w-[calc(50%-0.75rem)] sm:max-w-[320px] lg:w-[calc(25%-0.75rem)] border border-[var(--theme-primary)]/20 hover:border-[var(--theme-primary)]/60 rounded-3xl p-6 flex flex-col items-center text-center justify-between shadow-xl relative overflow-hidden group"
-                style={{ backgroundColor: "var(--contact-card-color, var(--theme-card, #2D2D2D))" }}
+                style={{ backgroundColor: "var(--contact-card-color, var(--theme-card))" }}
               >
                 <div
                   className={`absolute -top-12 -left-12 w-28 h-28 rounded-full blur-2xl pointer-events-none opacity-40 group-hover:opacity-100 transition-opacity ${card.bgGlow}`}
@@ -845,7 +845,7 @@ export default function ContactPage() {
                     transition={{ duration: 0.2 }}
                     className="w-full max-w-[280px] sm:w-[calc(50%-0.75rem)] sm:max-w-[320px] lg:w-[calc(25%-0.75rem)] rounded-3xl p-6 flex flex-col items-center text-center justify-between shadow-xl relative overflow-hidden group border"
                     style={{
-                      backgroundColor: styles.card_bg || "var(--contact-card-color, var(--theme-card, #2D2D2D))",
+                      backgroundColor: styles.card_bg || "var(--contact-card-color, var(--theme-card))",
                       borderColor: `${channelColor}40`,
                     }}
                   >

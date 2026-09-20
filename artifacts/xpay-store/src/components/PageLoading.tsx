@@ -5,12 +5,12 @@ export default function PageLoading() {
         className="w-12 h-12 border-4 rounded-full animate-spin"
         style={{
           borderColor: "rgba(200, 164, 92, 0.2)",
-          borderTopColor: "var(--theme-primary, #C8A45C)"
+          borderTopColor: "var(--theme-primary)"
         }}
       />
       <p 
         className="text-sm font-medium"
-        style={{ color: "var(--theme-text-muted, #9CA3AF)" }}
+        style={{ color: "var(--theme-text-muted)" }}
       >
         جاري تحميل الصفحة...
       </p>

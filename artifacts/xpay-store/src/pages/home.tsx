@@ -209,17 +209,17 @@ export default function Home() {
                         src={effectiveAvatar}
                         alt={displayName}
                         className="w-12 h-12 rounded-2xl object-cover border-2 shadow-md transition"
-                        style={{ borderColor: "var(--theme-border, rgba(200, 164, 92, 0.5))" }}
+                        style={{ borderColor: "var(--theme-border)" }}
                       />
                     ) : (
                       <div
                         className="w-12 h-12 rounded-2xl flex items-center justify-center border-2 shadow-md transition"
                         style={{
-                          backgroundColor: "var(--theme-card, #2D2D2D)",
-                          borderColor: "var(--theme-border, rgba(200, 164, 92, 0.4))",
+                          backgroundColor: "var(--theme-card)",
+                          borderColor: "var(--theme-border)",
                         }}
                       >
-                        <span className="font-black text-xl" style={{ color: "var(--theme-primary, #C8A45C)" }}>
+                        <span className="font-black text-xl" style={{ color: "var(--theme-primary)" }}>
                           {displayName ? displayName.charAt(0).toUpperCase() : "X"}
                         </span>
                       </div>
@@ -227,8 +227,8 @@ export default function Home() {
                   </div>
                 </Link>
                 <div>
-                  <p className="text-[11px] font-bold" style={{ color: "var(--theme-text-muted, #9CA3AF)" }}>أهلاً بك يا</p>
-                  <p className="text-sm sm:text-base font-black text-[var(--theme-text-primary)]" style={{ color: "var(--theme-text-primary, #FFFFFF)" }}>
+                  <p className="text-[11px] font-bold" style={{ color: "var(--theme-text-muted)" }}>أهلاً بك يا</p>
+                  <p className="text-sm sm:text-base font-black text-[var(--theme-text-primary)]" style={{ color: "var(--theme-text-primary)" }}>
                     {profileLoading && !displayName ? <Skeleton className="h-4 w-20" /> : displayName}
                   </p>
                 </div>
@@ -239,13 +239,13 @@ export default function Home() {
                 <div
                   className="flex items-center gap-1.5 border px-3.5 py-1.5 rounded-2xl shadow-md"
                   style={{
-                    backgroundColor: "var(--theme-card, #2D2D2D)",
-                    borderColor: "var(--theme-border, rgba(200, 164, 92, 0.4))",
+                    backgroundColor: "var(--theme-card)",
+                    borderColor: "var(--theme-border)",
                   }}
                 >
-                  <Hash size={15} style={{ color: "var(--theme-primary, #C8A45C)" }} />
-                  <span className="text-xs font-bold hidden sm:inline" style={{ color: "var(--theme-text-muted, #9CA3AF)" }}>المعرف:</span>
-                  <span className="text-xs sm:text-sm font-mono font-black" style={{ color: "var(--theme-accent, #FDE68A)" }}>
+                  <Hash size={15} style={{ color: "var(--theme-primary)" }} />
+                  <span className="text-xs font-bold hidden sm:inline" style={{ color: "var(--theme-text-muted)" }}>المعرف:</span>
+                  <span className="text-xs sm:text-sm font-mono font-black" style={{ color: "var(--theme-accent)" }}>
                     #{effectiveDisplayId}
                   </span>
                 </div>
@@ -265,13 +265,13 @@ export default function Home() {
             >
               <div 
                 className="absolute top-0 right-0 w-48 h-48 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"
-                style={{ backgroundColor: "var(--balance-glow-color, var(--theme-primary, #C8A45C))", opacity: 0.18 }}
+                style={{ backgroundColor: "var(--balance-glow-color, var(--theme-primary))", opacity: 0.18 }}
               />
 
               <div className="flex justify-between items-center relative z-10">
                 <div>
                   <div className="flex items-center gap-2 mb-1" style={{ color: "var(--balance-subtext-color, #A1A1AA)" }}>
-                    <Wallet className="w-4 h-4" style={{ color: "var(--balance-badge-color, var(--theme-primary, #C8A45C))" }} />
+                    <Wallet className="w-4 h-4" style={{ color: "var(--balance-badge-color, var(--theme-primary))" }} />
                     <span className="font-bold" style={{ fontSize: "var(--balance-label-size, 14px)" }}>الرصيد المتاح في المحفظة</span>
                   </div>
                   <div className="font-black flex items-baseline gap-2 flex-wrap tracking-tight" style={{ color: "var(--balance-text-color, #FFFFFF)", fontSize: "var(--balance-amount-size, 32px)" }}>
@@ -294,7 +294,7 @@ export default function Home() {
                   <div 
                     className="shadow-lg rounded-2xl px-5 py-3 flex items-center gap-2 text-sm font-black transition-all active:scale-95 cursor-pointer"
                     style={{
-                      backgroundColor: "var(--balance-badge-color, var(--theme-primary, #C8A45C))",
+                      backgroundColor: "var(--balance-badge-color, var(--theme-primary))",
                       color: "#1A1A1A",
                     }}
                   >

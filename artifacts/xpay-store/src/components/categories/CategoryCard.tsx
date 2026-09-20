@@ -84,8 +84,8 @@ export default function CategoryCard({
           <div
             className="w-full aspect-square rounded-2xl border shadow-md group-hover:shadow-lg transition-all duration-300 overflow-hidden relative flex items-center justify-center"
             style={{
-              backgroundColor: "var(--theme-card, #1A1A1A)",
-              borderColor: "var(--theme-border, rgba(200, 164, 92, 0.2))",
+              backgroundColor: "var(--theme-card)",
+              borderColor: "var(--theme-border)",
             }}
           >
             {!imgError && finalImageUrl ? (
@@ -101,8 +101,8 @@ export default function CategoryCard({
               <div
                 className="w-full h-full border flex flex-col items-center justify-center p-2.5 text-center relative overflow-hidden group-hover:scale-105 transition-transform duration-300"
                 style={{
-                  backgroundColor: "var(--theme-card, #1A1A1A)",
-                  borderColor: "var(--theme-border, rgba(200, 164, 92, 0.3))",
+                  backgroundColor: "var(--theme-card)",
+                  borderColor: "var(--theme-border)",
                 }}
               >
                 <div className="absolute -top-3 -right-3 w-12 h-12 bg-amber-500/10 rounded-full blur-lg pointer-events-none" />
@@ -110,15 +110,15 @@ export default function CategoryCard({
                   className="w-9 h-9 rounded-xl border flex items-center justify-center mb-1.5 shadow-xs"
                   style={{
                     backgroundColor: "rgba(200, 164, 92, 0.2)",
-                    borderColor: "var(--theme-border, rgba(200, 164, 92, 0.4))",
-                    color: "var(--theme-primary, #C8A45C)",
+                    borderColor: "var(--theme-border)",
+                    color: "var(--theme-primary)",
                   }}
                 >
                   <FolderTree size={18} />
                 </div>
                 <span
                   className="text-[10px] font-bold line-clamp-1 leading-tight px-1"
-                  style={{ color: "var(--theme-accent, #FDE68A)" }}
+                  style={{ color: "var(--theme-accent)" }}
                 >
                   {name}
                 </span>
@@ -138,15 +138,15 @@ export default function CategoryCard({
                   className="w-8 h-8 rounded-full border flex items-center justify-center mb-1 shadow-sm"
                   style={{
                     backgroundColor: "rgba(200, 164, 92, 0.2)",
-                    borderColor: "var(--theme-primary, #C8A45C)",
-                    color: "var(--theme-primary, #C8A45C)",
+                    borderColor: "var(--theme-primary)",
+                    color: "var(--theme-primary)",
                   }}
                 >
                   <Lock size={15} />
                 </div>
                 <span
                   className="text-[10px] font-bold line-clamp-1"
-                  style={{ color: "var(--theme-accent, #FDE68A)" }}
+                  style={{ color: "var(--theme-accent)" }}
                 >
                   سجّل دخولك للعرض
                 </span>
@@ -158,8 +158,8 @@ export default function CategoryCard({
                 className="absolute bottom-1.5 left-1.5 text-[9px] font-bold px-1.5 py-0.5 rounded-md border shadow-xs pointer-events-none z-10"
                 style={{
                   backgroundColor: "rgba(26, 26, 26, 0.85)",
-                  color: "var(--theme-accent, #FDE68A)",
-                  borderColor: "var(--theme-border, rgba(200, 164, 92, 0.3))",
+                  color: "var(--theme-accent)",
+                  borderColor: "var(--theme-border)",
                 }}
               >
                 {productCount}
@@ -170,7 +170,7 @@ export default function CategoryCard({
           {/* Category Label */}
           <span
             className="text-xs font-bold text-center transition-colors leading-tight line-clamp-1 px-1"
-            style={{ color: "var(--theme-text-primary, #E5E7EB)" }}
+            style={{ color: "var(--theme-text-primary)" }}
           >
             {name}
           </span>

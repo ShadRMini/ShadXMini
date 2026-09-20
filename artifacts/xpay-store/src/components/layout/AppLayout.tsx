@@ -75,8 +75,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     <div 
       className="min-h-screen flex transition-colors duration-300"
       style={{
-        backgroundColor: "var(--theme-background, #1A1A1A)",
-        color: "var(--theme-text-primary, #FFFFFF)",
+        backgroundColor: "var(--theme-background)",
+        color: "var(--theme-text-primary)",
       }}
       dir="rtl"
     >
@@ -84,7 +84,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <aside 
         className="hidden lg:block w-72 h-screen sticky top-0 border-l border-[var(--theme-border,rgba(200,164,92,0.25))] z-30 shadow-2xl shrink-0 transition-colors duration-300"
         style={{
-          backgroundColor: "var(--theme-background, #1A1A1A)",
+          backgroundColor: "var(--theme-background)",
         }}
       >
         <Sidebar brandLogo={brandLogo} />
@@ -103,7 +103,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <div 
             className="fixed inset-y-0 right-0 max-w-[300px] w-full shadow-2xl z-50 transform transition-transform duration-300 ease-in-out animate-in slide-in-from-right border-l border-[var(--theme-border,rgba(200,164,92,0.25))]"
             style={{
-              backgroundColor: "var(--theme-background, #1A1A1A)",
+              backgroundColor: "var(--theme-background)",
             }}
           >
             <Sidebar brandLogo={brandLogo} onClose={() => setDrawerOpen(false)} />
@@ -115,15 +115,15 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <div 
         className="flex-1 flex flex-col min-w-0 pb-20 lg:pb-8 transition-colors"
         style={{
-          backgroundColor: "var(--theme-background, var(--bg-primary, #1A1A1A))",
-          color: "var(--theme-text-primary, #FFFFFF)",
+          backgroundColor: "var(--theme-background, var(--theme-background))",
+          color: "var(--theme-text-primary)",
         }}
       >
         {/* Mobile / Top Header Bar */}
         <header 
           className="sticky top-0 z-20 h-[72px] backdrop-blur-md px-4 flex items-center justify-between shadow-md shrink-0 transition-colors"
           style={{
-            backgroundColor: "var(--theme-background, #1A1A1A)",
+            backgroundColor: "var(--theme-background)",
             borderBottom: "1px solid var(--theme-border, rgba(200,164,92,0.3))",
           }}
         >
@@ -135,11 +135,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               style={{
                 backgroundColor: "var(--theme-card, var(--bg-card))",
                 border: "1px solid var(--theme-border, rgba(200,164,92,0.3))",
-                color: "var(--theme-primary, #C8A45C)",
+                color: "var(--theme-primary)",
               }}
               aria-label="فتح القائمة الجانبية"
             >
-              <Menu size={22} style={{ color: "var(--theme-primary, #C8A45C)" }} />
+              <Menu size={22} style={{ color: "var(--theme-primary)" }} />
             </button>
 
             <Link href="/" className="flex items-center gap-2.5 h-full py-2">
@@ -159,7 +159,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               ) : (
                 <span 
                   className="text-lg font-black tracking-wide"
-                  style={{ color: "var(--theme-accent, #FDE68A)" }}
+                  style={{ color: "var(--theme-accent)" }}
                 >
                   {storeSettings.siteName || "ShadMini"}
                 </span>
@@ -181,7 +181,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                       border: "1px solid var(--theme-border, rgba(200,164,92,0.4))",
                     }}
                   >
-                    <span className="text-[11px] font-bold" style={{ color: "var(--theme-text-muted, #9CA3AF)" }}>الرصيد:</span>
+                    <span className="text-[11px] font-bold" style={{ color: "var(--theme-text-muted)" }}>الرصيد:</span>
                     <span className="text-xs font-black" style={{ color: "var(--theme-primary, var(--theme-text-primary, #3B82F6))" }}>
                       ${Number(user.balanceUsd || 0).toFixed(2)}
                     </span>
@@ -195,7 +195,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   <button 
                     className="font-black text-xs px-3.5 py-1.5 rounded-full shadow-sm cursor-pointer transition"
                     style={{
-                      backgroundColor: "var(--theme-primary, #C8A45C)",
+                      backgroundColor: "var(--theme-primary)",
                       color: "#1A1A1A",
                     }}
                   >
@@ -206,9 +206,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   <button 
                     className="hidden sm:inline-flex font-bold text-xs px-3.5 py-1.5 rounded-full shadow-sm cursor-pointer transition"
                     style={{
-                      backgroundColor: "var(--theme-card, #2D2D2D)",
+                      backgroundColor: "var(--theme-card)",
                       border: "1px solid var(--theme-border, rgba(200,164,92,0.4))",
-                      color: "var(--theme-accent, #FDE68A)",
+                      color: "var(--theme-accent)",
                     }}
                   >
                     {storeSettings.guestPreviewRegisterButton || "إنشاء حساب"}
@@ -229,7 +229,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           className="w-full max-w-7xl mx-auto px-4 py-6 border-t text-center text-xs"
           style={{
             borderColor: "var(--theme-border, rgba(200,164,92,0.15))",
-            color: "var(--theme-text-muted, #9CA3AF)",
+            color: "var(--theme-text-muted)",
           }}
         >
           <p className="font-medium">
@@ -242,7 +242,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <nav 
         className="lg:hidden fixed bottom-0 left-0 right-0 backdrop-blur-xl border-t pb-safe z-40 shadow-lg"
         style={{
-          backgroundColor: "var(--theme-background, #1A1A1A)",
+          backgroundColor: "var(--theme-background)",
           borderColor: "var(--theme-border, rgba(200,164,92,0.3))",
         }}
       >
@@ -260,7 +260,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                         isActive ? "scale-105" : ""
                       }`}
                       style={{
-                        backgroundColor: "var(--theme-primary, #C8A45C)",
+                        backgroundColor: "var(--theme-primary)",
                         color: "#1A1A1A",
                       }}
                     >
@@ -268,7 +268,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     </div>
                     <span 
                       className="text-[10px] mt-1 font-bold"
-                      style={{ color: "var(--theme-primary, #C8A45C)" }}
+                      style={{ color: "var(--theme-primary)" }}
                     >
                       {item.label}
                     </span>
@@ -284,7 +284,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     className="p-1.5 rounded-xl transition-all duration-300"
                     style={{
                       backgroundColor: isActive ? "rgba(200, 164, 92, 0.2)" : "transparent",
-                      color: isActive ? "var(--theme-primary, #C8A45C)" : "var(--theme-text-muted, #9CA3AF)",
+                      color: isActive ? "var(--theme-primary)" : "var(--theme-text-muted)",
                     }}
                   >
                     <item.icon className="w-5 h-5" strokeWidth={isActive ? 2.5 : 2} />
@@ -292,7 +292,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   <span
                     className="text-[10px] mt-0.5 transition-colors"
                     style={{
-                      color: isActive ? "var(--theme-primary, #C8A45C)" : "var(--theme-text-muted, #9CA3AF)",
+                      color: isActive ? "var(--theme-primary)" : "var(--theme-text-muted)",
                       fontWeight: isActive ? 800 : 500,
                     }}
                   >

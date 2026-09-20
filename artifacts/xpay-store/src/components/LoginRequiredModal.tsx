@@ -91,26 +91,26 @@ export default function LoginRequiredModal({
       <div
         className="max-w-md w-full rounded-3xl p-6 sm:p-8 text-center shadow-2xl relative border animate-in zoom-in-95 duration-200"
         style={{
-          backgroundColor: "var(--theme-card, #242424)",
-          borderColor: "var(--theme-accent, #C8A45C)",
-          color: "var(--theme-text-primary, #FFFFFF)",
+          backgroundColor: "var(--theme-card)",
+          borderColor: "var(--theme-accent)",
+          color: "var(--theme-text-primary)",
         }}
       >
         {/* أيقونة القفل */}
         <div
           className="w-20 h-20 mx-auto rounded-full flex items-center justify-center mb-4 border"
           style={{
-            backgroundColor: "rgba(200, 164, 92, 0.15)",
-            borderColor: "var(--theme-primary, #C8A45C)",
+            backgroundColor: "var(--theme-border)",
+            borderColor: "var(--theme-primary)",
           }}
         >
-          <Lock size={40} style={{ color: "var(--theme-primary, #C8A45C)" }} />
+          <Lock size={40} style={{ color: "var(--theme-primary)" }} />
         </div>
 
         {/* العنوان */}
         <h2
           className="text-2xl font-black mb-3 tracking-wide"
-          style={{ color: "var(--theme-primary, #FDE68A)" }}
+          style={{ color: "var(--theme-primary)" }}
         >
           {displayTitle}
         </h2>
@@ -118,7 +118,7 @@ export default function LoginRequiredModal({
         {/* النص التوضيحي */}
         <p
           className="text-sm mb-6 leading-relaxed"
-          style={{ color: "var(--theme-text-muted, #9CA3AF)" }}
+          style={{ color: "var(--theme-text-muted)" }}
         >
           {displayMessage}
         </p>
@@ -129,8 +129,8 @@ export default function LoginRequiredModal({
             onClick={handleLoginClick}
             className="flex-1 py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition active:scale-95 cursor-pointer shadow-lg"
             style={{
-              backgroundColor: "var(--theme-primary, #C8A45C)",
-              color: "var(--theme-text-on-primary, #1A1A1A)",
+              backgroundColor: "var(--theme-primary)",
+              color: "var(--theme-text-on-primary)",
             }}
           >
             <LogIn size={16} />
@@ -141,8 +141,8 @@ export default function LoginRequiredModal({
             onClick={onClose}
             className="flex-1 py-3 rounded-xl font-bold text-sm transition active:scale-95 cursor-pointer"
             style={{
-              backgroundColor: "var(--theme-background, #1A1A1A)",
-              color: "var(--theme-text-primary, #FFFFFF)",
+              backgroundColor: "var(--theme-background)",
+              color: "var(--theme-text-primary)",
               border: "1px solid var(--theme-secondary, rgba(200,164,92,0.4))",
             }}
           >
@@ -154,7 +154,7 @@ export default function LoginRequiredModal({
         <button
           onClick={handleRegisterClick}
           className="block w-full mt-5 text-sm hover:underline cursor-pointer transition text-center"
-          style={{ color: "var(--theme-primary, #C8A45C)" }}
+          style={{ color: "var(--theme-primary)" }}
         >
           {displayRegisterLink.includes("؟") ? (
             <>

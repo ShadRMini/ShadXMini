@@ -88,8 +88,8 @@ export default function ProductCard({
           <div
             className="w-full aspect-square rounded-2xl border shadow-md group-hover:shadow-[0_0_15px_rgba(200,164,92,0.25)] transition-all duration-300 overflow-hidden relative flex items-center justify-center"
             style={{
-              backgroundColor: "var(--theme-card, #1A1A1A)",
-              borderColor: "var(--theme-border, rgba(200, 164, 92, 0.3))",
+              backgroundColor: "var(--theme-card)",
+              borderColor: "var(--theme-border)",
             }}
           >
             {!imgError && finalImageUrl ? (
@@ -105,23 +105,23 @@ export default function ProductCard({
               <div
                 className="w-full h-full border flex flex-col items-center justify-center p-3 text-center relative overflow-hidden group-hover:scale-105 transition-transform duration-300"
                 style={{
-                  backgroundColor: "var(--theme-card, #1A1A1A)",
-                  borderColor: "var(--theme-border, rgba(200, 164, 92, 0.2))",
+                  backgroundColor: "var(--theme-card)",
+                  borderColor: "var(--theme-border)",
                 }}
               >
                 <div
                   className="w-10 h-10 rounded-2xl border flex items-center justify-center mb-2 shadow-xs"
                   style={{
                     backgroundColor: "rgba(200, 164, 92, 0.15)",
-                    borderColor: "var(--theme-border, rgba(200, 164, 92, 0.4))",
-                    color: "var(--theme-primary, #C8A45C)",
+                    borderColor: "var(--theme-border)",
+                    color: "var(--theme-primary)",
                   }}
                 >
                   <PackageOpen size={20} />
                 </div>
                 <span
                   className="text-xs font-bold line-clamp-2 leading-tight px-1"
-                  style={{ color: "var(--theme-accent, #FDE68A)" }}
+                  style={{ color: "var(--theme-accent)" }}
                 >
                   {name}
                 </span>
@@ -141,15 +141,15 @@ export default function ProductCard({
                   className="w-8 h-8 rounded-full border flex items-center justify-center mb-1 shadow-sm"
                   style={{
                     backgroundColor: "rgba(200, 164, 92, 0.2)",
-                    borderColor: "var(--theme-primary, #C8A45C)",
-                    color: "var(--theme-primary, #C8A45C)",
+                    borderColor: "var(--theme-primary)",
+                    color: "var(--theme-primary)",
                   }}
                 >
                   <Lock size={15} />
                 </div>
                 <span
                   className="text-[10px] font-bold line-clamp-1"
-                  style={{ color: "var(--theme-accent, #FDE68A)" }}
+                  style={{ color: "var(--theme-accent)" }}
                 >
                   سجّل دخولك للعرض
                 </span>
@@ -162,8 +162,8 @@ export default function ProductCard({
                 className="absolute top-2 right-2 text-[9px] font-bold px-2 py-0.5 rounded-lg border shadow-xs pointer-events-none backdrop-blur-xs z-10"
                 style={{
                   backgroundColor: "rgba(26, 26, 26, 0.85)",
-                  color: "var(--theme-primary, #C8A45C)",
-                  borderColor: "var(--theme-border, rgba(200, 164, 92, 0.3))",
+                  color: "var(--theme-primary)",
+                  borderColor: "var(--theme-border)",
                 }}
               >
                 {categoryName}
@@ -176,8 +176,8 @@ export default function ProductCard({
                 className="absolute top-2 left-2 text-[9px] font-bold px-2 py-0.5 rounded-lg border shadow-xs pointer-events-none z-10"
                 style={{
                   backgroundColor: "rgba(26, 26, 26, 0.85)",
-                  color: "var(--theme-accent, #FDE68A)",
-                  borderColor: "var(--theme-border, rgba(200, 164, 92, 0.3))",
+                  color: "var(--theme-accent)",
+                  borderColor: "var(--theme-border)",
                 }}
               >
                 {productCount} منتج
@@ -191,8 +191,8 @@ export default function ProductCard({
                   className="text-[10px] sm:text-xs font-black px-2 py-0.5 rounded-lg border shadow-xs"
                   style={{
                     backgroundColor: "rgba(26, 26, 26, 0.9)",
-                    color: "var(--theme-accent, #FDE68A)",
-                    borderColor: "var(--theme-border, rgba(200, 164, 92, 0.4))",
+                    color: "var(--theme-accent)",
+                    borderColor: "var(--theme-border)",
                   }}
                 >
                   {formattedPrice}
@@ -205,7 +205,7 @@ export default function ProductCard({
           <div className="w-full text-center px-1">
             <h3
               className="text-xs font-bold transition-colors leading-tight line-clamp-1"
-              style={{ color: "var(--theme-text-primary, #E5E7EB)" }}
+              style={{ color: "var(--theme-text-primary)" }}
             >
               {name}
             </h3>

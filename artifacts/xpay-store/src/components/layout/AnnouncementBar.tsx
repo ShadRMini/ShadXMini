@@ -72,9 +72,9 @@ export default function AnnouncementBar() {
     <div
       className="border px-4 py-3 rounded-2xl text-xs shadow-xl relative z-10 transition-all duration-300 select-none my-4"
       style={{
-        backgroundColor: "var(--theme-card, #2D2D2D)",
-        borderColor: "var(--theme-border, rgba(200, 164, 92, 0.35))",
-        color: "var(--theme-accent, #FDE68A)",
+        backgroundColor: "var(--theme-card)",
+        borderColor: "var(--theme-border)",
+        color: "var(--theme-accent)",
       }}
       dir="rtl"
     >
@@ -84,11 +84,11 @@ export default function AnnouncementBar() {
           className="flex items-center gap-2 font-bold px-2.5 py-1.5 rounded-xl shrink-0 shadow-xs border"
           style={{
             backgroundColor: "rgba(200, 164, 92, 0.15)",
-            borderColor: "var(--theme-border, rgba(200, 164, 92, 0.4))",
-            color: "var(--theme-accent, #FDE68A)",
+            borderColor: "var(--theme-border)",
+            color: "var(--theme-accent)",
           }}
         >
-          <Megaphone className="w-4 h-4 animate-pulse" style={{ color: "var(--theme-primary, #C8A45C)" }} />
+          <Megaphone className="w-4 h-4 animate-pulse" style={{ color: "var(--theme-primary)" }} />
           <span className="text-[11px] hidden xs:inline tracking-wide font-black">أخبار متجددة</span>
         </div>
 
@@ -102,11 +102,11 @@ export default function AnnouncementBar() {
               <span
                 key={item.id || idx}
                 className="font-bold transition-colors mr-12 inline-flex items-center gap-2 text-xs sm:text-sm"
-                style={{ color: "var(--theme-accent, #FDE68A)" }}
+                style={{ color: "var(--theme-accent)" }}
               >
                 <span>{item.content}</span>
                 {idx < news.length - 1 && (
-                  <span className="opacity-80 text-sm font-mono mr-2" style={{ color: "var(--theme-primary, #C8A45C)" }}>•</span>
+                  <span className="opacity-80 text-sm font-mono mr-2" style={{ color: "var(--theme-primary)" }}>•</span>
                 )}
               </span>
             ))}
@@ -118,8 +118,8 @@ export default function AnnouncementBar() {
           onClick={handleDismiss}
           className="p-1.5 rounded-xl border transition-all shrink-0 cursor-pointer"
           style={{
-            color: "var(--theme-primary, #C8A45C)",
-            borderColor: "var(--theme-border, rgba(200, 164, 92, 0.25))",
+            color: "var(--theme-primary)",
+            borderColor: "var(--theme-border)",
           }}
           title="إغلاق التنبيه"
           aria-label="إغلاق شريط الأخبار"

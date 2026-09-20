@@ -255,39 +255,39 @@ const DEFAULT_SECTIONS: SectionConfig[] = [
 
 const DEFAULT_CUSTOMIZATION: CustomizationConfig = {
   image_size: "250px",
-  price_color: "#FDE68A",
-  button_color: "#C8A45C",
-  button_text_color: "#1A1A1A",
-  bg_color: "#1A1A1A",
-  text_color: "#FFFFFF",
-  border_color: "#C8A45C",
+  price_color: "",
+  button_color: "",
+  button_text_color: "",
+  bg_color: "",
+  text_color: "",
+  border_color: "",
   border_radius: "16px",
   font_family: "Cairo",
-  product_name_color: "#FFFFFF",
-  info_box_bg_color: "#242424",
+  product_name_color: "",
+  info_box_bg_color: "",
   default_unit_price: 0,
   total_amount: 0,
   direct_shipping_label: "مطلوب للشحن المباشر",
-  unit_price_color: "#E5E7EB",
-  quantity_label_color: "#E5E7EB",
-  quantity_value_color: "#FFFFFF",
-  quantity_button_color: "#C8A45C",
-  quantity_button_bg: "#2D2D2D",
-  player_id_label_color: "#E5E7EB",
-  player_id_input_border: "#4B5563",
-  player_id_input_focus: "#C8A45C",
-  player_id_input_bg: "#1A1A1A",
-  player_id_input_text: "#FFFFFF",
-  breadcrumb_text_color: "#9CA3AF",
-  breadcrumb_active_color: "#C8A45C",
-  action_buttons_color: "#C8A45C",
+  unit_price_color: "",
+  quantity_label_color: "",
+  quantity_value_color: "",
+  quantity_button_color: "",
+  quantity_button_bg: "",
+  player_id_label_color: "",
+  player_id_input_border: "",
+  player_id_input_focus: "",
+  player_id_input_bg: "",
+  player_id_input_text: "",
+  breadcrumb_text_color: "",
+  breadcrumb_active_color: "",
+  action_buttons_color: "",
   action_buttons_bg: "transparent",
-  total_price_color: "#C8A45C",
-  purchase_button_text: "#1A1A1A",
-  purchase_button_bg: "#C8A45C",
-  disclaimer_text_color: "#9CA3AF",
-  page_bg_color: "#1A1A1A",
-  general_text_color: "#FFFFFF",
+  total_price_color: "",
+  purchase_button_text: "",
+  purchase_button_bg: "",
+  disclaimer_text_color: "",
+  page_bg_color: "",
+  general_text_color: "",
 };
 
 const DEFAULT_SETTINGS: ProductPageSettings = {
@@ -296,10 +296,10 @@ const DEFAULT_SETTINGS: ProductPageSettings = {
   product_show_reviews: true,
   product_show_related: true,
   product_show_guarantees: true,
-  product_bg_color: "#1A1A1A",
-  product_text_color: "#FFFFFF",
-  product_button_color: "#C8A45C",
-  product_border_color: "#C8A45C",
+  product_bg_color: "",
+  product_text_color: "",
+  product_button_color: "",
+  product_border_color: "",
   product_legacy_mode: false,
 };
 
@@ -486,7 +486,7 @@ export default function ProductDetail() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[var(--theme-background)] p-6 max-w-5xl mx-auto space-y-6">
+      <div className="min-h-screen bg-[#1A1A1A] p-6 max-w-5xl mx-auto space-y-6">
         <Skeleton className="w-48 h-10 rounded-xl bg-zinc-800" />
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
           <Skeleton className="md:col-span-5 h-72 rounded-3xl bg-zinc-800" />
@@ -674,6 +674,21 @@ export default function ProductDetail() {
     );
   };
 
+  const isDefaultGoldOrEmpty = (val?: string) => {
+    if (!val) return true;
+    const clean = String(val).trim().toLowerCase();
+    return [
+      "", "initial", "none", "inherit", "unset", "transparent",
+      "#1a1a1a", "#2d2d2d", "#c8a45c", "#0f172a", "#b8954a", "#fde68a",
+      "#3d3d3d", "#242424", "#ffffff", "#f5ca35", "#dcb220", "#e5e7eb", "#4b5563", "#9ca3af", "#d1d5db"
+    ].includes(clean);
+  };
+
+  const getCustomOrFallback = (val: string | undefined, fallbackCssVar: string) => {
+    if (val && !isDefaultGoldOrEmpty(val)) return val;
+    return fallbackCssVar;
+  };
+
   const imageSizeVal = customization.image_size || settings.product_image_size || "250px";
   const imageSizeStyle = {
     width: imageSizeVal,
@@ -682,8 +697,14 @@ export default function ProductDetail() {
   };
 
   const customBgStyle = {
-    backgroundColor: customization.page_bg_color || customization.bg_color || settings.product_bg_color || "var(--product-bg-color, var(--theme-background, #1A1A1A))",
-    color: customization.general_text_color || customization.text_color || settings.product_text_color || "var(--product-text-color, var(--theme-text-primary, #FFFFFF))",
+    backgroundColor: getCustomOrFallback(
+      customization.page_bg_color || customization.bg_color || settings.product_bg_color,
+      "var(--product-bg-color, var(--theme-background))"
+    ),
+    color: getCustomOrFallback(
+      customization.general_text_color || customization.text_color || settings.product_text_color,
+      "var(--product-text-color, var(--theme-text-primary))"
+    ),
     fontFamily: customization.font_family || "var(--theme-font-arabic, 'Cairo', sans-serif)",
   };
 
@@ -695,8 +716,8 @@ export default function ProductDetail() {
         return (
           <div
             key={sec.id}
-            className="border border-[var(--theme-primary)]/35 rounded-3xl p-6 shadow-2xl flex flex-col items-center justify-center relative group overflow-hidden"
-            style={{ backgroundColor: "var(--product-card-color, var(--theme-card, #242424))" }}
+            className="border border-[var(--theme-border,rgba(200,164,92,0.35))] rounded-3xl p-6 shadow-2xl flex flex-col items-center justify-center relative group overflow-hidden"
+            style={{ backgroundColor: "var(--theme-card)" }}
           >
             <div className="absolute top-4 right-4 z-10">
               {product.available ? (
@@ -711,8 +732,8 @@ export default function ProductDetail() {
             </div>
 
             <div
-              className="relative rounded-2xl overflow-hidden cursor-pointer group/img transition-transform duration-300 hover:scale-[1.02] flex items-center justify-center bg-[var(--theme-background)] border border-[var(--theme-primary)]/30 p-3 shadow-inner"
-              style={imageSizeStyle}
+              className="relative rounded-2xl overflow-hidden cursor-pointer group/img transition-transform duration-300 hover:scale-[1.02] flex items-center justify-center border border-[var(--theme-border,rgba(200,164,92,0.3))] p-3 shadow-inner"
+              style={{ ...imageSizeStyle, backgroundColor: "var(--theme-background)" }}
               onClick={() => product.image && setIsLightboxOpen(true)}
             >
               {product.image ? (
@@ -722,22 +743,22 @@ export default function ProductDetail() {
                   className="w-full h-full object-contain transition-transform duration-500 group-hover/img:scale-105"
                 />
               ) : (
-                <div className="w-full h-full min-h-[180px] bg-gradient-to-br from-[var(--theme-card)] to-[var(--theme-background)] flex flex-col items-center justify-center p-4 text-center">
-                  <ShoppingCart className="w-12 h-12 text-[var(--theme-primary)]/40 mb-2" />
+                <div className="w-full h-full min-h-[180px] bg-gradient-to-br from-[#2D2D2D] to-[#1A1A1A] flex flex-col items-center justify-center p-4 text-center">
+                  <ShoppingCart className="w-12 h-12 mb-2" style={{ color: "var(--theme-primary)", opacity: 0.5 }} />
                   <span className="text-xs text-zinc-400">{product.name}</span>
                 </div>
               )}
 
               {product.image && (
                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-bold gap-1.5 backdrop-blur-[2px]">
-                  <Maximize2 size={16} className="text-[var(--theme-accent)]" />
+                  <Maximize2 size={16} style={{ color: "var(--theme-accent)" }} />
                   <span>تكبير الصورة</span>
                 </div>
               )}
             </div>
 
             <div className="mt-3 text-[11px] text-zinc-400 flex items-center gap-1">
-              <Sparkles size={12} className="text-[var(--theme-primary)]" />
+              <Sparkles size={12} style={{ color: "var(--theme-primary)" }} />
               <span>{sec.title || "شحن أوتوماتيكي ومباشر للحساب"}</span>
             </div>
           </div>
@@ -750,7 +771,14 @@ export default function ProductDetail() {
         return (
           <div key={sec.id}>
             <div className="flex items-center gap-2 mb-2 flex-wrap">
-              <span className="text-xs font-bold text-[var(--theme-primary)] bg-[var(--theme-primary)]/15 border border-[var(--theme-primary)]/30 px-3 py-1 rounded-full">
+              <span
+                className="text-xs font-bold px-3 py-1 rounded-full border"
+                style={{
+                  color: "var(--theme-primary)",
+                  backgroundColor: "rgba(200, 164, 92, 0.15)",
+                  borderColor: "var(--theme-border)",
+                }}
+              >
                 {product.categoryName}
               </span>
               {product.available ? (
@@ -763,7 +791,7 @@ export default function ProductDetail() {
                 </span>
               )}
               {product.productType && (
-                <span className="text-[11px] text-zinc-400 bg-[var(--theme-background)] px-2.5 py-1 rounded-full font-mono">
+                <span className="text-[11px] text-zinc-400 px-2.5 py-1 rounded-full font-mono" style={{ backgroundColor: "var(--theme-background)" }}>
                   {product.productType === "amount" ? "رصيد / كميات" : "باقة محددة"}
                 </span>
               )}
@@ -771,7 +799,12 @@ export default function ProductDetail() {
 
             <h1
               className="text-2xl sm:text-3xl font-black leading-snug tracking-tight"
-              style={{ color: customization.product_name_color || "#FFFFFF" }}
+              style={{
+                color: getCustomOrFallback(
+                  customization.product_name_color || customization.title_color,
+                  "var(--product-product-name-color, var(--product-title-color, var(--theme-text-primary)))"
+                )
+              }}
             >
               {displayTitle}
             </h1>
@@ -787,11 +820,16 @@ export default function ProductDetail() {
         return (
           <div
             key={sec.id}
-            className="border border-[var(--theme-primary)]/40 p-4 rounded-2xl shadow-inner space-y-3"
-            style={{ backgroundColor: customization.info_box_bg_color || "#1A1A1A" }}
+            className="border border-[var(--theme-border,rgba(200,164,92,0.4))] p-4 rounded-2xl shadow-inner space-y-3"
+            style={{
+              backgroundColor: getCustomOrFallback(
+                customization.info_box_bg_color,
+                "var(--product-card-color, var(--theme-card))"
+              )
+            }}
           >
             {hasVipDiscount && (
-              <div className="flex items-center justify-between bg-gradient-to-r from-[var(--theme-primary)]/20 via-[var(--theme-primary)]/10 to-transparent border border-[var(--theme-primary)]/40 px-3 py-1.5 rounded-xl text-xs">
+              <div className="flex items-center justify-between border border-[#C8A45C]/40 px-3 py-1.5 rounded-xl text-xs" style={{ backgroundColor: "rgba(200, 164, 92, 0.15)" }}>
                 <div className="flex items-center gap-1.5 font-bold" style={{ color: vipBadgeColor }}>
                   <Crown size={15} />
                   <span>
@@ -808,9 +846,27 @@ export default function ProductDetail() {
 
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-xs font-semibold mb-0.5" style={{ color: customization.unit_price_color || "#E5E7EB" }}>سعر الوحدة</div>
+                <div 
+                  className="text-xs font-semibold mb-0.5" 
+                  style={{ 
+                    color: getCustomOrFallback(
+                      customization.unit_price_color,
+                      "var(--theme-text-secondary)"
+                    ) 
+                  }}
+                >
+                  سعر الوحدة
+                </div>
                 <div className="flex items-baseline gap-2">
-                  <div className="text-2xl font-black font-mono" style={{ color: customization.unit_price_color || customization.price_color || "#FDE68A" }}>
+                  <div 
+                    className="text-2xl font-black font-mono" 
+                    style={{ 
+                      color: getCustomOrFallback(
+                        customization.unit_price_color || customization.price_color,
+                        "var(--product-price-color, var(--theme-accent))"
+                      ) 
+                    }}
+                  >
                     {unitFormatted.primary}
                   </div>
                   {hasVipDiscount && (
@@ -827,14 +883,32 @@ export default function ProductDetail() {
               </div>
 
               <div className="text-left border-r border-zinc-700/80 pr-4">
-                <div className="text-xs font-semibold" style={{ color: customization.total_price_color || "#C8A45C" }}>المجموع الكلي</div>
+                <div 
+                  className="text-xs font-semibold" 
+                  style={{ 
+                    color: getCustomOrFallback(
+                      customization.total_price_color || customization.price_color,
+                      "var(--product-total-price-color, var(--theme-primary))"
+                    ) 
+                  }}
+                >
+                  المجموع الكلي
+                </div>
                 <div className="flex items-baseline justify-end gap-2">
                   {hasVipDiscount && (
                     <span className="text-xs line-through text-zinc-500 font-mono">
                       {baseTotalFormatted.primary}
                     </span>
                   )}
-                  <div className="text-2xl font-black font-mono" style={{ color: customization.total_price_color || customization.price_color || "#FDE68A" }}>
+                  <div 
+                    className="text-2xl font-black font-mono" 
+                    style={{ 
+                      color: getCustomOrFallback(
+                        customization.total_price_color || customization.price_color,
+                        "var(--product-total-price-color, var(--theme-primary))"
+                      ) 
+                    }}
+                  >
                     {totalFormatted.primary}
                   </div>
                 </div>
@@ -850,17 +924,25 @@ export default function ProductDetail() {
 
       case "rating":
         return (
-          <div key={sec.id} className="flex items-center gap-3 bg-[var(--theme-background)] px-4 py-2.5 rounded-2xl border border-zinc-800 text-xs">
-            <div className="flex text-[var(--theme-primary)]">★★★★★</div>
-            <span className="text-zinc-300 font-bold">4.9 / 5.0 ⭐</span>
-            <span className="text-zinc-500 text-[11px]">(بناءً على تقييمات العملاء الموثقة)</span>
+          <div
+            key={sec.id}
+            className="flex items-center gap-3 px-4 py-2.5 rounded-2xl border border-[var(--theme-border,rgba(255,255,255,0.1))] text-xs"
+            style={{ backgroundColor: "var(--theme-background)" }}
+          >
+            <div className="flex" style={{ color: "var(--theme-primary)" }}>★★★★★</div>
+            <span className="font-bold" style={{ color: "var(--theme-text-primary)" }}>4.9 / 5.0 ⭐</span>
+            <span className="text-[11px]" style={{ color: "var(--theme-text-secondary)" }}>(بناءً على تقييمات العملاء الموثقة)</span>
           </div>
         );
 
       case "description":
         return (
-          <div key={sec.id} className="bg-[var(--theme-background)] p-4 rounded-2xl border border-zinc-800 text-xs text-zinc-300 leading-relaxed space-y-1">
-            <div className="font-bold text-[var(--theme-primary)] mb-1">
+          <div
+            key={sec.id}
+            className="p-4 rounded-2xl border border-[var(--theme-border,rgba(255,255,255,0.1))] text-xs leading-relaxed space-y-1"
+            style={{ backgroundColor: "var(--theme-background)", color: "var(--theme-text-secondary)" }}
+          >
+            <div className="font-bold mb-1" style={{ color: "var(--theme-primary)" }}>
               {sec.title && sec.title !== "تفاصيل وملاحظات المنتج:" && sec.title !== "الوصف" ? sec.title : "تفاصيل وملاحظات المنتج:"}
             </div>
             <p className="whitespace-pre-line">{product.description || "لا توجد ملاحظات أو تفاصيل إضافية مخصصة لهذا المنتج."}</p>
@@ -869,15 +951,28 @@ export default function ProductDetail() {
 
       case "quantity":
         return (
-          <div key={sec.id} className="space-y-3 pt-2 border-t border-zinc-800">
+          <div key={sec.id} className="space-y-3 pt-2 border-t border-[var(--theme-border,rgba(255,255,255,0.1))]">
             <div className="flex justify-between items-center mb-1">
               <label
                 className="text-xs font-bold"
-                style={{ color: customization.quantity_label_color || "#E5E7EB" }}
+                style={{
+                  color: getCustomOrFallback(
+                    customization.quantity_label_color,
+                    "var(--theme-text-primary)"
+                  )
+                }}
               >
                 {sec.title || "حدد الكمية المطلوبة:"}
               </label>
-              <span className="text-[11px] font-semibold" style={{ color: customization.quantity_buttons_text || customization.quantity_button_color || "#C8A45C" }}>
+              <span
+                className="text-[11px] font-semibold"
+                style={{
+                  color: getCustomOrFallback(
+                    customization.quantity_buttons_text || customization.quantity_button_color,
+                    "var(--theme-primary)"
+                  )
+                }}
+              >
                 (الحد الأدنى: {minQty.toLocaleString()})
               </span>
             </div>
@@ -886,15 +981,21 @@ export default function ProductDetail() {
               <div
                 className="p-3.5 text-center transition"
                 style={{
-                  backgroundColor: customization.quantity_input_bg || customization.player_id_input_bg || "rgba(200, 164, 92, 0.1)",
+                  backgroundColor: getCustomOrFallback(
+                    customization.quantity_input_bg || customization.player_id_input_bg,
+                    "var(--theme-card, rgba(200, 164, 92, 0.1))"
+                  ),
                   borderWidth: "1px",
                   borderStyle: "solid",
-                  borderColor: customization.quantity_input_border || customization.player_id_input_border || "rgba(200, 164, 92, 0.4)",
+                  borderColor: getCustomOrFallback(
+                    customization.quantity_input_border || customization.player_id_input_border,
+                    "var(--theme-border)"
+                  ),
                   borderRadius: "16px",
                 }}
               >
-                <div className="text-xs" style={{ color: customization.disclaimer_text_color || "#D1D5DB" }}>كمية رسمية ثابتة لهذه الباقة</div>
-                <div className="text-xl font-black mt-1" style={{ color: customization.quantity_input_text || customization.quantity_value_color || "#FFFFFF" }}>{minQty.toLocaleString()}</div>
+                <div className="text-xs" style={{ color: getCustomOrFallback(customization.disclaimer_text_color, "var(--theme-text-secondary)") }}>كمية رسمية ثابتة لهذه الباقة</div>
+                <div className="text-xl font-black mt-1" style={{ color: getCustomOrFallback(customization.quantity_input_text || customization.quantity_value_color, "var(--theme-text-primary)") }}>{minQty.toLocaleString()}</div>
               </div>
             ) : usesOfficialQuantityList ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -910,14 +1011,32 @@ export default function ProductDetail() {
                       }}
                       style={{
                         backgroundColor: isSelected
-                          ? (customization.purchase_button_bg || customization.quantity_button_color || "#C8A45C")
-                          : (customization.quantity_input_bg || customization.player_id_input_bg || "#1A1A1A"),
+                          ? getCustomOrFallback(
+                              customization.purchase_button_bg || customization.quantity_button_color,
+                              "var(--theme-primary)"
+                            )
+                          : getCustomOrFallback(
+                              customization.quantity_input_bg || customization.player_id_input_bg,
+                              "var(--theme-background)"
+                            ),
                         color: isSelected
-                          ? (customization.purchase_button_text || "#1A1A1A")
-                          : (customization.quantity_input_text || customization.quantity_value_color || "#FFFFFF"),
+                          ? getCustomOrFallback(
+                              customization.purchase_button_text,
+                              "var(--theme-text-on-primary)"
+                            )
+                          : getCustomOrFallback(
+                              customization.quantity_input_text || customization.quantity_value_color,
+                              "var(--theme-text-primary)"
+                            ),
                         borderColor: isSelected
-                          ? (customization.purchase_button_bg || customization.quantity_button_color || "#C8A45C")
-                          : (customization.quantity_input_border || customization.player_id_input_border || "#4B5563"),
+                          ? getCustomOrFallback(
+                              customization.purchase_button_bg || customization.quantity_button_color,
+                              "var(--theme-primary)"
+                            )
+                          : getCustomOrFallback(
+                              customization.quantity_input_border || customization.player_id_input_border,
+                              "var(--theme-border)"
+                            ),
                         borderWidth: "1px",
                         borderStyle: "solid",
                         borderRadius: "16px",
@@ -941,8 +1060,14 @@ export default function ProductDetail() {
                   onClick={handleDecrement}
                   disabled={quantity <= minQty}
                   style={{
-                    backgroundColor: customization.quantity_buttons_bg || customization.quantity_button_bg || "#2D2D2D",
-                    color: customization.quantity_buttons_text || customization.quantity_button_color || "#C8A45C",
+                    backgroundColor: getCustomOrFallback(
+                      customization.quantity_buttons_bg || customization.quantity_button_bg,
+                      "var(--theme-card)"
+                    ),
+                    color: getCustomOrFallback(
+                      customization.quantity_buttons_text || customization.quantity_button_color,
+                      "var(--theme-primary)"
+                    ),
                     borderRadius: "16px",
                     width: "48px",
                     height: "48px",
@@ -959,13 +1084,19 @@ export default function ProductDetail() {
                   }}
                   onMouseEnter={(e) => {
                     if (quantity > minQty) {
-                      e.currentTarget.style.backgroundColor = (customization.quantity_buttons_bg || customization.quantity_button_bg)
-                        ? `${customization.quantity_buttons_bg || customization.quantity_button_bg}CC`
-                        : "#3D3D3D";
+                      const customBg = customization.quantity_buttons_bg || customization.quantity_button_bg;
+                      if (customBg && !isDefaultGoldOrEmpty(customBg)) {
+                        e.currentTarget.style.backgroundColor = `${customBg}CC`;
+                      } else {
+                        e.currentTarget.style.backgroundColor = "var(--theme-card-hover, var(--theme-card, #3D3D3D))";
+                      }
                     }
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = customization.quantity_buttons_bg || customization.quantity_button_bg || "#2D2D2D";
+                    e.currentTarget.style.backgroundColor = getCustomOrFallback(
+                      customization.quantity_buttons_bg || customization.quantity_button_bg,
+                      "var(--theme-card)"
+                    );
                   }}
                 >
                   <Minus size={18} />
@@ -979,9 +1110,18 @@ export default function ProductDetail() {
                   value={quantityInput}
                   onChange={(e) => handleQtyInputChange(e.target.value)}
                   style={{
-                    backgroundColor: customization.quantity_input_bg || customization.player_id_input_bg || "#1A1A1A",
-                    color: customization.quantity_input_text || customization.quantity_value_color || "#FFFFFF",
-                    borderColor: customization.quantity_input_border || customization.player_id_input_border || "#4B5563",
+                    backgroundColor: getCustomOrFallback(
+                      customization.quantity_input_bg || customization.player_id_input_bg,
+                      "var(--theme-background)"
+                    ),
+                    color: getCustomOrFallback(
+                      customization.quantity_input_text || customization.quantity_value_color,
+                      "var(--theme-text-primary)"
+                    ),
+                    borderColor: getCustomOrFallback(
+                      customization.quantity_input_border || customization.player_id_input_border,
+                      "var(--theme-border)"
+                    ),
                     borderRadius: "16px",
                     height: "48px",
                     fontSize: "20px",
@@ -996,12 +1136,18 @@ export default function ProductDetail() {
                     minWidth: "0",
                   }}
                   onFocus={(e) => {
-                    const focusColor = customization.quantity_input_focus_border || customization.player_id_input_focus || "#C8A45C";
+                    const focusColor = getCustomOrFallback(
+                      customization.quantity_input_focus_border || customization.player_id_input_focus,
+                      "var(--theme-primary)"
+                    );
                     e.target.style.borderColor = focusColor;
                     e.target.style.boxShadow = `0 0 0 3px ${focusColor}40`;
                   }}
                   onBlur={(e) => {
-                    e.target.style.borderColor = customization.quantity_input_border || customization.player_id_input_border || "#4B5563";
+                    e.target.style.borderColor = getCustomOrFallback(
+                      customization.quantity_input_border || customization.player_id_input_border,
+                      "var(--theme-border)"
+                    );
                     e.target.style.boxShadow = "none";
                     commitQuantityInput();
                   }}
@@ -1012,8 +1158,14 @@ export default function ProductDetail() {
                   type="button"
                   onClick={handleIncrement}
                   style={{
-                    backgroundColor: customization.quantity_buttons_bg || customization.quantity_button_bg || "#2D2D2D",
-                    color: customization.quantity_buttons_text || customization.quantity_button_color || "#C8A45C",
+                    backgroundColor: getCustomOrFallback(
+                      customization.quantity_buttons_bg || customization.quantity_button_bg,
+                      "var(--theme-card)"
+                    ),
+                    color: getCustomOrFallback(
+                      customization.quantity_buttons_text || customization.quantity_button_color,
+                      "var(--theme-primary)"
+                    ),
                     borderRadius: "16px",
                     width: "48px",
                     height: "48px",
@@ -1028,12 +1180,18 @@ export default function ProductDetail() {
                     flexShrink: 0,
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = (customization.quantity_buttons_bg || customization.quantity_button_bg)
-                      ? `${customization.quantity_buttons_bg || customization.quantity_button_bg}CC`
-                      : "#3D3D3D";
+                    const customBg = customization.quantity_buttons_bg || customization.quantity_button_bg;
+                    if (customBg && !isDefaultGoldOrEmpty(customBg)) {
+                      e.currentTarget.style.backgroundColor = `${customBg}CC`;
+                    } else {
+                      e.currentTarget.style.backgroundColor = "var(--theme-card-hover, var(--theme-card, #3D3D3D))";
+                    }
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = customization.quantity_buttons_bg || customization.quantity_button_bg || "#2D2D2D";
+                    e.currentTarget.style.backgroundColor = getCustomOrFallback(
+                      customization.quantity_buttons_bg || customization.quantity_button_bg,
+                      "var(--theme-card)"
+                    );
                   }}
                 >
                   <Plus size={18} />
@@ -1051,13 +1209,13 @@ export default function ProductDetail() {
                     <div key={param} className="space-y-1.5">
                       <label
                         className="text-xs font-bold block flex items-center justify-between"
-                        style={{ color: customization.player_id_label_color || "#E5E7EB" }}
+                        style={{ color: getCustomOrFallback(customization.player_id_label_color, "var(--theme-text-primary)") }}
                       >
                         <span className="flex items-center gap-1.5">
-                          <Icon size={14} style={{ color: customization.breadcrumb_active_color || "#C8A45C" }} />
+                          <Icon size={14} style={{ color: getCustomOrFallback(customization.breadcrumb_active_color, "var(--theme-primary)") }} />
                           <span>{param} *</span>
                         </span>
-                        <span className="text-[10px]" style={{ color: customization.breadcrumb_active_color || "#C8A45C" }}>
+                        <span className="text-[10px]" style={{ color: getCustomOrFallback(customization.breadcrumb_active_color, "var(--theme-primary)") }}>
                           {cfg.help}
                         </span>
                       </label>
@@ -1076,15 +1234,15 @@ export default function ProductDetail() {
                         placeholder={cfg.placeholder}
                         className="h-13 rounded-2xl px-4 text-base placeholder:text-zinc-500 font-mono transition-all"
                         style={{
-                          backgroundColor: customization.player_id_input_bg || "#1A1A1A",
-                          borderColor: customization.player_id_input_border || "#4B5563",
-                          color: customization.player_id_input_text || "#FFFFFF",
+                          backgroundColor: getCustomOrFallback(customization.player_id_input_bg, "var(--theme-background)"),
+                          borderColor: getCustomOrFallback(customization.player_id_input_border, "var(--theme-border)"),
+                          color: getCustomOrFallback(customization.player_id_input_text, "var(--theme-text-primary)"),
                         }}
                         onFocus={(e) => {
-                          e.currentTarget.style.borderColor = customization.player_id_input_focus || "#C8A45C";
+                          e.currentTarget.style.borderColor = getCustomOrFallback(customization.player_id_input_focus, "var(--theme-primary)");
                         }}
                         onBlur={(e) => {
-                          e.currentTarget.style.borderColor = customization.player_id_input_border || "#4B5563";
+                          e.currentTarget.style.borderColor = getCustomOrFallback(customization.player_id_input_border, "var(--theme-border)");
                         }}
                       />
                     </div>
@@ -1095,9 +1253,9 @@ export default function ProductDetail() {
               <>
                 {(purchaseMode === "apps" || purchaseMode === "games") && (
                   <div className="pt-2">
-                    <label className="text-xs font-bold mb-2 block flex items-center justify-between" style={{ color: customization.player_id_label_color || "#E5E7EB" }}>
+                    <label className="text-xs font-bold mb-2 block flex items-center justify-between" style={{ color: getCustomOrFallback(customization.player_id_label_color, "var(--theme-text-primary)") }}>
                       <span>معرّف الحساب (Player ID) *</span>
-                      <span className="text-[10px]" style={{ color: customization.breadcrumb_active_color || "#C8A45C" }}>
+                      <span className="text-[10px]" style={{ color: getCustomOrFallback(customization.breadcrumb_active_color, "var(--theme-primary)") }}>
                         {customization.direct_shipping_label || "مطلوب للشحن المباشر"}
                       </span>
                     </label>
@@ -1107,15 +1265,15 @@ export default function ProductDetail() {
                       placeholder="أدخل معرّف الحساب (مثال: 123456789)"
                       className="h-13 rounded-2xl px-4 text-base placeholder:text-zinc-500 font-mono transition-all"
                       style={{
-                        backgroundColor: customization.player_id_input_bg || "#1A1A1A",
-                        borderColor: customization.player_id_input_border || "#4B5563",
-                        color: customization.player_id_input_text || "#FFFFFF",
+                        backgroundColor: getCustomOrFallback(customization.player_id_input_bg, "var(--theme-background)"),
+                        borderColor: getCustomOrFallback(customization.player_id_input_border, "var(--theme-border)"),
+                        color: getCustomOrFallback(customization.player_id_input_text, "var(--theme-text-primary)"),
                       }}
                       onFocus={(e) => {
-                        e.currentTarget.style.borderColor = customization.player_id_input_focus || "#C8A45C";
+                        e.currentTarget.style.borderColor = getCustomOrFallback(customization.player_id_input_focus, "var(--theme-primary)");
                       }}
                       onBlur={(e) => {
-                        e.currentTarget.style.borderColor = customization.player_id_input_border || "#4B5563";
+                        e.currentTarget.style.borderColor = getCustomOrFallback(customization.player_id_input_border, "var(--theme-border)");
                       }}
                     />
                   </div>
@@ -1123,14 +1281,14 @@ export default function ProductDetail() {
 
                 {purchaseMode === "balance" && (
                   <div className="space-y-3 pt-2">
-                    <div className="rounded-2xl border border-[var(--theme-primary)]/40 bg-[var(--theme-primary)]/10 px-4 py-2.5 text-[var(--theme-accent)] font-bold text-xs flex items-center justify-between">
+                    <div className="rounded-2xl border border-[#C8A45C]/40 px-4 py-2.5 font-bold text-xs flex items-center justify-between" style={{ backgroundColor: "rgba(200, 164, 92, 0.15)", color: "var(--theme-accent)" }}>
                       <span>الكمية المحددة للشحن:</span>
                       <span className="font-mono text-base">{quantity} وحدة</span>
                     </div>
                     <div>
-                      <label className="text-xs font-bold mb-2 block flex items-center justify-between" style={{ color: customization.player_id_label_color || "#E5E7EB" }}>
+                      <label className="text-xs font-bold mb-2 block flex items-center justify-between" style={{ color: getCustomOrFallback(customization.player_id_label_color, "var(--theme-text-primary)") }}>
                         <span>رقم الخط المطلوب شحنه *</span>
-                        <span className="text-[10px]" style={{ color: customization.breadcrumb_active_color || "#C8A45C" }}>مثال: 09XXXXXXXX</span>
+                        <span className="text-[10px]" style={{ color: getCustomOrFallback(customization.breadcrumb_active_color, "var(--theme-primary)") }}>مثال: 09XXXXXXXX</span>
                       </label>
                       <Input
                         value={phoneNumber}
@@ -1138,15 +1296,15 @@ export default function ProductDetail() {
                         placeholder="أدخل رقم الخط (09XXXXXXXX)"
                         className="h-13 rounded-2xl px-4 text-base placeholder:text-zinc-500 font-mono transition-all"
                         style={{
-                          backgroundColor: customization.player_id_input_bg || "#1A1A1A",
-                          borderColor: customization.player_id_input_border || "#4B5563",
-                          color: customization.player_id_input_text || "#FFFFFF",
+                          backgroundColor: getCustomOrFallback(customization.player_id_input_bg, "var(--theme-background)"),
+                          borderColor: getCustomOrFallback(customization.player_id_input_border, "var(--theme-border)"),
+                          color: getCustomOrFallback(customization.player_id_input_text, "var(--theme-text-primary)"),
                         }}
                         onFocus={(e) => {
-                          e.currentTarget.style.borderColor = customization.player_id_input_focus || "#C8A45C";
+                          e.currentTarget.style.borderColor = getCustomOrFallback(customization.player_id_input_focus, "var(--theme-primary)");
                         }}
                         onBlur={(e) => {
-                          e.currentTarget.style.borderColor = customization.player_id_input_border || "#4B5563";
+                          e.currentTarget.style.borderColor = getCustomOrFallback(customization.player_id_input_border, "var(--theme-border)");
                         }}
                       />
                     </div>
@@ -1155,8 +1313,8 @@ export default function ProductDetail() {
               </>
             )}
 
-            <p className="text-[11px] bg-amber-950/40 border border-amber-500/30 p-3 rounded-2xl flex items-center gap-2 font-medium" style={{ color: customization.disclaimer_text_color || "#9CA3AF" }}>
-              <AlertCircle className="w-4 h-4 shrink-0" style={{ color: customization.action_buttons_color || "#C8A45C" }} />
+            <p className="text-[11px] p-3 rounded-2xl flex items-center gap-2 font-medium" style={{ backgroundColor: "var(--theme-card, rgba(200,164,92,0.08))", color: getCustomOrFallback(customization.disclaimer_text_color, "var(--theme-text-secondary)") }}>
+              <AlertCircle className="w-4 h-4 shrink-0" style={{ color: getCustomOrFallback(customization.action_buttons_color, "var(--theme-primary)") }} />
               برجاء التأكد من صحة البيانات المدخلة قبل تأكيد عملية الشراء.
             </p>
           </div>
@@ -1172,13 +1330,19 @@ export default function ProductDetail() {
             disabled={createOrder.isPending || !product.available}
             className="w-full h-15 rounded-2xl text-base sm:text-lg font-black shadow-xl transition transform hover:-translate-y-0.5 cursor-pointer disabled:opacity-50"
             style={{
-              backgroundColor: customization.purchase_button_bg || customization.button_color || "#C8A45C",
-              color: customization.purchase_button_text || customization.button_text_color || "#1A1A1A",
+              backgroundColor: getCustomOrFallback(
+                customization.purchase_button_bg || customization.button_color,
+                "var(--theme-primary)"
+              ),
+              color: getCustomOrFallback(
+                customization.purchase_button_text || customization.button_text_color,
+                "var(--theme-text-on-primary)"
+              ),
             }}
           >
             {createOrder.isPending ? (
               <span className="flex items-center gap-2">
-                <span className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                <span className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
                 جاري تنفيذ الطلب وتوثيقه...
               </span>
             ) : (
@@ -1192,15 +1356,15 @@ export default function ProductDetail() {
 
       case "guarantees":
         return (
-          <div key={sec.id} className="bg-[var(--theme-card)] border border-[var(--theme-primary)]/25 rounded-3xl p-5 shadow-xl space-y-3.5">
-            <h3 className="text-xs font-bold text-[var(--theme-accent)] flex items-center gap-2 border-b border-zinc-800 pb-2.5">
-              <ShieldCheck size={16} className="text-[var(--theme-primary)]" />
+          <div key={sec.id} className="border border-[var(--theme-border,rgba(200,164,92,0.25))] rounded-3xl p-5 shadow-xl space-y-3.5" style={{ backgroundColor: "var(--theme-card)" }}>
+            <h3 className="text-xs font-bold flex items-center gap-2 border-b border-[var(--theme-border,rgba(255,255,255,0.1))] pb-2.5" style={{ color: "var(--theme-accent)" }}>
+              <ShieldCheck size={16} style={{ color: "var(--theme-primary)" }} />
               {sec.title || "ضمانات وأمان الخدمة في المتجر"}
             </h3>
 
             <div className="space-y-2.5 text-xs">
-              <div className="flex items-center gap-3 p-2.5 bg-[var(--theme-background)] rounded-2xl border border-zinc-800">
-                <div className="w-8 h-8 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-[var(--theme-primary)] shrink-0">
+              <div className="flex items-center gap-3 p-2.5 rounded-2xl border border-[var(--theme-border,rgba(255,255,255,0.1))]" style={{ backgroundColor: "var(--theme-background)" }}>
+                <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: "rgba(200, 164, 92, 0.15)", color: "var(--theme-primary)" }}>
                   <Zap size={18} />
                 </div>
                 <div>
@@ -1209,7 +1373,7 @@ export default function ProductDetail() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 p-2.5 bg-[var(--theme-background)] rounded-2xl border border-zinc-800">
+              <div className="flex items-center gap-3 p-2.5 rounded-2xl border border-[var(--theme-border,rgba(255,255,255,0.1))]" style={{ backgroundColor: "var(--theme-background)" }}>
                 <div className="w-8 h-8 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
                   <ShieldCheck size={18} />
                 </div>
@@ -1219,7 +1383,7 @@ export default function ProductDetail() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 p-2.5 bg-[var(--theme-background)] rounded-2xl border border-zinc-800">
+              <div className="flex items-center gap-3 p-2.5 rounded-2xl border border-[var(--theme-border,rgba(255,255,255,0.1))]" style={{ backgroundColor: "var(--theme-background)" }}>
                 <div className="w-8 h-8 rounded-xl bg-blue-500/15 border border-blue-500/30 flex items-center justify-center text-blue-400 shrink-0">
                   <Headphones size={18} />
                 </div>
@@ -1236,34 +1400,34 @@ export default function ProductDetail() {
         return (
           <div
             key={sec.id}
-            className="border border-[var(--theme-primary)]/25 rounded-3xl p-6 shadow-xl space-y-4"
-            style={{ backgroundColor: "var(--product-card-color, var(--theme-card, #242424))" }}
+            className="border border-[var(--theme-border,rgba(200,164,92,0.25))] rounded-3xl p-6 shadow-xl space-y-4"
+            style={{ backgroundColor: "var(--theme-card)" }}
           >
-            <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
-              <h3 className="text-sm font-bold text-[var(--theme-accent)] flex items-center gap-2">
-                <Star size={18} className="text-[var(--theme-primary)] fill-[var(--theme-primary)]" />
+            <div className="flex items-center justify-between border-b border-[var(--theme-border,rgba(255,255,255,0.1))] pb-3">
+              <h3 className="text-sm font-bold flex items-center gap-2" style={{ color: "var(--theme-accent)" }}>
+                <Star size={18} style={{ color: "var(--theme-primary)", fill: "var(--theme-primary)" }} />
                 {sec.title || "تقييمات وآراء العملاء على الخدمة"}
               </h3>
-              <span className="text-xs font-mono font-bold text-[var(--theme-primary)] bg-[var(--theme-background)] px-2.5 py-1 rounded-full border border-[var(--theme-primary)]/30">
+              <span className="text-xs font-mono font-bold px-2.5 py-1 rounded-full border border-[var(--theme-border,rgba(200,164,92,0.3))]" style={{ color: "var(--theme-primary)", backgroundColor: "var(--theme-background)" }}>
                 4.9 / 5.0 ⭐
               </span>
             </div>
 
             <div className="space-y-3 text-xs">
-              <div className="p-3 bg-[var(--theme-background)] rounded-2xl border border-zinc-800 space-y-1">
+              <div className="p-3 rounded-2xl border border-[var(--theme-border,rgba(255,255,255,0.1))] space-y-1" style={{ backgroundColor: "var(--theme-background)" }}>
                 <div className="flex items-center justify-between">
                   <span className="font-bold text-zinc-200">أحمد م.</span>
-                  <div className="flex text-[var(--theme-primary)]">★★★★★</div>
+                  <div className="flex" style={{ color: "var(--theme-primary)" }}>★★★★★</div>
                 </div>
                 <p className="text-zinc-400 text-[11px]">
                   سرعة تنفيذ مذهلة! وصل الشحن للحساب خلال أقل من 30 ثانية. شكراً لكم.
                 </p>
               </div>
 
-              <div className="p-3 bg-[var(--theme-background)] rounded-2xl border border-zinc-800 space-y-1">
+              <div className="p-3 rounded-2xl border border-[var(--theme-border,rgba(255,255,255,0.1))] space-y-1" style={{ backgroundColor: "var(--theme-background)" }}>
                 <div className="flex items-center justify-between">
                   <span className="font-bold text-zinc-200">خالد ع.</span>
-                  <div className="flex text-[var(--theme-primary)]">★★★★★</div>
+                  <div className="flex" style={{ color: "var(--theme-primary)" }}>★★★★★</div>
                 </div>
                 <p className="text-zinc-400 text-[11px]">
                   أفضل متجر التعامل معه سريع والدعم الفني متجاوب دائماً.
@@ -1277,12 +1441,12 @@ export default function ProductDetail() {
         return relatedProducts.length > 0 ? (
           <div key={sec.id} className="pt-6 space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-black text-[var(--theme-accent)] flex items-center gap-2">
-                <Sparkles size={20} className="text-[var(--theme-primary)]" />
+              <h2 className="text-lg font-black flex items-center gap-2" style={{ color: "var(--theme-accent)" }}>
+                <Sparkles size={20} style={{ color: "var(--theme-primary)" }} />
                 {sec.title || "منتجات ذات صلة بنفس القسم"}
               </h2>
               <Link href={`/categories/${product.categoryId}`}>
-                <span className="text-xs font-bold text-[var(--theme-primary)] hover:underline cursor-pointer">
+                <span className="text-xs font-bold hover:underline cursor-pointer" style={{ color: "var(--theme-primary)" }}>
                   عرض الكل ←
                 </span>
               </Link>
@@ -1313,9 +1477,10 @@ export default function ProductDetail() {
               type="button"
               onClick={toggleFavorite}
               disabled={favLoading}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[var(--theme-background)] border border-zinc-800 text-xs font-bold text-zinc-300 hover:text-white transition cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[var(--theme-border,rgba(255,255,255,0.1))] text-xs font-bold text-zinc-300 hover:text-white transition cursor-pointer"
+              style={{ backgroundColor: "var(--theme-background)" }}
             >
-              <Heart size={16} className={isFavorite ? "fill-[var(--theme-primary)] text-[var(--theme-primary)]" : ""} />
+              <Heart size={16} className={isFavorite ? "fill-[#C8A45C]" : ""} style={{ color: isFavorite ? "var(--theme-primary)" : "currentColor" }} />
               <span>المفضلة</span>
             </button>
             <button
@@ -1328,7 +1493,8 @@ export default function ProductDetail() {
                   toast.success("تم نسخ رابط المنتج للحافظة!");
                 }
               }}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[var(--theme-background)] border border-zinc-800 text-xs font-bold text-zinc-300 hover:text-white transition cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[var(--theme-border,rgba(255,255,255,0.1))] text-xs font-bold text-zinc-300 hover:text-white transition cursor-pointer"
+              style={{ backgroundColor: "var(--theme-background)" }}
             >
               <Share2 size={16} />
               <span>مشاركة</span>
@@ -1338,8 +1504,8 @@ export default function ProductDetail() {
 
       case "specifications":
         return (
-          <div key={sec.id} className="p-4 bg-[var(--theme-background)] rounded-2xl border border-zinc-800 text-xs space-y-2">
-            <div className="font-bold text-[var(--theme-accent)]">{sec.title || "المواصفات والتفاصيل التقنية"}</div>
+          <div key={sec.id} className="p-4 bg-[#1A1A1A] rounded-2xl border border-zinc-800 text-xs space-y-2">
+            <div className="font-bold text-[#FDE68A]">{sec.title || "المواصفات والتفاصيل التقنية"}</div>
             <div className="grid grid-cols-2 gap-2 text-zinc-400 text-[11px]">
               <div>نوع الخدمة: <span className="text-white font-mono">{product.productType || "عام"}</span></div>
               <div>حالة الشحن: <span className="text-emerald-400 font-bold">تلقائي أوتوماتيكي</span></div>
@@ -1359,7 +1525,7 @@ export default function ProductDetail() {
         {/* Top Floating Control Bar */}
         <div className="p-4 flex items-center justify-between max-w-4xl mx-auto">
           <Link href={`/categories/${product.categoryId}`}>
-            <div className="bg-[var(--theme-card)] border border-[var(--theme-primary)]/40 px-3 py-1.5 rounded-xl cursor-pointer hover:bg-black/80 transition flex items-center gap-1 text-[var(--theme-primary)] text-xs font-bold">
+            <div className="bg-[#2D2D2D] border border-[#C8A45C]/40 px-3 py-1.5 rounded-xl cursor-pointer hover:bg-black/80 transition flex items-center gap-1 text-[#C8A45C] text-xs font-bold">
               <ChevronRight className="w-4 h-4" />
               <span>الرجوع للتصنيف</span>
             </div>
@@ -1368,7 +1534,7 @@ export default function ProductDetail() {
           <button
             type="button"
             onClick={() => setLegacyOverride(false)}
-            className="text-xs bg-[var(--theme-primary)]/20 border border-[var(--theme-primary)]/40 text-[var(--theme-accent)] px-3 py-1 rounded-xl flex items-center gap-1.5 cursor-pointer hover:bg-[var(--theme-primary)]/30"
+            className="text-xs bg-[#C8A45C]/20 border border-[#C8A45C]/40 text-[#FDE68A] px-3 py-1 rounded-xl flex items-center gap-1.5 cursor-pointer hover:bg-[#C8A45C]/30"
           >
             <LayoutGrid size={14} />
             <span>التبديل إلى التصميم المطور الحديث</span>
@@ -1376,49 +1542,49 @@ export default function ProductDetail() {
         </div>
 
         {/* Big Banner Container */}
-        <div className="relative w-full h-64 bg-[var(--theme-card)] rounded-b-[2rem] overflow-hidden shadow-2xl border-b border-[var(--theme-primary)]/30">
+        <div className="relative w-full h-64 bg-[#2D2D2D] rounded-b-[2rem] overflow-hidden shadow-2xl border-b border-[#C8A45C]/30">
           <div className="absolute top-4 left-4 z-20">
             <button
               type="button"
               onClick={toggleFavorite}
               disabled={favLoading}
-              className="bg-black/60 backdrop-blur-md p-2.5 rounded-full cursor-pointer hover:bg-black/80 transition-all text-white border border-[var(--theme-primary)]/40 active:scale-95"
+              className="bg-black/60 backdrop-blur-md p-2.5 rounded-full cursor-pointer hover:bg-black/80 transition-all text-white border border-[#C8A45C]/40 active:scale-95"
             >
               <Heart
                 size={20}
-                className={`transition-colors ${isFavorite ? "fill-[var(--theme-primary)] text-[var(--theme-primary)]" : "text-white"}`}
+                className={`transition-colors ${isFavorite ? "fill-[#C8A45C] text-[#C8A45C]" : "text-white"}`}
               />
             </button>
           </div>
           {product.image ? (
             <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
           ) : (
-            <div className="w-full h-full bg-[var(--theme-background)] flex items-center justify-center">
-              <ShoppingCart className="w-16 h-16 text-[var(--theme-primary)]/50" />
+            <div className="w-full h-full bg-[#1A1A1A] flex items-center justify-center">
+              <ShoppingCart className="w-16 h-16 text-[#C8A45C]/50" />
             </div>
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-[var(--theme-background)] via-[var(--theme-background)]/30 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#1A1A1A] via-[#1A1A1A]/30 to-transparent" />
         </div>
 
         <div className="px-5 -mt-6 relative z-10 max-w-2xl mx-auto space-y-4">
           <h1 className="text-2xl font-black text-white leading-tight mb-1">{product.name}</h1>
-          <div className="text-xs text-[var(--theme-primary)] font-semibold">{product.categoryName}</div>
+          <div className="text-xs text-[#C8A45C] font-semibold">{product.categoryName}</div>
 
           <div
-            className="space-y-6 border border-[var(--theme-primary)]/35 p-5 rounded-3xl shadow-xl"
-            style={{ backgroundColor: "var(--product-card-color, var(--theme-card, #2D2D2D))" }}
+            className="space-y-6 border border-[#C8A45C]/35 p-5 rounded-3xl shadow-xl"
+            style={{ backgroundColor: "var(--product-card-color, var(--theme-card))" }}
           >
             {/* Purchase Form Elements */}
             <div>
               <div className="flex justify-between items-center mb-3">
                 <label className="text-sm font-bold text-white">الكمية المطلوبة</label>
-                <span className="text-xs text-[var(--theme-primary)]">(الحد الأدنى: {minQty.toLocaleString()})</span>
+                <span className="text-xs text-[#C8A45C]">(الحد الأدنى: {minQty.toLocaleString()})</span>
               </div>
 
               {usesFixedQuantity ? (
-                <div className="rounded-2xl border border-[var(--theme-primary)]/50 bg-[var(--theme-primary)]/10 px-4 py-4 text-center">
+                <div className="rounded-2xl border border-[#C8A45C]/50 bg-[#C8A45C]/10 px-4 py-4 text-center">
                   <div className="text-xs text-zinc-300 mb-1">كمية رسمية ثابتة من المزود</div>
-                  <div className="text-xl font-black text-[var(--theme-accent)]">{minQty.toLocaleString()}</div>
+                  <div className="text-xl font-black text-[#FDE68A]">{minQty.toLocaleString()}</div>
                 </div>
               ) : usesOfficialQuantityList ? (
                 <div className="grid grid-cols-2 gap-2">
@@ -1432,8 +1598,8 @@ export default function ProductDetail() {
                       }}
                       className={`rounded-2xl border px-3 py-3 text-sm font-black transition cursor-pointer ${
                         quantity === value
-                          ? "border-[var(--theme-primary)] bg-[var(--theme-primary)] text-[var(--theme-background)] shadow-md shadow-[var(--theme-primary)]/30"
-                          : "border-[var(--theme-border)] bg-[var(--theme-background)] text-white hover:border-[var(--theme-primary)]/60"
+                          ? "border-[#C8A45C] bg-[#C8A45C] text-[#1A1A1A] shadow-md shadow-[#C8A45C]/30"
+                          : "border-[#4B5563] bg-[#1A1A1A] text-white hover:border-[#C8A45C]/60"
                       }`}
                     >
                       {value.toLocaleString()}
@@ -1441,7 +1607,7 @@ export default function ProductDetail() {
                   ))}
                 </div>
               ) : (
-                <div className="bg-[var(--theme-background)] border border-[var(--theme-border)] focus-within:border-[var(--theme-primary)] p-2 rounded-2xl transition">
+                <div className="bg-[#1A1A1A] border border-[#4B5563] focus-within:border-[#C8A45C] p-2 rounded-2xl transition">
                   <Input
                     type="text"
                     inputMode="numeric"
@@ -1464,10 +1630,10 @@ export default function ProductDetail() {
                     <div key={param} className="space-y-1.5">
                       <label className="text-sm font-bold text-white mb-1 flex items-center justify-between">
                         <span className="flex items-center gap-1.5">
-                          <Icon size={15} className="text-[var(--theme-primary)]" />
+                          <Icon size={15} className="text-[#C8A45C]" />
                           <span>{param} *</span>
                         </span>
-                        <span className="text-xs text-[var(--theme-primary)] font-normal">{cfg.help}</span>
+                        <span className="text-xs text-[#C8A45C] font-normal">{cfg.help}</span>
                       </label>
                       <Input
                         type={cfg.type}
@@ -1482,7 +1648,7 @@ export default function ProductDetail() {
                           }
                         }}
                         placeholder={cfg.placeholder}
-                        className="h-12 bg-[var(--theme-input-bg)] border-[var(--theme-border)] text-white rounded-2xl px-4 focus-visible:ring-[var(--theme-primary)] focus-visible:border-[var(--theme-primary)] text-base placeholder:text-zinc-400"
+                        className="h-12 bg-[#3D3D3D] border-[#4B5563] text-white rounded-2xl px-4 focus-visible:ring-[#C8A45C] focus-visible:border-[#C8A45C] text-base placeholder:text-zinc-400"
                       />
                     </div>
                   );
@@ -1497,14 +1663,14 @@ export default function ProductDetail() {
                       value={accountId}
                       onChange={(e) => setAccountId(e.target.value)}
                       placeholder="أدخل معرّف الحساب (Player ID)"
-                      className="h-12 bg-[var(--theme-input-bg)] border-[var(--theme-border)] text-white rounded-2xl px-4 focus-visible:ring-[var(--theme-primary)] focus-visible:border-[var(--theme-primary)] text-base placeholder:text-zinc-400"
+                      className="h-12 bg-[#3D3D3D] border-[#4B5563] text-white rounded-2xl px-4 focus-visible:ring-[#C8A45C] focus-visible:border-[#C8A45C] text-base placeholder:text-zinc-400"
                     />
                   </div>
                 )}
 
                 {purchaseMode === "balance" && (
                   <div className="space-y-3">
-                    <div className="rounded-2xl border border-[var(--theme-primary)]/40 bg-[var(--theme-primary)]/10 px-4 py-3 text-[var(--theme-accent)] font-bold text-sm">
+                    <div className="rounded-2xl border border-[#C8A45C]/40 bg-[#C8A45C]/10 px-4 py-3 text-[#FDE68A] font-bold text-sm">
                       الكمية المحددة: {quantity} وحدة
                     </div>
                     <div>
@@ -1513,7 +1679,7 @@ export default function ProductDetail() {
                         value={phoneNumber}
                         onChange={(e) => setPhoneNumber(e.target.value)}
                         placeholder="09XXXXXXXX"
-                        className="h-12 bg-[var(--theme-input-bg)] border-[var(--theme-border)] text-white rounded-2xl px-4 focus-visible:ring-[var(--theme-primary)] focus-visible:border-[var(--theme-primary)] text-base placeholder:text-zinc-400"
+                        className="h-12 bg-[#3D3D3D] border-[#4B5563] text-white rounded-2xl px-4 focus-visible:ring-[#C8A45C] focus-visible:border-[#C8A45C] text-base placeholder:text-zinc-400"
                       />
                     </div>
                   </div>
@@ -1521,9 +1687,9 @@ export default function ProductDetail() {
               </>
             )}
 
-            <div className="rounded-2xl bg-[var(--theme-background)] border border-[var(--theme-primary)]/30 p-4 text-center space-y-2">
+            <div className="rounded-2xl bg-[#1A1A1A] border border-[#C8A45C]/30 p-4 text-center space-y-2">
               {hasVipDiscount && (
-                <div className="flex items-center justify-center gap-1.5 text-xs font-bold py-1 px-3 rounded-full bg-[var(--theme-primary)]/15 border border-[var(--theme-primary)]/30 mx-auto w-fit" style={{ color: vipBadgeColor }}>
+                <div className="flex items-center justify-center gap-1.5 text-xs font-bold py-1 px-3 rounded-full bg-[#C8A45C]/15 border border-[#C8A45C]/30 mx-auto w-fit" style={{ color: vipBadgeColor }}>
                   <Crown size={14} />
                   <span>خصم {vipBadgeName || "VIP"} ({vipDiscountPercent}%)</span>
                   {totalSavingsUsd > 0 && <span className="text-emerald-400 font-mono">وفرت {formatPrice(totalSavingsUsd)}</span>}
@@ -1536,7 +1702,7 @@ export default function ProductDetail() {
                     {formatPrice(baseTotalUsd)}
                   </span>
                 )}
-                <div className="text-3xl font-black text-[var(--theme-accent)]">{formatPrice(totalUsd)}</div>
+                <div className="text-3xl font-black text-[#FDE68A]">{formatPrice(totalUsd)}</div>
               </div>
               {formatPriceWithSyp(totalUsd).secondary && (
                 <div className="text-xs text-zinc-400 font-medium">{formatPriceWithSyp(totalUsd).secondary}</div>
@@ -1546,7 +1712,7 @@ export default function ProductDetail() {
             <Button
               onClick={handlePurchase}
               disabled={createOrder.isPending || !product.available}
-              className="w-full h-14 rounded-2xl text-base font-black bg-[var(--theme-primary)] hover:bg-[var(--theme-secondary)] text-[var(--theme-background)] shadow-lg shadow-[var(--theme-primary)]/25 transition cursor-pointer"
+              className="w-full h-14 rounded-2xl text-base font-black bg-[#C8A45C] hover:bg-[#B8954A] text-[#1A1A1A] shadow-lg shadow-[#C8A45C]/25 transition cursor-pointer"
             >
               {createOrder.isPending ? "جاري تنفيذ الطلب..." : "تأكيد الشراء الفوري"}
             </Button>
@@ -1573,14 +1739,14 @@ export default function ProductDetail() {
             <button
               type="button"
               onClick={() => setIsLightboxOpen(false)}
-              className="absolute -top-12 left-0 p-2 text-white hover:text-[var(--theme-primary)] bg-white/10 rounded-full transition cursor-pointer"
+              className="absolute -top-12 left-0 p-2 text-white hover:text-[#C8A45C] bg-white/10 rounded-full transition cursor-pointer"
             >
               <X size={24} />
             </button>
             <img
               src={product.image}
               alt={product.name}
-              className="max-w-full max-h-[80vh] object-contain rounded-2xl border-2 border-[var(--theme-primary)]/50 shadow-2xl"
+              className="max-w-full max-h-[80vh] object-contain rounded-2xl border-2 border-[#C8A45C]/50 shadow-2xl"
             />
             <p className="text-zinc-300 text-xs mt-3 font-semibold">{product.name}</p>
           </div>
@@ -1590,19 +1756,22 @@ export default function ProductDetail() {
       {/* Main Container */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-4 space-y-6">
         {/* Top Breadcrumbs & Control Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-3 bg-[var(--theme-card)]/90 p-3.5 rounded-2xl border border-[var(--theme-primary)]/25 backdrop-blur-md shadow-lg">
+        <div
+          className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl border border-[var(--theme-border,rgba(200,164,92,0.25))] backdrop-blur-md shadow-lg"
+          style={{ backgroundColor: "var(--theme-card)" }}
+        >
           <div className="flex items-center gap-2 text-xs">
             <Link href="/">
-              <span className="hover:text-white transition cursor-pointer font-medium" style={{ color: customization.breadcrumb_text_color || "#9CA3AF" }}>الرئيسية</span>
+              <span className="hover:text-white transition cursor-pointer font-medium" style={{ color: getCustomOrFallback(customization.breadcrumb_text_color, "var(--theme-text-secondary)") }}>الرئيسية</span>
             </Link>
-            <ChevronRight size={14} style={{ color: customization.breadcrumb_text_color || "#9CA3AF" }} />
+            <ChevronRight size={14} style={{ color: getCustomOrFallback(customization.breadcrumb_text_color, "var(--theme-text-secondary)") }} />
             <Link href={`/categories/${product.categoryId}`}>
-              <span className="font-bold transition cursor-pointer" style={{ color: customization.breadcrumb_active_color || "#C8A45C" }}>
+              <span className="font-bold transition cursor-pointer" style={{ color: getCustomOrFallback(customization.breadcrumb_active_color, "var(--theme-primary)") }}>
                 {product.categoryName}
               </span>
             </Link>
-            <ChevronRight size={14} style={{ color: customization.breadcrumb_text_color || "#9CA3AF" }} />
-            <span className="font-bold truncate max-w-[180px] sm:max-w-xs" style={{ color: customization.breadcrumb_active_color || "#FFFFFF" }}>{product.name}</span>
+            <ChevronRight size={14} style={{ color: getCustomOrFallback(customization.breadcrumb_text_color, "var(--theme-text-secondary)") }} />
+            <span className="font-bold truncate max-w-[180px] sm:max-w-xs" style={{ color: getCustomOrFallback(customization.breadcrumb_active_color, "var(--theme-text-primary)") }}>{product.name}</span>
           </div>
 
           <div className="flex items-center gap-2">
@@ -1617,10 +1786,10 @@ export default function ProductDetail() {
                   toast.success("تم نسخ رابط المنتج للمشاركة 📋");
                 }
               }}
-              className="p-2 rounded-xl border border-zinc-700 transition cursor-pointer text-xs flex items-center gap-1.5"
+              className="p-2 rounded-xl border border-[var(--theme-border,rgba(255,255,255,0.1))] transition cursor-pointer text-xs flex items-center gap-1.5"
               style={{
-                color: customization.action_buttons_color || "#C8A45C",
-                backgroundColor: customization.action_buttons_bg === "transparent" ? "#1A1A1A" : (customization.action_buttons_bg || "#1A1A1A"),
+                color: getCustomOrFallback(customization.action_buttons_color, "var(--theme-primary)"),
+                backgroundColor: customization.action_buttons_bg === "transparent" ? "var(--theme-background)" : getCustomOrFallback(customization.action_buttons_bg, "var(--theme-background)"),
               }}
               title="مشاركة المنتج"
             >
@@ -1633,14 +1802,14 @@ export default function ProductDetail() {
               type="button"
               onClick={toggleFavorite}
               disabled={favLoading}
-              className="p-2 rounded-xl border border-zinc-700 transition cursor-pointer text-xs flex items-center gap-1.5"
+              className="p-2 rounded-xl border border-[var(--theme-border,rgba(255,255,255,0.1))] transition cursor-pointer text-xs flex items-center gap-1.5"
               style={{
-                color: customization.action_buttons_color || "#C8A45C",
-                backgroundColor: customization.action_buttons_bg === "transparent" ? "#1A1A1A" : (customization.action_buttons_bg || "#1A1A1A"),
+                color: getCustomOrFallback(customization.action_buttons_color, "var(--theme-primary)"),
+                backgroundColor: customization.action_buttons_bg === "transparent" ? "var(--theme-background)" : getCustomOrFallback(customization.action_buttons_bg, "var(--theme-background)"),
               }}
               title="إضافة للمفضلة"
             >
-              <Heart size={16} className={isFavorite ? "fill-[var(--theme-primary)]" : ""} />
+              <Heart size={16} className={isFavorite ? "fill-[#C8A45C]" : ""} style={{ color: isFavorite ? "var(--theme-primary)" : "currentColor" }} />
               <span className="hidden sm:inline">{isFavorite ? "المفضلة" : "إضافة للمفضلة"}</span>
             </button>
 
@@ -1648,10 +1817,10 @@ export default function ProductDetail() {
             <button
               type="button"
               onClick={() => setLegacyOverride(true)}
-              className="p-2 rounded-xl border border-zinc-800 transition cursor-pointer text-xs flex items-center gap-1"
+              className="p-2 rounded-xl border border-[var(--theme-border,rgba(255,255,255,0.1))] transition cursor-pointer text-xs flex items-center gap-1"
               style={{
-                color: customization.action_buttons_color || "#9CA3AF",
-                backgroundColor: customization.action_buttons_bg === "transparent" ? "#1A1A1A" : (customization.action_buttons_bg || "#1A1A1A"),
+                color: getCustomOrFallback(customization.action_buttons_color, "var(--theme-text-secondary)"),
+                backgroundColor: customization.action_buttons_bg === "transparent" ? "var(--theme-background)" : getCustomOrFallback(customization.action_buttons_bg, "var(--theme-background)"),
               }}
               title="التبديل إلى الوضع الكلاسيكي"
             >
@@ -1673,8 +1842,8 @@ export default function ProductDetail() {
           {/* RIGHT COLUMN (md:col-span-7) */}
           <div className="md:col-span-7 space-y-5">
             <div
-              className="border border-[var(--theme-primary)]/30 rounded-3xl p-6 shadow-2xl space-y-6"
-              style={{ backgroundColor: customization.info_box_bg_color || "var(--product-card-color, var(--theme-card, #242424))" }}
+              className="border border-[var(--theme-border,rgba(200,164,92,0.3))] rounded-3xl p-6 shadow-2xl space-y-6"
+              style={{ backgroundColor: getCustomOrFallback(customization.info_box_bg_color, "var(--product-card-color, var(--theme-card))") }}
             >
               {sections
                 .filter(

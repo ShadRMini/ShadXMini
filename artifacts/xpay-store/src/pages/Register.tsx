@@ -180,15 +180,15 @@ export default function Register() {
       <div
         className="min-h-[100dvh] flex flex-col justify-center items-center p-4 sm:p-6 transition-colors duration-200"
         style={{
-          backgroundColor: "var(--auth-bg-color, var(--theme-background, #1A1A1A))",
-          color: "var(--auth-text-color, var(--theme-text-primary, #FFFFFF))",
+          backgroundColor: "var(--auth-bg-color, var(--theme-background))",
+          color: "var(--auth-text-color, var(--theme-text-primary))",
         }}
         dir="rtl"
       >
         <div
-          className="w-full max-w-md rounded-3xl p-6 sm:p-8 shadow-2xl border border-[var(--theme-primary,#C8A45C)]/40 relative overflow-hidden"
+          className="w-full max-w-md rounded-3xl p-6 sm:p-8 shadow-2xl border border-[var(--theme-primary)]/40 relative overflow-hidden"
           style={{
-            backgroundColor: "var(--auth-card-color, var(--theme-card, #2D2D2D))",
+            backgroundColor: "var(--auth-card-color, var(--theme-card))",
           }}
         >
           <div className="text-center mb-6 relative z-10 flex flex-col items-center">
@@ -201,7 +201,7 @@ export default function Register() {
                 />
               </Link>
             ) : null}
-            <h1 className="text-2xl sm:text-3xl font-black text-[var(--theme-accent,#FDE68A)] tracking-wide">
+            <h1 className="text-2xl sm:text-3xl font-black text-[var(--theme-accent)] tracking-wide">
               إنشاء حساب جديد
             </h1>
             <p className="text-sm font-medium text-zinc-400 mt-1">انضم الآن إلى المنصة</p>
@@ -227,7 +227,7 @@ export default function Register() {
                   onChange={(e) => setUsername(e.target.value)}
                   placeholder="مثال: ahmed99"
                   disabled={loading}
-                  className="w-full bg-[var(--theme-input-bg)] border border-zinc-600 rounded-xl pr-10 pl-3 py-3 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:border-[var(--theme-primary,#C8A45C)] transition"
+                  className="w-full bg-[var(--theme-input-bg)] border border-zinc-600 rounded-xl pr-10 pl-3 py-3 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:border-[var(--theme-primary)] transition"
                 />
               </div>
             </div>
@@ -244,7 +244,7 @@ export default function Register() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="example@domain.com"
                   disabled={loading}
-                  className="w-full bg-[var(--theme-input-bg)] border border-zinc-600 rounded-xl pr-10 pl-3 py-3 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:border-[var(--theme-primary,#C8A45C)] transition"
+                  className="w-full bg-[var(--theme-input-bg)] border border-zinc-600 rounded-xl pr-10 pl-3 py-3 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:border-[var(--theme-primary)] transition"
                 />
               </div>
             </div>
@@ -261,7 +261,7 @@ export default function Register() {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   disabled={loading}
-                  className="w-full bg-[var(--theme-input-bg)] border border-zinc-600 rounded-xl pr-10 pl-10 py-3 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:border-[var(--theme-primary,#C8A45C)] transition"
+                  className="w-full bg-[var(--theme-input-bg)] border border-zinc-600 rounded-xl pr-10 pl-10 py-3 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:border-[var(--theme-primary)] transition"
                 />
                 <button
                   type="button"
@@ -285,7 +285,7 @@ export default function Register() {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="••••••••"
                   disabled={loading}
-                  className="w-full bg-[var(--theme-input-bg)] border border-zinc-600 rounded-xl pr-10 pl-10 py-3 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:border-[var(--theme-primary,#C8A45C)] transition"
+                  className="w-full bg-[var(--theme-input-bg)] border border-zinc-600 rounded-xl pr-10 pl-10 py-3 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:border-[var(--theme-primary)] transition"
                 />
                 <button
                   type="button"
@@ -300,7 +300,7 @@ export default function Register() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-[var(--theme-primary,#C8A45C)] hover:bg-[var(--theme-secondary,#B8954A)] active:scale-[0.98] text-zinc-950 font-black py-3.5 px-4 rounded-xl shadow-lg flex items-center justify-center gap-2 text-sm transition-all disabled:opacity-50 mt-2"
+              className="w-full bg-[var(--theme-primary)] hover:bg-[var(--theme-secondary)] active:scale-[0.98] text-zinc-950 font-black py-3.5 px-4 rounded-xl shadow-lg flex items-center justify-center gap-2 text-sm transition-all disabled:opacity-50 mt-2"
             >
               {loading ? (
                 <div className="w-5 h-5 border-2 border-zinc-950 border-t-transparent rounded-full animate-spin" />
@@ -316,7 +316,7 @@ export default function Register() {
           <div className="mt-6 text-center border-t border-zinc-700/80 pt-5 relative z-10">
             <p className="text-xs sm:text-sm text-zinc-400">
               لديك حساب بالفعل؟{" "}
-              <Link href="/login" className="font-black text-[var(--theme-accent,#FDE68A)] hover:underline">
+              <Link href="/login" className="font-black text-[var(--theme-accent)] hover:underline">
                 تسجيل الدخول
               </Link>
             </p>
@@ -353,7 +353,7 @@ export default function Register() {
           id="register-branding-panel"
           className="w-full lg:w-1/2 p-6 sm:p-8 lg:p-12 flex flex-col justify-between items-center text-center relative overflow-hidden transition-colors duration-200"
           style={{
-            backgroundColor: authConfig.common.styles.brandingBgColor || "var(--auth-button-color, var(--theme-primary, #C8A45C))",
+            backgroundColor: authConfig.common.styles.brandingBgColor || "var(--auth-button-color, var(--theme-primary))",
             color: authConfig.common.styles.brandingTextColor || "#FFFFFF",
           }}
         >
@@ -675,7 +675,7 @@ export default function Register() {
                 disabled={loading}
                 className="w-full min-h-[48px] sm:min-h-[52px] font-black py-3 px-5 rounded-xl sm:rounded-2xl shadow-lg flex items-center justify-center gap-2 text-sm sm:text-base transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:brightness-95 active:scale-[0.99] mt-3"
                 style={{
-                  backgroundColor: authConfig.common.styles.buttonBgColor || "var(--auth-button-color, var(--theme-primary, #C8A45C))",
+                  backgroundColor: authConfig.common.styles.buttonBgColor || "var(--auth-button-color, var(--theme-primary))",
                   color: authConfig.common.styles.buttonTextColor || "#1A1A1A",
                   boxShadow: "0 10px 20px -5px rgba(200, 164, 92, 0.35)",
                 }}

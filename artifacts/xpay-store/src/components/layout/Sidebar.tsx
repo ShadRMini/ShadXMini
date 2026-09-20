@@ -142,15 +142,15 @@ export default function Sidebar({ brandLogo, onClose }: SidebarProps) {
     <div
       className="flex flex-col h-full select-none transition-colors"
       style={{
-        backgroundColor: "var(--theme-sidebar-bg, var(--theme-background, #1A1A1A))",
-        color: "var(--theme-text-primary, #FFFFFF)",
+        backgroundColor: "var(--theme-sidebar-bg, var(--theme-background))",
+        color: "var(--theme-text-primary)",
       }}
     >
       {/* Header / Brand */}
       <div
         className={`p-5 border-b flex items-center justify-between min-h-[72px] ${onClose ? "justify-between" : ""}`}
         style={{
-          borderColor: "var(--theme-border, rgba(200, 164, 92, 0.2))",
+          borderColor: "var(--theme-border)",
         }}
       >
         {/* Brand Logo & Name - Hidden on mobile (<768px), visible on md/lg and desktop */}
@@ -170,7 +170,7 @@ export default function Sidebar({ brandLogo, onClose }: SidebarProps) {
           ) : (
             <span 
               className="text-xl font-black tracking-wide"
-              style={{ color: "var(--theme-accent, #FDE68A)" }}
+              style={{ color: "var(--theme-accent)" }}
             >
               {storeSettings.siteName || "ShadMini"}
             </span>
@@ -178,13 +178,13 @@ export default function Sidebar({ brandLogo, onClose }: SidebarProps) {
         </Link>
         {onClose && (
           <div className="flex items-center justify-between w-full md:w-auto">
-            <span className="text-sm font-bold md:hidden" style={{ color: "var(--theme-text-muted, #9CA3AF)" }}>
+            <span className="text-sm font-bold md:hidden" style={{ color: "var(--theme-text-muted)" }}>
               القائمة
             </span>
             <button
               onClick={onClose}
               className="lg:hidden p-1.5 rounded-xl transition cursor-pointer"
-              style={{ color: "var(--theme-text-muted, #9CA3AF)" }}
+              style={{ color: "var(--theme-text-muted)" }}
               aria-label="إغلاق القائمة"
             >
               <X size={20} />
@@ -198,8 +198,8 @@ export default function Sidebar({ brandLogo, onClose }: SidebarProps) {
         <div
           className="p-4 mx-3 my-3 rounded-2xl border transition-colors shadow-sm"
           style={{
-            backgroundColor: "var(--theme-card, #2D2D2D)",
-            borderColor: "var(--theme-border, rgba(200, 164, 92, 0.2))",
+            backgroundColor: "var(--theme-card)",
+            borderColor: "var(--theme-border)",
           }}
         >
           <div className="flex items-center gap-3">
@@ -209,13 +209,13 @@ export default function Sidebar({ brandLogo, onClose }: SidebarProps) {
                   src={user.avatarUrl}
                   alt={displayName}
                   className="w-12 h-12 rounded-2xl object-cover border shadow-md"
-                  style={{ borderColor: "var(--theme-border, rgba(200, 164, 92, 0.4))" }}
+                  style={{ borderColor: "var(--theme-border)" }}
                 />
               ) : (
                 <div 
                   className="w-12 h-12 rounded-2xl font-black flex items-center justify-center text-xl shadow-md"
                   style={{
-                    backgroundColor: "var(--theme-primary, #C8A45C)",
+                    backgroundColor: "var(--theme-primary)",
                     color: "#1A1A1A",
                   }}
                 >
@@ -233,7 +233,7 @@ export default function Sidebar({ brandLogo, onClose }: SidebarProps) {
               <div className="flex items-center gap-1.5">
                 <span
                   className="text-sm font-bold truncate"
-                  style={{ color: "var(--theme-text-primary, #FFFFFF)" }}
+                  style={{ color: "var(--theme-text-primary)" }}
                 >
                   {displayName}
                 </span>
@@ -253,9 +253,9 @@ export default function Sidebar({ brandLogo, onClose }: SidebarProps) {
                   {vipBadgeName}
                 </span>
               </div>
-              <div className="flex items-center gap-2 mt-0.5 text-xs" style={{ color: "var(--theme-text-muted, #9CA3AF)" }}>
+              <div className="flex items-center gap-2 mt-0.5 text-xs" style={{ color: "var(--theme-text-muted)" }}>
                 <span>المعرف:</span>
-                <span className="font-mono font-semibold" style={{ color: "var(--theme-primary, #C8A45C)" }}>
+                <span className="font-mono font-semibold" style={{ color: "var(--theme-primary)" }}>
                   {displayId}
                 </span>
               </div>
@@ -267,7 +267,7 @@ export default function Sidebar({ brandLogo, onClose }: SidebarProps) {
             className="mt-3 pt-3 border-t flex items-center justify-between text-xs"
             style={{ borderColor: "var(--theme-border, rgba(200, 164, 92, 0.15))" }}
           >
-            <span className="font-medium" style={{ color: "var(--theme-text-muted, #9CA3AF)" }}>الرصيد المتاح:</span>
+            <span className="font-medium" style={{ color: "var(--theme-text-muted)" }}>الرصيد المتاح:</span>
             <span className="text-sm font-extrabold" style={{ color: "var(--theme-primary, var(--theme-text-primary, #3B82F6))" }}>
               ${Number(user.balanceUsd || 0).toFixed(2)}
             </span>
@@ -277,11 +277,11 @@ export default function Sidebar({ brandLogo, onClose }: SidebarProps) {
         <div
           className="p-4 mx-3 my-3 rounded-2xl border text-center transition-colors shadow-sm"
           style={{
-            backgroundColor: "var(--theme-card, #2D2D2D)",
-            borderColor: "var(--theme-border, rgba(200, 164, 92, 0.2))",
+            backgroundColor: "var(--theme-card)",
+            borderColor: "var(--theme-border)",
           }}
         >
-          <p className="text-xs mb-3" style={{ color: "var(--theme-text-muted, #9CA3AF)" }}>
+          <p className="text-xs mb-3" style={{ color: "var(--theme-text-muted)" }}>
             سجل الدخول للوصول لكافة الميزات
           </p>
           <div className="flex gap-2">
@@ -289,7 +289,7 @@ export default function Sidebar({ brandLogo, onClose }: SidebarProps) {
               <button 
                 className="w-full font-bold text-xs py-2 rounded-xl transition cursor-pointer shadow-sm"
                 style={{
-                  backgroundColor: "var(--theme-primary, #C8A45C)",
+                  backgroundColor: "var(--theme-primary)",
                   color: "#1A1A1A",
                 }}
               >
@@ -300,9 +300,9 @@ export default function Sidebar({ brandLogo, onClose }: SidebarProps) {
               <button
                 className="w-full font-bold text-xs py-2 rounded-xl border transition cursor-pointer"
                 style={{
-                  backgroundColor: "var(--theme-background, #1A1A1A)",
-                  borderColor: "var(--theme-border, rgba(200, 164, 92, 0.3))",
-                  color: "var(--theme-text-primary, #FFFFFF)",
+                  backgroundColor: "var(--theme-background)",
+                  borderColor: "var(--theme-border)",
+                  color: "var(--theme-text-primary)",
                 }}
               >
                 {storeSettings.guestPreviewRegisterButton || "إنشاء حساب"}
@@ -325,8 +325,8 @@ export default function Sidebar({ brandLogo, onClose }: SidebarProps) {
               <div
                 className="flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-semibold transition-all cursor-pointer select-none"
                 style={{
-                  backgroundColor: isActive ? "var(--theme-primary, #C8A45C)" : "transparent",
-                  color: isActive ? "#1A1A1A" : "var(--theme-text-primary, #FFFFFF)",
+                  backgroundColor: isActive ? "var(--theme-primary)" : "transparent",
+                  color: isActive ? "#1A1A1A" : "var(--theme-text-primary)",
                   fontWeight: isActive ? 700 : 500,
                   boxShadow: isActive ? "0 4px 12px rgba(200, 164, 92, 0.25)" : "none",
                 }}
@@ -334,7 +334,7 @@ export default function Sidebar({ brandLogo, onClose }: SidebarProps) {
                 <div className="flex items-center gap-3">
                   <item.icon
                     size={18}
-                    style={{ color: isActive ? "#1A1A1A" : "var(--theme-primary, #C8A45C)" }}
+                    style={{ color: isActive ? "#1A1A1A" : "var(--theme-primary)" }}
                   />
                   <span>{item.label}</span>
                 </div>
@@ -343,8 +343,8 @@ export default function Sidebar({ brandLogo, onClose }: SidebarProps) {
                     <span
                       className="text-[10px] font-black px-2 py-0.5 rounded-full"
                       style={{
-                        backgroundColor: isActive ? "#1A1A1A" : "var(--theme-primary, #C8A45C)",
-                        color: isActive ? "var(--theme-accent, #FDE68A)" : "#1A1A1A",
+                        backgroundColor: isActive ? "#1A1A1A" : "var(--theme-primary)",
+                        color: isActive ? "var(--theme-accent)" : "#1A1A1A",
                       }}
                     >
                       {item.badge}
@@ -367,7 +367,7 @@ export default function Sidebar({ brandLogo, onClose }: SidebarProps) {
       <div
         className="p-3 border-t"
         style={{
-          borderColor: "var(--theme-border, rgba(200, 164, 92, 0.2))",
+          borderColor: "var(--theme-border)",
           backgroundColor: "var(--theme-card, rgba(255, 255, 255, 0.03))",
         }}
       >
@@ -375,8 +375,8 @@ export default function Sidebar({ brandLogo, onClose }: SidebarProps) {
           onClick={handleToggleMode}
           className="flex items-center justify-between p-3 rounded-xl border transition-all cursor-pointer select-none shadow-xs"
           style={{
-            backgroundColor: "var(--theme-card, #2D2D2D)",
-            borderColor: "var(--theme-border, rgba(200, 164, 92, 0.25))",
+            backgroundColor: "var(--theme-card)",
+            borderColor: "var(--theme-border)",
           }}
           role="button"
           tabIndex={0}
@@ -393,21 +393,21 @@ export default function Sidebar({ brandLogo, onClose }: SidebarProps) {
               className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
               style={{
                 backgroundColor: "rgba(200, 164, 92, 0.15)",
-                color: "var(--theme-primary, #C8A45C)",
+                color: "var(--theme-primary)",
               }}
             >
-              {isDark ? <Moon size={17} style={{ color: "var(--theme-primary, #C8A45C)" }} /> : <Sun size={17} style={{ color: "var(--theme-primary, #C8A45C)" }} />}
+              {isDark ? <Moon size={17} style={{ color: "var(--theme-primary)" }} /> : <Sun size={17} style={{ color: "var(--theme-primary)" }} />}
             </div>
             <div>
               <div
                 className="text-xs font-bold"
-                style={{ color: "var(--theme-text-primary, #FFFFFF)" }}
+                style={{ color: "var(--theme-text-primary)" }}
               >
                 {isDark ? "الوضع الداكن" : "الوضع الفاتح"}
               </div>
               <div
                 className="text-[10px]"
-                style={{ color: "var(--theme-text-muted, #9CA3AF)" }}
+                style={{ color: "var(--theme-text-muted)" }}
               >
                 {isDark ? "انقر للتبديل للوضع الفاتح" : "انقر للتبديل للوضع الداكن"}
               </div>
@@ -418,7 +418,7 @@ export default function Sidebar({ brandLogo, onClose }: SidebarProps) {
           <div
             className="w-11 h-6 flex items-center rounded-full p-1 transition-colors duration-300"
             style={{
-              backgroundColor: isDark ? "var(--theme-primary, #C8A45C)" : "#D1D5DB",
+              backgroundColor: isDark ? "var(--theme-primary)" : "#D1D5DB",
             }}
           >
             <div
@@ -427,7 +427,7 @@ export default function Sidebar({ brandLogo, onClose }: SidebarProps) {
               }`}
             >
               {isDark ? (
-                <Moon size={9} style={{ color: "var(--theme-accent, #FDE68A)" }} />
+                <Moon size={9} style={{ color: "var(--theme-accent)" }} />
               ) : (
                 <Sun size={9} className="text-amber-500" />
               )}

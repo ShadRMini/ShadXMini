@@ -133,7 +133,7 @@ export default function NotificationBellDropdown() {
         <div
           className="absolute left-0 sm:right-auto sm:left-0 mt-2 w-80 sm:w-96 border rounded-2xl shadow-2xl z-50 overflow-hidden text-right"
           style={{
-            backgroundColor: "var(--theme-card, #242424)",
+            backgroundColor: "var(--theme-card)",
             borderColor: "var(--theme-border, rgba(200,164,92,0.4))",
           }}
         >
@@ -150,12 +150,12 @@ export default function NotificationBellDropdown() {
                 className="p-1.5 rounded-lg"
                 style={{
                   backgroundColor: "rgba(200,164,92,0.15)",
-                  color: "var(--theme-primary, #C8A45C)",
+                  color: "var(--theme-primary)",
                 }}
               >
                 <Bell size={15} />
               </div>
-              <span className="text-xs font-bold" style={{ color: "var(--theme-primary, #C8A45C)" }}>
+              <span className="text-xs font-bold" style={{ color: "var(--theme-primary)" }}>
                 التنبيهات والإشعارات
               </span>
               {unreadCount > 0 && (
@@ -163,7 +163,7 @@ export default function NotificationBellDropdown() {
                   className="text-[10px] px-2 py-0.5 rounded-full font-bold"
                   style={{
                     backgroundColor: "rgba(200,164,92,0.2)",
-                    color: "var(--theme-primary, #C8A45C)",
+                    color: "var(--theme-primary)",
                   }}
                 >
                   {unreadCount} جديد
@@ -175,7 +175,7 @@ export default function NotificationBellDropdown() {
               <button
                 onClick={handleMarkAllAsRead}
                 className="text-[11px] flex items-center gap-1 transition cursor-pointer font-medium"
-                style={{ color: "var(--theme-primary, #C8A45C)" }}
+                style={{ color: "var(--theme-primary)" }}
               >
                 <CheckCheck size={13} />
                 <span>قراءة الكل</span>
@@ -189,7 +189,7 @@ export default function NotificationBellDropdown() {
               <div className="p-6 text-center text-xs text-[var(--text-muted)]">
                 <div
                   className="inline-block w-5 h-5 border-2 border-t-transparent rounded-full animate-spin mb-2"
-                  style={{ borderColor: "var(--theme-primary, #C8A45C)" }}
+                  style={{ borderColor: "var(--theme-primary)" }}
                 />
                 <p>جاري تحميل الإشعارات...</p>
               </div>
@@ -220,7 +220,7 @@ export default function NotificationBellDropdown() {
                     style={{
                       backgroundColor: isUnread ? "rgba(200,164,92,0.1)" : "transparent",
                       borderRightWidth: isUnread ? "2px" : "0px",
-                      borderRightColor: "var(--theme-primary, #C8A45C)",
+                      borderRightColor: "var(--theme-primary)",
                     }}
                   >
                     <div className="flex items-start justify-between gap-2">
@@ -229,7 +229,7 @@ export default function NotificationBellDropdown() {
                           <h4
                             className="text-xs font-bold mb-1 leading-snug"
                             style={{
-                              color: isUnread ? "var(--theme-primary, #C8A45C)" : "var(--theme-text-primary, #FFFFFF)",
+                              color: isUnread ? "var(--theme-primary)" : "var(--theme-text-primary)",
                             }}
                           >
                             {item.title}
@@ -239,7 +239,7 @@ export default function NotificationBellDropdown() {
                           {item.content}
                         </p>
                         <div className="flex items-center gap-1.5 mt-2 text-[10px] text-[var(--text-muted)]">
-                          <Clock size={11} style={{ color: "var(--theme-primary, #C8A45C)" }} />
+                          <Clock size={11} style={{ color: "var(--theme-primary)" }} />
                           <span>{formattedDate}</span>
                         </div>
                       </div>
@@ -248,7 +248,7 @@ export default function NotificationBellDropdown() {
                         <button
                           onClick={(e) => handleMarkAsRead(item.id, e)}
                           className="p-1 rounded-md transition shrink-0"
-                          style={{ color: "var(--theme-primary, #C8A45C)" }}
+                          style={{ color: "var(--theme-primary)" }}
                           title="تحديد كمقروء"
                         >
                           <Check size={13} />
@@ -265,7 +265,7 @@ export default function NotificationBellDropdown() {
           <div
             className="p-2.5 border-t text-center"
             style={{
-              backgroundColor: "var(--theme-card, #242424)",
+              backgroundColor: "var(--theme-card)",
               borderColor: "var(--theme-border, rgba(200,164,92,0.2))",
             }}
           >
@@ -274,9 +274,9 @@ export default function NotificationBellDropdown() {
               onClick={() => setIsOpen(false)}
               className="w-full flex items-center justify-center gap-1.5 py-2 text-xs font-bold border rounded-xl transition cursor-pointer"
               style={{
-                color: "var(--theme-primary, #C8A45C)",
+                color: "var(--theme-primary)",
                 backgroundColor: "rgba(200, 164, 92, 0.15)",
-                borderColor: "var(--theme-border, rgba(200, 164, 92, 0.3))",
+                borderColor: "var(--theme-border)",
               }}
             >
               <span>عرض جميع الإشعارات</span>

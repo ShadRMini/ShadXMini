@@ -466,12 +466,12 @@ export function applyStoreTheme(theme?: Partial<StoreThemeSettings> | null | und
 
   // --- Product Section Variables ---
   setOrRemoveProp(["--product-bg-color", "--product-bg"], currentTheme.product_bg_color || currentTheme.productBgColor);
-  setOrRemoveProp(["--product-card-color", "--product-card-bg"], currentTheme.product_card_color || currentTheme.productCardColor);
+  setOrRemoveProp(["--product-card-color", "--product-card-bg", "--product-info-box-bg-color"], currentTheme.product_card_color || currentTheme.productCardColor || (currentTheme as any).product_info_box_bg_color);
   setOrRemoveProp(["--product-text-color", "--product-text"], currentTheme.product_text_color || currentTheme.productTextColor);
   setOrRemoveProp(["--product-title-color", "--product-title"], currentTheme.product_title_color || currentTheme.productTitleColor);
-  setOrRemoveProp(["--product-price-color", "--product-price"], currentTheme.product_price_color || currentTheme.productPriceColor);
+  setOrRemoveProp(["--product-price-color", "--product-price", "--product-total-price-color"], currentTheme.product_price_color || currentTheme.productPriceColor || (currentTheme as any).product_total_price_color);
   setOrRemoveProp(["--product-border-color", "--product-border"], currentTheme.product_border_color || currentTheme.productBorderColor);
-  setOrRemoveProp(["--product-button-color", "--product-button-bg"], currentTheme.product_button_color || currentTheme.productButtonColor);
+  setOrRemoveProp(["--product-button-color", "--product-button-bg", "--product-purchase-button-bg"], currentTheme.product_button_color || currentTheme.productButtonColor || (currentTheme as any).product_purchase_button_bg);
   setOrRemoveProp(["--product-button-text-color"], currentTheme.product_button_text_color || currentTheme.productButtonTextColor);
   setOrRemoveProp(["--product-button-hover-color"], currentTheme.product_button_hover_color || currentTheme.productButtonHoverColor);
 
