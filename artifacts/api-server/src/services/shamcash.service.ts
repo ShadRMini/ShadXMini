@@ -229,13 +229,14 @@ export async function createShamCashInvoice({
       throw new Error("لم يتم إرجاع معرف الفاتورة من المزود");
     }
 
+    const payBaseUrl = cleanBaseUrl.replace(/\/api\/?$/i, "");
     const paymentUrl =
       data.payment_url ||
       data.paymentUrl ||
       data.url ||
       data.pay_url ||
       data.data?.payment_url ||
-      `${cleanBaseUrl}/pay/${invoiceId}`;
+      `${payBaseUrl}/pay/${invoiceId}`;
 
     const expiresAt =
       data.expires_at ||

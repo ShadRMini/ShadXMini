@@ -549,8 +549,8 @@ async function syncShamCashInvoiceStatus(
     ""
   ).trim();
 
-  // Official documentation endpoint: GET /v1/invoices/{invoiceId}
-  const url = `${apiBaseUrl}/v1/invoices/${encodeURIComponent(cleanInvoiceId)}`;
+  // SAM API invoice status endpoint: GET /api/pay/{invoiceId} (confirmed returns 200 OK + JSON)
+  const url = `${apiBaseUrl}/pay/${encodeURIComponent(cleanInvoiceId)}`;
 
   let payResp: Response;
   try {
@@ -1071,6 +1071,13 @@ router.post("/deposits/shamcash/verify", async (req, res) => {
       return;
     }
 
+    // 1. فحص فوري لحالة الفاتورة عبر نقطة النهاية المباشرة (GET /api/pay/{id})
+    const syncRes = await syncShamCashInvoiceStatus(invoiceId, true);
+    if (syncRes.synced === "approved") {
+      res.json({ ok: true, verified: true, message: "تم التحقق من الدفع وشحن الرصيد بنجاح" });
+      return;
+    }
+
     const [dep] = await db
       .select()
       .from(depositsTable)
@@ -1087,8 +1094,20 @@ router.post("/deposits/shamcash/verify", async (req, res) => {
       return;
     }
 
-    const cleanBase = SAM_API_BASE_URL.replace(/\/+$/, "").replace(/\/api$/i, "");
-    const verifyUrl = `${cleanBase}/pay/${encodeURIComponent(invoiceId)}/verify`;
+    const dbSettings = await getShamCashSettings().catch(() => null);
+    const apiBaseUrl = (
+      dbSettings?.apiBaseUrl ||
+      process.env.SAM_API_BASE_URL ||
+      "https://www.sam-api.pro/api"
+    ).replace(/\/+$/, "");
+    const apiKey = (
+      dbSettings?.apiKey ||
+      process.env.SAM_API_KEY ||
+      ""
+    ).trim();
+
+    // استدعاء نقطة التحقق الرسمية للمزود: POST /api/v1/invoices/{invoiceId}/verify
+    const verifyUrl = `${apiBaseUrl}/v1/invoices/${encodeURIComponent(invoiceId)}/verify`;
     const verifyBody = { transactionRef: String(transactionRef) };
 
     console.log("[ShamCash Verify] 📤 URL:", verifyUrl);
@@ -1105,6 +1124,8 @@ router.post("/deposits/shamcash/verify", async (req, res) => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Accept": "application/json",
+          ...(apiKey ? { Authorization: `Bearer ${apiKey}`, "X-Api-Key": apiKey } : {}),
         },
         body: JSON.stringify(verifyBody),
         signal: controller.signal,
