@@ -1,7 +1,7 @@
 import { Router, type IRouter } from "express";
 import { timingSafeEqual } from "node:crypto";
-import { db, depositsTable, paymentMethodsTable, usersTable } from "@workspace/db";
-import { and, desc, eq, or, sql } from "drizzle-orm";
+import { db, depositsTable, paymentMethodsTable, shamcashUsedTransactionRefsTable, usersTable } from "@workspace/db";
+import { and, desc, eq, ne, or, sql } from "drizzle-orm";
 import {
   CreateDepositBody,
   CreateDepositResponse,
@@ -162,13 +162,73 @@ type ApproveDepositAtomicResult =
   | { success: true; alreadyProcessed: false; deposit: any }
   | { success: true; alreadyProcessed: true; deposit: any }
   | { success: false; error: "not_found" }
+  | { success: false; error: "ref_already_used"; message: string }
   | { success: false; error: "duplicate_ref"; message: string }
-  | { success: false; error: "invalid_ref"; message: string };
+  | { success: false; error: "invalid_ref"; message: string }
+  | { success: false; error: "amount_mismatch"; message: string }
+  | { success: false; error: "currency_mismatch"; message: string };
+
+function validateDepositAmountAndCurrency(
+  deposit: { amountUsd: string | number; amountSyp?: string | number | null; currency: string; id: number },
+  verifyData?: { paidAmount?: number | string | null; amount?: number | string | null; currency?: string | null } | null,
+): { valid: boolean; reason?: "amount_mismatch" | "currency_mismatch" } {
+  if (!verifyData) return { valid: true };
+
+  const rawPaid = verifyData.paidAmount ?? verifyData.amount;
+  const paidAmount = rawPaid !== undefined && rawPaid !== null && rawPaid !== "" ? Number(rawPaid) : 0;
+  const paidCurrency = String(verifyData.currency || "").trim().toUpperCase();
+
+  const expectedCurrency = String(deposit.currency || "USD").trim().toUpperCase();
+  const expectedAmount = expectedCurrency === "SYP"
+    ? Number(deposit.amountSyp || 0)
+    : Number(deposit.amountUsd || 0);
+
+  // الشرط 2.1: تطابق العملة
+  if (paidCurrency && paidCurrency !== expectedCurrency) {
+    logger.error(
+      {
+        depositId: deposit.id,
+        expected: expectedCurrency,
+        paid: paidCurrency,
+      },
+      "🚨 Currency mismatch in verify"
+    );
+    return { valid: false, reason: "currency_mismatch" };
+  }
+
+  // الشرط 2.2: تطابق المبلغ بهامش تسامح 1% لفرق العمولة
+  if (paidAmount > 0 && expectedAmount > 0) {
+    const tolerance = 0.01;
+    const diff = Math.abs(paidAmount - expectedAmount);
+    const amountMatches = diff / expectedAmount <= tolerance;
+
+    if (!amountMatches) {
+      logger.error(
+        {
+          depositId: deposit.id,
+          expected: expectedAmount,
+          paid: paidAmount,
+          diff: paidAmount - expectedAmount,
+        },
+        "🚨 Amount mismatch in verify"
+      );
+      return { valid: false, reason: "amount_mismatch" };
+    }
+  }
+
+  return { valid: true };
+}
 
 async function approveShamCashDepositAtomic(params: {
   depositId: number;
   transactionRef?: string | null;
   invoiceId?: string;
+  approvedVia?: string;
+  verifyData?: {
+    paidAmount?: number | string | null;
+    amount?: number | string | null;
+    currency?: string | null;
+  } | null;
 }): Promise<ApproveDepositAtomicResult> {
   await ensureShamCashRefsTable();
   await ensureDepositsTelegramMessageColumn();
@@ -200,10 +260,10 @@ async function approveShamCashDepositAtomic(params: {
         return { success: true as const, alreadyProcessed: true as const, deposit: dep };
       }
 
-      // 2. إذا وجد transactionRef: التحقق منه وحجزه داخل المعاملة
-      const ref = params.transactionRef ? String(params.transactionRef).trim() : null;
-      if (ref) {
-        if (!isValidShamCashTransactionRef(ref)) {
+      // الشرط 1: التحقق الإلزامي من أن transactionRef لم يُستخدم في أي إيداع معتمد آخر
+      const normalizedRef = params.transactionRef ? normalizeShamCashTransactionRef(params.transactionRef) : null;
+      if (normalizedRef) {
+        if (!isValidShamCashTransactionRef(normalizedRef)) {
           return {
             success: false as const,
             error: "invalid_ref" as const,
@@ -211,40 +271,101 @@ async function approveShamCashDepositAtomic(params: {
           };
         }
 
-        try {
-          await tx.execute(sql`
-            INSERT INTO shamcash_used_transaction_refs (
-              transaction_ref,
-              deposit_id,
-              user_id,
-              invoice_id,
-              amount_usd,
-              amount_syp,
-              currency
+        // فحص جدول depositsTable لمنع استخدام نفس الرقم في إيداع معتمد آخر
+        const existingDepWithRef = await tx
+          .select({ id: depositsTable.id })
+          .from(depositsTable)
+          .where(
+            and(
+              eq(depositsTable.transactionRef, normalizedRef),
+              ne(depositsTable.id, dep.id),
+              eq(depositsTable.status, "approved")
             )
-            VALUES (
-              ${ref},
-              ${dep.id},
-              ${dep.userId},
-              ${params.invoiceId || dep.transactionId || null},
-              ${String(dep.amountUsd)},
-              ${dep.amountSyp == null ? null : String(dep.amountSyp)},
-              ${dep.currency}
-            )
-          `);
-        } catch (insertErr: any) {
-          if (insertErr?.code === "23505") {
-            return {
-              success: false as const,
-              error: "duplicate_ref" as const,
-              message: "رقم العملية غير صالح أو تم استخدامه مسبقًا.",
-            };
-          }
-          throw insertErr;
+          )
+          .limit(1);
+
+        if (existingDepWithRef.length > 0) {
+          logger.warn(
+            {
+              depositId: dep.id,
+              ref: normalizedRef,
+              existingDepositId: existingDepWithRef[0].id,
+            },
+            "⚠️ transactionRef already used in another approved deposit"
+          );
+          return {
+            success: false as const,
+            error: "ref_already_used" as const,
+            message: "رقم العملية غير صالح أو تم استخدامه مسبقًا في عملية إيداع معتمدة أخرى.",
+          };
+        }
+
+        // فحص جدول shamcash_used_transaction_refs
+        const [usedRef] = await tx
+          .select({ id: shamcashUsedTransactionRefsTable.id })
+          .from(shamcashUsedTransactionRefsTable)
+          .where(eq(shamcashUsedTransactionRefsTable.transactionRef, normalizedRef))
+          .limit(1);
+
+        if (usedRef) {
+          logger.warn(
+            { depositId: dep.id, ref: normalizedRef },
+            "⚠️ transactionRef already registered in shamcash_used_transaction_refs"
+          );
+          return {
+            success: false as const,
+            error: "ref_already_used" as const,
+            message: "رقم العملية غير صالح أو تم استخدامه مسبقًا.",
+          };
         }
       }
 
-      // 3. إضافة الرصيد إلى المستخدم ذرّياً
+      // الشرط 2: مطابقة المبلغ والعملة (paidAmount & currency) بهامش 1%
+      if (params.verifyData) {
+        const valCheck = validateDepositAmountAndCurrency(dep, params.verifyData);
+        if (!valCheck.valid) {
+          return {
+            success: false as const,
+            error: valCheck.reason || "amount_mismatch",
+            message:
+              valCheck.reason === "currency_mismatch"
+                ? "عملة الفاتورة لا تطابق عملة الدفع."
+                : "المبلغ المدفوع لا يطابق مبلغ الفاتورة المطلوب.",
+          };
+        }
+      }
+
+      // الشرط 3: تحديث حالة الإيداع ذرياً بشرط status = 'pending' (Atomic Idempotency)
+      const [updatedDep] = await tx
+        .update(depositsTable)
+        .set({
+          status: "approved",
+          ...(normalizedRef ? { transactionRef: normalizedRef } : {}),
+          approvedVia: params.approvedVia || "verify",
+          approvedAt: new Date(),
+        })
+        .where(
+          and(
+            eq(depositsTable.id, dep.id),
+            eq(depositsTable.status, "pending") // ← شرط حرج
+          )
+        )
+        .returning();
+
+      if (!updatedDep) {
+        // تم تحديثه بالفعل بواسطة عملية متزامنة (مثل webhook)
+        logger.info(
+          { depositId: dep.id, via: params.approvedVia || "verify" },
+          "Deposit already processed (likely by webhook or concurrent request)"
+        );
+        return {
+          success: true as const,
+          alreadyProcessed: true as const,
+          deposit: dep,
+        };
+      }
+
+      // الآن فقط: إضافة الرصيد إلى المستخدم ذرّياً
       const col = dep.currency === "SYP" ? "balanceSyp" : "balanceUsd";
       const amount = dep.currency === "SYP" ? dep.amountSyp : dep.amountUsd;
       if (amount) {
@@ -259,12 +380,40 @@ async function approveShamCashDepositAtomic(params: {
           .where(eq(usersTable.id, dep.userId));
       }
 
-      // 4. تحديث حالة الإيداع إلى approved
-      const [updatedDep] = await tx
-        .update(depositsTable)
-        .set({ status: "approved" })
-        .where(eq(depositsTable.id, dep.id))
-        .returning();
+      if (normalizedRef) {
+        try {
+          await tx.execute(sql`
+            INSERT INTO shamcash_used_transaction_refs (
+              transaction_ref,
+              deposit_id,
+              user_id,
+              invoice_id,
+              amount_usd,
+              amount_syp,
+              currency
+            )
+            VALUES (
+              ${normalizedRef},
+              ${dep.id},
+              ${dep.userId},
+              ${params.invoiceId || dep.transactionId || null},
+              ${String(dep.amountUsd)},
+              ${dep.amountSyp == null ? null : String(dep.amountSyp)},
+              ${dep.currency}
+            )
+            ON CONFLICT (transaction_ref) DO NOTHING
+          `);
+        } catch (insertErr: any) {
+          if (insertErr?.code === "23505") {
+            return {
+              success: false as const,
+              error: "duplicate_ref" as const,
+              message: "رقم العملية غير صالح أو تم استخدامه مسبقًا.",
+            };
+          }
+          throw insertErr;
+        }
+      }
 
       notifyData = {
         userId: dep.userId,
@@ -278,7 +427,7 @@ async function approveShamCashDepositAtomic(params: {
       return {
         success: true as const,
         alreadyProcessed: false as const,
-        deposit: updatedDep || dep,
+        deposit: updatedDep,
       };
     });
 
@@ -618,13 +767,32 @@ async function syncShamCashInvoiceStatus(
       payJson?.transactionRef ||
       payJson?.transaction_ref
     );
-    await approveShamCashDepositAtomic({
-      depositId: dep.id,
-      transactionRef: rawTxRef || null,
-      invoiceId: cleanInvoiceId,
-    });
-    clearInvoiceSyncRecord(cleanInvoiceId);
-    return { found: true, status: samStatus, synced: "approved" };
+    const hasPaidAt = Boolean(invoiceData?.paidAt || payJson?.paidAt);
+
+    // GET وحده بدون transactionRef وبدون paidAt لا يُعتمد تلقائياً لحماية الأموال
+    if (rawTxRef && hasPaidAt) {
+      const isUsed = await isShamCashTransactionRefUsed(rawTxRef);
+      if (!isUsed) {
+        const atomicRes = await approveShamCashDepositAtomic({
+          depositId: dep.id,
+          transactionRef: rawTxRef,
+          invoiceId: cleanInvoiceId,
+          approvedVia: "get_sync",
+          verifyData: invoiceData,
+        });
+        if (atomicRes.success) {
+          clearInvoiceSyncRecord(cleanInvoiceId);
+          return { found: true, status: samStatus, synced: "approved" };
+        }
+      }
+    }
+
+    logger.info(
+      { invoiceId: cleanInvoiceId, samStatus, rawTxRef, hasPaidAt },
+      "[syncShamCashInvoiceStatus] GET shows paid but lacks unused transactionRef or paidAt — waiting for verify or webhook"
+    );
+    recordInvoiceSyncAttempt(cleanInvoiceId);
+    return { found: true, status: samStatus, synced: "pending" };
   }
 
   if (samStatus === "expired" || samStatus === "cancelled" || samStatus === "failed") {
@@ -1036,10 +1204,6 @@ router.post("/deposit/shamcash/create-invoice", (req, res, next) => {
 router.post("/deposits/shamcash/verify", async (req, res) => {
   try {
     await ensureDepositsTelegramMessageColumn();
-    if (!SAM_API_KEY) {
-      res.status(500).json({ error: "SAM_API_KEY missing" });
-      return;
-    }
 
     const user = await getOrCreateCurrentUserStrict(req);
     const invoiceId = String(req.body?.invoiceId || "").trim();
@@ -1060,24 +1224,6 @@ router.post("/deposits/shamcash/verify", async (req, res) => {
       return;
     }
 
-    // 2. الفحص السريع الأولي: رفض فوري إذا كان الرقم مستخدماً مسبقاً
-    if (await isShamCashTransactionRefUsed(transactionRef)) {
-      res.status(409).json({
-        ok: false,
-        verified: false,
-        message: "رقم العملية غير صالح أو تم استخدامه مسبقًا.",
-        code: "TRANSACTION_REF_ALREADY_USED",
-      });
-      return;
-    }
-
-    // 1. فحص فوري لحالة الفاتورة عبر نقطة النهاية المباشرة (GET /api/pay/{id})
-    const syncRes = await syncShamCashInvoiceStatus(invoiceId, true);
-    if (syncRes.synced === "approved") {
-      res.json({ ok: true, verified: true, message: "تم التحقق من الدفع وشحن الرصيد بنجاح" });
-      return;
-    }
-
     const [dep] = await db
       .select()
       .from(depositsTable)
@@ -1090,7 +1236,57 @@ router.post("/deposits/shamcash/verify", async (req, res) => {
     }
 
     if (dep.status === "approved") {
-      res.json({ ok: true, verified: true, message: "تم شحن هذا الإيداع وتأكيده مسبقًا" });
+      res.json({ ok: true, verified: true, alreadyProcessed: true, message: "تم شحن هذا الإيداع وتأكيده مسبقًا" });
+      return;
+    }
+
+    // الشرط 1: transactionRef لم يُستخدم في فاتورة أو إيداع آخر معتمد
+    const existingRef = await db
+      .select()
+      .from(depositsTable)
+      .where(
+        and(
+          eq(depositsTable.transactionRef, transactionRef),
+          ne(depositsTable.id, dep.id),
+          eq(depositsTable.status, "approved")
+        )
+      )
+      .limit(1);
+
+    if (existingRef.length > 0) {
+      logger.warn(
+        {
+          depositId: dep.id,
+          ref: transactionRef,
+          existingDepositId: existingRef[0].id,
+        },
+        "⚠️ transactionRef already used in another approved deposit"
+      );
+      res.status(409).json({
+        ok: false,
+        verified: false,
+        reason: "ref_already_used",
+        code: "TRANSACTION_REF_ALREADY_USED",
+        message: "رقم العملية غير صالح أو تم استخدامه مسبقًا في عملية أخرى.",
+      });
+      return;
+    }
+
+    if (await isShamCashTransactionRefUsed(transactionRef)) {
+      logger.warn(
+        {
+          depositId: dep.id,
+          ref: transactionRef,
+        },
+        "⚠️ transactionRef already used in shamcash_used_transaction_refs"
+      );
+      res.status(409).json({
+        ok: false,
+        verified: false,
+        reason: "ref_already_used",
+        code: "TRANSACTION_REF_ALREADY_USED",
+        message: "رقم العملية غير صالح أو تم استخدامه مسبقًا في عملية أخرى.",
+      });
       return;
     }
 
@@ -1100,14 +1296,9 @@ router.post("/deposits/shamcash/verify", async (req, res) => {
       process.env.SAM_API_BASE_URL ||
       "https://www.sam-api.pro/api"
     ).replace(/\/+$/, "");
-    const apiKey = (
-      dbSettings?.apiKey ||
-      process.env.SAM_API_KEY ||
-      ""
-    ).trim();
 
-    // استدعاء نقطة التحقق الرسمية للمزود: POST /api/v1/invoices/{invoiceId}/verify
-    const verifyUrl = `${apiBaseUrl}/v1/invoices/${encodeURIComponent(invoiceId)}/verify`;
+    // الإصلاح 1: Verify URL الصحيح (https://www.sam-api.pro/api/pay/{id}/verify) بدون Authorization header
+    const verifyUrl = `${apiBaseUrl}/pay/${encodeURIComponent(invoiceId)}/verify`;
     const verifyBody = { transactionRef: String(transactionRef) };
 
     console.log("[ShamCash Verify] 📤 URL:", verifyUrl);
@@ -1125,7 +1316,7 @@ router.post("/deposits/shamcash/verify", async (req, res) => {
         headers: {
           "Content-Type": "application/json",
           "Accept": "application/json",
-          ...(apiKey ? { Authorization: `Bearer ${apiKey}`, "X-Api-Key": apiKey } : {}),
+          // ملاحظة مهمة: الوثائق تنص على أن هذا الـ endpoint لا يتطلب أي مصادقة (No Authorization header)
         },
         body: JSON.stringify(verifyBody),
         signal: controller.signal,
@@ -1146,15 +1337,166 @@ router.post("/deposits/shamcash/verify", async (req, res) => {
       console.error("[ShamCash Verify] ❌ Network/Fetch error:", fetchErr.message);
     }
 
+    // الإصلاح 3: معالجة 410 (EXPIRED) بحكمة — الفحص عبر GET قبل الرفض لاحتمال السداد في آخر لحظة
+    if (verifyResp?.status === 410) {
+      logger.warn({ invoiceId }, "[ShamCash Verify] 410 EXPIRED received from verify endpoint — checking GET for late payment");
+      try {
+        const checkResp = await fetch(
+          `${apiBaseUrl}/pay/${encodeURIComponent(invoiceId)}`,
+          { headers: { Accept: "application/json" } }
+        );
+        if (checkResp.ok) {
+          const checkData: any = await checkResp.json().catch(() => ({}));
+          const checkStatus = String(checkData?.status || "").toLowerCase().trim();
+
+          // إذا كانت الفاتورة مدفوعة ولديها تاريخ سداد paidAt
+          if (checkStatus === "paid" && checkData?.paidAt) {
+            // الشرط 2: مطابقة المبلغ والعملة
+            const paidAmount = Number(checkData?.amount || 0);
+            const paidCurrency = String(checkData?.currency || "").toUpperCase();
+            const expectedAmount = Number(dep.currency === "SYP" ? (dep.amountSyp || dep.amountUsd) : dep.amountUsd);
+            const expectedCurrency = String(dep.currency || "USD").toUpperCase();
+
+            if (paidAmount > 0 && expectedAmount > 0) {
+              const tolerance = 0.01;
+              const amountMatches = Math.abs(paidAmount - expectedAmount) / expectedAmount <= tolerance;
+              if (!amountMatches) {
+                logger.error({
+                  depositId: dep.id,
+                  expected: expectedAmount,
+                  paid: paidAmount,
+                  diff: paidAmount - expectedAmount,
+                }, "🚨 Amount mismatch in 410 late payment check");
+                res.status(400).json({
+                  ok: false,
+                  verified: false,
+                  reason: "amount_mismatch",
+                  message: "المبلغ المدفوع لا يطابق قيمة الإيداع المطلوبة",
+                });
+                return;
+              }
+            }
+
+            if (paidCurrency && expectedCurrency && paidCurrency !== expectedCurrency) {
+              logger.error({ depositId: dep.id, expectedCurrency, paidCurrency }, "🚨 Currency mismatch in 410 check");
+              res.status(400).json({
+                ok: false,
+                verified: false,
+                reason: "currency_mismatch",
+                message: "عملة الحوالة لا تطابق عملة الإيداع",
+              });
+              return;
+            }
+
+            // الشرط 3: الاعتماد الذري (Atomic Idempotency)
+            const atomicRes = await approveShamCashDepositAtomic({
+              depositId: dep.id,
+              transactionRef,
+              invoiceId,
+              approvedVia: "verify_late_410",
+              verifyData: checkData,
+            });
+
+            if (!atomicRes.success) {
+              if (atomicRes.error === "duplicate_ref" || atomicRes.error === "ref_already_used") {
+                res.status(409).json({
+                  ok: false,
+                  verified: false,
+                  message: atomicRes.message,
+                  code: "TRANSACTION_REF_ALREADY_USED",
+                });
+                return;
+              }
+              res.status(400).json({
+                ok: false,
+                verified: false,
+                message: (atomicRes as any).message || "فشلت عملية التحقق",
+              });
+              return;
+            }
+
+            res.json({
+              ok: true,
+              verified: true,
+              alreadyProcessed: atomicRes.alreadyProcessed,
+              message: "تم التحقق من الدفع المتأخر وشحن الرصيد بنجاح",
+            });
+            return;
+          }
+        }
+      } catch (checkErr: any) {
+        logger.warn({ invoiceId, err: checkErr?.message }, "[ShamCash Verify] Failed GET check after 410");
+      }
+
+      // إذا لم تكن الفاتورة مدفوعة -> رفض الإيداع
+      logger.warn({ invoiceId }, "410 EXPIRED - no payment found, marking deposit rejected");
+      await applyDepositStatusChangeAuto(dep.id, "rejected");
+      res.status(410).json({
+        ok: false,
+        verified: false,
+        code: "INVOICE_EXPIRED",
+        message: "انتهت صلاحية الفاتورة ولم يتم العثور على دفعة مكتملة.",
+      });
+      return;
+    }
+
+    // النجاح عند استدعاء نقطة التحقق (200 OK + verified: true)
     if (verifyResp?.ok && verifyJson?.verified === true) {
+      // الشرط 2: paidAmount و currency يطابقان الفاتورة
+      const verifyData = verifyJson?.data || verifyJson;
+      const paidAmount = Number(verifyData.paidAmount ?? verifyData.amount ?? 0);
+      const paidCurrency = String(verifyData.currency || "").toUpperCase();
+
+      const expectedAmount = Number(dep.currency === "SYP" ? (dep.amountSyp || dep.amountUsd) : dep.amountUsd);
+      const expectedCurrency = String(dep.currency || "USD").toUpperCase();
+
+      // التسامح: 1% لفرق العمولة
+      if (paidAmount > 0 && expectedAmount > 0) {
+        const tolerance = 0.01;
+        const amountMatches = Math.abs(paidAmount - expectedAmount) / expectedAmount <= tolerance;
+        if (!amountMatches) {
+          logger.error({
+            depositId: dep.id,
+            expected: expectedAmount,
+            paid: paidAmount,
+            diff: paidAmount - expectedAmount,
+          }, "🚨 Amount mismatch in verify");
+          res.status(400).json({
+            ok: false,
+            verified: false,
+            reason: "amount_mismatch",
+            message: "المبلغ المدفوع لا يطابق قيمة الإيداع المطلوبة",
+          });
+          return;
+        }
+      }
+
+      if (paidCurrency && expectedCurrency && paidCurrency !== expectedCurrency) {
+        logger.error({
+          depositId: dep.id,
+          expectedCurrency,
+          paidCurrency,
+        }, "🚨 Currency mismatch in verify");
+        res.status(400).json({
+          ok: false,
+          verified: false,
+          reason: "currency_mismatch",
+          message: "عملة الحوالة لا تطابق عملة الإيداع",
+        });
+        return;
+      }
+
+      // الشرط 3: الاعتماد الذري (Atomic Idempotency)
       const atomicRes = await approveShamCashDepositAtomic({
         depositId: dep.id,
         transactionRef,
         invoiceId,
+        approvedVia: "verify",
+        verifyData,
       });
 
       if (!atomicRes.success) {
-        if (atomicRes.error === "duplicate_ref") {
+        if (atomicRes.error === "duplicate_ref" || atomicRes.error === "ref_already_used") {
           res.status(409).json({
             ok: false,
             verified: false,
@@ -1171,11 +1513,16 @@ router.post("/deposits/shamcash/verify", async (req, res) => {
         return;
       }
 
-      res.json({ ok: true, verified: true, message: verifyJson?.message || "تم التحقق من الدفع بنجاح" });
+      res.json({
+        ok: true,
+        verified: true,
+        alreadyProcessed: atomicRes.alreadyProcessed,
+        message: verifyJson?.message || "تم التحقق من الدفع وشحن الرصيد بنجاح",
+      });
       return;
     }
 
-    // If verified is explicitly false or provider returned a message/error
+    // إذا أرجع المزود صراحة عدم التحقق أو رسالة خطأ (مثال: 422 مع { verified: false, message: ... })
     if (verifyJson?.verified === false || verifyJson?.message) {
       res.status(400).json({
         ok: false,
@@ -1186,28 +1533,35 @@ router.post("/deposits/shamcash/verify", async (req, res) => {
       return;
     }
 
-    // Fallback: accept verification via incoming transactions lookup to avoid strict invoice window failures.
-    // This keeps auto-deposit usable when provider verify endpoint rejects by invoice time window.
+    // Fallback: فحص سجل الحوالات الواردة مع تطبيق الشروط الثلاثة
     const fallbackTx = await findIncomingShamCashTransactionByRef(
       SAM_SHAMCASH_IDENTIFIER,
       transactionRef,
     );
     if (fallbackTx.found) {
-      const depExpectedAmount = dep.currency === "SYP" ? Number(dep.amountSyp) : Number(dep.amountUsd);
+      const depExpectedAmount = Number(dep.currency === "SYP" ? (dep.amountSyp || dep.amountUsd) : dep.amountUsd);
       const txAmount = Number(fallbackTx.amount || 0);
       const txCurrency = String(fallbackTx.currency || "").toUpperCase();
-      const sameCurrency = !txCurrency || txCurrency === dep.currency;
-      const amountMatches = Number.isFinite(depExpectedAmount) && Number.isFinite(txAmount) && txAmount >= depExpectedAmount;
+      const expectedCurrency = String(dep.currency || "USD").toUpperCase();
+      const sameCurrency = !txCurrency || txCurrency === expectedCurrency;
+
+      const tolerance = 0.01;
+      const amountMatches =
+        Number.isFinite(depExpectedAmount) &&
+        Number.isFinite(txAmount) &&
+        (txAmount >= depExpectedAmount || (depExpectedAmount > 0 && Math.abs(txAmount - depExpectedAmount) / depExpectedAmount <= tolerance));
 
       if (sameCurrency && amountMatches) {
         const atomicRes = await approveShamCashDepositAtomic({
           depositId: dep.id,
           transactionRef,
           invoiceId,
+          approvedVia: "transactions_fallback",
+          verifyData: { amount: fallbackTx.amount, currency: fallbackTx.currency },
         });
 
         if (!atomicRes.success) {
-          if (atomicRes.error === "duplicate_ref") {
+          if (atomicRes.error === "duplicate_ref" || atomicRes.error === "ref_already_used") {
             res.status(409).json({
               ok: false,
               verified: false,
@@ -1227,6 +1581,7 @@ router.post("/deposits/shamcash/verify", async (req, res) => {
         res.json({
           ok: true,
           verified: true,
+          alreadyProcessed: atomicRes.alreadyProcessed,
           message: "تم التحقق من العملية عبر سجل معاملات شام كاش وإضافة الرصيد.",
           via: "transactions_fallback",
         });
@@ -1239,7 +1594,7 @@ router.post("/deposits/shamcash/verify", async (req, res) => {
       verified: false,
       message: !verifyResp
         ? "تعذر الوصول إلى مزود التحقق حالياً. حاول مرة أخرى بعد قليل."
-        : "تعذر التحقق من رقم العملية. تأكد من الرقم وحاول مجددًا.",
+        : (verifyJson?.message || "تعذر التحقق من رقم العملية. تأكد من الرقم وحاول مجددًا."),
       code: verifyJson?.code || (!verifyResp ? "VERIFY_UPSTREAM_UNREACHABLE" : null),
       upstreamStatus: verifyResp?.status || null,
     });
@@ -1295,15 +1650,12 @@ async function handleShamCashWebhook(req: any, res: any) {
         return;
       }
 
-      // P0-4: تحقق من المبلغ ورقم الفاتورة مقابل الإيداع
-      const bodyAmount = Number(req.body?.amount ?? req.body?.paidAmount);
-      if (bodyAmount !== undefined && !isNaN(bodyAmount) && bodyAmount > 0) {
-        const depAmount = Number(dep.amount);
-        if (Math.abs(bodyAmount - depAmount) > 0.01) {
-          console.error(`[ShamCash Webhook] Amount mismatch for invoice ${invoiceId}: expected ${depAmount}, received ${bodyAmount}`);
-          res.status(400).json({ error: "amount_mismatch" });
-          return;
-        }
+      // P0-4: تحقق من المبلغ والعملة مقابل الإيداع (بهامش 1% تفاوت عمولة)
+      const valCheck = validateDepositAmountAndCurrency(dep, req.body);
+      if (!valCheck.valid) {
+        logger.error({ invoiceId, reason: valCheck.reason }, "🚨 Webhook amount or currency mismatch");
+        res.status(400).json({ error: valCheck.reason });
+        return;
       }
 
       const transactionRef = normalizeShamCashTransactionRef(req.body?.transactionRef);
@@ -1321,6 +1673,8 @@ async function handleShamCashWebhook(req: any, res: any) {
         depositId: dep.id,
         transactionRef: transactionRef || null,
         invoiceId,
+        approvedVia: "webhook",
+        verifyData: req.body,
       });
 
       if (!atomicRes.success) {

@@ -74,6 +74,9 @@ export async function ensureDatabaseSchema() {
       ALTER TABLE deposits ADD COLUMN IF NOT EXISTS telegram_message_id INTEGER;
       ALTER TABLE deposits ADD COLUMN IF NOT EXISTS proof_image TEXT;
       ALTER TABLE deposits ADD COLUMN IF NOT EXISTS amount_syp NUMERIC(14, 2);
+      ALTER TABLE deposits ADD COLUMN IF NOT EXISTS transaction_ref TEXT;
+      ALTER TABLE deposits ADD COLUMN IF NOT EXISTS approved_via TEXT;
+      ALTER TABLE deposits ADD COLUMN IF NOT EXISTS approved_at TIMESTAMP;
     `);
 
     // 2.1 Orders table columns
