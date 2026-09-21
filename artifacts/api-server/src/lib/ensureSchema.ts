@@ -1255,9 +1255,39 @@ export async function ensureDatabaseSchema() {
         ON shamcash_used_transaction_refs(transaction_ref);
       `);
 
-      console.log("[ensureSchema] ✅ shamcash_used_transaction_refs & unique index done");
+      // 17. Ensure deposits table has expires_at, pending_review, and partial unique index on transaction_ref for approved deposits
+      await db.execute(sql`ALTER TABLE deposits ADD COLUMN IF NOT EXISTS expires_at TIMESTAMP;`);
+      await db.execute(sql`ALTER TABLE deposits ADD COLUMN IF NOT EXISTS pending_review BOOLEAN DEFAULT false;`);
+      await db.execute(sql`
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_deposits_approved_tx_ref
+        ON deposits(transaction_ref)
+        WHERE status = 'approved' AND transaction_ref IS NOT NULL;
+      `);
+
+      // 18. Ensure verify_rate_limits table
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS verify_rate_limits (
+          id SERIAL PRIMARY KEY,
+          user_id INTEGER,
+          deposit_id INTEGER,
+          ip_address TEXT,
+          attempt_count INTEGER NOT NULL DEFAULT 1,
+          window_started_at TIMESTAMP DEFAULT NOW() NOT NULL,
+          updated_at TIMESTAMP DEFAULT NOW() NOT NULL
+        );
+      `);
+      await db.execute(sql`
+        CREATE UNIQUE INDEX IF NOT EXISTS verify_rate_limits_user_dep_unique
+        ON verify_rate_limits(user_id, deposit_id);
+      `);
+      await db.execute(sql`
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_verify_rate_limits_ip_dep
+        ON verify_rate_limits(ip_address, deposit_id);
+      `);
+
+      console.log("[ensureSchema] ✅ shamcash_used_transaction_refs, deposits columns & rate limits done");
     } catch (e: any) {
-      console.error("[ensureSchema] shamcash_used_transaction_refs schema update failed:", e);
+      console.error("[ensureSchema] shamcash schema update failed:", e);
     }
 
     // 12. Ensure default flat color settings in settings table

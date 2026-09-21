@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import {
   pgTable,
   pgEnum,
@@ -163,23 +164,50 @@ export const ordersTable = pgTable("orders", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-export const depositsTable = pgTable("deposits", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => usersTable.id),
-  amountUsd: numeric("amount_usd", { precision: 24, scale: 12 }).notNull(),
-  amountSyp: numeric("amount_syp", { precision: 14, scale: 2 }),
-  currency: text("currency").notNull(),
-  method: text("method").notNull(),
-  methodLabel: text("method_label").notNull(),
-  transactionId: text("transaction_id").notNull(),
-  transactionRef: text("transaction_ref"),
-  proofImage: text("proof_image"),
-  telegramMessageId: integer("telegram_message_id"),
-  approvedVia: text("approved_via"),
-  approvedAt: timestamp("approved_at"),
-  status: text("status").notNull().default("pending"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+export const depositsTable = pgTable(
+  "deposits",
+  {
+    id: serial("id").primaryKey(),
+    userId: integer("user_id").notNull().references(() => usersTable.id),
+    amountUsd: numeric("amount_usd", { precision: 24, scale: 12 }).notNull(),
+    amountSyp: numeric("amount_syp", { precision: 14, scale: 2 }),
+    currency: text("currency").notNull(),
+    method: text("method").notNull(),
+    methodLabel: text("method_label").notNull(),
+    transactionId: text("transaction_id").notNull(),
+    transactionRef: text("transaction_ref"),
+    proofImage: text("proof_image"),
+    telegramMessageId: integer("telegram_message_id"),
+    approvedVia: text("approved_via"),
+    approvedAt: timestamp("approved_at"),
+    status: text("status").notNull().default("pending"),
+    expiresAt: timestamp("expires_at"),
+    pendingReview: boolean("pending_review").default(false),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex("idx_deposits_approved_tx_ref")
+      .on(table.transactionRef)
+      .where(sql`status = 'approved' AND transaction_ref IS NOT NULL`),
+  ],
+);
+
+export const verifyRateLimitsTable = pgTable(
+  "verify_rate_limits",
+  {
+    id: serial("id").primaryKey(),
+    userId: integer("user_id"),
+    depositId: integer("deposit_id"),
+    ipAddress: text("ip_address"),
+    attemptCount: integer("attempt_count").notNull().default(1),
+    windowStartedAt: timestamp("window_started_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex("verify_rate_limits_user_dep_unique").on(table.userId, table.depositId),
+    uniqueIndex("idx_verify_rate_limits_ip_dep").on(table.ipAddress, table.depositId),
+  ],
+);
 
 export const shamcashUsedTransactionRefsTable = pgTable(
   "shamcash_used_transaction_refs",

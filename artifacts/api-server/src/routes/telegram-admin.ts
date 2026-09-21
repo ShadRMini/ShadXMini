@@ -98,6 +98,9 @@ async function applyDepositDecision(depositId: number, status: "approved" | "rej
     .limit(1);
 
   if (!dep) return { ok: false as const, message: "الطلب غير موجود" };
+  if (dep.method === "sham_cash_auto") {
+    return { ok: false as const, message: "إيداع شام كاش التلقائي يُدار حصرياً عبر التحقق الآلي ولا يقبل الموافقة اليدوية." };
+  }
   if (dep.status !== "pending") return { ok: false as const, message: `تمت معالجته مسبقاً (${dep.status})` };
 
   if (status === "approved") {

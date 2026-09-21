@@ -1,7 +1,7 @@
 import { Router, type IRouter, type Request, type Response } from "express";
 import { db, notificationsTable } from "@workspace/db";
 import { and, desc, eq, or, sql } from "drizzle-orm";
-import { getOrCreateCurrentUser } from "../lib/currentUser.js";
+import { getCurrentUserOptional } from "../lib/currentUser.js";
 import { createInternalNotification } from "../lib/notifications.js";
 import { requireAdmin } from "../lib/adminAuth.js";
 
@@ -12,14 +12,10 @@ async function handleGetNotifications(req: Request, res: Response) {
   try {
     let currentUserId: number | null = null;
     let isVip = false;
-    try {
-      const user = await getOrCreateCurrentUser(req);
-      if (user?.id) {
-        currentUserId = user.id;
-        if (Number(user.vipLevel || 1) > 1) isVip = true;
-      }
-    } catch {
-      // Guest user
+    const user = await getCurrentUserOptional(req);
+    if (user?.id) {
+      currentUserId = user.id;
+      if (Number(user.vipLevel || 1) > 1) isVip = true;
     }
 
     const limit = Math.min(Number(req.query.limit) || 50, 100);
@@ -68,7 +64,7 @@ router.get("/me/notifications", handleGetNotifications);
 // GET /me/notifications/unread-count & GET /notifications/unread-count
 async function handleGetUnreadCount(req: Request, res: Response) {
   try {
-    const user = await getOrCreateCurrentUser(req);
+    const user = await getCurrentUserOptional(req);
     if (!user?.id) {
       return res.json({ count: 0 });
     }
@@ -108,7 +104,7 @@ router.get("/notifications/unread-count", handleGetUnreadCount);
 // PATCH /me/notifications/:id/read & PATCH /notifications/:id/read
 async function handleMarkAsRead(req: Request, res: Response) {
   try {
-    const user = await getOrCreateCurrentUser(req);
+    const user = await getCurrentUserOptional(req);
     if (!user?.id) {
       return res.status(401).json({ error: "يجب تسجيل الدخول أولاً" });
     }
@@ -124,11 +120,23 @@ async function handleMarkAsRead(req: Request, res: Response) {
         isRead: true,
         readAt: new Date(),
       })
-      .where(eq(notificationsTable.id, id))
+      .where(
+        and(
+          eq(notificationsTable.id, id),
+          or(
+            eq(notificationsTable.targetUserId, user.id),
+            eq(notificationsTable.targetType, "all"),
+            eq(notificationsTable.targetType, "vip")
+          )
+        )
+      )
       .returning();
 
     res.json({ ok: true, notification: updated });
   } catch (error: any) {
+    if (error?.statusCode === 401) {
+      return res.status(401).json({ error: "يجب تسجيل الدخول أولاً" });
+    }
     console.error("Mark notification as read error:", error);
     res.status(500).json({ error: error.message || "فشل تحديد الإشعار كمقروء" });
   }
@@ -140,7 +148,7 @@ router.patch("/notifications/:id/read", handleMarkAsRead);
 // PATCH /me/notifications/read-all & PATCH /notifications/read-all
 async function handleMarkAllAsRead(req: Request, res: Response) {
   try {
-    const user = await getOrCreateCurrentUser(req);
+    const user = await getCurrentUserOptional(req);
     if (!user?.id) {
       return res.status(401).json({ error: "يجب تسجيل الدخول أولاً" });
     }
@@ -172,6 +180,9 @@ async function handleMarkAllAsRead(req: Request, res: Response) {
 
     res.json({ ok: true, message: "تم تحديد جميع الإشعارات كمقروءة" });
   } catch (error: any) {
+    if (error?.statusCode === 401) {
+      return res.status(401).json({ error: "يجب تسجيل الدخول أولاً" });
+    }
     console.error("Mark all notifications as read error:", error);
     res.status(500).json({ error: error.message || "فشل تحديث حالة الإشعارات" });
   }
@@ -183,7 +194,7 @@ router.patch("/notifications/read-all", handleMarkAllAsRead);
 // DELETE /me/notifications/:id & DELETE /notifications/:id
 async function handleDeleteNotification(req: Request, res: Response) {
   try {
-    const user = await getOrCreateCurrentUser(req);
+    const user = await getCurrentUserOptional(req);
     if (!user?.id) {
       return res.status(401).json({ error: "يجب تسجيل الدخول أولاً" });
     }
@@ -203,6 +214,9 @@ async function handleDeleteNotification(req: Request, res: Response) {
       );
     res.json({ ok: true, message: "تم حذف الإشعار بنجاح" });
   } catch (error: any) {
+    if (error?.statusCode === 401) {
+      return res.status(401).json({ error: "يجب تسجيل الدخول أولاً" });
+    }
     console.error("Delete notification error:", error);
     res.status(500).json({ error: error.message || "فشل حذف الإشعار" });
   }
@@ -214,7 +228,7 @@ router.delete("/notifications/:id", handleDeleteNotification);
 // DELETE /me/notifications/delete-all & DELETE /notifications/delete-all
 async function handleDeleteAllNotifications(req: Request, res: Response) {
   try {
-    const user = await getOrCreateCurrentUser(req);
+    const user = await getCurrentUserOptional(req);
     if (!user?.id) {
       return res.status(401).json({ error: "يجب تسجيل الدخول أولاً" });
     }
@@ -226,6 +240,9 @@ async function handleDeleteAllNotifications(req: Request, res: Response) {
 
     res.json({ ok: true, message: "تم حذف جميع إشعاراتك بنجاح" });
   } catch (error: any) {
+    if (error?.statusCode === 401) {
+      return res.status(401).json({ error: "يجب تسجيل الدخول أولاً" });
+    }
     console.error("Delete all notifications error:", error);
     res.status(500).json({ error: error.message || "فشل حذف الإشعارات" });
   }

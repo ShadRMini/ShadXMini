@@ -19,6 +19,57 @@ import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
 import { getPublicJson } from "@/lib/public-api";
 
+function getAuthHeadersAndBody() {
+  const authToken =
+    typeof window !== "undefined"
+      ? localStorage.getItem("xpay_store_auth_token") || localStorage.getItem("token")
+      : null;
+
+  let tgId = "";
+  let tgInitData = "";
+  let tgWebAppData = "";
+
+  try {
+    const tg = (window as any)?.Telegram?.WebApp;
+    if (tg?.initDataUnsafe?.user?.id) {
+      tgId = String(tg.initDataUnsafe.user.id);
+      tgInitData = String(tg.initData || "");
+    }
+    const searchParams = new URLSearchParams(window.location.search);
+    const hash = window.location.hash.startsWith("#") ? window.location.hash.slice(1) : window.location.hash;
+    const hashParams = new URLSearchParams(hash);
+    tgWebAppData = searchParams.get("tgWebAppData") || hashParams.get("tgWebAppData") || "";
+
+    if (!tgId) {
+      const cached = localStorage.getItem("xpay_telegram_identity") || localStorage.getItem("tg_identity_cache");
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed?.id) tgId = String(parsed.id);
+      }
+    }
+  } catch {
+    // ignore
+  }
+
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+  if (authToken) headers["Authorization"] = `Bearer ${authToken}`;
+  if (tgId) headers["x-telegram-id"] = tgId;
+  if (tgInitData || tgWebAppData) {
+    headers["x-telegram-init-data"] = encodeURIComponent(tgInitData || tgWebAppData);
+  }
+
+  return {
+    headers,
+    authFields: {
+      telegramId: tgId,
+      telegramInitData: tgInitData || tgWebAppData,
+      tgWebAppData,
+    },
+  };
+}
+
 export function DepositInvoicePay() {
   const [, params] = useRoute("/deposit/pay/:invoiceId");
   const [, setLocation] = useLocation();
@@ -99,9 +150,7 @@ export function DepositInvoicePay() {
     let isMounted = true;
     async function checkStatus() {
       try {
-        const authToken = localStorage.getItem("xpay_store_auth_token");
-        const headers: Record<string, string> = {};
-        if (authToken) headers["Authorization"] = `Bearer ${authToken}`;
+        const { headers } = getAuthHeadersAndBody();
 
         const apiBase = String(import.meta.env.VITE_API_URL || "").replace(/\/+$/, "");
         const pollUrl = `${apiBase}/api/deposits/shamcash/invoice/${encodeURIComponent(invoiceId)}`;
@@ -160,18 +209,13 @@ export function DepositInvoicePay() {
     try {
       setVerifying(true);
 
-      const authToken = localStorage.getItem("xpay_store_auth_token");
-      const headers: Record<string, string> = {
-        "Content-Type": "application/json",
-      };
-      if (authToken) headers["Authorization"] = `Bearer ${authToken}`;
+      const { headers, authFields } = getAuthHeadersAndBody();
 
       const apiBase = String(import.meta.env.VITE_API_URL || "").replace(/\/+$/, "");
       const verifyUrl = `${apiBase}/api/deposits/shamcash/verify`;
 
       console.log("[Verify] 📤 URL:", verifyUrl);
       console.log("[Verify] 📤 Body:", { invoiceId, transactionRef: cleanRef });
-      console.log("[Verify] 📤 Token:", authToken ? authToken.substring(0, 15) + "..." : "(none)");
 
       const res = await fetch(verifyUrl, {
         method: "POST",
@@ -179,6 +223,7 @@ export function DepositInvoicePay() {
         body: JSON.stringify({
           invoiceId,
           transactionRef: cleanRef,
+          ...authFields,
         }),
       });
 

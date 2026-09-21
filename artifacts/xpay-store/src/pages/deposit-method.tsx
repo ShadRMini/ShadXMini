@@ -349,10 +349,12 @@ export default function DepositMethod() {
       setAutoVerifying(true);
       const tg = readTelegramIdentity();
       const webAppData = getTelegramWebAppDataFromUrl();
+      const token = typeof window !== "undefined" ? localStorage.getItem("xpay_store_auth_token") : null;
       const resp = await fetch(`${apiBaseUrl}/api/deposits/shamcash/verify`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
           ...(tg?.id ? { "x-telegram-id": tg.id } : {}),
           ...(tg?.initDataRaw || webAppData
             ? { "x-telegram-init-data": encodeURIComponent(tg?.initDataRaw || webAppData) }

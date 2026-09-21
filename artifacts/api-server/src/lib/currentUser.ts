@@ -399,3 +399,11 @@ export async function getOrCreateCurrentUser(req?: Request) {
 export async function getOrCreateCurrentUserStrict(req?: Request) {
   return getOrCreateCurrentUser(req);
 }
+
+export async function getCurrentUserOptional(req?: Request) {
+  try {
+    return await getOrCreateCurrentUser(req);
+  } catch {
+    return null;
+  }
+}
