@@ -22,10 +22,19 @@ export type UserProfile = {
   createdAt?: string;
 };
 
+export function isValidUserObject(u: any): u is UserProfile {
+  if (!u || typeof u !== "object") return false;
+  if (u.identityMissing === true) return false;
+  const idStr = String(u.id ?? "").trim();
+  if (!idStr || idStr === "0") return false;
+  return true;
+}
+
 interface AuthContextType {
   user: UserProfile | null;
   token: string | null;
   isAuthenticated: boolean;
+  isGuest: boolean;
   loading: boolean;
   login: (token: string, user: UserProfile) => void;
   logout: () => void;
@@ -56,7 +65,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const storedToken = localStorage.getItem(TOKEN_KEY);
       if (!storedToken) return null;
       const cached = localStorage.getItem(USER_KEY);
-      return cached ? JSON.parse(cached) : null;
+      if (!cached) return null;
+      const parsed = JSON.parse(cached);
+      return isValidUserObject(parsed) ? parsed : null;
     } catch {
       return null;
     }
@@ -95,19 +106,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           localStorage.removeItem("token");
           localStorage.removeItem("user");
           localStorage.removeItem("auth");
+          localStorage.removeItem("xpay_auth_token");
+          localStorage.removeItem("xpay_auth_user");
           setToken(null);
           setUser(null);
         }
         return null;
       });
 
-      if (data && !data.identityMissing && data.id && data.id !== "0") {
+      if (isValidUserObject(data)) {
         setUser(data);
         localStorage.setItem(USER_KEY, JSON.stringify(data));
         return data;
       } else {
-        setUser(null);
+        localStorage.removeItem(TOKEN_KEY);
         localStorage.removeItem(USER_KEY);
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        localStorage.removeItem("auth");
+        localStorage.removeItem("xpay_auth_token");
+        localStorage.removeItem("xpay_auth_user");
+        setToken(null);
+        setUser(null);
         return null;
       }
     } catch (err: any) {
@@ -149,6 +169,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [refreshUser]);
 
   const login = useCallback((newToken: string, newUser: UserProfile) => {
+    if (!isValidUserObject(newUser)) {
+      console.warn("Attempted to login with invalid user object:", newUser);
+      return;
+    }
     try {
       localStorage.setItem(TOKEN_KEY, newToken);
       localStorage.setItem(USER_KEY, JSON.stringify(newUser));
@@ -222,6 +246,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const updateUser = useCallback((updatedUser: UserProfile, newToken?: string) => {
+    if (!isValidUserObject(updatedUser)) {
+      return;
+    }
     try {
       if (newToken) {
         localStorage.setItem(TOKEN_KEY, newToken);
@@ -234,10 +261,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(updatedUser);
   }, []);
 
-  const isAuthenticated = Boolean(user || token);
+  const isAuthenticated = isValidUserObject(user);
+  const isGuest = !loading && !isAuthenticated;
 
   return (
-    <AuthContext.Provider value={{ user, token, isAuthenticated, loading, login, logout, updateUser, refreshUser }}>
+    <AuthContext.Provider value={{ user, token, isAuthenticated, isGuest, loading, login, logout, updateUser, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

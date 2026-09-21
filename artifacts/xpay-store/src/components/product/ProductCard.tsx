@@ -43,15 +43,9 @@ export default function ProductCard({
 }: ProductCardProps) {
   const [imgError, setImgError] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
-  const { user, token } = useAuth();
+  const { user, isAuthenticated, isGuest } = useAuth();
   const storeSettings = useStoreSettings();
   const { formatPrice } = useCurrency();
-
-  const isGuestModeEnabled = Boolean(
-    storeSettings.guestPreviewEnabled ?? storeSettings.guest_preview_enabled ?? true
-  );
-  const isAuthenticated = Boolean(user || token);
-  const isGuest = !isAuthenticated && isGuestModeEnabled;
 
   const targetLink = href || `/products/${id}`;
   const finalImageUrl = image ? withImageVersion(image, imageVersion || `${id}-${image}`) : "";

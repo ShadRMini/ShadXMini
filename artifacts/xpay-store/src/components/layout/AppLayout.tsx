@@ -20,12 +20,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const storeSettings = useStoreSettings();
   const [brandLogo, setBrandLogo] = useState<string>("");
-  const { user, token } = useAuth();
-
-  const isGuestModeEnabled = Boolean(
-    storeSettings.guestPreviewEnabled ?? storeSettings.guest_preview_enabled ?? true
-  );
-  const isGuest = !user && !token && isGuestModeEnabled;
+  const { user, isAuthenticated, isGuest } = useAuth();
 
   const handleNavClick = (e: React.MouseEvent, href: string) => {
     if (isGuest && href !== "/") {

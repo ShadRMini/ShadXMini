@@ -49,14 +49,8 @@ export default function CategoryCard({
 }: CategoryCardProps) {
   const [imgError, setImgError] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
-  const { user, token } = useAuth();
+  const { user, isAuthenticated, isGuest } = useAuth();
   const storeSettings = useStoreSettings();
-
-  const isGuestModeEnabled = Boolean(
-    storeSettings.guestPreviewEnabled ?? storeSettings.guest_preview_enabled ?? true
-  );
-  const isAuthenticated = Boolean(user || token);
-  const isGuest = !isAuthenticated && isGuestModeEnabled;
 
   const resolvedImage = getBrandedCategoryImage(name, image);
   const finalImageUrl = resolvedImage ? withImageVersion(resolvedImage, imageVersion || `${id}-${image || ""}`) : "";

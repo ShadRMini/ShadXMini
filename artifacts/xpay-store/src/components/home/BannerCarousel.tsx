@@ -49,16 +49,10 @@ const DEFAULT_BANNER: BannerItem = {
 export default function BannerCarousel({ banners: propBanners, isLoading }: BannerCarouselProps) {
   const [banners, setBanners] = useState<BannerItem[]>(propBanners || []);
   const [, setLocation] = useLocation();
-  const { user, token } = useAuth();
+  const { user, isAuthenticated, isGuest } = useAuth();
   const storeSettings = useStoreSettings();
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [scrollSnaps, setScrollSnaps] = useState<number[]>([]);
-
-  const isGuestModeEnabled = Boolean(
-    storeSettings.guestPreviewEnabled ?? storeSettings.guest_preview_enabled
-  );
-  const isAuthenticated = Boolean(user || token);
-  const isGuest = !isAuthenticated && isGuestModeEnabled;
 
   const [emblaRef, emblaApi] = useEmblaCarousel(
     {

@@ -42,7 +42,7 @@ function readLocalTelegramUser() {
 
 export default function Home() {
   const [, setLocation] = useLocation();
-  const { user, token } = useAuth();
+  const { user, isAuthenticated, isGuest } = useAuth();
   const storeSettings = useStoreSettings();
   const { formatPrice, formatPriceWithSyp, baseCurrency } = useCurrency();
   const { data: profile, isLoading: profileLoading, isError: profileError } = useGetProfile();
@@ -52,12 +52,6 @@ export default function Home() {
 
   const [showFeaturedOffers, setShowFeaturedOffers] = useState<boolean>(true);
   const [featuredBanners, setFeaturedBanners] = useState<any[]>([]);
-
-  const isGuestModeEnabled = Boolean(
-    storeSettings.guestPreviewEnabled ?? storeSettings.guest_preview_enabled ?? true
-  );
-  const isAuthenticated = Boolean(user || token);
-  const isGuest = !isAuthenticated && isGuestModeEnabled;
 
   useEffect(() => {
     if (isGuest) {

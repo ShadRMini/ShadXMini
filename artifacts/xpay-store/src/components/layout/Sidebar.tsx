@@ -32,14 +32,9 @@ interface SidebarProps {
 
 export default function Sidebar({ brandLogo, onClose }: SidebarProps) {
   const [location, setLocation] = useLocation();
-  const { user, token, logout } = useAuth();
+  const { user, isAuthenticated, isGuest, logout } = useAuth();
   const storeSettings = useStoreSettings();
   const [mode, setMode] = useState<"dark" | "light">(() => getStoreThemeMode());
-
-  const isGuestModeEnabled = Boolean(
-    storeSettings.guestPreviewEnabled ?? storeSettings.guest_preview_enabled ?? true
-  );
-  const isGuest = !user && !token && isGuestModeEnabled;
 
   const handleLinkClick = (e: React.MouseEvent, href: string) => {
     if (isGuest && href !== "/") {
