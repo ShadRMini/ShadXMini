@@ -438,7 +438,8 @@ async function approveShamCashDepositAtomic(params: {
 async function findIncomingShamCashTransactionByRef(
   walletIdentifier: string,
   transactionRef: string,
-): Promise<{ found: boolean; amount?: number; currency?: string; occurredAt?: string }> {
+  deposit?: typeof depositsTable.$inferSelect,
+): Promise<{ found: boolean; amount?: number; currency?: string; occurredAt?: string; type?: string; reason?: string }> {
   try {
     const dbSettings = await getShamCashSettings().catch(() => null);
     const apiBaseUrl = (
@@ -462,7 +463,7 @@ async function findIncomingShamCashTransactionByRef(
 
     if (!apiKey || !identifier) {
       console.warn("[ShamCash] ⚠️ findIncomingShamCashTransactionByRef: missing apiKey or identifier");
-      return { found: false };
+      return { found: false, reason: "missing_credentials" };
     }
 
     const txUrl = `${apiBaseUrl}/v1/wallets/shamcash/${encodeURIComponent(identifier)}/transactions?direction=in`;
@@ -485,7 +486,7 @@ async function findIncomingShamCashTransactionByRef(
         code: payload?.code,
         message: payload?.message,
       });
-      return { found: false };
+      return { found: false, reason: "upstream_fetch_failed" };
     }
 
     const cleanTargetRef = normalizeShamCashTransactionRef(transactionRef);
@@ -494,21 +495,74 @@ async function findIncomingShamCashTransactionByRef(
       const rawRef = String(t?.transactionRef || t?.ref || "").trim();
       return rawId === transactionRef || rawId === cleanTargetRef || rawRef === transactionRef || rawRef === cleanTargetRef;
     });
-    if (!match) return { found: false };
+    if (!match) return { found: false, reason: "transaction_not_found" };
+
+    // 1. فحص النوع (يجب أن تكون عملية إيداع / واردة credit أو in)
+    const txType = String(match?.type || match?.direction || "credit").toLowerCase().trim();
+    if (txType !== "credit" && txType !== "in") {
+      logger.warn({ txType, transactionRef }, "[ShamCash] ⚠️ Fallback transaction is not a credit/incoming transaction");
+      return { found: false, reason: "invalid_type" };
+    }
 
     const amount = Number(match?.amount);
-    const currency = String(match?.currency || "").toUpperCase();
-    const occurredAt = match?.occurredAt || match?.created_at || match?.date || undefined;
+    const currency = String(match?.currency || "").toUpperCase().trim();
+    const occurredAt = match?.occurredAt || match?.created_at || match?.date || match?.timestamp || undefined;
+
+    if (!Number.isFinite(amount) || amount <= 0) {
+      return { found: false, reason: "invalid_amount" };
+    }
+
+    // 2 & 3 & 4 & 5: الفحوصات الصارمة عند توفر كائن الإيداع
+    if (deposit) {
+      // 2. فحص مطابقة العملة
+      const expectedCurrency = String(deposit.currency || "USD").toUpperCase().trim();
+      if (currency && expectedCurrency && currency !== expectedCurrency) {
+        logger.warn({ txCurrency: currency, expectedCurrency, depositId: deposit.id }, "[ShamCash] ⚠️ Currency mismatch in fallback lookup");
+        return { found: false, reason: "currency_mismatch" };
+      }
+
+      // 3. فحص أن المبلغ كافٍ (amount >= expectedAmount) مع سماحية 1%
+      const expectedAmount = Number(deposit.currency === "SYP" ? (deposit.amountSyp || deposit.amountUsd) : deposit.amountUsd);
+      const tolerance = 0.01;
+      const amountMatches =
+        Number.isFinite(expectedAmount) &&
+        (amount >= expectedAmount || (expectedAmount > 0 && Math.abs(amount - expectedAmount) / expectedAmount <= tolerance));
+
+      if (!amountMatches) {
+        logger.warn({ txAmount: amount, expectedAmount, depositId: deposit.id }, "[ShamCash] ⚠️ Amount mismatch in fallback lookup");
+        return { found: false, reason: "amount_mismatch" };
+      }
+
+      // 4 & 5. فحص توقيت العملية بالنسبة للفاتورة
+      if (occurredAt && deposit.createdAt) {
+        const txTime = new Date(occurredAt).getTime();
+        const depCreatedTime = new Date(deposit.createdAt).getTime();
+        const depExpiresTime = deposit.expiresAt ? new Date(deposit.expiresAt).getTime() : depCreatedTime + 15 * 60 * 1000;
+
+        // 4. فحص أن الحوالة لم تحدث قبل إنشاء الفاتورة (مع هامش 5 دقائق)
+        if (txTime < depCreatedTime - 5 * 60 * 1000) {
+          logger.warn({ txTime: occurredAt, depCreatedAt: deposit.createdAt, depositId: deposit.id }, "[ShamCash] ⚠️ Transaction occurred before invoice creation");
+          return { found: false, reason: "occurred_before_invoice" };
+        }
+
+        // 5. فحص أن الحوالة لم تحدث بعد انتهاء صلاحية الفاتورة (مع هامش 5 دقائق)
+        if (txTime > depExpiresTime + 5 * 60 * 1000) {
+          logger.warn({ txTime: occurredAt, depExpiresAt: deposit.expiresAt, depositId: deposit.id }, "[ShamCash] ⚠️ Transaction occurred after invoice expiry");
+          return { found: false, reason: "occurred_after_expiry" };
+        }
+      }
+    }
 
     return {
       found: true,
-      amount: Number.isFinite(amount) ? amount : undefined,
+      amount,
       currency: currency || undefined,
       occurredAt: occurredAt ? String(occurredAt) : undefined,
+      type: txType,
     };
   } catch (err: any) {
     console.error("[ShamCash] ❌ findIncomingShamCashTransactionByRef error:", err.message);
-    return { found: false };
+    return { found: false, reason: err?.message };
   }
 }
 
@@ -918,6 +972,7 @@ async function verifyShamCashPayment(args: {
   const fallbackTx = await findIncomingShamCashTransactionByRef(
     "",
     transactionRef,
+    deposit,
   );
 
   if (fallbackTx.found) {
