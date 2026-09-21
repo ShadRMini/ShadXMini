@@ -7,7 +7,22 @@ import { createInternalNotification } from "./notifications.js";
 
 const DEFAULT_TELEGRAM_ID = "8333183867";
 const DEFAULT_USERNAME = "ShadXMiniUser";
-const JWT_SECRET = process.env.JWT_SECRET || process.env.SESSION_SECRET || "shadxmini-jwt-secret-key-2026";
+
+const isProduction = process.env.NODE_ENV === "production";
+const INSECURE_JWT_SECRETS = new Set([
+  "shadxmini-jwt-secret-key-2026",
+  "xpay-dev-secret",
+  "secret",
+  "default-jwt-secret",
+]);
+
+const rawJwtSecret = (process.env.JWT_SECRET || process.env.SESSION_SECRET || "").trim();
+
+if (isProduction && (!rawJwtSecret || INSECURE_JWT_SECRETS.has(rawJwtSecret))) {
+  throw new Error("JWT_SECRET (or SESSION_SECRET) must be configured with a strong secret in production.");
+}
+
+const JWT_SECRET = rawJwtSecret || "dev-only-local-jwt-secret-not-for-production";
 const TELEGRAM_AUTH_MAX_AGE_SECONDS = Number(process.env.TELEGRAM_AUTH_MAX_AGE_SECONDS || 60 * 60 * 24);
 
 export interface UserTokenPayload {

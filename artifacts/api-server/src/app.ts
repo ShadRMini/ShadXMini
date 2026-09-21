@@ -103,9 +103,21 @@ app.use("/api", (_req, res, next) => {
   next();
 });
 
-// P0-4 (Updated): Enforce required webhook secrets at startup in production
+// P0-1 & P0-4: Enforce required secrets at startup in production
 if (process.env.NODE_ENV === "production") {
   const missingSecrets: string[] = [];
+  const INSECURE_SECRETS = new Set(["shadxmini-jwt-secret-key-2026", "xpay-dev-secret", "secret", "default-jwt-secret"]);
+
+  const jwtSecret = (process.env.JWT_SECRET || process.env.SESSION_SECRET || "").trim();
+  if (!jwtSecret || INSECURE_SECRETS.has(jwtSecret)) {
+    missingSecrets.push("JWT_SECRET (must be configured with a strong non-default secret)");
+  }
+
+  const sessionSecret = (process.env.SESSION_SECRET || "").trim();
+  if (!sessionSecret || INSECURE_SECRETS.has(sessionSecret)) {
+    missingSecrets.push("SESSION_SECRET (must be configured with a strong non-default secret)");
+  }
+
   const enableTelegramWebhooks = process.env.ENABLE_TELEGRAM_WEBHOOKS === "true";
 
   // Only require Telegram secrets if Telegram webhooks are explicitly enabled
@@ -118,8 +130,8 @@ if (process.env.NODE_ENV === "production") {
   if (!process.env.SAM_WEBHOOK_SECRET) missingSecrets.push("SAM_WEBHOOK_SECRET");
 
   if (missingSecrets.length > 0) {
-    const msg = `[Security Fatal] Missing required webhook secrets in production: ${missingSecrets.join(", ")}`;
-    logger.error({ missingSecrets }, msg);
+    const msg = `[Security Fatal] Missing or insecure required secrets in production: ${missingSecrets.join(", ")}`;
+    logger.error(msg);
     throw new Error(msg);
   }
 }
