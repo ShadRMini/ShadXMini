@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /login
+Disallow: /checkout
+Disallow: /account
+Disallow: /api/
+
+Sitemap: https://shadxmini.vercel.app/sitemap.xml
