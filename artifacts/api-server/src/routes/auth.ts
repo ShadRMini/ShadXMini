@@ -3,11 +3,26 @@ import { db, usersTable } from "@workspace/db";
 import { eq, or, sql } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import { generateUserToken, generateNextDisplayId, calculateVipLevel, getVipBadge } from "../lib/currentUser.js";
+import { rateLimit } from "../lib/rateLimit.js";
 
 const router: IRouter = Router();
 
+const authLoginRateLimit = rateLimit({
+  keyPrefix: "auth-login",
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: "تم تجاوز عدد محاولات تسجيل الدخول المسموح بها. يرجى المحاولة بعد 15 دقيقة.",
+});
+
+const authRegisterRateLimit = rateLimit({
+  keyPrefix: "auth-register",
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message: "تم تجاوز عدد محاولات إنشاء الحسابات المسموح بها. يرجى المحاولة لاحقاً.",
+});
+
 // POST /api/auth/register
-router.post("/auth/register", async (req, res) => {
+router.post("/auth/register", authRegisterRateLimit, async (req, res) => {
   try {
     const { username, email, password } = req.body || {};
 
@@ -97,7 +112,7 @@ router.post("/auth/register", async (req, res) => {
 });
 
 // POST /api/auth/login
-router.post("/auth/login", async (req, res) => {
+router.post("/auth/login", authLoginRateLimit, async (req, res) => {
   try {
     const { login, email, username, password } = req.body || {};
     const identifier = String(login || email || username || "").trim();
