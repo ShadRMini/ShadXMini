@@ -46,6 +46,7 @@ import { rateLimit } from "../lib/rateLimit.js";
 import { addUnitPrices, decimalToScaled, parseProviderQuantityValues, subtractUnitPrices } from "../lib/pricing.js";
 import { ensureDatabaseSchema } from "../lib/ensureSchema";
 import { extractStringValue } from "../services/shamcash.service.js";
+import { syncAllPendingProviderOrders } from "./orders.js";
 const router: IRouter = Router();
 const EXTERNAL_CATEGORY_NAME = "External Provider";
 const EXTERNAL_CATEGORY_IMAGE = "https://placehold.co/600x400?text=External+Provider";
@@ -6226,6 +6227,8 @@ router.post("/admin/cron/:jobName/run", requireAdmin, async (req, res) => {
       "sync-provider-prices",
       "cleanup-expired-invoices",
       "sync-shamcash-pending",
+      "sync-pending-orders",
+      "orders-sync",
       "send-daily-report",
       "مزامنة طلبات API التلقائية",
       "تحديث أسعار العملات والخدمات",
@@ -6256,8 +6259,15 @@ router.post("/admin/cron/:jobName/run", requireAdmin, async (req, res) => {
         result = { deleted: deleted.rowCount || 0, message: "تم تنظيف المعاملات المؤقتة بنجاح" };
         break;
       case "sync-shamcash-pending":
+      case "sync-pending-orders":
+      case "orders-sync":
       case "مزامنة طلبات API التلقائية":
-        result = { synced: 0, message: "تمت معالجة ومزامنة الطلبات العالقة" };
+        const syncRes = await syncAllPendingProviderOrders();
+        result = {
+          synced: syncRes.synced,
+          errors: syncRes.errors,
+          message: `تمت معالجة ومزامنة الطلبات العالقة (تم تحديث: ${syncRes.synced} طلب، أخطاء: ${syncRes.errors})`
+        };
         break;
       case "send-daily-report":
         result = { sent: true, message: "تم إرسال التقرير اليومي بنجاح" };

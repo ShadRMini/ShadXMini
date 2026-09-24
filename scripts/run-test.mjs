@@ -10,7 +10,7 @@ async function main() {
   const outPath = path.resolve(rootDir, ".tmp/test-runner.mjs");
 
   await esbuild({
-    entryPoints: [path.resolve(rootDir, "scripts/test-order-uuid-protection.ts")],
+    entryPoints: [path.resolve(rootDir, "scripts/test-task4-background-sync.ts")],
     platform: "node",
     bundle: true,
     format: "esm",

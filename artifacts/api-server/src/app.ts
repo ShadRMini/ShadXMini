@@ -11,6 +11,49 @@ import { sessionMiddleware } from "./lib/adminAuth";
 import { primeTelegramIntegrations } from "./lib/telegram";
 import { seedSuperAdmin } from "./lib/seedAdmin";
 import { ensureDatabaseSchema } from "./lib/ensureSchema";
+import { syncAllPendingProviderOrders } from "./routes/orders";
+
+let ordersSyncIntervalHandle: NodeJS.Timeout | null = null;
+let isOrdersSyncRunning = false;
+
+export function startOrdersSyncWorker() {
+  const isEnabled = process.env.ORDERS_SYNC_ENABLED !== "false" && process.env.ORDER_SYNC_ENABLED !== "false";
+  const intervalMinutes = parseInt(process.env.ORDERS_SYNC_INTERVAL_MINUTES || "5", 10);
+
+  if (!isEnabled || isNaN(intervalMinutes) || intervalMinutes <= 0) {
+    return;
+  }
+
+  if (ordersSyncIntervalHandle) {
+    return;
+  }
+
+  console.log(`[Orders Sync] Background worker started (interval: ${intervalMinutes}m)`);
+
+  const runSync = async () => {
+    if (isOrdersSyncRunning) return;
+    isOrdersSyncRunning = true;
+    try {
+      console.log(`[Orders Sync] 🔄 Background worker running scheduled cycle...`);
+      const res = await syncAllPendingProviderOrders();
+      if (res.synced > 0 || res.errors > 0) {
+        console.log(`[Orders Sync] Run completed: ${res.synced} orders updated, ${res.errors} errors`);
+      }
+    } catch (err) {
+      logger.error({ err }, "[Orders Sync] Background worker encountered an error");
+    } finally {
+      isOrdersSyncRunning = false;
+    }
+  };
+
+  // Initial run after 30 seconds
+  const initialTimeout = setTimeout(() => {
+    runSync();
+    ordersSyncIntervalHandle = setInterval(runSync, intervalMinutes * 60 * 1000);
+  }, 30 * 1000);
+
+  if (initialTimeout.unref) initialTimeout.unref();
+}
 
 const app: Express = express();
 app.set("trust proxy", 1);
@@ -137,6 +180,7 @@ if (process.env.NODE_ENV === "production") {
 }
 
 ensureDatabaseSchema();
+startOrdersSyncWorker();
 if (process.env.ENABLE_TELEGRAM_WEBHOOKS === "true") {
   primeTelegramIntegrations();
 }

@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { randomUUID } from "crypto";
-import { and, desc, eq, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, or, sql } from "drizzle-orm";
 import { db, ordersTable, productsTable, providersTable, usersTable, vipMembershipsTable } from "@workspace/db";
 import {
   CreateOrderBody,
@@ -227,6 +227,12 @@ async function syncPendingProviderOrdersForUser(userId: number): Promise<void> {
     const providerOrderId = String(meta?.provider?.providerOrderId || order.providerOrderId || "").trim();
     const orderUuid = String(order.providerOrderUuid || meta?.orderUuid || meta?.provider?.orderUuid || "").trim();
 
+    // Cooldown: skip if checked less than 3 minutes ago
+    const lastChecked = meta?.provider?.lastCheckedAt;
+    if (lastChecked && (Date.now() - new Date(lastChecked).getTime()) < 3 * 60 * 1000) {
+      continue;
+    }
+
     if (!provider?.apiKey || (!providerOrderId && !orderUuid)) continue;
 
     const adapter = getAdapter((provider as any).providerType || "custom");
@@ -240,12 +246,22 @@ async function syncPendingProviderOrdersForUser(userId: number): Promise<void> {
       const remote = check.orders.find((item) =>
         providerOrderId ? String(item.providerOrderId) === providerOrderId : true
       );
-      if (!remote) continue;
+
+      const nowIso = new Date().toISOString();
+      if (!remote) {
+        let nextMeta = {
+          ...meta,
+          provider: {
+            ...(meta?.provider || {}),
+            lastCheckedAt: nowIso,
+          },
+        };
+        await db.update(ordersTable).set({ meta: nextMeta }).where(eq(ordersTable.id, order.id));
+        continue;
+      }
 
       const nextStatus = normalizeProviderOrderStatus(remote.status);
       const foundProviderOrderId = remote.providerOrderId || providerOrderId;
-
-      if (nextStatus === "wait" && foundProviderOrderId === providerOrderId) continue;
 
       let nextMeta = {
         ...meta,
@@ -255,6 +271,7 @@ async function syncPendingProviderOrdersForUser(userId: number): Promise<void> {
           checkResponse: remote.rawData || null,
           replayApi: remote.replayApi || meta?.provider?.replayApi || null,
           status: remote.status,
+          lastCheckedAt: nowIso,
         },
       };
 
@@ -308,8 +325,183 @@ async function syncPendingProviderOrdersForUser(userId: number): Promise<void> {
       }
     } catch (error) {
       console.error(`Provider order sync failed for order ${order.id}:`, error);
+      try {
+        const nextMeta = {
+          ...meta,
+          provider: {
+            ...(meta?.provider || {}),
+            lastCheckedAt: new Date().toISOString(),
+          },
+        };
+        await db.update(ordersTable).set({ meta: nextMeta }).where(eq(ordersTable.id, order.id));
+      } catch {}
     }
   }
+}
+
+export async function syncAllPendingProviderOrders(): Promise<{ synced: number; errors: number }> {
+  let synced = 0;
+  let errors = 0;
+
+  try {
+    const pendingRows = await db
+      .select({
+        order: ordersTable,
+        product: productsTable,
+        provider: providersTable,
+        user: usersTable,
+      })
+      .from(ordersTable)
+      .innerJoin(productsTable, eq(productsTable.id, ordersTable.productId))
+      .innerJoin(usersTable, eq(usersTable.id, ordersTable.userId))
+      .leftJoin(providersTable, eq(providersTable.id, productsTable.providerId))
+      .where(eq(ordersTable.status, "wait"))
+      .orderBy(asc(ordersTable.createdAt))
+      .limit(20);
+
+    for (const row of pendingRows) {
+      const provider = (row as any)?.provider;
+      const product = (row as any)?.product;
+      const order = (row as any)?.order || ((row as any)?.productId ? row : null);
+      const user = (row as any)?.user;
+      if (!order || !user) continue;
+
+      const meta = (order.meta || {}) as any;
+      const providerOrderId = String(meta?.provider?.providerOrderId || order.providerOrderId || "").trim();
+      const orderUuid = String(order.providerOrderUuid || meta?.orderUuid || meta?.provider?.orderUuid || "").trim();
+
+      // Cooldown: skip if checked less than 3 minutes ago
+      const lastChecked = meta?.provider?.lastCheckedAt;
+      if (lastChecked && (Date.now() - new Date(lastChecked).getTime()) < 3 * 60 * 1000) {
+        continue;
+      }
+
+      if (!provider?.apiKey || (!providerOrderId && !orderUuid)) {
+        continue;
+      }
+
+      const adapter = getAdapter((provider as any).providerType || "custom");
+      if (!adapter?.checkOrders) continue;
+
+      try {
+        const check = providerOrderId
+          ? await adapter.checkOrders(provider.apiKey, provider.apiUrl || undefined, [providerOrderId])
+          : await adapter.checkOrders(provider.apiKey, provider.apiUrl || undefined, [orderUuid], true);
+
+        const remote = check.orders.find((item) =>
+          providerOrderId ? String(item.providerOrderId) === providerOrderId : true
+        );
+
+        const nowIso = new Date().toISOString();
+        const orderCreatedAt = order.createdAt instanceof Date ? order.createdAt.getTime() : new Date(order.createdAt || Date.now()).getTime();
+        const isStale = (Date.now() - orderCreatedAt > 24 * 60 * 60 * 1000);
+
+        if (!remote) {
+          let nextMeta = {
+            ...meta,
+            provider: {
+              ...(meta?.provider || {}),
+              lastCheckedAt: nowIso,
+            },
+          };
+          if (isStale && !nextMeta.stale) {
+            nextMeta.stale = true;
+            nextMeta.staleSince = nowIso;
+          }
+          await db.update(ordersTable).set({ meta: nextMeta }).where(eq(ordersTable.id, order.id));
+          continue;
+        }
+
+        const nextStatus = normalizeProviderOrderStatus(remote.status);
+        const foundProviderOrderId = remote.providerOrderId || providerOrderId;
+
+        let nextMeta = {
+          ...meta,
+          provider: {
+            ...(meta?.provider || {}),
+            providerOrderId: foundProviderOrderId || meta?.provider?.providerOrderId,
+            checkResponse: remote.rawData || null,
+            replayApi: remote.replayApi || meta?.provider?.replayApi || null,
+            status: remote.status,
+            lastCheckedAt: nowIso,
+          },
+        };
+
+        if (isStale && !nextMeta.stale) {
+          nextMeta.stale = true;
+          nextMeta.staleSince = nowIso;
+        }
+
+        await db
+          .update(ordersTable)
+          .set({
+            status: nextStatus,
+            providerOrderId: foundProviderOrderId || order.providerOrderId || null,
+            meta: nextMeta,
+          })
+          .where(eq(ordersTable.id, order.id));
+
+        if (nextStatus === "reject") {
+          nextMeta = await refundRejectedOrderIfNeeded({
+            orderId: order.id,
+            userId: user.id,
+            totalUsd: String(order.totalUsd),
+            meta: nextMeta,
+          });
+        }
+
+        if (nextStatus !== "wait" && nextStatus !== order.status) {
+          synced++;
+          try {
+            await notifyUserOrderStatusChanged({
+              telegramId: user.telegramId,
+              orderNumber: order.orderNumber,
+              productName: product.name,
+              status: nextStatus,
+              note: orderStatusMessage(nextStatus),
+            });
+
+            if (nextStatus === "accept") {
+              await notifyInternalOrderAccepted({
+                userId: user.id,
+                orderNumber: order.orderNumber,
+                productName: product.name,
+                totalUsd: order.totalUsd,
+              });
+            } else if (nextStatus === "reject") {
+              await notifyInternalOrderRejected({
+                userId: user.id,
+                orderNumber: order.orderNumber,
+                productName: product.name,
+                totalUsd: order.totalUsd,
+                note: orderStatusMessage(nextStatus),
+              });
+            }
+          } catch (notifErr) {
+            console.error("[Orders Sync] User notification error:", notifErr);
+          }
+        }
+      } catch (orderErr) {
+        errors++;
+        console.error(`[Orders Sync] Error checking order #${order.id} (${order.orderNumber}):`, orderErr);
+        try {
+          const nextMeta = {
+            ...meta,
+            provider: {
+              ...(meta?.provider || {}),
+              lastCheckedAt: new Date().toISOString(),
+            },
+          };
+          await db.update(ordersTable).set({ meta: nextMeta }).where(eq(ordersTable.id, order.id));
+        } catch {}
+      }
+    }
+  } catch (err) {
+    console.error("[Orders Sync] Fatal error during syncAllPendingProviderOrders:", err);
+    errors++;
+  }
+
+  return { synced, errors };
 }
 
 function rowToOrder(o: typeof ordersTable.$inferSelect, p: typeof productsTable.$inferSelect | null) {

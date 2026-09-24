@@ -39,6 +39,10 @@ services:
         sync: false
       - key: SHAMCASH_SYNC_ENABLED
         value: "true"
+      - key: ORDERS_SYNC_ENABLED
+        value: "true"
+      - key: ORDERS_SYNC_INTERVAL_MINUTES
+        value: "5"
       - key: ADMIN_SEED_USERNAME
         sync: false
       - key: ADMIN_SEED_EMAIL
