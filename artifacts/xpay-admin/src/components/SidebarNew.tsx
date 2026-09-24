@@ -5,7 +5,7 @@ import {
   LayoutDashboard, ShoppingCart, MessageSquare, BadgeCheck, LifeBuoy,
   FolderTree, Layers, Package, Image as ImageIcon, Server, Cpu, Code2,
   BarChart3, KeyRound, CreditCard, Wallet, Ticket, Megaphone, Crown,
-  Coins, Users, ShieldCheck, Lock, Activity, User, ShieldAlert,
+  Coins, Users, ShieldCheck, Lock, Activity, User,
   Settings as SettingsIcon, Palette, Info, Share2, Bell, Languages as LangIcon,
   PowerOff, Database, Clock, HardDrive, ChevronDown, Search, X, History,
   RefreshCw, CheckCircle2, Headphones, LogIn
@@ -79,7 +79,6 @@ const NEW_NAV_GROUPS: NavGroup[] = [
       { to: "/permissions", label: "الصلاحيات", icon: Lock },
       { to: "/activity", label: "سجل النشاط", icon: Activity },
       { to: "/profile", label: "الملف الشخصي", icon: User },
-      { to: "/2fa", label: "التحقق الثنائي", icon: ShieldAlert },
     ],
   },
 

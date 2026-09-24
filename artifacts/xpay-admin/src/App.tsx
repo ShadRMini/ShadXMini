@@ -36,7 +36,6 @@ const Backup = lazy(() => import("./pages/Backup"));
 const Tickets = lazy(() => import("./pages/Tickets"));
 const TicketDetail = lazy(() => import("./pages/TicketDetail"));
 const Profile = lazy(() => import("./pages/Profile"));
-const TwoFactor = lazy(() => import("./pages/TwoFactor"));
 const Permissions = lazy(() => import("./pages/Permissions"));
 const Currencies = lazy(() => import("./pages/Currencies"));
 const Languages = lazy(() => import("./pages/Languages"));
@@ -175,7 +174,6 @@ export default function App() {
             <Route path="/support" element={<Tickets />} />
             <Route path="/backup" element={<Backup />} />
             <Route path="/profile" element={<Profile me={me} />} />
-            <Route path="/2fa" element={<TwoFactor me={me} />} />
             <Route path="/permissions" element={<Permissions />} />
             <Route path="/currency" element={<CurrencySettings />} />
             <Route path="/currencies" element={<Navigate to="/currency" replace />} />

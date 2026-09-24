@@ -1,3 +1,11 @@
+/*
+ * ⚠️ DISABLED (2026-09-25) — Task #2 Phase 1
+ * هذه الميزة كانت زخرفية (Mock) ولا تُفحص عند تسجيل الدخول.
+ * أُخفيت من الواجهة بموجب قاعدة "الوظائف الزخرفية ممنوعة".
+ * التنفيذ الحقيقي (otplib + backup codes + replay prevention)
+ * مجدول كمهمة مستقلة قبل الإطلاق النهائي.
+ */
+
 import { useState, useEffect } from "react";
 import { get, post } from "../lib/api";
 import { ShieldCheck, ShieldAlert, Copy, CheckCircle2, QrCode, Key, Loader2, AlertCircle } from "lucide-react";

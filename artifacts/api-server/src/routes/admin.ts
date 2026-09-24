@@ -3614,7 +3614,16 @@ router.post("/admin/import-products", requireAdmin, async (req, res) => {
   res.json({ ok: true, count: inserted.length });
 });
 
-// ========== 2FA (mock secret) ==========
+// ================================================================
+// ⚠️ 2FA MOCK ENDPOINTS — DISABLED (Task #2 Phase 1, 2026-09-25)
+// هذه المسارات كانت تُرجع "verified: true" لأي 6 أرقام.
+// لم تكن تُفحص أصلاً عند /admin/login → وهم أمني.
+// مُعطّلة مؤقتاً حتى التنفيذ الحقيقي.
+// DO NOT re-enable without full implementation + DeepSeek review.
+// ================================================================
+
+/*
+// --- Old Mock Implementation Kept for Reference ---
 router.post("/admin/2fa/enable", requireAdmin, async (req, res) => {
   const secret = Array.from({ length: 16 }, () =>
     "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567"[Math.floor(Math.random() * 32)],
@@ -3641,6 +3650,28 @@ router.post("/admin/2fa/verify", requireAdmin, async (req, res) => {
     return;
   }
   res.json({ ok: true, verified: true });
+});
+*/
+
+router.post("/admin/2fa/enable", requireAdmin, (_req, res) => {
+  res.status(503).json({
+    error: "2FA temporarily disabled — pending real implementation",
+    code: "2FA_DISABLED",
+  });
+});
+
+router.post("/admin/2fa/disable", requireAdmin, (_req, res) => {
+  res.status(503).json({
+    error: "2FA temporarily disabled — pending real implementation",
+    code: "2FA_DISABLED",
+  });
+});
+
+router.post("/admin/2fa/verify", requireAdmin, (_req, res) => {
+  res.status(503).json({
+    error: "2FA temporarily disabled — pending real implementation",
+    code: "2FA_DISABLED",
+  });
 });
 
 // ========== PROFILE ==========

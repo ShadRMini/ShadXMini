@@ -65,7 +65,6 @@ const LEGACY_NAV: { to: string; label: string; icon: any; group: string }[] = [
   { to: "/admins", label: "المشرفون (إضافة/حذف)", icon: ShieldCheck, group: "الإدارة والصلاحيات" },
   { to: "/profile", label: "الملف الشخصي", icon: UserIcon, group: "الإدارة والصلاحيات" },
   { to: "/languages", label: "اللغات", icon: LangIcon, group: "الإدارة والصلاحيات" },
-  { to: "/2fa", label: "التحقق الثنائي", icon: ShieldCheck, group: "الإدارة والصلاحيات" },
 ];
 
 export default function SidebarLegacy({
