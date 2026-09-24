@@ -119,8 +119,10 @@ function normalizeProviderOrderStatus(status: string | null | undefined): "wait"
 function resolveProviderOrderStatus(result: { success?: boolean; status?: string; error?: string } | null | undefined): "wait" | "accept" | "reject" {
   if (!result) return "wait";
   const normalized = normalizeProviderOrderStatus(result.status);
-  if (normalized !== "wait") return normalized;
-  if (result.success === false || result.error) return "reject";
+  if (normalized === "accept") return "accept";
+  if (normalized === "reject") return "reject";
+  if (result.status === "wait") return "wait";
+  if (result.success === false && result.status === "reject") return "reject";
   return "wait";
 }
 
@@ -134,28 +136,37 @@ async function checkProviderOrderImmediately(args: {
   adapter: NonNullable<ReturnType<typeof getAdapter>>;
   provider: typeof providersTable.$inferSelect;
   providerOrderId?: string;
+  orderUuid?: string;
 }): Promise<{
   status: "wait" | "accept" | "reject";
   remoteStatus?: string;
+  providerOrderId?: string;
   rawData?: any;
   replayApi?: any[];
 } | null> {
   const providerOrderId = String(args.providerOrderId || "").trim();
-  if (!providerOrderId || !args.adapter.checkOrders || !args.provider.apiKey) return null;
+  const orderUuid = String(args.orderUuid || "").trim();
+  if ((!providerOrderId && !orderUuid) || !args.adapter.checkOrders || !args.provider.apiKey) return null;
 
   try {
-    const checked = await args.adapter.checkOrders(args.provider.apiKey, args.provider.apiUrl || undefined, [providerOrderId]);
-    const remote = checked.orders.find((item) => String(item.providerOrderId) === providerOrderId);
+    const checked = providerOrderId
+      ? await args.adapter.checkOrders(args.provider.apiKey, args.provider.apiUrl || undefined, [providerOrderId])
+      : await args.adapter.checkOrders(args.provider.apiKey, args.provider.apiUrl || undefined, [orderUuid], true);
+    
+    const remote = checked.orders.find((item) =>
+      providerOrderId ? String(item.providerOrderId) === providerOrderId : true
+    );
     if (!remote) return null;
 
     return {
       status: normalizeProviderOrderStatus(remote.status),
       remoteStatus: remote.status,
+      providerOrderId: remote.providerOrderId,
       rawData: remote.rawData || null,
       replayApi: remote.replayApi || undefined,
     };
   } catch (error) {
-    console.error(`Immediate provider order check failed for ${providerOrderId}:`, error);
+    console.error(`Immediate provider order check failed for ${providerOrderId || orderUuid}:`, error);
     return null;
   }
 }
@@ -213,32 +224,48 @@ async function syncPendingProviderOrdersForUser(userId: number): Promise<void> {
     const user = (row as any)?.user;
     if (!order) continue;
     const meta = (order.meta || {}) as any;
-    const providerOrderId = String(meta?.provider?.providerOrderId || "").trim();
+    const providerOrderId = String(meta?.provider?.providerOrderId || order.providerOrderId || "").trim();
+    const orderUuid = String(order.providerOrderUuid || meta?.orderUuid || meta?.provider?.orderUuid || "").trim();
 
-    if (!provider?.apiKey || !providerOrderId) continue;
+    if (!provider?.apiKey || (!providerOrderId && !orderUuid)) continue;
 
     const adapter = getAdapter((provider as any).providerType || "custom");
     if (!adapter?.checkOrders) continue;
 
     try {
-      const check = await adapter.checkOrders(provider.apiKey, provider.apiUrl || undefined, [providerOrderId]);
-      const remote = check.orders.find((item) => String(item.providerOrderId) === providerOrderId);
+      const check = providerOrderId
+        ? await adapter.checkOrders(provider.apiKey, provider.apiUrl || undefined, [providerOrderId])
+        : await adapter.checkOrders(provider.apiKey, provider.apiUrl || undefined, [orderUuid], true);
+
+      const remote = check.orders.find((item) =>
+        providerOrderId ? String(item.providerOrderId) === providerOrderId : true
+      );
       if (!remote) continue;
 
       const nextStatus = normalizeProviderOrderStatus(remote.status);
-      if (nextStatus === "wait" || nextStatus === order.status) continue;
+      const foundProviderOrderId = remote.providerOrderId || providerOrderId;
+
+      if (nextStatus === "wait" && foundProviderOrderId === providerOrderId) continue;
 
       let nextMeta = {
         ...meta,
         provider: {
           ...(meta?.provider || {}),
+          providerOrderId: foundProviderOrderId || meta?.provider?.providerOrderId,
           checkResponse: remote.rawData || null,
           replayApi: remote.replayApi || meta?.provider?.replayApi || null,
           status: remote.status,
         },
       };
 
-      await db.update(ordersTable).set({ status: nextStatus, meta: nextMeta }).where(eq(ordersTable.id, order.id));
+      await db
+        .update(ordersTable)
+        .set({
+          status: nextStatus,
+          providerOrderId: foundProviderOrderId || order.providerOrderId || null,
+          meta: nextMeta,
+        })
+        .where(eq(ordersTable.id, order.id));
 
       if (nextStatus === "reject") {
         nextMeta = await refundRejectedOrderIfNeeded({
@@ -249,33 +276,35 @@ async function syncPendingProviderOrdersForUser(userId: number): Promise<void> {
         });
       }
 
-      try {
-        await notifyUserOrderStatusChanged({
-          telegramId: user.telegramId,
-          orderNumber: order.orderNumber,
-          productName: product.name,
-          status: nextStatus,
-          note: orderStatusMessage(nextStatus),
-        });
-
-        if (nextStatus === "accept") {
-          await notifyInternalOrderAccepted({
-            userId: user.id,
+      if (nextStatus !== "wait" && nextStatus !== order.status) {
+        try {
+          await notifyUserOrderStatusChanged({
+            telegramId: user.telegramId,
             orderNumber: order.orderNumber,
             productName: product.name,
-            totalUsd: order.totalUsd,
-          });
-        } else if (nextStatus === "reject") {
-          await notifyInternalOrderRejected({
-            userId: user.id,
-            orderNumber: order.orderNumber,
-            productName: product.name,
-            totalUsd: order.totalUsd,
+            status: nextStatus,
             note: orderStatusMessage(nextStatus),
           });
+
+          if (nextStatus === "accept") {
+            await notifyInternalOrderAccepted({
+              userId: user.id,
+              orderNumber: order.orderNumber,
+              productName: product.name,
+              totalUsd: order.totalUsd,
+            });
+          } else if (nextStatus === "reject") {
+            await notifyInternalOrderRejected({
+              userId: user.id,
+              orderNumber: order.orderNumber,
+              productName: product.name,
+              totalUsd: order.totalUsd,
+              note: orderStatusMessage(nextStatus),
+            });
+          }
+        } catch (error) {
+          console.error("Notify provider order status user failed:", error);
         }
-      } catch (error) {
-        console.error("Notify provider order status user failed:", error);
       }
     } catch (error) {
       console.error(`Provider order sync failed for order ${order.id}:`, error);
@@ -565,6 +594,7 @@ router.post("/orders", async (req, res) => {
     }
 
     const orderNumber = `ID_${randomUUID().replace(/-/g, "").slice(0, 16)}`;
+    const orderUuid = randomUUID();
 
     // Resolve primary identifier (playerId/phone/identifier) from userIdentifier or customParams
     let resolvedIdentifier = body.userIdentifier?.trim() || "";
@@ -589,6 +619,10 @@ router.post("/orders", async (req, res) => {
     const playerId = resolvedIdentifier || `user_${user.id}`;
 
     const baseMeta: any = {
+      orderUuid,
+      provider: {
+        orderUuid,
+      },
       pricing: {
         providerUnitPriceUsd,
         dashboardMarkupUsd,
@@ -629,6 +663,7 @@ router.post("/orders", async (req, res) => {
           productId: product.id,
           quantity: String(body.quantity),
           userIdentifier: resolvedIdentifier || null,
+          providerOrderUuid: orderUuid,
           totalUsd,
           totalSyp: String(totalSyp),
           status: "wait",
@@ -655,15 +690,37 @@ router.post("/orders", async (req, res) => {
           (product as any).providerProductId!,
           body.quantity,
           playerId,
-          randomUUID(),
+          orderUuid,
           body.customParams,
         );
       } catch (error: any) {
-        console.error("Provider order error:", error);
+        console.error("Provider order error (timeout/network):", error);
+        // CRITICAL: On network timeout/exception, do NOT reject immediately as the provider may have processed the order.
+        // Keep status as "wait" and attempt immediate check by orderUuid.
         providerOrderResult = {
           success: false,
-          error: error.message || "فشل الاتصال بالمزود",
+          status: "wait",
+          error: error.message || "فشل الاتصال بالمزود، الطلب قيد المتابعة",
         };
+
+        try {
+          const timeoutCheck = await checkProviderOrderImmediately({
+            adapter: adapterForOrder,
+            provider: providerForOrder,
+            orderUuid,
+          });
+          if (timeoutCheck) {
+            providerOrderResult = {
+              success: timeoutCheck.status === "accept" || timeoutCheck.status === "wait",
+              providerOrderId: timeoutCheck.providerOrderId,
+              status: timeoutCheck.status,
+              rawResponse: timeoutCheck.rawData,
+              replayApi: timeoutCheck.replayApi,
+            };
+          }
+        } catch (checkErr) {
+          console.error("Check on timeout failed:", checkErr);
+        }
       }
     }
 
@@ -675,12 +732,13 @@ router.post("/orders", async (req, res) => {
       providerForOrder &&
       adapterForOrder &&
       finalOrderStatus === "wait" &&
-      providerOrderResult?.providerOrderId
+      (providerOrderResult?.providerOrderId || orderUuid)
     ) {
       immediateProviderCheck = await checkProviderOrderImmediately({
         adapter: adapterForOrder,
         provider: providerForOrder,
-        providerOrderId: providerOrderResult.providerOrderId,
+        providerOrderId: providerOrderResult?.providerOrderId,
+        orderUuid,
       });
 
       if (immediateProviderCheck?.status && immediateProviderCheck.status !== "wait") {
@@ -688,13 +746,18 @@ router.post("/orders", async (req, res) => {
       }
     }
 
+    const resolvedProviderOrderId =
+      providerOrderResult?.providerOrderId || immediateProviderCheck?.providerOrderId || null;
+
     let finalMeta: any = {
       ...baseMeta,
     };
 
     if (providerOrderResult) {
       finalMeta.provider = {
-        providerOrderId: providerOrderResult.providerOrderId,
+        ...(finalMeta.provider || {}),
+        orderUuid,
+        providerOrderId: resolvedProviderOrderId,
         status: providerOrderResult.status,
         rawResponse: providerOrderResult.rawResponse,
         replayApi: providerOrderResult.replayApi,
@@ -704,12 +767,16 @@ router.post("/orders", async (req, res) => {
       if (immediateProviderCheck) {
         finalMeta.provider.immediateCheck = {
           status: immediateProviderCheck.remoteStatus,
+          providerOrderId: immediateProviderCheck.providerOrderId,
           rawData: immediateProviderCheck.rawData,
           replayApi: immediateProviderCheck.replayApi,
           checkedAt: new Date().toISOString(),
         };
         finalMeta.provider.status = immediateProviderCheck.remoteStatus || finalMeta.provider.status;
         finalMeta.provider.replayApi = immediateProviderCheck.replayApi || finalMeta.provider.replayApi;
+        if (immediateProviderCheck.providerOrderId) {
+          finalMeta.provider.providerOrderId = immediateProviderCheck.providerOrderId;
+        }
       }
     }
 
@@ -725,6 +792,7 @@ router.post("/orders", async (req, res) => {
         .update(ordersTable)
         .set({
           status: "reject",
+          providerOrderId: resolvedProviderOrderId,
           meta: finalMeta,
         })
         .where(eq(ordersTable.id, o.id));
@@ -733,6 +801,7 @@ router.post("/orders", async (req, res) => {
         .update(ordersTable)
         .set({
           status: finalOrderStatus,
+          providerOrderId: resolvedProviderOrderId,
           meta: finalMeta,
         })
         .where(eq(ordersTable.id, o.id));

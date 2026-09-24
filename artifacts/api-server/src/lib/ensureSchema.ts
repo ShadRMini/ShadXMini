@@ -82,8 +82,10 @@ export async function ensureDatabaseSchema() {
     // 2.1 Orders table columns
     await db.execute(sql`
       ALTER TABLE orders ADD COLUMN IF NOT EXISTS provider_order_id TEXT;
+      ALTER TABLE orders ADD COLUMN IF NOT EXISTS provider_order_uuid TEXT;
+      CREATE INDEX IF NOT EXISTS idx_orders_provider_uuid ON orders(provider_order_uuid) WHERE provider_order_uuid IS NOT NULL;
     `);
-    console.log("[ensureSchema] ✅ orders.provider_order_id ensured");
+    console.log("[ensureSchema] ✅ orders.provider_order_id and orders.provider_order_uuid ensured");
 
     // 3. Products table columns
     await db.execute(sql`
