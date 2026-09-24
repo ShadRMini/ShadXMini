@@ -3600,7 +3600,7 @@ router.post("/admin/import-products", requireAdmin, async (req, res) => {
         priceUsd: String(r.priceUsd),
         priceSyp: String(r.priceSyp),
         productType: r.productType || "package",
-        image: r.image || "/cat-cards.png",
+        image: r.image || "/cat-cards.webp",
         source: "import",
       })),
     )
