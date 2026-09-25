@@ -13181,36 +13181,17 @@ var saveStore2;
 var getTableName3;
 var matchesCond2;
 
-// scripts/test-task79-verification.ts
+// scripts/check-pubg-params.ts
 async function main() {
-  console.log("================================================================================");
-  console.log("\u{1F50D} Task #79 Verification: Testing Catalog and Product Output");
-  console.log("================================================================================");
-  const testIds = [1, 6, 7, 8, 9, 10, 11, 13, 23];
-  const products = await db.select({
-    p: productsTable,
-    cname: categoriesTable.name
-  }).from(productsTable).innerJoin(categoriesTable, eq(categoriesTable.id, productsTable.categoryId)).where(inArray(productsTable.id, testIds));
-  console.log(`Found ${products.length} products to verify.
-`);
-  for (const { p, cname } of products) {
-    const finalPriceUsd = p.finalUnitPrice != null ? Number(p.finalUnitPrice) : Number(p.priceUsd ?? 0);
-    const minQty = p.minQuantity ?? (p.minQty != null ? Number(p.minQty) : 1);
-    const safeMinQty = Number.isFinite(Number(minQty)) && Number(minQty) > 0 ? Number(minQty) : 1;
-    const isPackage = p.productType === "package";
-    const effectiveQty = isPackage ? 1 : safeMinQty;
-    const minTotalUsd = Number((finalPriceUsd * effectiveQty).toFixed(8));
-    console.log(`Product ID #${p.id} [${p.name}] (Category: ${cname}):`);
-    console.log(`  - Type: ${p.productType}`);
-    console.log(`  - Unit/Package Price USD: $${finalPriceUsd}`);
-    console.log(`  - Effective Min Qty: ${isPackage ? 1 : safeMinQty}`);
-    console.log(`  - Min Total USD: $${minTotalUsd}`);
-    console.log(`  - Display Summary: ${isPackage ? `1 Package = $${finalPriceUsd}` : `${safeMinQty} units = $${minTotalUsd}`}`);
-    console.log("----------------------------------------------------------------");
-  }
+  const rows = await db.execute(sql`
+    SELECT id, name, product_type, params, provider_id, provider_product_id
+    FROM products
+    ORDER BY id;
+  `);
+  console.table(rows.rows || rows);
   process.exit(0);
 }
 main().catch((err) => {
-  console.error("Verification failed:", err);
+  console.error(err);
   process.exit(1);
 });

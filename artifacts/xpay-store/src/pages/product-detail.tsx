@@ -948,9 +948,9 @@ export default function ProductDetail() {
         );
 
       case "quantity":
-        if (isPackage) {
-          return (
-            <div key={sec.id} className="space-y-3 pt-2 border-t border-[var(--theme-border,rgba(255,255,255,0.1))]">
+        return (
+          <div key={sec.id} className="space-y-3 pt-2 border-t border-[var(--theme-border,rgba(255,255,255,0.1))]">
+            {isPackage ? (
               <div
                 className="p-4 rounded-2xl transition border flex items-center justify-between shadow-inner"
                 style={{
@@ -985,36 +985,32 @@ export default function ProductDetail() {
                   كمية ثابتة (1)
                 </div>
               </div>
-            </div>
-          );
-        }
-
-        return (
-          <div key={sec.id} className="space-y-3 pt-2 border-t border-[var(--theme-border,rgba(255,255,255,0.1))]">
-            <div className="flex justify-between items-center mb-1">
-              <label
-                className="text-xs font-bold"
-                style={{
-                  color: getCustomOrFallback(
-                    customization.quantity_label_color,
-                    "var(--theme-text-primary)"
-                  )
-                }}
-              >
-                {sec.title || "حدد الكمية المطلوبة:"}
-              </label>
-              <span
-                className="text-[11px] font-semibold"
-                style={{
-                  color: getCustomOrFallback(
-                    customization.quantity_buttons_text || customization.quantity_button_color,
-                    "var(--theme-primary)"
-                  )
-                }}
-              >
-                (الحد الأدنى: {minQty.toLocaleString()})
-              </span>
-            </div>
+            ) : (
+              <>
+                <div className="flex justify-between items-center mb-1">
+                  <label
+                    className="text-xs font-bold"
+                    style={{
+                      color: getCustomOrFallback(
+                        customization.quantity_label_color,
+                        "var(--theme-text-primary)"
+                      )
+                    }}
+                  >
+                    {sec.title || "حدد الكمية المطلوبة:"}
+                  </label>
+                  <span
+                    className="text-[11px] font-semibold"
+                    style={{
+                      color: getCustomOrFallback(
+                        customization.quantity_buttons_text || customization.quantity_button_color,
+                        "var(--theme-primary)"
+                      )
+                    }}
+                  >
+                    (الحد الأدنى: {minQty.toLocaleString()})
+                  </span>
+                </div>
 
             {usesFixedQuantity ? (
               <div
@@ -1237,6 +1233,8 @@ export default function ProductDetail() {
                 </button>
               </div>
             )}
+          </>
+        )}
 
             {/* Dynamic Inputs or Fallback Account ID / Phone Number Inputs */}
             {dynamicParams.length > 0 ? (

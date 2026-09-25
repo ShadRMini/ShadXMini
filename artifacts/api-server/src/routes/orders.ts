@@ -1,7 +1,7 @@
 import { Router, type IRouter } from "express";
 import { randomUUID } from "crypto";
 import { and, asc, desc, eq, or, sql } from "drizzle-orm";
-import { db, ordersTable, productsTable, providersTable, usersTable, vipMembershipsTable } from "@workspace/db";
+import { db, categoriesTable, ordersTable, productsTable, providersTable, usersTable, vipMembershipsTable } from "@workspace/db";
 import {
   CreateOrderBody,
   CreateOrderResponse,
@@ -817,6 +817,38 @@ router.post("/orders", async (req, res) => {
       if (primaryKey && body.customParams[primaryKey]) {
         resolvedIdentifier = String(body.customParams[primaryKey]).trim();
       }
+    }
+
+    // Check if category or params requires an identifier
+    let categoryName = "";
+    if (product.categoryId) {
+      const [cat] = await db
+        .select({ name: categoriesTable.name })
+        .from(categoriesTable)
+        .where(eq(categoriesTable.id, product.categoryId))
+        .limit(1);
+      categoryName = cat?.name || "";
+    }
+
+    let productParams: string[] = [];
+    if (Array.isArray((product as any).params)) {
+      productParams = (product as any).params;
+    } else if (typeof (product as any).params === "string") {
+      try {
+        const parsed = JSON.parse((product as any).params);
+        if (Array.isArray(parsed)) productParams = parsed;
+      } catch {}
+    }
+
+    const categoryRequiresId = categoryName.match(/(العاب|التطبيقات|Games|Apps|PUBG|ببجي)/i);
+    const requiresPlayerId = productParams.length > 0 || !!categoryRequiresId;
+
+    if (requiresPlayerId && !resolvedIdentifier) {
+      res.status(400).json({
+        error: "معرّف الحساب (Player ID) مطلوب لإتمام الطلب",
+        code: "PLAYER_ID_REQUIRED",
+      });
+      return;
     }
 
     const playerId = resolvedIdentifier || `user_${user.id}`;
