@@ -31,6 +31,9 @@ router.get("/favorites", async (req, res) => {
       const minQty = p.minQuantity ?? (p.minQty != null ? Number(p.minQty) : 1);
       const safeMinQty = Number.isFinite(Number(minQty)) && Number(minQty) > 0 ? Number(minQty) : 1;
 
+      const isPackage = p.productType === "package";
+      const effectiveQty = isPackage ? 1 : safeMinQty;
+
       return {
         favoriteId: String(favoriteId),
         favoritedAt: favoritedAt.toISOString(),
@@ -41,9 +44,10 @@ router.get("/favorites", async (req, res) => {
         image: p.image,
         order: p.order,
         priceUsd: finalPriceUsd,
-        minTotalUsd: Number((finalPriceUsd * safeMinQty).toFixed(8)),
+        minTotalUsd: Number((finalPriceUsd * effectiveQty).toFixed(8)),
         priceSyp: Number(p.priceSyp),
         productType: p.productType,
+        isSingleQuantity: isPackage,
         available: p.available,
         minQty: safeMinQty,
         maxQty: p.maxQuantity ?? (p.maxQty != null ? Number(p.maxQty) : undefined),

@@ -17,6 +17,8 @@ type ProductItem = {
   priceUsd: number;
   minTotalUsd?: number;
   minQty?: number;
+  productType?: string;
+  isSingleQuantity?: boolean;
 };
 
 type ProductGroupItem = {
@@ -30,8 +32,10 @@ function formatTotalUsdPrice(product: ProductItem) {
   const apiTotal = Number(product.minTotalUsd);
   if (Number.isFinite(apiTotal) && apiTotal >= 0) return `$${apiTotal.toFixed(5)}`;
   const unitPrice = Number(product.priceUsd || 0);
+  const isPackage = (product as any).productType === "package" || (product as any).isSingleQuantity;
   const minQty = Number(product.minQty || 1);
-  const total = unitPrice * (Number.isFinite(minQty) && minQty > 0 ? minQty : 1);
+  const effectiveQty = isPackage ? 1 : (Number.isFinite(minQty) && minQty > 0 ? minQty : 1);
+  const total = unitPrice * effectiveQty;
   return `$${Number.isFinite(total) ? total.toFixed(5) : "0.00000"}`;
 }
 

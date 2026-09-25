@@ -459,18 +459,21 @@ export default function ProductDetail() {
 
   useEffect(() => {
     if (!product) return;
+    const isPkg = product.productType === "package";
     const officialValues = Array.isArray((product as any).quantityValues)
       ? (product as any).quantityValues
           .map((value: unknown) => Number(value))
           .filter((value: number) => Number.isInteger(value) && value > 0)
           .sort((a: number, b: number) => a - b)
       : [];
-    const min = (product as any).quantityType === "list" && officialValues.length
-      ? officialValues[0]
-      : Number(product.minQty || 1);
+    const min = isPkg
+      ? 1
+      : ((product as any).quantityType === "list" && officialValues.length
+          ? officialValues[0]
+          : Number(product.minQty || 1));
     setQuantity(min);
     setQuantityInput(String(min));
-  }, [product?.id, product?.minQty, (product as any)?.quantityType]);
+  }, [product?.id, product?.minQty, (product as any)?.quantityType, product?.productType]);
 
   if (isLoading) {
     return (
@@ -492,7 +495,8 @@ export default function ProductDetail() {
     return <div className="p-8 text-center mt-20 text-white font-bold text-lg">المنتج غير موجود أو تم إزالته</div>;
   }
 
-  const minQty = product.minQty || 1;
+  const isPackage = product.productType === "package";
+  const minQty = isPackage ? 1 : (product.minQty || 1);
   const officialQuantityValues = Array.isArray((product as any).quantityValues)
     ? (product as any).quantityValues
         .map((value: unknown) => Number(value))
@@ -500,8 +504,8 @@ export default function ProductDetail() {
         .sort((a: number, b: number) => a - b)
     : [];
   const quantityType = (product as any).quantityType;
-  const usesOfficialQuantityList = quantityType === "list" && officialQuantityValues.length > 0;
-  const usesFixedQuantity = quantityType === "fixed";
+  const usesOfficialQuantityList = !isPackage && quantityType === "list" && officialQuantityValues.length > 0;
+  const usesFixedQuantity = isPackage || quantityType === "fixed";
   const purchaseMode = detectPurchaseMode(product.categoryName, product.productType);
   const baseUnitPrice = (customization.default_unit_price && Number(customization.default_unit_price) > 0)
     ? Number(customization.default_unit_price)
@@ -515,15 +519,21 @@ export default function ProductDetail() {
     calculatedUnitPrice = Math.max(providerPriceFloor, baseUnitPrice - vipDiscountFixedAmount);
   }
   const unitPrice = Number(calculatedUnitPrice.toFixed(8));
+  const effectiveQuantity = isPackage ? 1 : quantity;
   const totalUsd = (customization.total_amount && Number(customization.total_amount) > 0)
     ? Number(customization.total_amount)
-    : Number((unitPrice * quantity).toFixed(8));
-  const baseTotalUsd = Number((baseUnitPrice * quantity).toFixed(8));
+    : Number((unitPrice * effectiveQuantity).toFixed(8));
+  const baseTotalUsd = Number((baseUnitPrice * effectiveQuantity).toFixed(8));
   const totalSavingsUsd = hasVipDiscount ? Math.max(0, baseTotalUsd - totalUsd) : 0;
 
   const isLegacy = legacyOverride !== null ? legacyOverride : settings.product_legacy_mode;
 
   const commitQuantityInput = (rawValue?: string) => {
+    if (isPackage) {
+      setQuantity(1);
+      setQuantityInput("1");
+      return 1;
+    }
     const source = typeof rawValue === "string" ? rawValue : quantityInput;
     const normalized = String(source || "").replace(/,/g, "").trim();
     if (!normalized) {
@@ -843,7 +853,7 @@ export default function ProductDetail() {
                     ) 
                   }}
                 >
-                  سعر الوحدة
+                  {isPackage ? "سعر الحزمة" : "سعر الوحدة"}
                 </div>
                 <div className="flex items-baseline gap-2">
                   <div 
@@ -938,6 +948,47 @@ export default function ProductDetail() {
         );
 
       case "quantity":
+        if (isPackage) {
+          return (
+            <div key={sec.id} className="space-y-3 pt-2 border-t border-[var(--theme-border,rgba(255,255,255,0.1))]">
+              <div
+                className="p-4 rounded-2xl transition border flex items-center justify-between shadow-inner"
+                style={{
+                  backgroundColor: getCustomOrFallback(
+                    customization.quantity_input_bg || customization.player_id_input_bg,
+                    "var(--theme-card, rgba(200, 164, 92, 0.1))"
+                  ),
+                  borderColor: getCustomOrFallback(
+                    customization.quantity_input_border || customization.player_id_input_border,
+                    "var(--theme-border)"
+                  ),
+                }}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">📦</span>
+                  <div>
+                    <div className="text-xs font-bold" style={{ color: getCustomOrFallback(customization.disclaimer_text_color, "var(--theme-text-primary)") }}>
+                      حزمة واحدة (الحزمة كاملة)
+                    </div>
+                    <div className="text-[11px] text-zinc-400">
+                      يتم شراء هذا المنتج كحزمة متكاملة دفعة واحدة
+                    </div>
+                  </div>
+                </div>
+                <div
+                  className="text-xs font-extrabold px-3 py-1.5 rounded-xl border border-[var(--theme-border)]"
+                  style={{
+                    backgroundColor: "rgba(200, 164, 92, 0.15)",
+                    color: "var(--theme-primary)"
+                  }}
+                >
+                  كمية ثابتة (1)
+                </div>
+              </div>
+            </div>
+          );
+        }
+
         return (
           <div key={sec.id} className="space-y-3 pt-2 border-t border-[var(--theme-border,rgba(255,255,255,0.1))]">
             <div className="flex justify-between items-center mb-1">
@@ -1565,11 +1616,16 @@ export default function ProductDetail() {
             {/* Purchase Form Elements */}
             <div>
               <div className="flex justify-between items-center mb-3">
-                <label className="text-sm font-bold text-white">الكمية المطلوبة</label>
-                <span className="text-xs text-[#C8A45C]">(الحد الأدنى: {minQty.toLocaleString()})</span>
+                <label className="text-sm font-bold text-white">{isPackage ? "نوع الطلب" : "الكمية المطلوبة"}</label>
+                {!isPackage && <span className="text-xs text-[#C8A45C]">(الحد الأدنى: {minQty.toLocaleString()})</span>}
               </div>
 
-              {usesFixedQuantity ? (
+              {isPackage ? (
+                <div className="rounded-2xl border border-[#C8A45C]/50 bg-[#C8A45C]/10 px-4 py-4 text-center">
+                  <div className="text-xs text-zinc-300 mb-1">📦 حزمة واحدة (الحزمة كاملة)</div>
+                  <div className="text-xl font-black text-[#FDE68A]">كمية ثابتة (1)</div>
+                </div>
+              ) : usesFixedQuantity ? (
                 <div className="rounded-2xl border border-[#C8A45C]/50 bg-[#C8A45C]/10 px-4 py-4 text-center">
                   <div className="text-xs text-zinc-300 mb-1">كمية رسمية ثابتة من المزود</div>
                   <div className="text-xl font-black text-[#FDE68A]">{minQty.toLocaleString()}</div>

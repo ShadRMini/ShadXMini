@@ -275,10 +275,10 @@ export default function ProductsNew() {
         storeProfitPerUnit: storeProfit,
         priceUsd: storeProfit,
         quantityType: formData.quantityType,
-        minQuantity: Number(formData.minQuantity || 1),
-        maxQuantity: formData.maxQuantity !== "" ? Number(formData.maxQuantity) : null,
-        minQty: Number(formData.minQuantity || 1),
-        maxQty: formData.maxQuantity !== "" ? Number(formData.maxQuantity) : null,
+        minQuantity: formData.productType === "package" ? 1 : Number(formData.minQuantity || 1),
+        maxQuantity: formData.productType === "package" ? 1 : (formData.maxQuantity !== "" ? Number(formData.maxQuantity) : null),
+        minQty: formData.productType === "package" ? 1 : Number(formData.minQuantity || 1),
+        maxQty: formData.productType === "package" ? 1 : (formData.maxQuantity !== "" ? Number(formData.maxQuantity) : null),
         productType: formData.productType,
         available: Boolean(formData.available),
         featured: Boolean(formData.featured),
@@ -833,7 +833,7 @@ export default function ProductsNew() {
               {/* Provider Unit Price (Cost Price) */}
               <div>
                 <label className="block text-xs font-bold text-zinc-200 mb-2">
-                  سعر التكلفة (من المزود) ($)
+                  {formData.productType === "package" ? "سعر التكلفة (من المزود للحزمة) ($)" : "سعر التكلفة (من المزود) ($)"}
                 </label>
                 <div className="relative">
                   <input
@@ -850,7 +850,7 @@ export default function ProductsNew() {
               {/* Final Selling Price */}
               <div>
                 <label className="block text-xs font-bold text-zinc-200 mb-2">
-                  سعر البيع النهائي للوحدة ($) <span className="text-red-400">*</span>
+                  {formData.productType === "package" ? "سعر البيع للحزمة الواحدة ($)" : "سعر البيع النهائي للوحدة ($)"} <span className="text-red-400">*</span>
                 </label>
                 <div className="relative">
                   <input
@@ -1014,9 +1014,14 @@ export default function ProductsNew() {
                 <input
                   type="number"
                   min="1"
-                  value={formData.minQuantity}
-                  onChange={(e) => setFormData({ ...formData, minQuantity: Number(e.target.value) })}
-                  className="w-full bg-[#1A1A1A] border border-zinc-700 rounded-2xl px-4 py-3.5 text-sm text-white focus:outline-none focus:border-[#C8A45C]"
+                  value={formData.productType === "package" ? 1 : formData.minQuantity}
+                  onChange={(e) => {
+                    if (formData.productType !== "package") {
+                      setFormData({ ...formData, minQuantity: Number(e.target.value) });
+                    }
+                  }}
+                  readOnly={formData.productType === "package"}
+                  className={`w-full bg-[#1A1A1A] border border-zinc-700 rounded-2xl px-4 py-3.5 text-sm text-white focus:outline-none focus:border-[#C8A45C] ${formData.productType === "package" ? "opacity-60 cursor-not-allowed" : ""}`}
                 />
               </div>
 
@@ -1025,12 +1030,25 @@ export default function ProductsNew() {
                 <label className="block text-xs font-bold text-zinc-200 mb-2">الحد الأقصى للكمية (اختياري)</label>
                 <input
                   type="number"
-                  value={formData.maxQuantity}
-                  onChange={(e) => setFormData({ ...formData, maxQuantity: e.target.value })}
-                  placeholder="غير محدد"
-                  className="w-full bg-[#1A1A1A] border border-zinc-700 rounded-2xl px-4 py-3.5 text-sm text-white focus:outline-none focus:border-[#C8A45C]"
+                  value={formData.productType === "package" ? 1 : formData.maxQuantity}
+                  onChange={(e) => {
+                    if (formData.productType !== "package") {
+                      setFormData({ ...formData, maxQuantity: e.target.value });
+                    }
+                  }}
+                  readOnly={formData.productType === "package"}
+                  placeholder={formData.productType === "package" ? "1" : "غير محدد"}
+                  className={`w-full bg-[#1A1A1A] border border-zinc-700 rounded-2xl px-4 py-3.5 text-sm text-white focus:outline-none focus:border-[#C8A45C] ${formData.productType === "package" ? "opacity-60 cursor-not-allowed" : ""}`}
                 />
               </div>
+
+              {/* Package product explanation banner */}
+              {formData.productType === "package" && (
+                <div className="md:col-span-2 lg:col-span-4 p-3.5 bg-[#1A1A1A] border border-[#C8A45C]/40 rounded-2xl text-xs text-[#FDE68A] flex items-center gap-2 shadow-inner">
+                  <span className="text-base">📦</span>
+                  <span><strong>منتج حزمة (Package):</strong> يتم شراؤه كوحدة واحدة ثابتة (الكمية = 1). السعر المحدد هو سعر الحزمة كاملة.</span>
+                </div>
+              )}
 
               {/* Custom Quantity Values (if range or list) */}
               {(formData.quantityType === "list" || formData.quantityType === "range") && (

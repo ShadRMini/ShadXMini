@@ -39,6 +39,9 @@ function productRow(p: typeof productsTable.$inferSelect, categoryName: string) 
     } catch {}
   }
 
+  const isPackage = p.productType === "package";
+  const effectiveQty = isPackage ? 1 : safeMinQty;
+
   return {
     id: String(p.id),
     name: p.name,
@@ -48,12 +51,13 @@ function productRow(p: typeof productsTable.$inferSelect, categoryName: string) 
     image: p.image,
     order: p.order,
     priceUsd: finalPriceUsd,
-    minTotalUsd: Number((finalPriceUsd * safeMinQty).toFixed(8)),
+    minTotalUsd: Number((finalPriceUsd * effectiveQty).toFixed(8)),
     priceSyp: Number(p.priceSyp),
     productType: p.productType as "amount" | "package",
+    isSingleQuantity: isPackage,
     available: p.available,
-    minQty: safeMinQty,
-    maxQty: p.maxQuantity ?? (p.maxQty != null ? Number(p.maxQty) : undefined),
+    minQty: isPackage ? 1 : safeMinQty,
+    maxQty: isPackage ? 1 : (p.maxQuantity ?? (p.maxQty != null ? Number(p.maxQty) : undefined)),
     quantityType: p.quantityType,
     quantityValues,
     params: productParams && productParams.length > 0 ? productParams : undefined,

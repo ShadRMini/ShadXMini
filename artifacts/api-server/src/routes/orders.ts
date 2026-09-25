@@ -75,6 +75,14 @@ function resolveProductQuantityModel(product: typeof productsTable.$inferSelect)
   maxQuantity: number | null;
   quantityValues: unknown;
 } {
+  if (product.productType === "package") {
+    return {
+      quantityType: "fixed",
+      minQuantity: 1,
+      maxQuantity: 1,
+      quantityValues: null,
+    };
+  }
   const oldMin = product.minQty != null ? Number(product.minQty) : 1;
   const oldMax = product.maxQty != null ? Number(product.maxQty) : null;
   const minQuantity = product.minQuantity ?? (Number.isFinite(oldMin) && oldMin > 0 ? Math.floor(oldMin) : 1);
@@ -771,8 +779,11 @@ router.post("/orders", async (req, res) => {
       );
     }
 
-    const totalUsd = multiplyUnitPriceByQuantity(finalUnitPriceUsd, body.quantity);
-    const totalSyp = Number(product.priceSyp) * body.quantity;
+    const isPackage = product.productType === "package";
+    const effectiveQuantity = isPackage ? 1 : body.quantity;
+
+    const totalUsd = multiplyUnitPriceByQuantity(finalUnitPriceUsd, effectiveQuantity);
+    const totalSyp = Number(product.priceSyp) * effectiveQuantity;
     const balanceBeforeUsd = String(user.balanceUsd);
 
     if (decimalToScaledBigInt(totalUsd) <= 0n) {
@@ -853,7 +864,7 @@ router.post("/orders", async (req, res) => {
           orderNumber,
           userId: user.id,
           productId: product.id,
-          quantity: String(body.quantity),
+          quantity: String(effectiveQuantity),
           userIdentifier: resolvedIdentifier || null,
           providerOrderUuid: orderUuid,
           totalUsd,
@@ -880,7 +891,7 @@ router.post("/orders", async (req, res) => {
           providerForOrder.apiKey!,
           providerForOrder.apiUrl || undefined,
           (product as any).providerProductId!,
-          body.quantity,
+          effectiveQuantity,
           playerId,
           orderUuid,
           body.customParams,

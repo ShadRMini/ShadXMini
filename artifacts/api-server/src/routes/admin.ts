@@ -4948,6 +4948,7 @@ router.post("/admin/provider-products/import", requireAdmin, async (req, res) =>
       const finalPrice = String(item.finalUnitPrice ?? item.priceUsd ?? item.price ?? costPrice);
       const profit = String(item.storeProfitPerUnit ?? (Number(finalPrice) - Number(costPrice)).toFixed(4));
 
+      const isPkg = item.productType === "package";
       const productPayload: any = {
         name,
         priceUsd: finalPrice,
@@ -4963,10 +4964,12 @@ router.post("/admin/provider-products/import", requireAdmin, async (req, res) =>
         available: item.available !== false,
         active: true,
         source: "api",
-        minQuantity: item.minQty ?? item.minQuantity ?? 1,
-        maxQuantity: item.maxQty ?? item.maxQuantity ?? null,
-        quantityType: item.quantityType || "fixed",
-        quantityValues: item.quantityValues || null,
+        minQuantity: isPkg ? 1 : (item.minQty ?? item.minQuantity ?? 1),
+        maxQuantity: isPkg ? 1 : (item.maxQty ?? item.maxQuantity ?? null),
+        minQty: isPkg ? 1 : (item.minQty ?? item.minQuantity ?? 1),
+        maxQty: isPkg ? 1 : (item.maxQty ?? item.maxQuantity ?? null),
+        quantityType: isPkg ? "fixed" : (item.quantityType || "fixed"),
+        quantityValues: isPkg ? null : (item.quantityValues || null),
         productType: item.productType || "amount",
         params: Array.isArray(item.params) ? item.params : (item.rawData?.params || null),
         description: item.description || (Array.isArray(item.params) ? item.params.join(", ") : ""),

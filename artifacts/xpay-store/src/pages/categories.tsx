@@ -18,6 +18,8 @@ type ProductItem = {
   priceUsd: number;
   minTotalUsd?: number;
   minQty?: number;
+  productType?: string;
+  isSingleQuantity?: boolean;
 };
 
 type ProductGroupItem = {
@@ -36,6 +38,7 @@ function withImageVersion(url: string, version: string) {
 }
 
 function getDefaultQuantity(product: ProductItem) {
+  if ((product as any).productType === "package" || (product as any).isSingleQuantity) return 1;
   const minQty = Number(product.minQty || 1);
   return Number.isFinite(minQty) && minQty > 0 ? minQty : 1;
 }

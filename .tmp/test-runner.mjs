@@ -13181,35 +13181,36 @@ var saveStore2;
 var getTableName3;
 var matchesCond2;
 
-// scripts/test-db-image-references.ts
+// scripts/test-task79-verification.ts
 async function main() {
   console.log("================================================================================");
-  console.log("\u{1F50D} DB Image Reference Search (without extensions)");
+  console.log("\u{1F50D} Task #79 Verification: Testing Catalog and Product Output");
   console.log("================================================================================");
-  const queries = [
-    { table: "products", query: sql`SELECT id, name, image FROM products WHERE image ILIKE ANY(ARRAY['%banner-1%', '%cat-games%', '%cat-numbers%', '%cat-cards%', '%cat-chat%', '%cat-balance%', '%cat-internet%', '%cat-telegram%'])` },
-    { table: "product_groups", query: sql`SELECT id, name, image FROM product_groups WHERE image ILIKE ANY(ARRAY['%banner-1%', '%cat-games%', '%cat-numbers%', '%cat-cards%', '%cat-chat%', '%cat-balance%', '%cat-internet%', '%cat-telegram%'])` },
-    { table: "categories", query: sql`SELECT id, name, image FROM categories WHERE image ILIKE ANY(ARRAY['%banner-1%', '%cat-games%', '%cat-numbers%', '%cat-cards%', '%cat-chat%', '%cat-balance%', '%cat-internet%', '%cat-telegram%'])` },
-    { table: "banners", query: sql`SELECT id, title, image FROM banners WHERE image ILIKE ANY(ARRAY['%banner-1%', '%cat-games%', '%cat-numbers%', '%cat-cards%', '%cat-chat%', '%cat-balance%', '%cat-internet%', '%cat-telegram%'])` },
-    { table: "payment_methods", query: sql`SELECT id, name, logo_image, qr_image FROM payment_methods WHERE logo_image ILIKE ANY(ARRAY['%banner-1%', '%cat-games%', '%cat-numbers%', '%cat-cards%', '%cat-chat%', '%cat-balance%', '%cat-internet%', '%cat-telegram%']) OR qr_image ILIKE ANY(ARRAY['%banner-1%', '%cat-games%', '%cat-numbers%', '%cat-cards%', '%cat-chat%', '%cat-balance%', '%cat-internet%', '%cat-telegram%'])` },
-    { table: "settings", query: sql`SELECT key, value FROM settings WHERE value::text ILIKE ANY(ARRAY['%banner-1%', '%cat-games%', '%cat-numbers%', '%cat-cards%', '%cat-chat%', '%cat-balance%', '%cat-internet%', '%cat-telegram%'])` }
-  ];
-  for (const q of queries) {
-    try {
-      const res = await db.execute(q.query);
-      console.log(`Table '${q.table}': ${res.rows.length} rows found.`);
-      if (res.rows.length > 0) {
-        console.log(JSON.stringify(res.rows, null, 2));
-      }
-    } catch (e) {
-      console.log(`Table '${q.table}': error (${e.message})`);
-    }
+  const testIds = [1, 6, 7, 8, 9, 10, 11, 13, 23];
+  const products = await db.select({
+    p: productsTable,
+    cname: categoriesTable.name
+  }).from(productsTable).innerJoin(categoriesTable, eq(categoriesTable.id, productsTable.categoryId)).where(inArray(productsTable.id, testIds));
+  console.log(`Found ${products.length} products to verify.
+`);
+  for (const { p, cname } of products) {
+    const finalPriceUsd = p.finalUnitPrice != null ? Number(p.finalUnitPrice) : Number(p.priceUsd ?? 0);
+    const minQty = p.minQuantity ?? (p.minQty != null ? Number(p.minQty) : 1);
+    const safeMinQty = Number.isFinite(Number(minQty)) && Number(minQty) > 0 ? Number(minQty) : 1;
+    const isPackage = p.productType === "package";
+    const effectiveQty = isPackage ? 1 : safeMinQty;
+    const minTotalUsd = Number((finalPriceUsd * effectiveQty).toFixed(8));
+    console.log(`Product ID #${p.id} [${p.name}] (Category: ${cname}):`);
+    console.log(`  - Type: ${p.productType}`);
+    console.log(`  - Unit/Package Price USD: $${finalPriceUsd}`);
+    console.log(`  - Effective Min Qty: ${isPackage ? 1 : safeMinQty}`);
+    console.log(`  - Min Total USD: $${minTotalUsd}`);
+    console.log(`  - Display Summary: ${isPackage ? `1 Package = $${finalPriceUsd}` : `${safeMinQty} units = $${minTotalUsd}`}`);
+    console.log("----------------------------------------------------------------");
   }
-  console.log("================================================================================");
-  console.log("DB search complete.");
   process.exit(0);
 }
 main().catch((err) => {
-  console.error(err);
+  console.error("Verification failed:", err);
   process.exit(1);
 });
