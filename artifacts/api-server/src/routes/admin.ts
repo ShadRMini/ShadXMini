@@ -28,7 +28,7 @@ import {
   productPageConfigTable,
   identityVerificationsTable,
 } from "@workspace/db";
-import { and, asc, desc, eq, gte, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray, sql } from "drizzle-orm";
 import { requireAdmin } from "../lib/adminAuth.js";
 import { getAdapter } from "../lib/adapter-registry"; 
 import { MersalAdapter } from "../lib/mersal-adapter";
@@ -1033,7 +1033,7 @@ function makeCrud<T extends { id: any }>(
         if ((orderStats?.count || 0) > 0) {
           await db
             .update(productsTable)
-            .set({ available: false, featured: false })
+            .set({ available: false, active: false, featured: false })
             .where(eq(productsTable.id, id));
           await logActivity(
             { id: req.session.adminId, name: req.session.adminUsername },
@@ -1815,24 +1815,62 @@ router.patch("/admin/social-links/reorder", requireAdmin, async (req, res) => {
   }
 });
 
-// Cascade delete للمزودين: حذف المنتجات المرتبطة ثم حذف المزود
 router.delete("/admin/providers/:id", requireAdmin, async (req, res) => {
   const providerId = Number(req.params.id);
   
-  // حذف جميع المنتجات المرتبطة بهذا المزود
-  await db.execute(sql`DELETE FROM products WHERE provider_id = ${providerId}`);
+  // فحص الطلبات المرتبطة بمنتجات هذا المزوّد
+  const [linkedOrders] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(ordersTable)
+    .where(
+      sql`${ordersTable.productId} IN (
+        SELECT id FROM products WHERE provider_id = ${providerId}
+      )`
+    );
   
-  // حذف المزود نفسه
+  if ((linkedOrders?.count || 0) > 0) {
+    // Archive: تعطيل المزوّد + منتجاته
+    await db.execute(sql`
+      UPDATE products 
+      SET available = false, active = false
+      WHERE provider_id = ${providerId}
+    `);
+    
+    // إن كان providers.active موجوداً
+    try {
+      await db.execute(sql`
+        UPDATE providers SET active = false WHERE id = ${providerId}
+      `);
+    } catch {
+      // لا يوجد active — تجاهل
+    }
+    
+    await logActivity(
+      { id: req.session.adminId, name: req.session.adminUsername },
+      "archive_provider",
+      "providers",
+      { id: providerId, orders: linkedOrders?.count || 0 }
+    );
+    
+    return res.json({
+      ok: true,
+      archived: true,
+      message: `تم أرشفة المزوّد ومنتجاته (يوجد ${linkedOrders?.count || 0} طلب مرتبط).`
+    });
+  }
+  
+  // لا طلبات → حذف فعلي
+  await db.execute(sql`DELETE FROM products WHERE provider_id = ${providerId}`);
   await db.delete(providersTable).where(eq(providersTable.id, providerId));
   
   await logActivity(
     { id: req.session.adminId, name: req.session.adminUsername },
     "delete",
     "providers",
-    { id: providerId, cascade: true }
+    { id: providerId }
   );
   
-  res.json({ ok: true });
+  res.json({ ok: true, deleted: true, message: "تم حذف المزوّد ومنتجاته نهائياً." });
 });
 
 makeCrud("providers", providersTable, {
@@ -2012,13 +2050,66 @@ router.patch(["/admin/users/:id", "/users/:id"], requireAdmin, handleUpdateUser)
 router.delete("/admin/users/:id", requireAdmin, async (req, res) => {
   try {
     const userId = Number(req.params.id);
+    
+    const [user] = await db.select().from(usersTable)
+      .where(eq(usersTable.id, userId)).limit(1);
+    
+    if (!user) {
+      return res.status(404).json({ error: "المستخدم غير موجود" });
+    }
+    
+    // فحص السجلات المالية
+    const [orderCount] = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(ordersTable)
+      .where(eq(ordersTable.userId, userId));
+    
+    const [depositCount] = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(depositsTable)
+      .where(eq(depositsTable.userId, userId));
+    
+    const hasRecords = (orderCount?.count || 0) > 0 || (depositCount?.count || 0) > 0;
+    
+    if (hasRecords) {
+      // Archive + Anonymize
+      await db.update(usersTable)
+        .set({
+          banned: true,
+          username: `deleted_${userId}_${user.username}`.substring(0, 50),
+          email: null,
+          avatarUrl: null,
+        })
+        .where(eq(usersTable.id, userId));
+      
+      await logActivity(
+        { id: req.session.adminId, name: req.session.adminUsername },
+        "archive_user",
+        String(userId),
+        { 
+          reason: "has_financial_records",
+          orders: orderCount?.count || 0,
+          deposits: depositCount?.count || 0,
+        }
+      );
+      
+      return res.json({
+        ok: true,
+        archived: true,
+        message: `تم أرشفة المستخدم (لديه ${orderCount?.count || 0} طلب، ${depositCount?.count || 0} إيداع). الحساب محظور وبياناته مخفية.`
+      });
+    }
+    
+    // No records → Hard delete
     await db.delete(usersTable).where(eq(usersTable.id, userId));
+    
     await logActivity(
       { id: req.session.adminId, name: req.session.adminUsername },
       "delete_user",
       String(userId)
     );
-    res.json({ ok: true });
+    
+    res.json({ ok: true, deleted: true, message: "تم حذف المستخدم نهائياً." });
   } catch (err: any) {
     console.error("Error deleting user:", err);
     res.status(500).json({ error: err.message || "فشل في حذف المستخدم" });
@@ -2057,17 +2148,66 @@ router.post("/admin/users/bulk-delete", requireAdmin, async (req, res) => {
     if (!Array.isArray(userIds) || userIds.length === 0) {
       return res.status(400).json({ error: "لم يتم تحديد أي مستخدمين" });
     }
-
-    await db.delete(usersTable).where(inArray(usersTable.id, userIds.map(Number)));
-
+    
+    const ids = userIds.map(Number).filter(Number.isFinite);
+    const results = { deleted: 0, archived: 0, errors: [] as number[] };
+    
+    for (const userId of ids) {
+      try {
+        const [user] = await db.select().from(usersTable)
+          .where(eq(usersTable.id, userId)).limit(1);
+        
+        if (!user) {
+          results.errors.push(userId);
+          continue;
+        }
+        
+        const [orderCount] = await db
+          .select({ count: sql<number>`count(*)::int` })
+          .from(ordersTable)
+          .where(eq(ordersTable.userId, userId));
+        
+        const [depositCount] = await db
+          .select({ count: sql<number>`count(*)::int` })
+          .from(depositsTable)
+          .where(eq(depositsTable.userId, userId));
+        
+        const hasRecords = (orderCount?.count || 0) > 0 || (depositCount?.count || 0) > 0;
+        
+        if (hasRecords) {
+          await db.update(usersTable)
+            .set({
+              banned: true,
+              username: `deleted_${userId}_${user.username}`.substring(0, 50),
+              email: null,
+              avatarUrl: null,
+            })
+            .where(eq(usersTable.id, userId));
+          results.archived++;
+        } else {
+          await db.delete(usersTable).where(eq(usersTable.id, userId));
+          results.deleted++;
+        }
+      } catch (innerErr) {
+        console.error(`Error processing user ${userId}:`, innerErr);
+        results.errors.push(userId);
+      }
+    }
+    
     await logActivity(
       { id: req.session.adminId, name: req.session.adminUsername },
       "bulk_delete_users",
       "users",
-      { userIds, count: userIds.length }
+      results
     );
-
-    res.json({ ok: true, count: userIds.length });
+    
+    res.json({
+      ok: true,
+      deleted: results.deleted,
+      archived: results.archived,
+      errors: results.errors,
+      total: ids.length,
+    });
   } catch (err: any) {
     console.error("Error bulk deleting users:", err);
     res.status(500).json({ error: err.message || "فشل في الحذف الجماعي" });

@@ -13181,17 +13181,37 @@ var saveStore2;
 var getTableName3;
 var matchesCond2;
 
-// scripts/check-pubg-params.ts
+// scripts/check-task80-part0.ts
 async function main() {
-  const rows = await db.execute(sql`
-    SELECT id, name, product_type, params, provider_id, provider_product_id
-    FROM products
-    ORDER BY id;
+  console.log("=== 1) Check columns of providers table ===");
+  const providerCols = await db.execute(sql`
+    SELECT column_name, data_type 
+    FROM information_schema.columns 
+    WHERE table_name = 'providers'
+    ORDER BY ordinal_position;
   `);
-  console.table(rows.rows || rows);
+  console.table(providerCols.rows || providerCols);
+  console.log("\n=== 2) Check columns of users table ===");
+  const userCols = await db.execute(sql`
+    SELECT column_name, data_type 
+    FROM information_schema.columns 
+    WHERE table_name = 'users'
+    ORDER BY ordinal_position;
+  `);
+  console.table(userCols.rows || userCols);
+  console.log("\n=== 3) Check test users & orders/deposits count ===");
+  const testUsers = await db.execute(sql`
+    SELECT u.id, u.username, u.email, u.banned,
+      (SELECT COUNT(*) FROM orders WHERE user_id = u.id)::int AS orders_count,
+      (SELECT COUNT(*) FROM deposits WHERE user_id = u.id)::int AS deposits_count
+    FROM users u
+    WHERE u.username LIKE 'sync_test_user_%' OR u.username LIKE 'test_user_%'
+    ORDER BY u.id;
+  `);
+  console.table(testUsers.rows || testUsers);
   process.exit(0);
 }
 main().catch((err) => {
-  console.error(err);
+  console.error("Error in check script:", err);
   process.exit(1);
 });

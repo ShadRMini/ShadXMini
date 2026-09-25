@@ -50,6 +50,7 @@ export default function ProductsNew() {
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedProvider, setSelectedProvider] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "archived">("active");
   const [activeTab, setActiveTab] = useState<"list" | "form">("list");
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [isQuickCategoryOpen, setIsQuickCategoryOpen] = useState(false);
@@ -125,9 +126,16 @@ export default function ProductsNew() {
       const matchSearch = p.name?.toLowerCase().includes(search.toLowerCase()) || String(p.id).includes(search);
       const matchCat = !selectedCategory || String(p.categoryId) === selectedCategory;
       const matchProv = !selectedProvider || String(p.providerId) === selectedProvider;
-      return matchSearch && matchCat && matchProv;
+      
+      const isArchived = p.active === false || p.available === false;
+      const isActive = p.active !== false && p.available !== false;
+      let matchStatus = true;
+      if (statusFilter === "active") matchStatus = isActive;
+      else if (statusFilter === "archived") matchStatus = isArchived;
+
+      return matchSearch && matchCat && matchProv && matchStatus;
     });
-  }, [products, search, selectedCategory, selectedProvider]);
+  }, [products, search, selectedCategory, selectedProvider, statusFilter]);
 
   const paginatedProducts = useMemo(() => {
     const start = (page - 1) * limit;
@@ -333,8 +341,12 @@ export default function ProductsNew() {
   const handleDelete = async (id: number) => {
     if (!confirm("هل أنت متأكد من حذف هذا المنتج؟")) return;
     try {
-      await del(`/admin/products/${id}`);
-      showToast("تم حذف المنتج بنجاح.");
+      const res = await del<any>(`/admin/products/${id}`);
+      if (res?.archived) {
+        showToast("تم أرشفة المنتج (له طلبات سابقة). لن يظهر في المتجر.");
+      } else {
+        showToast("تم حذف المنتج بنجاح.");
+      }
       loadData();
     } catch (err: any) {
       showToast(`فشل الحذف: ${err.message}`);
@@ -463,6 +475,42 @@ export default function ProductsNew() {
               />
             </div>
             <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+              <div className="flex items-center bg-[#1A1A1A] p-1 rounded-xl border border-zinc-700 text-xs">
+                <button
+                  type="button"
+                  onClick={() => { setStatusFilter("all"); setPage(1); }}
+                  className={`px-3 py-1.5 rounded-lg font-bold transition cursor-pointer ${
+                    statusFilter === "all"
+                      ? "bg-[#C8A45C] text-[#1A1A1A]"
+                      : "text-zinc-400 hover:text-white"
+                  }`}
+                >
+                  الكل
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setStatusFilter("active"); setPage(1); }}
+                  className={`px-3 py-1.5 rounded-lg font-bold transition cursor-pointer ${
+                    statusFilter === "active"
+                      ? "bg-[#C8A45C] text-[#1A1A1A]"
+                      : "text-zinc-400 hover:text-white"
+                  }`}
+                >
+                  نشط
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setStatusFilter("archived"); setPage(1); }}
+                  className={`px-3 py-1.5 rounded-lg font-bold transition cursor-pointer ${
+                    statusFilter === "archived"
+                      ? "bg-[#C8A45C] text-[#1A1A1A]"
+                      : "text-zinc-400 hover:text-white"
+                  }`}
+                >
+                  مؤرشف
+                </button>
+              </div>
+
               <select
                 value={selectedCategory}
                 onChange={(e) => {
@@ -573,15 +621,22 @@ export default function ProductsNew() {
                             )}
                           </td>
                           <td className="p-4">
-                            <button
-                              onClick={() => handleToggleAvailable(p)}
-                              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold transition cursor-pointer ${
-                                p.available ? "bg-emerald-950/80 text-emerald-300 border border-emerald-500/40" : "bg-red-950/80 text-red-300 border border-red-500/40"
-                              }`}
-                            >
-                              {p.available ? <CheckCircle2 size={12} /> : <XCircle size={12} />}
-                              {p.available ? "متاح" : "معطل"}
-                            </button>
+                            <div className="flex flex-col gap-1 items-start">
+                              <button
+                                onClick={() => handleToggleAvailable(p)}
+                                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold transition cursor-pointer ${
+                                  p.available ? "bg-emerald-950/80 text-emerald-300 border border-emerald-500/40" : "bg-red-950/80 text-red-300 border border-red-500/40"
+                                }`}
+                              >
+                                {p.available ? <CheckCircle2 size={12} /> : <XCircle size={12} />}
+                                {p.available ? "متاح" : "معطل"}
+                              </button>
+                              {(p.active === false || p.available === false) && (
+                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-zinc-800 text-zinc-400 border border-zinc-700">
+                                  مؤرشف
+                                </span>
+                              )}
+                            </div>
                           </td>
                           <td className="p-4">
                             <div className="flex items-center justify-center gap-2">
