@@ -496,6 +496,98 @@ export default function SettingsNew() {
                         className="w-full bg-[#1A1A1A] border border-zinc-700 focus:border-[#C8A45C] text-white px-3.5 py-2.5 rounded-xl outline-none"
                       />
                     </div>
+
+                    <div>
+                      <label className="block text-zinc-300 font-semibold mb-1">رابط صورة الإعلان (اختياري)</label>
+                      <input
+                        type="text"
+                        value={settings.store_popup_image ?? ""}
+                        onChange={(e) => handleValueChange("store_popup_image", e.target.value)}
+                        placeholder="https://..."
+                        className="w-full bg-[#1A1A1A] border border-zinc-700 focus:border-[#C8A45C] text-white px-3.5 py-2.5 rounded-xl outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-zinc-300 font-semibold mb-1">تأخير الظهور (0-30 ثانية)</label>
+                      <input
+                        type="number"
+                        min="0"
+                        max="30"
+                        value={settings.store_popup_delay_seconds ?? "0"}
+                        onChange={(e) => handleValueChange("store_popup_delay_seconds", String(Math.max(0, Math.min(30, Number(e.target.value) || 0))))}
+                        className="w-full bg-[#1A1A1A] border border-zinc-700 focus:border-[#C8A45C] text-white px-3.5 py-2.5 rounded-xl outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-zinc-300 font-semibold mb-1">عرض الإعلان لـ</label>
+                      <select
+                        value={settings.store_popup_show_to ?? "all"}
+                        onChange={(e) => handleValueChange("store_popup_show_to", e.target.value)}
+                        className="w-full bg-[#1A1A1A] border border-zinc-700 focus:border-[#C8A45C] text-white px-3.5 py-2.5 rounded-xl outline-none"
+                      >
+                        <option value="all">الجميع</option>
+                        <option value="logged_in">المسجلين فقط</option>
+                        <option value="guest">الزوار فقط</option>
+                      </select>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:col-span-3">
+                      <div>
+                        <label className="block text-zinc-300 font-semibold mb-1">تاريخ بداية العرض (اختياري)</label>
+                        <input
+                          type="datetime-local"
+                          value={settings.store_popup_start_date ?? ""}
+                          onChange={(e) => handleValueChange("store_popup_start_date", e.target.value || "")}
+                          className="w-full bg-[#1A1A1A] border border-zinc-700 focus:border-[#C8A45C] text-white px-3.5 py-2.5 rounded-xl outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-zinc-300 font-semibold mb-1">تاريخ نهاية العرض (اختياري)</label>
+                        <input
+                          type="datetime-local"
+                          value={settings.store_popup_end_date ?? ""}
+                          onChange={(e) => handleValueChange("store_popup_end_date", e.target.value || "")}
+                          className="w-full bg-[#1A1A1A] border border-zinc-700 focus:border-[#C8A45C] text-white px-3.5 py-2.5 rounded-xl outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-zinc-300 font-semibold mb-1">رابط الزر الخارجي (اختياري)</label>
+                      <input
+                        type="text"
+                        value={settings.store_popup_link_url ?? ""}
+                        onChange={(e) => handleValueChange("store_popup_link_url", e.target.value)}
+                        placeholder="https://..."
+                        className="w-full bg-[#1A1A1A] border border-zinc-700 focus:border-[#C8A45C] text-white px-3.5 py-2.5 rounded-xl outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-zinc-300 font-semibold mb-1">نص زر الرابط</label>
+                      <input
+                        type="text"
+                        value={settings.store_popup_link_text ?? ""}
+                        onChange={(e) => handleValueChange("store_popup_link_text", e.target.value)}
+                        placeholder="انضم الآن"
+                        className="w-full bg-[#1A1A1A] border border-zinc-700 focus:border-[#C8A45C] text-white px-3.5 py-2.5 rounded-xl outline-none"
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between p-3 bg-[#1A1A1A] rounded-xl border border-zinc-800">
+                      <span className="font-semibold text-zinc-300 text-xs sm:text-sm">إظهار مرة واحدة فقط لكل مستخدم</span>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={settings.store_popup_show_once !== "false"}
+                          onChange={(e) => handleValueChange("store_popup_show_once", String(e.target.checked))}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-zinc-700 peer-checked:bg-[#C8A45C] rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:right-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+                      </label>
+                    </div>
                   </div>
                 </div>
 

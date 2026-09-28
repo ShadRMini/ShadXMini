@@ -672,6 +672,24 @@ router.get("/app-settings", async (_req, res) => {
     return fallback;
   };
 
+  const getNumber = (key: string, fallback = 0, min = 0, max = 30) => {
+    const v = Number(map.get(key));
+    if (Number.isFinite(v)) return Math.max(min, Math.min(max, v));
+    return fallback;
+  };
+
+  const getStringOrNull = (key: string) => {
+    const v = map.get(key);
+    if (v && typeof v === "string" && v.trim().length > 0) return v.trim();
+    return null;
+  };
+
+  const getShowTo = (key: string): "all" | "logged_in" | "guest" => {
+    const v = String(map.get(key) || "all");
+    if (v === "logged_in" || v === "guest") return v;
+    return "all";
+  };
+
   const defaultAboutTitle = "من نحن - متجر ShadXMini";
   const defaultAboutContent =
     "متجر ShadXMini هو وجهتك الرقمية الموثوقة لشحن الألعاب، اشتراكات البرامج، البطاقات الرقمية، والخدمات المالية المباشرة. نحرص على تقديم أعلى سرعة تنفيذ وأعلى معايير الأمان وخدمة عملاء على مدار الساعة.";
@@ -694,9 +712,15 @@ router.get("/app-settings", async (_req, res) => {
     maintenanceContactUrl: String(map.get("maintenance_contact_url") || "/support"),
     maintenanceEstimatedTime: String(map.get("maintenance_estimated_time") || ""),
     popupEnabled: getBool("store_popup_enabled"),
-    popupMessage: String(map.get("store_popup_message") || ""),
+    popupMessage: String(map.get("store_popup_message") || map.get("store_popup_text") || ""),
     popupLinkText: String(map.get("store_popup_link_text") || ""),
     popupLinkUrl: String(map.get("store_popup_link_url") || ""),
+    popupImage: String(map.get("store_popup_image") || ""),
+    popupDelaySeconds: getNumber("store_popup_delay_seconds", 0, 0, 30),
+    popupStartDate: getStringOrNull("store_popup_start_date"),
+    popupEndDate: getStringOrNull("store_popup_end_date"),
+    popupShowTo: getShowTo("store_popup_show_to"),
+    popupShowOnlyOnce: getBool("store_popup_show_once", true),
     adminLoginImage: String(map.get("admin_login_image") || ""),
     brandLogoUrl: String(map.get("brand_logo_url") || map.get("site_logo") || ""),
     brand_logo_url: String(map.get("brand_logo_url") || map.get("site_logo") || ""),
@@ -915,7 +939,6 @@ const getPublicCurrencySettingsHandler = async (_req: any, res: any) => {
 router.get("/settings/public", getPublicSettingsHandler);
 router.get("/public-settings", getPublicSettingsHandler);
 router.get("/public/app-settings", getPublicSettingsHandler);
-router.get("/app-settings", getPublicSettingsHandler);
 router.get("/public/currency-settings", getPublicCurrencySettingsHandler);
 router.get("/currency-settings", getPublicCurrencySettingsHandler);
 router.get("/currency/settings", getPublicCurrencySettingsHandler);

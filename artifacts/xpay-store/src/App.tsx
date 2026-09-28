@@ -3,7 +3,7 @@ import { Switch, Route, Router as WouterRouter } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { AuthProvider } from "@/lib/auth-context";
+import { AuthProvider, useAuth } from "@/lib/auth-context";
 import { StoreSettingsProvider } from "@/lib/store-settings-context";
 import { CurrencyProvider } from "@/lib/currency-context";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
@@ -16,7 +16,7 @@ import { getPublicJson } from "@/lib/public-api";
 import { apiFetch } from "@/lib/api-client";
 import { AppDataProvider } from "@/contexts/AppDataContext";
 import { setCachedShamCash } from "@/lib/shamcash-cache";
-import { Wrench, Construction, Clock, ShieldAlert, Server, MessageCircle } from "lucide-react";
+import { Wrench, Construction, Clock, ShieldAlert, Server, MessageCircle, X, ExternalLink, CheckCircle2, Sparkles } from "lucide-react";
 
 // Lazy-loaded Pages
 const NotFound = lazy(() => import("@/pages/not-found"));
@@ -68,6 +68,12 @@ type AppSettings = {
   popupMessage: string;
   popupLinkText: string;
   popupLinkUrl: string;
+  popupImage?: string;
+  popupDelaySeconds?: number;
+  popupStartDate?: string | null;
+  popupEndDate?: string | null;
+  popupShowTo?: "all" | "logged_in" | "guest";
+  popupShowOnlyOnce?: boolean;
 };
 
 function apiBaseUrl() {
@@ -135,60 +141,166 @@ function StoreMaintenance({ settings }: { settings: AppSettings }) {
 }
 
 function StorePopup({ settings }: { settings: AppSettings }) {
-  const storageKey = `xpay-popup-seen:${settings.popupMessage}:${settings.popupLinkUrl}`;
-  const hasSeenPopup = () => {
-    try {
-      return sessionStorage.getItem(storageKey) === "1";
-    } catch {
-      return false;
-    }
-  };
-  const [open, setOpen] = useState(() => settings.popupEnabled && !hasSeenPopup());
+  const { user } = useAuth();
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    setOpen(settings.popupEnabled && !hasSeenPopup());
-  }, [settings.popupEnabled, storageKey]);
+    if (!settings.popupEnabled) { setOpen(false); return; }
+    const msg = (settings as any).popupMessage?.trim();
+    if (!msg) { setOpen(false); return; }
 
-  if (!open || !settings.popupMessage.trim()) return null;
+    // 1) الاستهداف
+    const showTo = (settings as any).popupShowTo ?? "all";
+    const isLoggedIn = !!user;
+    if (showTo === "logged_in" && !isLoggedIn) { setOpen(false); return; }
+    if (showTo === "guest" && isLoggedIn) { setOpen(false); return; }
+
+    // 2) الجدولة
+    const now = Date.now();
+    const start = (settings as any).popupStartDate;
+    if (start && Number.isFinite(new Date(start).getTime()) && now < new Date(start).getTime()) {
+      setOpen(false); return;
+    }
+    const end = (settings as any).popupEndDate;
+    if (end && Number.isFinite(new Date(end).getTime()) && now > new Date(end).getTime()) {
+      setOpen(false); return;
+    }
+
+    // 3) "شوهد سابقاً"
+    const userId = user?.id ?? "guest";
+    const showOnce = (settings as any).popupShowOnlyOnce !== false;
+    const storageKey = `xpay_store_popup_seen_${userId}_${msg.slice(0, 40)}`;
+    if (showOnce) {
+      try {
+        if (localStorage.getItem(storageKey) === "1") { setOpen(false); return; }
+      } catch {}
+    }
+
+    // 4) التأخير
+    const delay = Math.max(0, Math.min(30, Number((settings as any).popupDelaySeconds) || 0));
+    if (delay === 0) { setOpen(true); return; }
+    const t = setTimeout(() => setOpen(true), delay * 1000);
+    return () => clearTimeout(t);
+  }, [settings, user]);
 
   const close = () => {
-    try {
-      sessionStorage.setItem(storageKey, "1");
-    } catch {
-      // Some Telegram WebViews can block storage; closing should still work.
-    }
+    const userId = user?.id ?? "guest";
+    const msg = (settings as any).popupMessage || "";
+    const storageKey = `xpay_store_popup_seen_${userId}_${msg.slice(0, 40)}`;
+    try { localStorage.setItem(storageKey, "1"); } catch {}
     setOpen(false);
   };
 
+  if (!open || !settings) return null;
+  const msg = (settings as any).popupMessage?.trim();
+  if (!msg) return null;
+  const imageUrl = (settings as any).popupImage;
+  const linkUrl = settings.popupLinkUrl;
+  const linkText = settings.popupLinkText;
+
   return (
-    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/70 p-5 backdrop-blur-sm" dir="rtl">
-      <div className="w-full max-w-md rounded-2xl border border-amber-400/70 bg-[#12072b]/95 p-6 text-center shadow-2xl shadow-black/40">
-        <div className="border-r-4 border-white pr-4 text-lg font-bold leading-9 text-white whitespace-pre-line">
-          {settings.popupMessage}
-        </div>
-        {settings.popupLinkUrl && settings.popupLinkText && (
-          <a
-            href={settings.popupLinkUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="mt-6 inline-block text-base font-extrabold text-amber-300 underline underline-offset-4"
-          >
-            {settings.popupLinkText}
-          </a>
-        )}
+    <div
+      className="fixed inset-0 z-[80] flex items-center justify-center p-4"
+      dir="rtl"
+      style={{ backgroundColor: "rgba(0, 0, 0, 0.8)", backdropFilter: "blur(8px)" }}
+      onClick={close}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200 relative"
+        style={{
+          background: "linear-gradient(135deg, #1A1A1A 0%, #0a0a0a 100%)",
+          border: "1.5px solid rgba(200, 164, 92, 0.4)",
+          boxShadow: "0 25px 60px -15px rgba(200, 164, 92, 0.25), 0 0 0 1px rgba(200, 164, 92, 0.1)",
+        }}
+      >
+        {/* زر X علوي يسار */}
         <button
           onClick={close}
-          className="mt-6 w-full rounded-full bg-amber-500 px-5 py-3 font-extrabold text-white shadow-lg shadow-amber-950/30"
-        >
-          موافق
-        </button>
-        <button
-          onClick={close}
-          className="mx-auto mt-5 flex h-16 w-16 items-center justify-center rounded-full bg-amber-500 text-4xl leading-none text-white shadow-lg shadow-amber-950/30"
+          className="absolute top-3 left-3 z-10 h-9 w-9 rounded-full flex items-center justify-center transition-all cursor-pointer hover:scale-110"
+          style={{
+            backgroundColor: "rgba(0, 0, 0, 0.6)",
+            border: "1px solid rgba(200, 164, 92, 0.3)",
+            color: "#C8A45C",
+          }}
           aria-label="إغلاق"
         >
-          ×
+          <X className="w-4 h-4" />
         </button>
+
+        {/* الصورة (اختيارية) */}
+        {imageUrl && (
+          <div className="relative w-full h-44 sm:h-52 bg-gradient-to-br from-zinc-900 to-black overflow-hidden">
+            <img src={imageUrl} alt="" className="w-full h-full object-cover" loading="eager" />
+            <div className="absolute inset-0 pointer-events-none" style={{
+              background: "linear-gradient(to bottom, transparent 60%, #1A1A1A 100%)",
+            }} />
+          </div>
+        )}
+
+        {/* المحتوى */}
+        <div className={`px-6 sm:px-7 ${imageUrl ? "-mt-8 relative" : "pt-8"} pb-6`}>
+          <div className="flex justify-center mb-4">
+            <span
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold"
+              style={{
+                backgroundColor: "rgba(200, 164, 92, 0.12)",
+                border: "1px solid rgba(200, 164, 92, 0.35)",
+                color: "#FDE68A",
+              }}
+            >
+              <Sparkles className="w-3 h-3" />
+              إعلان
+            </span>
+          </div>
+
+          {/* فاصل ذهبي علوي */}
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <div className="h-px w-8" style={{ background: "linear-gradient(to right, transparent, #C8A45C)" }} />
+            <div className="w-1.5 h-1.5 rounded-full" style={{ background: "#C8A45C" }} />
+            <div className="h-px w-8" style={{ background: "linear-gradient(to left, transparent, #C8A45C)" }} />
+          </div>
+
+          {/* النص */}
+          <div
+            className="text-base sm:text-lg font-bold leading-relaxed whitespace-pre-line text-center mb-6 px-2"
+            style={{ color: "#E5E7EB" }}
+          >
+            {msg}
+          </div>
+
+          {/* زر CTA */}
+          {linkUrl && linkText ? (
+            <a
+              href={linkUrl}
+              target="_blank"
+              rel="noreferrer"
+              onClick={close}
+              className="flex items-center justify-center gap-2 w-full py-3.5 px-5 rounded-2xl font-black text-sm sm:text-base transition-all hover:scale-[1.02] active:scale-95 cursor-pointer"
+              style={{
+                background: "linear-gradient(135deg, #FDE68A 0%, #C8A45C 100%)",
+                color: "#0a0a0a",
+                boxShadow: "0 8px 24px -8px rgba(200, 164, 92, 0.6)",
+              }}
+            >
+              <span>{linkText}</span>
+              <ExternalLink className="w-4 h-4" />
+            </a>
+          ) : (
+            <button
+              onClick={close}
+              className="flex items-center justify-center gap-2 w-full py-3.5 px-5 rounded-2xl font-black text-sm sm:text-base transition-all hover:scale-[1.02] active:scale-95 cursor-pointer"
+              style={{
+                background: "linear-gradient(135deg, #FDE68A 0%, #C8A45C 100%)",
+                color: "#0a0a0a",
+                boxShadow: "0 8px 24px -8px rgba(200, 164, 92, 0.6)",
+              }}
+            >
+              <CheckCircle2 className="w-4 h-4" />
+              <span>موافق</span>
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
