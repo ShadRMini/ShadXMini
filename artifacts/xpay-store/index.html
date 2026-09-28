@@ -26,6 +26,7 @@
     <meta name="twitter:image" content="https://shadxmini.vercel.app/opengraph.jpg" />
 
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preload" as="image" href="/banner-1.webp" fetchpriority="high">
     <link rel="preconnect" href="https://shadxmini-api.onrender.com" crossorigin>
     <link rel="dns-prefetch" href="https://shadxmini-api.onrender.com">
     <link rel="preconnect" href="https://i.ibb.co" crossorigin>
@@ -50,13 +51,13 @@
           position: fixed;
           inset: 0;
           z-index: 9999;
-          background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+          background: #0a0a0a;
           display: flex;
           flex-direction: column;
           align-items: center;
           justify-content: center;
           color: #FDE68A;
-          font-family: 'Cairo', system-ui, -apple-system, "Segoe UI", sans-serif;
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, "Helvetica Neue", Arial, sans-serif;
           transition: opacity 0.2s ease-out;
         }
         #initial-shell.hidden {
@@ -67,10 +68,7 @@
           font-size: 42px;
           font-weight: 900;
           letter-spacing: 2px;
-          background: linear-gradient(135deg, #FDE68A 0%, #C8A45C 100%);
-          -webkit-background-clip: text;
-          background-clip: text;
-          -webkit-text-fill-color: transparent;
+          color: #FDE68A;
           margin-bottom: 12px;
         }
         #initial-shell .shell-subtitle {
@@ -96,6 +94,41 @@
       <div class="shell-logo">ShadXMini</div>
       <div class="shell-subtitle">متجر رقمي موثوق</div>
       <div class="shell-spinner"></div>
+    </div>
+    <div id="static-hero" aria-hidden="true">
+      <style>
+        #static-hero {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          height: 200px;
+          z-index: 50;
+          background: #0a0a0a;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: opacity 0.15s ease-out;
+        }
+        #static-hero.hidden {
+          opacity: 0;
+          pointer-events: none;
+        }
+        #static-hero img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          object-position: center;
+        }
+      </style>
+      <img
+        src="/banner-1.webp"
+        alt=""
+        width="800"
+        height="400"
+        fetchpriority="high"
+        decoding="async"
+      />
     </div>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>

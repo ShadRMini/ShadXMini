@@ -58,7 +58,6 @@ async function bootstrap() {
 
   createRoot(document.getElementById("root")!).render(<App />);
 
-  // Remove initial static shell after React mounts
   const removeShell = () => {
     const shell = document.getElementById("initial-shell");
     if (shell) {
@@ -67,9 +66,26 @@ async function bootstrap() {
     }
   };
 
-  // Call after first paint
+  const removeStaticHero = () => {
+    const hero = document.getElementById("static-hero");
+    if (hero) {
+      hero.classList.add("hidden");
+      setTimeout(() => hero.remove(), 200);
+    }
+  };
+
+  // Remove shell immediately after mount
   requestAnimationFrame(() => {
     requestAnimationFrame(removeShell);
+  });
+
+  // Remove static hero after React renders its own hero
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(removeStaticHero);
+      });
+    });
   });
 }
 
