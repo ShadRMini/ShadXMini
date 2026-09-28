@@ -120,9 +120,9 @@ export function PopupNotification() {
         onClick={(e) => e.stopPropagation()}
         className="w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200 relative"
         style={{
-          background: "linear-gradient(135deg, #1A1A1A 0%, #0a0a0a 100%)",
-          border: "1.5px solid rgba(200, 164, 92, 0.4)",
-          boxShadow: "0 25px 60px -15px rgba(200, 164, 92, 0.25), 0 0 0 1px rgba(200, 164, 92, 0.1)",
+          background: "linear-gradient(135deg, var(--theme-card, #1A1A1A) 0%, var(--theme-background, #0a0a0a) 100%)",
+          border: "1.5px solid color-mix(in srgb, var(--theme-primary, #C8A45C) 40%, transparent)",
+          boxShadow: "0 25px 60px -15px color-mix(in srgb, var(--theme-primary, #C8A45C) 25%, transparent), 0 0 0 1px color-mix(in srgb, var(--theme-primary, #C8A45C) 10%, transparent)",
         }}
       >
         {/* زر الإغلاق — أعلى اليسار (RTL) */}
@@ -131,8 +131,8 @@ export function PopupNotification() {
           className="absolute top-3 left-3 z-10 h-9 w-9 rounded-full flex items-center justify-center transition-all cursor-pointer hover:scale-110"
           style={{
             backgroundColor: "rgba(0, 0, 0, 0.6)",
-            border: "1px solid rgba(200, 164, 92, 0.3)",
-            color: "#C8A45C",
+            border: "1px solid color-mix(in srgb, var(--theme-primary, #C8A45C) 30%, transparent)",
+            color: "var(--theme-primary, #C8A45C)",
           }}
           aria-label="إغلاق"
         >
@@ -151,7 +151,7 @@ export function PopupNotification() {
             <div
               className="absolute inset-0 pointer-events-none"
               style={{
-                background: "linear-gradient(to bottom, transparent 60%, #1A1A1A 100%)",
+                background: "linear-gradient(to bottom, transparent 60%, var(--theme-card, #1A1A1A) 100%)",
               }}
             />
           </div>
@@ -164,9 +164,9 @@ export function PopupNotification() {
             <span
               className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold"
               style={{
-                backgroundColor: "rgba(200, 164, 92, 0.12)",
-                border: "1px solid rgba(200, 164, 92, 0.35)",
-                color: "#FDE68A",
+                backgroundColor: "color-mix(in srgb, var(--theme-primary, #C8A45C) 12%, transparent)",
+                border: "1px solid color-mix(in srgb, var(--theme-primary, #C8A45C) 35%, transparent)",
+                color: "var(--theme-accent, #FDE68A)",
               }}
             >
               <Bell className="w-3 h-3" />
@@ -178,7 +178,7 @@ export function PopupNotification() {
           <h3
             className="text-xl sm:text-2xl font-black text-center mb-3 leading-tight"
             style={{
-              background: "linear-gradient(135deg, #FDE68A 0%, #C8A45C 100%)",
+              background: "linear-gradient(135deg, var(--theme-accent, #FDE68A) 0%, var(--theme-primary, #C8A45C) 100%)",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
               backgroundClip: "text",
@@ -189,15 +189,15 @@ export function PopupNotification() {
 
           {/* فاصل ذهبي مزخرف */}
           <div className="flex items-center justify-center gap-2 mb-4">
-            <div className="h-px w-8" style={{ background: "linear-gradient(to right, transparent, #C8A45C)" }} />
-            <div className="w-1.5 h-1.5 rounded-full" style={{ background: "#C8A45C" }} />
-            <div className="h-px w-8" style={{ background: "linear-gradient(to left, transparent, #C8A45C)" }} />
+            <div className="h-px w-8" style={{ background: "linear-gradient(to right, transparent, var(--theme-primary, #C8A45C))" }} />
+            <div className="w-1.5 h-1.5 rounded-full" style={{ background: "var(--theme-primary, #C8A45C)" }} />
+            <div className="h-px w-8" style={{ background: "linear-gradient(to left, transparent, var(--theme-primary, #C8A45C))" }} />
           </div>
 
           {/* النص */}
           <div
             className="text-sm sm:text-base leading-relaxed whitespace-pre-line text-center mb-6 px-2"
-            style={{ color: "#E5E7EB" }}
+            style={{ color: "var(--theme-text-primary, #E5E7EB)" }}
           >
             {settings.popupContent}
           </div>
@@ -211,9 +211,9 @@ export function PopupNotification() {
               onClick={handleView}
               className="flex items-center justify-center gap-2 w-full py-3.5 px-5 rounded-2xl font-black text-sm sm:text-base transition-all hover:scale-[1.02] active:scale-95 mb-2 cursor-pointer"
               style={{
-                background: "linear-gradient(135deg, #FDE68A 0%, #C8A45C 100%)",
-                color: "#0a0a0a",
-                boxShadow: "0 8px 24px -8px rgba(200, 164, 92, 0.6)",
+                background: "linear-gradient(135deg, var(--theme-accent, #FDE68A) 0%, var(--theme-primary, #C8A45C) 100%)",
+                color: "var(--theme-background, #0a0a0a)",
+                boxShadow: "0 8px 24px -8px color-mix(in srgb, var(--theme-primary, #C8A45C) 60%, transparent)",
               }}
             >
               <span>{settings.popupLinkText}</span>
@@ -224,9 +224,9 @@ export function PopupNotification() {
               onClick={handleCloseAll}
               className="flex items-center justify-center gap-2 w-full py-3.5 px-5 rounded-2xl font-black text-sm sm:text-base transition-all hover:scale-[1.02] active:scale-95 mb-2 cursor-pointer"
               style={{
-                background: "linear-gradient(135deg, #FDE68A 0%, #C8A45C 100%)",
-                color: "#0a0a0a",
-                boxShadow: "0 8px 24px -8px rgba(200, 164, 92, 0.6)",
+                background: "linear-gradient(135deg, var(--theme-accent, #FDE68A) 0%, var(--theme-primary, #C8A45C) 100%)",
+                color: "var(--theme-background, #0a0a0a)",
+                boxShadow: "0 8px 24px -8px color-mix(in srgb, var(--theme-primary, #C8A45C) 60%, transparent)",
               }}
             >
               <CheckCircle2 className="w-4 h-4" />
@@ -238,7 +238,7 @@ export function PopupNotification() {
           <button
             onClick={handleCloseAll}
             className="w-full py-2 text-xs sm:text-sm font-bold transition-opacity hover:opacity-70 cursor-pointer"
-            style={{ color: "#9CA3AF" }}
+            style={{ color: "var(--theme-text-muted, #9CA3AF)" }}
           >
             {settings.popupButtonCloseText || "إغلاق"}
           </button>
