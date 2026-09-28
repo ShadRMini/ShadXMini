@@ -91,6 +91,9 @@ export default function ProductCard({
                 src={finalImageUrl}
                 alt={name}
                 loading="lazy"
+                decoding="async"
+                width="200"
+                height="200"
                 onError={() => setImgError(true)}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 will-change-transform"
               />

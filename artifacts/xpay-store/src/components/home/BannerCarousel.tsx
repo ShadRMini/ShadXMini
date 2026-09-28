@@ -198,6 +198,9 @@ export default function BannerCarousel({ banners: propBanners, isLoading }: Bann
                       <img
                         src={banner.image}
                         alt={banner.title}
+                        width="800"
+                        height="400"
+                        fetchPriority={index === 0 ? "high" : "low"}
                         className="w-full h-full object-cover object-center opacity-100 group-hover:scale-102 transition-transform duration-500 ease-out"
                         loading={index === 0 ? "eager" : "lazy"}
                         decoding="async"
