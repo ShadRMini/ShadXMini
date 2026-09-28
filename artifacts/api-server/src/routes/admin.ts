@@ -5223,6 +5223,24 @@ router.get("/admin/popup-settings", requireAdmin, async (_req, res) => {
       return fallback;
     };
 
+    const getNumber = (key: string, fallback = 0, min = 0, max = 30) => {
+      const v = Number(map.get(key));
+      if (Number.isFinite(v)) return Math.max(min, Math.min(max, v));
+      return fallback;
+    };
+
+    const getStringOrNull = (key: string) => {
+      const v = map.get(key);
+      if (v && typeof v === "string" && v.trim().length > 0) return v.trim();
+      return null;
+    };
+
+    const getShowTo = (key: string): "all" | "logged_in" | "guest" => {
+      const v = String(map.get(key) || "all");
+      if (v === "logged_in" || v === "guest") return v;
+      return "all";
+    };
+
     res.json({
       popupEnabled: getBool("popup_enabled", false),
       popupTitle: String(map.get("popup_title") || "مجتمع الواتس أب"),
@@ -5234,6 +5252,10 @@ router.get("/admin/popup-settings", requireAdmin, async (_req, res) => {
       popupButtonReadText: String(map.get("popup_button_read_text") || "قراءة الكل"),
       popupButtonViewText: String(map.get("popup_button_view_text") || "عرض الكل"),
       popupShowOnlyOnce: getBool("popup_show_only_once", true),
+      popupDelaySeconds: getNumber("popup_delay_seconds", 0, 0, 30),
+      popupStartDate: getStringOrNull("popup_start_date"),
+      popupEndDate: getStringOrNull("popup_end_date"),
+      popupShowTo: getShowTo("popup_show_to"),
     });
   } catch (err: any) {
     res.status(500).json({ error: err?.message || "فشل جلب إعدادات النافذة المنبثقة" });
@@ -5253,7 +5275,14 @@ router.put("/admin/popup-settings", requireAdmin, async (req, res) => {
       popupButtonReadText,
       popupButtonViewText,
       popupShowOnlyOnce,
+      popupDelaySeconds,
+      popupStartDate,
+      popupEndDate,
+      popupShowTo,
     } = req.body;
+
+    const sanitizedDelay = Math.max(0, Math.min(30, Number(popupDelaySeconds) || 0));
+    const sanitizedShowTo = (popupShowTo === "logged_in" || popupShowTo === "guest") ? popupShowTo : "all";
 
     const pairs = [
       ["popup_enabled", Boolean(popupEnabled)],
@@ -5266,6 +5295,10 @@ router.put("/admin/popup-settings", requireAdmin, async (req, res) => {
       ["popup_button_read_text", String(popupButtonReadText || "")],
       ["popup_button_view_text", String(popupButtonViewText || "")],
       ["popup_show_only_once", Boolean(popupShowOnlyOnce)],
+      ["popup_delay_seconds", sanitizedDelay],
+      ["popup_start_date", popupStartDate ? String(popupStartDate) : null],
+      ["popup_end_date", popupEndDate ? String(popupEndDate) : null],
+      ["popup_show_to", sanitizedShowTo],
     ];
 
     for (const [key, value] of pairs) {

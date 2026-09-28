@@ -12,9 +12,12 @@ interface PopupSettings {
   popupLinkUrl: string;
   popupLinkText: string;
   popupButtonCloseText: string;
-  popupButtonReadText: string;
   popupButtonViewText: string;
   popupShowOnlyOnce: boolean;
+  popupDelaySeconds?: number;
+  popupStartDate?: string | null;
+  popupEndDate?: string | null;
+  popupShowTo?: "all" | "logged_in" | "guest";
 }
 
 export function PopupNotification() {
@@ -23,31 +26,71 @@ export function PopupNotification() {
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
-    if (!user || !popupSettings) {
+    if (!popupSettings) {
       setIsOpen(false);
       return;
     }
 
-    if (popupSettings.popupEnabled) {
-      const storageKey = `xpay_popup_seen_${user.id}_${popupSettings.popupTitle || "default"}`;
-      const alreadySeen = localStorage.getItem(storageKey);
-      
-      if (popupSettings.popupShowOnlyOnce && alreadySeen) {
-        setIsOpen(false);
-      } else {
-        setIsOpen(true);
-      }
-    } else {
+    if (!popupSettings.popupEnabled) {
       setIsOpen(false);
+      return;
     }
+
+    // 1) فحص الاستهداف
+    const showTo = popupSettings.popupShowTo ?? "all";
+    const isLoggedIn = !!user;
+    if (showTo === "logged_in" && !isLoggedIn) {
+      setIsOpen(false);
+      return;
+    }
+    if (showTo === "guest" && isLoggedIn) {
+      setIsOpen(false);
+      return;
+    }
+
+    // 2) فحص الجدولة
+    const now = Date.now();
+    if (popupSettings.popupStartDate) {
+      const start = new Date(popupSettings.popupStartDate).getTime();
+      if (Number.isFinite(start) && now < start) {
+        setIsOpen(false);
+        return;
+      }
+    }
+    if (popupSettings.popupEndDate) {
+      const end = new Date(popupSettings.popupEndDate).getTime();
+      if (Number.isFinite(end) && now > end) {
+        setIsOpen(false);
+        return;
+      }
+    }
+
+    // 3) فحص "شوهد سابقاً"
+    const userId = user?.id ?? "guest";
+    const storageKey = `xpay_popup_seen_${userId}_${popupSettings.popupTitle || "default"}`;
+    const alreadySeen = localStorage.getItem(storageKey);
+    if (popupSettings.popupShowOnlyOnce && alreadySeen) {
+      setIsOpen(false);
+      return;
+    }
+
+    // 4) تأخير الظهور
+    const delay = Math.max(0, Math.min(30, popupSettings.popupDelaySeconds ?? 0));
+    if (delay === 0) {
+      setIsOpen(true);
+      return;
+    }
+    const timer = setTimeout(() => setIsOpen(true), delay * 1000);
+    return () => clearTimeout(timer);
   }, [user, popupSettings]);
 
-  if (!isOpen || !popupSettings || !user) return null;
+  if (!isOpen || !popupSettings) return null;
 
   const settings: PopupSettings = popupSettings;
 
   const markAsSeen = () => {
-    const storageKey = `xpay_popup_seen_${user.id}_${settings.popupTitle || "default"}`;
+    const userId = user?.id ?? "guest";
+    const storageKey = `xpay_popup_seen_${userId}_${settings.popupTitle || "default"}`;
     try {
       localStorage.setItem(storageKey, "true");
     } catch {}
@@ -59,11 +102,6 @@ export function PopupNotification() {
     toast.success("تم إغلاق التنبيه بنجاح");
   };
 
-  const handleRead = () => {
-    markAsSeen();
-    toast.success("تم تحديث حالة الإشعار كمقروء");
-  };
-
   const handleView = () => {
     markAsSeen();
     if (settings.popupLinkUrl) {
@@ -72,126 +110,137 @@ export function PopupNotification() {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/75 p-4 backdrop-blur-md animate-in fade-in duration-200" dir="rtl">
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+      dir="rtl"
+      style={{ backgroundColor: "rgba(0, 0, 0, 0.8)", backdropFilter: "blur(8px)" }}
+      onClick={handleCloseAll}
+    >
       <div
-        className="w-full max-w-lg rounded-2xl border p-6 text-right shadow-2xl relative overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200 relative"
         style={{
-          backgroundColor: "var(--theme-card)",
-          borderColor: "var(--theme-border)",
+          background: "linear-gradient(135deg, #1A1A1A 0%, #0a0a0a 100%)",
+          border: "1.5px solid rgba(200, 164, 92, 0.4)",
+          boxShadow: "0 25px 60px -15px rgba(200, 164, 92, 0.25), 0 0 0 1px rgba(200, 164, 92, 0.1)",
         }}
       >
-        {/* Top absolute close icon */}
+        {/* زر الإغلاق — أعلى اليسار (RTL) */}
         <button
           onClick={handleCloseAll}
-          className="absolute top-4 left-4 h-9 w-9 rounded-full border flex items-center justify-center transition-all cursor-pointer"
+          className="absolute top-3 left-3 z-10 h-9 w-9 rounded-full flex items-center justify-center transition-all cursor-pointer hover:scale-110"
           style={{
-            backgroundColor: "var(--theme-card)",
-            borderColor: "var(--theme-border)",
-            color: "var(--theme-text-primary)",
+            backgroundColor: "rgba(0, 0, 0, 0.6)",
+            border: "1px solid rgba(200, 164, 92, 0.3)",
+            color: "#C8A45C",
           }}
           aria-label="إغلاق"
         >
-          <X className="w-5 h-5" />
+          <X className="w-4 h-4" />
         </button>
 
-        {/* Icon / Badge */}
-        <div className="flex items-center gap-3 mb-4">
-          <div
-            className="h-12 w-12 rounded-2xl border flex items-center justify-center shadow-inner"
-            style={{
-              backgroundColor: "rgba(200, 164, 92, 0.15)",
-              borderColor: "var(--theme-border)",
-              color: "var(--theme-primary)",
-            }}
-          >
-            <Bell className="w-6 h-6 animate-bounce" />
-          </div>
-          <div>
-            <span
-              className="text-[11px] px-2.5 py-0.5 rounded-full border font-bold"
-              style={{
-                backgroundColor: "rgba(200, 164, 92, 0.2)",
-                borderColor: "var(--theme-border)",
-                color: "var(--theme-accent)",
-              }}
-            >
-              إشعار هام للمستخدمين
-            </span>
-            <h3 className="text-xl font-black mt-1" style={{ color: "var(--theme-primary)" }}>{settings.popupTitle}</h3>
-          </div>
-        </div>
-
-        {/* Optional Image */}
+        {/* الصورة (اختيارية) */}
         {settings.popupImage && (
-          <div className="mb-4 rounded-xl overflow-hidden border max-h-56 bg-black/40 flex items-center justify-center" style={{ borderColor: "var(--theme-border, rgba(200,164,92,0.3))" }}>
-            <img src={settings.popupImage} alt="Popup" className="w-full h-full object-cover max-h-56" />
+          <div className="relative w-full h-44 sm:h-52 bg-gradient-to-br from-zinc-900 to-black overflow-hidden">
+            <img
+              src={settings.popupImage}
+              alt=""
+              className="w-full h-full object-cover"
+              loading="eager"
+            />
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                background: "linear-gradient(to bottom, transparent 60%, #1A1A1A 100%)",
+              }}
+            />
           </div>
         )}
 
-        {/* Content Description */}
-        <div
-          className="text-sm sm:text-base leading-relaxed whitespace-pre-line p-4 rounded-xl border mb-5"
-          style={{
-            backgroundColor: "rgba(255,255,255,0.03)",
-            borderColor: "var(--theme-border)",
-            color: "var(--theme-text-primary)",
-          }}
-        >
-          {settings.popupContent}
-        </div>
+        {/* المحتوى */}
+        <div className={`px-6 sm:px-7 ${settings.popupImage ? "-mt-8 relative" : "pt-8"} pb-6`}>
+          {/* شارة علوية */}
+          <div className="flex justify-center mb-4">
+            <span
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold"
+              style={{
+                backgroundColor: "rgba(200, 164, 92, 0.12)",
+                border: "1px solid rgba(200, 164, 92, 0.35)",
+                color: "#FDE68A",
+              }}
+            >
+              <Bell className="w-3 h-3" />
+              إشعار هام
+            </span>
+          </div>
 
-        {/* Link if provided */}
-        {settings.popupLinkUrl && settings.popupLinkText && (
-          <div className="mb-6">
+          {/* العنوان */}
+          <h3
+            className="text-xl sm:text-2xl font-black text-center mb-3 leading-tight"
+            style={{
+              background: "linear-gradient(135deg, #FDE68A 0%, #C8A45C 100%)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+            }}
+          >
+            {settings.popupTitle}
+          </h3>
+
+          {/* فاصل ذهبي مزخرف */}
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <div className="h-px w-8" style={{ background: "linear-gradient(to right, transparent, #C8A45C)" }} />
+            <div className="w-1.5 h-1.5 rounded-full" style={{ background: "#C8A45C" }} />
+            <div className="h-px w-8" style={{ background: "linear-gradient(to left, transparent, #C8A45C)" }} />
+          </div>
+
+          {/* النص */}
+          <div
+            className="text-sm sm:text-base leading-relaxed whitespace-pre-line text-center mb-6 px-2"
+            style={{ color: "#E5E7EB" }}
+          >
+            {settings.popupContent}
+          </div>
+
+          {/* زر CTA (رابط خارجي إن وُجد) */}
+          {settings.popupLinkUrl && settings.popupLinkText ? (
             <a
               href={settings.popupLinkUrl}
               target="_blank"
               rel="noreferrer"
               onClick={handleView}
-              className="flex items-center justify-center gap-2 w-full py-3 px-4 rounded-xl text-black font-extrabold shadow-lg hover:opacity-90 transition-all text-sm"
+              className="flex items-center justify-center gap-2 w-full py-3.5 px-5 rounded-2xl font-black text-sm sm:text-base transition-all hover:scale-[1.02] active:scale-95 mb-2 cursor-pointer"
               style={{
-                backgroundColor: "var(--theme-primary)",
+                background: "linear-gradient(135deg, #FDE68A 0%, #C8A45C 100%)",
+                color: "#0a0a0a",
+                boxShadow: "0 8px 24px -8px rgba(200, 164, 92, 0.6)",
               }}
             >
               <span>{settings.popupLinkText}</span>
               <ExternalLink className="w-4 h-4" />
             </a>
-          </div>
-        )}
+          ) : (
+            <button
+              onClick={handleCloseAll}
+              className="flex items-center justify-center gap-2 w-full py-3.5 px-5 rounded-2xl font-black text-sm sm:text-base transition-all hover:scale-[1.02] active:scale-95 mb-2 cursor-pointer"
+              style={{
+                background: "linear-gradient(135deg, #FDE68A 0%, #C8A45C 100%)",
+                color: "#0a0a0a",
+                boxShadow: "0 8px 24px -8px rgba(200, 164, 92, 0.6)",
+              }}
+            >
+              <CheckCircle2 className="w-4 h-4" />
+              <span>{settings.popupButtonViewText || "موافق"}</span>
+            </button>
+          )}
 
-        {/* Action Buttons */}
-        <div className="grid grid-cols-3 gap-2.5 pt-2 border-t" style={{ borderColor: "var(--theme-border)" }}>
+          {/* زر الإغلاق النصي */}
           <button
             onClick={handleCloseAll}
-            className="py-2.5 px-3 rounded-xl border text-xs sm:text-sm font-bold transition-all text-center cursor-pointer"
-            style={{
-              backgroundColor: "var(--theme-card)",
-              borderColor: "var(--theme-border)",
-              color: "var(--theme-text-muted)",
-            }}
+            className="w-full py-2 text-xs sm:text-sm font-bold transition-opacity hover:opacity-70 cursor-pointer"
+            style={{ color: "#9CA3AF" }}
           >
-            {settings.popupButtonCloseText || "إغلاق الكل"}
-          </button>
-          <button
-            onClick={handleRead}
-            className="py-2.5 px-3 rounded-xl border text-xs sm:text-sm font-bold transition-all text-center flex items-center justify-center gap-1.5 cursor-pointer"
-            style={{
-              backgroundColor: "var(--theme-card)",
-              borderColor: "var(--theme-border)",
-              color: "var(--theme-primary)",
-            }}
-          >
-            <CheckCircle2 className="w-4 h-4" />
-            <span>{settings.popupButtonReadText || "قراءة الكل"}</span>
-          </button>
-          <button
-            onClick={settings.popupLinkUrl ? handleView : handleCloseAll}
-            className="py-2.5 px-3 rounded-xl text-black text-xs sm:text-sm font-black transition-all text-center shadow-md cursor-pointer"
-            style={{
-              backgroundColor: "var(--theme-primary)",
-            }}
-          >
-            {settings.popupButtonViewText || "عرض الكل"}
+            {settings.popupButtonCloseText || "إغلاق"}
           </button>
         </div>
       </div>

@@ -62,10 +62,13 @@ export default function Notifications() {
     popupImage: "",
     popupLinkUrl: "",
     popupLinkText: "",
-    popupButtonCloseText: "إغلاق الكل",
-    popupButtonReadText: "قراءة الكل",
-    popupButtonViewText: "عرض الكل",
+    popupButtonCloseText: "إغلاق",
+    popupButtonViewText: "موافق",
     popupShowOnlyOnce: true,
+    popupDelaySeconds: 0,
+    popupStartDate: null as string | null,
+    popupEndDate: null as string | null,
+    popupShowTo: "all" as "all" | "logged_in" | "guest",
   });
   const [popupSaving, setPopupSaving] = useState(false);
   const [popupSuccess, setPopupSuccess] = useState<string | null>(null);
@@ -113,10 +116,13 @@ export default function Notifications() {
           popupImage: data.popupImage || "",
           popupLinkUrl: data.popupLinkUrl || "",
           popupLinkText: data.popupLinkText || "",
-          popupButtonCloseText: data.popupButtonCloseText || "إغلاق الكل",
-          popupButtonReadText: data.popupButtonReadText || "قراءة الكل",
-          popupButtonViewText: data.popupButtonViewText || "عرض الكل",
+          popupButtonCloseText: data.popupButtonCloseText || "إغلاق",
+          popupButtonViewText: data.popupButtonViewText || "موافق",
           popupShowOnlyOnce: data.popupShowOnlyOnce !== false,
+          popupDelaySeconds: Number(data.popupDelaySeconds) || 0,
+          popupStartDate: data.popupStartDate || null,
+          popupEndDate: data.popupEndDate || null,
+          popupShowTo: (data.popupShowTo === "logged_in" || data.popupShowTo === "guest") ? data.popupShowTo : "all",
         });
       }
     } catch (e) {
@@ -483,6 +489,57 @@ export default function Notifications() {
                 />
                 <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:right-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#C8A45C]"></div>
               </label>
+            </div>
+
+            {/* Delay (seconds) */}
+            <div>
+              <label className="block text-sm font-bold text-slate-700 mb-1.5">تأخير الظهور (ثوانٍ)</label>
+              <input
+                type="number"
+                min="0"
+                max="30"
+                value={popupSettings.popupDelaySeconds}
+                onChange={(e) => setPopupSettings({ ...popupSettings, popupDelaySeconds: Math.max(0, Math.min(30, Number(e.target.value) || 0)) })}
+                placeholder="0"
+                className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:border-[#C8A45C] text-slate-900 text-sm"
+              />
+              <p className="text-xs text-slate-400 mt-1">اترك 0 للظهور الفوري (من 0 إلى 30 ثانية كحد أقصى).</p>
+            </div>
+
+            {/* Schedule Dates */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-1.5">تاريخ بداية العرض (اختياري)</label>
+                <input
+                  type="datetime-local"
+                  value={popupSettings.popupStartDate || ""}
+                  onChange={(e) => setPopupSettings({ ...popupSettings, popupStartDate: e.target.value || null })}
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:border-[#C8A45C] text-slate-900 text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-1.5">تاريخ نهاية العرض (اختياري)</label>
+                <input
+                  type="datetime-local"
+                  value={popupSettings.popupEndDate || ""}
+                  onChange={(e) => setPopupSettings({ ...popupSettings, popupEndDate: e.target.value || null })}
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:border-[#C8A45C] text-slate-900 text-sm"
+                />
+              </div>
+            </div>
+
+            {/* Targeting */}
+            <div>
+              <label className="block text-sm font-bold text-slate-700 mb-1.5">عرض الإعلان لـ</label>
+              <select
+                value={popupSettings.popupShowTo}
+                onChange={(e) => setPopupSettings({ ...popupSettings, popupShowTo: e.target.value as any })}
+                className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:border-[#C8A45C] text-slate-900 text-sm bg-white"
+              >
+                <option value="all">الجميع (المسجلين والزوار)</option>
+                <option value="logged_in">المسجلين فقط</option>
+                <option value="guest">الزوار فقط</option>
+              </select>
             </div>
 
             <div className="pt-4 flex justify-end">

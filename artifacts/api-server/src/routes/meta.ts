@@ -1106,6 +1106,24 @@ const getPopupSettingsHandler = async (_req: any, res: any) => {
     return fallback;
   };
 
+  const getNumber = (key: string, fallback = 0, min = 0, max = 30) => {
+    const v = Number(map.get(key));
+    if (Number.isFinite(v)) return Math.max(min, Math.min(max, v));
+    return fallback;
+  };
+
+  const getStringOrNull = (key: string) => {
+    const v = map.get(key);
+    if (v && typeof v === "string" && v.trim().length > 0) return v.trim();
+    return null;
+  };
+
+  const getShowTo = (key: string): "all" | "logged_in" | "guest" => {
+    const v = String(map.get(key) || "all");
+    if (v === "logged_in" || v === "guest") return v;
+    return "all";
+  };
+
   res.json({
     popupEnabled: getBool("popup_enabled", false),
     popupTitle: String(map.get("popup_title") || "مجتمع الواتس أب"),
@@ -1117,6 +1135,10 @@ const getPopupSettingsHandler = async (_req: any, res: any) => {
     popupButtonReadText: String(map.get("popup_button_read_text") || "قراءة الكل"),
     popupButtonViewText: String(map.get("popup_button_view_text") || "عرض الكل"),
     popupShowOnlyOnce: getBool("popup_show_only_once", true),
+    popupDelaySeconds: getNumber("popup_delay_seconds", 0, 0, 30),
+    popupStartDate: getStringOrNull("popup_start_date"),
+    popupEndDate: getStringOrNull("popup_end_date"),
+    popupShowTo: getShowTo("popup_show_to"),
   });
 };
 
