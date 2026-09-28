@@ -57,6 +57,20 @@ async function bootstrap() {
   }
 
   createRoot(document.getElementById("root")!).render(<App />);
+
+  // Remove initial static shell after React mounts
+  const removeShell = () => {
+    const shell = document.getElementById("initial-shell");
+    if (shell) {
+      shell.classList.add("hidden");
+      setTimeout(() => shell.remove(), 250);
+    }
+  };
+
+  // Call after first paint
+  requestAnimationFrame(() => {
+    requestAnimationFrame(removeShell);
+  });
 }
 
 void bootstrap();

@@ -202,6 +202,9 @@ export default function Home() {
                       <img
                         src={effectiveAvatar}
                         alt={displayName}
+                        width="48"
+                        height="48"
+                        decoding="async"
                         className="w-12 h-12 rounded-2xl object-cover border-2 shadow-md transition"
                         style={{ borderColor: "var(--theme-border)" }}
                       />
@@ -349,7 +352,7 @@ export default function Home() {
                 const cardContent = (
                   <div className="group relative rounded-2xl border border-amber-500/30 bg-gradient-to-br from-[#1c1913] via-[#181510] to-zinc-950 p-4 shadow-xl hover:border-amber-500/60 transition-all flex items-center gap-4 overflow-hidden">
                     <div className="relative w-24 h-24 rounded-xl overflow-hidden shrink-0 border border-amber-500/20 bg-black/40">
-                      <img src={offer.image} alt={offer.title} className="w-full h-full object-cover opacity-100 group-hover:scale-110 transition-transform duration-500" loading="lazy" decoding="async" />
+                      <img src={offer.image} alt={offer.title} width="96" height="96" className="w-full h-full object-cover opacity-100 group-hover:scale-110 transition-transform duration-500" loading="lazy" decoding="async" />
                     </div>
 
                     <div className="flex-1 min-w-0 space-y-1">

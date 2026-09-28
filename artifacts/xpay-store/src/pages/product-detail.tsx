@@ -738,6 +738,9 @@ export default function ProductDetail() {
                 <img
                   src={product.image}
                   alt={product.name}
+                  width="400"
+                  height="400"
+                  decoding="async"
                   className="w-full h-full object-contain transition-transform duration-500 group-hover/img:scale-105"
                 />
               ) : (

@@ -87,6 +87,9 @@ export default function CategoryCard({
                 src={finalImageUrl}
                 alt={name}
                 loading="lazy"
+                decoding="async"
+                width="120"
+                height="120"
                 onError={() => setImgError(true)}
                 className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-500 will-change-transform"
               />
