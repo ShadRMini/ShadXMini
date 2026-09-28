@@ -124,8 +124,8 @@ export default function BannerCarousel({ banners: propBanners, isLoading }: Bann
 
   if (isLoading && (!banners || banners.length === 0)) {
     return (
-      <div className="w-full max-w-4xl mx-auto px-1 sm:px-2 mb-6">
-        <Skeleton className="w-full h-48 sm:h-64 md:h-72 rounded-3xl bg-[var(--theme-card)] border border-[var(--theme-primary)]/20 animate-pulse" />
+      <div className="w-full max-w-4xl mx-auto px-1 sm:px-2 mb-7">
+        <Skeleton className="w-full min-h-[190px] sm:min-h-[230px] md:min-h-[260px] h-[190px] sm:h-[230px] md:h-[260px] rounded-3xl bg-[var(--theme-card)] border border-[var(--theme-primary)]/20 animate-pulse" />
       </div>
     );
   }
@@ -136,7 +136,7 @@ export default function BannerCarousel({ banners: propBanners, isLoading }: Bann
     <div className="w-full max-w-4xl mx-auto px-1 sm:px-2 mb-7 relative group select-none">
       {/* Carousel Container */}
       <div
-        className="overflow-hidden rounded-3xl border border-[var(--theme-primary)]/40 bg-[var(--theme-background)] shadow-[0_10px_30px_rgba(0,0,0,0.35)] relative"
+        className="overflow-hidden rounded-3xl border border-[var(--theme-primary)]/40 bg-[var(--theme-background)] shadow-[0_10px_30px_rgba(0,0,0,0.35)] relative min-h-[190px] sm:min-h-[230px] md:min-h-[260px]"
         ref={emblaRef}
       >
         <div className="flex">

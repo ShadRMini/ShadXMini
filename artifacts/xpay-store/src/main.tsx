@@ -60,21 +60,15 @@ async function bootstrap() {
 
   const removeShell = () => {
     const shell = document.getElementById("initial-shell");
-    if (shell) {
-      shell.classList.add("hidden");
-      setTimeout(() => shell.remove(), 250);
-    }
+    if (shell) shell.remove();
   };
 
   const removeStaticHero = () => {
     const hero = document.getElementById("static-hero");
-    if (hero) {
-      hero.classList.add("hidden");
-      setTimeout(() => hero.remove(), 200);
-    }
+    if (hero) hero.remove();
   };
 
-  // Remove shell immediately after mount
+  // Remove shell immediately after mount (no transition)
   requestAnimationFrame(() => {
     requestAnimationFrame(removeShell);
   });
