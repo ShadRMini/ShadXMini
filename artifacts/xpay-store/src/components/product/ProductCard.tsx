@@ -47,6 +47,12 @@ export default function ProductCard({
   const storeSettings = useStoreSettings();
   const { formatPrice } = useCurrency();
 
+  // ===== VIP Discount Calculation =====
+  const vipFixedDiscount = Number((user?.vipBadge as any)?.discountFixedAmount || 0);
+  const vipPercentDiscount = Number((user?.vipBadge as any)?.discountPercent || 0);
+  const userVipLevel = Number(user?.vipLevel || 1);
+  const isVipUser = isAuthenticated && userVipLevel > 1;
+
   const targetLink = href || `/products/${id}`;
   const finalImageUrl = image ? withImageVersion(image, imageVersion || `${id}-${image}`) : "";
 
@@ -58,7 +64,44 @@ export default function ProductCard({
     ? rawApiTotal
     : rawUnitPrice * (effectiveQty > 0 ? effectiveQty : 1);
 
-  const formattedPrice = formatPrice(effectiveUsd);
+  // Calculate VIP-discounted total
+  let discountedUsd = effectiveUsd;
+  let hasVipDiscount = false;
+
+  if (isVipUser && effectiveUsd > 0) {
+    if (vipFixedDiscount > 0) {
+      if (rawUnitPrice > vipFixedDiscount) {
+        // Standard item (unit price > fixed discount)
+        const discountedUnit = Math.max(0, rawUnitPrice - vipFixedDiscount);
+        discountedUsd = discountedUnit * effectiveQty;
+      } else if (vipPercentDiscount > 0) {
+        // Micro-price item with percent fallback
+        discountedUsd = effectiveUsd * (1 - vipPercentDiscount / 100);
+      } else {
+        // Micro-price item without percent: cap at max 20% discount
+        discountedUsd = Math.max(effectiveUsd * 0.8, effectiveUsd - vipFixedDiscount);
+      }
+    } else if (vipPercentDiscount > 0) {
+      discountedUsd = effectiveUsd * (1 - vipPercentDiscount / 100);
+    }
+
+    // Only show if the discount is meaningful (≥ $0.005)
+    if (effectiveUsd - discountedUsd >= 0.005) {
+      hasVipDiscount = true;
+    } else {
+      discountedUsd = effectiveUsd;
+    }
+  }
+
+  const formattedOriginalPrice = formatPrice(effectiveUsd);
+  const formattedDiscountedPrice = formatPrice(discountedUsd);
+
+  // Percent / amount to display in badge
+  const vipBadgeLabel = hasVipDiscount
+    ? (vipPercentDiscount > 0
+        ? `VIP -${Math.round(vipPercentDiscount)}%`
+        : `VIP -$${vipFixedDiscount.toFixed(2)}`)
+    : "";
 
   const handleClick = (e: React.MouseEvent) => {
     if (isGuest) {
@@ -153,6 +196,22 @@ export default function ProductCard({
               </div>
             )}
 
+            {/* VIP Discount Badge */}
+            {hasVipDiscount && vipBadgeLabel && (!productCount || productCount <= 0) && (
+              <span
+                className="absolute top-2 left-2 text-[9px] font-black px-2 py-0.5 rounded-lg border shadow-md pointer-events-none z-10 flex items-center gap-1 backdrop-blur-xs"
+                style={{
+                  backgroundColor: "rgba(26, 26, 26, 0.95)",
+                  color: "var(--theme-primary)",
+                  borderColor: "var(--theme-primary)",
+                  boxShadow: "0 0 6px color-mix(in srgb, var(--theme-primary, #C8A45C) 35%, transparent)",
+                }}
+              >
+                <Sparkles size={10} />
+                {vipBadgeLabel}
+              </span>
+            )}
+
             {/* Category Tag Badge */}
             {categoryName && (
               <span
@@ -183,17 +242,41 @@ export default function ProductCard({
 
             {/* Bottom Floating Price Badge if price provided */}
             {priceUsd !== undefined && (
-              <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between pointer-events-none z-10">
-                <span
-                  className="text-[10px] sm:text-xs font-black px-2 py-0.5 rounded-lg border shadow-xs"
-                  style={{
-                    backgroundColor: "rgba(26, 26, 26, 0.9)",
-                    color: "var(--theme-accent)",
-                    borderColor: "var(--theme-border)",
-                  }}
-                >
-                  {formattedPrice}
-                </span>
+              <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between gap-1.5 pointer-events-none z-10 flex-wrap">
+                {hasVipDiscount ? (
+                  <div className="flex items-center gap-1.5">
+                    {/* VIP-discounted price (highlighted) */}
+                    <span
+                      className="text-[11px] sm:text-xs font-black px-2 py-0.5 rounded-lg border shadow-md"
+                      style={{
+                        backgroundColor: "rgba(26, 26, 26, 0.95)",
+                        color: "var(--theme-primary)",
+                        borderColor: "var(--theme-primary)",
+                        boxShadow: "0 0 8px color-mix(in srgb, var(--theme-primary, #C8A45C) 40%, transparent)",
+                      }}
+                    >
+                      {formattedDiscountedPrice}
+                    </span>
+                    {/* Original price (strikethrough) */}
+                    <span
+                      className="text-[9px] sm:text-[10px] font-bold line-through opacity-70"
+                      style={{ color: "var(--theme-text-muted)" }}
+                    >
+                      {formattedOriginalPrice}
+                    </span>
+                  </div>
+                ) : (
+                  <span
+                    className="text-[10px] sm:text-xs font-black px-2 py-0.5 rounded-lg border shadow-xs"
+                    style={{
+                      backgroundColor: "rgba(26, 26, 26, 0.9)",
+                      color: "var(--theme-accent)",
+                      borderColor: "var(--theme-border)",
+                    }}
+                  >
+                    {formattedOriginalPrice}
+                  </span>
+                )}
               </div>
             )}
           </div>

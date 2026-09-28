@@ -168,6 +168,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, [refreshUser]);
 
+  // Refresh user data when tab becomes visible again or window regains focus
+  useEffect(() => {
+    if (!user) return;
+
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+    let lastRefreshTime = 0;
+
+    const performRefresh = async () => {
+      const now = Date.now();
+      // Throttle: avoid requesting more than once every 15 seconds
+      if (now - lastRefreshTime < 15000) return;
+      lastRefreshTime = now;
+      await refreshUser();
+    };
+
+    const handleVisibilityOrFocus = () => {
+      if (typeof document !== "undefined" && document.visibilityState === "visible") {
+        if (timeoutId) clearTimeout(timeoutId);
+        timeoutId = setTimeout(performRefresh, 300); // debounce 300ms
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityOrFocus);
+    window.addEventListener("focus", handleVisibilityOrFocus);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityOrFocus);
+      window.removeEventListener("focus", handleVisibilityOrFocus);
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, [user?.id, refreshUser]);
+
   const login = useCallback((newToken: string, newUser: UserProfile) => {
     if (!isValidUserObject(newUser)) {
       console.warn("Attempted to login with invalid user object:", newUser);

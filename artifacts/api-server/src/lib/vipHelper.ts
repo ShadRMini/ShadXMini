@@ -32,35 +32,42 @@ export async function updateUserVipLevel(userId: number) {
     });
 
     // Find the highest level the user qualifies for based on dynamic requiredAmount
-    const suitableLevel = sortedLevels.find((lvl) => totalSpent >= Number(lvl.requiredAmount || 0));
+    const dynamicLevel = sortedLevels.find((lvl) => totalSpent >= Number(lvl.requiredAmount || 0));
+    const dynamicVip = dynamicLevel ? Number(dynamicLevel.levelOrder || 1) : 1;
 
-    if (suitableLevel && Number(suitableLevel.levelOrder) !== Number(user.vipLevel || 1)) {
-      const newVipLevel = Number(suitableLevel.levelOrder);
+    // Current VIP level from DB
+    const currentVip = Number(user.vipLevel ?? 1);
+
+    // Key fix: Never downgrade an admin-assigned VIP level
+    const finalVip = Math.max(currentVip, dynamicVip);
+
+    if (finalVip !== currentVip) {
       await db
         .update(usersTable)
-        .set({ vipLevel: newVipLevel })
+        .set({ vipLevel: finalVip })
         .where(eq(usersTable.id, userId));
 
-      const lvlName = suitableLevel.nameAr
-        ? `${suitableLevel.nameAr} (${suitableLevel.name})`
-        : suitableLevel.name;
+      const upgradedLevel = sortedLevels.find((lvl) => Number(lvl.levelOrder) === finalVip) || dynamicLevel;
+      const lvlName = upgradedLevel?.nameAr
+        ? `${upgradedLevel.nameAr} (${upgradedLevel.name})`
+        : (upgradedLevel?.name || `VIP ${finalVip}`);
 
       try {
         await createInternalNotification({
           targetType: "user",
           targetUserId: userId,
           title: "تمت ترقيتك! 🎉",
-          content: `تمت ترقيتك إلى مستوى ${lvlName} بخصم ${Number(suitableLevel.discountPercent || 0)}%`,
+          content: `تمت ترقيتك إلى مستوى ${lvlName} بخصم ${Number(upgradedLevel?.discountPercent || 0)}%`,
         });
       } catch (err) {
         console.warn("[VIP Notification Warning]:", err);
       }
 
-      console.log(`[VIP Upgrade] User #${userId} (Total Spent: $${totalSpent}) upgraded to ${lvlName} (Level ${newVipLevel})`);
-      return { upgraded: true, newLevel: suitableLevel };
+      console.log(`[VIP Upgrade] User #${userId} (Total Spent: $${totalSpent}) upgraded to ${lvlName} (Level ${finalVip})`);
+      return { upgraded: true, newLevel: upgradedLevel };
     }
 
-    return { upgraded: false, level: suitableLevel };
+    return { upgraded: false, level: sortedLevels.find((lvl) => Number(lvl.levelOrder) === currentVip) || dynamicLevel };
   } catch (err: any) {
     console.error("[VIP Update Error]:", err);
     return null;

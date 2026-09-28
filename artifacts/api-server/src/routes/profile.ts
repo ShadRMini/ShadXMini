@@ -15,8 +15,36 @@ const router: IRouter = Router();
 async function handleGetProfile(req: Request, res: Response) {
   try {
     const u = await getOrCreateCurrentUser(req);
-    const dynamicVip = calculateVipLevel(Number(u.totalSpent || 0), u.vipLevel ?? 1);
-    const vipBadge = getVipBadge(dynamicVip);
+    // vip_level من DB هو المصدر الموثوق
+    const storedVip = Number(u.vipLevel ?? 1);
+
+    // dynamic اختياري — قد يكون أعلى
+    const dynamicVip = calculateVipLevel(Number(u.totalSpent || 0), storedVip);
+
+    // نفس منطق vipHelper: لا تخفيض أبداً
+    const finalVip = Math.max(storedVip, dynamicVip);
+
+    // جلب badge من DB (vip_memberships) بدل hard-coded
+    const allLevels = await db
+      .select()
+      .from(vipMembershipsTable)
+      .where(eq(vipMembershipsTable.hidden, false));
+
+    const currentLevel = allLevels.find(
+      (lvl) => Number(lvl.levelOrder) === finalVip
+    );
+
+    const fallbackBadge = getVipBadge(finalVip);
+    const vipBadge = {
+      level: finalVip,
+      label: currentLevel?.badge || fallbackBadge.label,
+      name: currentLevel?.nameAr || currentLevel?.name || fallbackBadge.name,
+      badgeColor: currentLevel?.badgeColor || fallbackBadge.color,
+      color: currentLevel?.badgeColor || fallbackBadge.color,
+      badge: currentLevel?.badge || null,
+      discountPercent: Number(currentLevel?.discountPercent || 0),
+      discountFixedAmount: Number(currentLevel?.discountFixedAmount || 0),
+    };
 
     // Check if user has an approved identity verification record
     let identityVerified = false;
@@ -42,7 +70,7 @@ async function handleGetProfile(req: Request, res: Response) {
       balanceSyp: Number(u.balanceSyp),
       totalSpent: Number(u.totalSpent || 0),
       role: u.role,
-      vipLevel: dynamicVip,
+      vipLevel: finalVip,
       vipBadge,
       avatarUrl: u.avatarUrl || null,
       hasPassword: Boolean(u.passwordHash),
@@ -185,8 +213,30 @@ async function handleUpdateProfile(req: Request, res: Response) {
       maxAge: 30 * 24 * 60 * 60 * 1000,
     });
 
-    const dynamicVip = calculateVipLevel(Number(updatedUser.totalSpent || 0), updatedUser.vipLevel ?? 1);
-    const vipBadge = getVipBadge(dynamicVip);
+    const storedVip = Number(updatedUser.vipLevel ?? 1);
+    const dynamicVip = calculateVipLevel(Number(updatedUser.totalSpent || 0), storedVip);
+    const finalVip = Math.max(storedVip, dynamicVip);
+
+    const allLevels = await db
+      .select()
+      .from(vipMembershipsTable)
+      .where(eq(vipMembershipsTable.hidden, false));
+
+    const currentLevel = allLevels.find(
+      (lvl) => Number(lvl.levelOrder) === finalVip
+    );
+
+    const fallbackBadge = getVipBadge(finalVip);
+    const vipBadge = {
+      level: finalVip,
+      label: currentLevel?.badge || fallbackBadge.label,
+      name: currentLevel?.nameAr || currentLevel?.name || fallbackBadge.name,
+      badgeColor: currentLevel?.badgeColor || fallbackBadge.color,
+      color: currentLevel?.badgeColor || fallbackBadge.color,
+      badge: currentLevel?.badge || null,
+      discountPercent: Number(currentLevel?.discountPercent || 0),
+      discountFixedAmount: Number(currentLevel?.discountFixedAmount || 0),
+    };
 
     return res.json({
       success: true,
@@ -202,7 +252,7 @@ async function handleUpdateProfile(req: Request, res: Response) {
         balanceSyp: Number(updatedUser.balanceSyp),
         totalSpent: Number(updatedUser.totalSpent || 0),
         role: updatedUser.role,
-        vipLevel: dynamicVip,
+        vipLevel: finalVip,
         vipBadge,
         avatarUrl: updatedUser.avatarUrl || null,
         hasPassword: Boolean(updatedUser.passwordHash),
