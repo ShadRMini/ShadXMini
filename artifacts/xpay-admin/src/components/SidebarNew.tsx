@@ -11,12 +11,18 @@ import {
   RefreshCw, CheckCircle2, Headphones, LogIn
 } from "lucide-react";
 import type { SidebarProps } from "./SidebarLegacy";
+import { usePermissions } from "../context/PermissionsContext";
 
 interface NavItem {
   to: string;
   label: string;
   icon: React.ComponentType<{ size?: number; className?: string }>;
   badgeKey?: "pendingOrders" | "pendingVerifications" | "pendingTickets" | "pendingDeposits";
+  /**
+   * Permission section required to see this item.
+   * null -> item is public (dashboard, profile).
+   */
+  permission?: string | null;
 }
 
 interface NavGroup {
@@ -31,11 +37,11 @@ const NEW_NAV_GROUPS: NavGroup[] = [
     id: "daily_operations",
     title: "العمليات اليومية",
     items: [
-      { to: "/", label: "لوحة التحكم", icon: LayoutDashboard },
-      { to: "/orders", label: "الطلبات", icon: ShoppingCart, badgeKey: "pendingOrders" },
-      { to: "/order-messages", label: "قوالب رسائل الطلبات", icon: MessageSquare },
-      { to: "/identity-verifications", label: "طلبات توثيق الهوية", icon: BadgeCheck, badgeKey: "pendingVerifications" },
-      { to: "/tickets", label: "تذاكر الدعم الفني", icon: LifeBuoy, badgeKey: "pendingTickets" },
+      { to: "/", label: "لوحة التحكم", icon: LayoutDashboard, permission: null },
+      { to: "/orders", label: "الطلبات", icon: ShoppingCart, badgeKey: "pendingOrders", permission: "الطلبات" },
+      { to: "/order-messages", label: "قوالب رسائل الطلبات", icon: MessageSquare, permission: "الطلبات" },
+      { to: "/identity-verifications", label: "طلبات توثيق الهوية", icon: BadgeCheck, badgeKey: "pendingVerifications", permission: "المستخدمون" },
+      { to: "/tickets", label: "تذاكر الدعم الفني", icon: LifeBuoy, badgeKey: "pendingTickets", permission: "الطلبات" },
     ],
   },
 
@@ -44,15 +50,15 @@ const NEW_NAV_GROUPS: NavGroup[] = [
     id: "products_and_providers",
     title: "المنتجات والمزودون",
     items: [
-      { to: "/categories", label: "الأقسام", icon: FolderTree },
-      { to: "/product-groups", label: "إدارة المجموعات", icon: Layers },
-      { to: "/products", label: "المنتجات", icon: Package },
-      { to: "/banners", label: "البنرات والعروض المميزة", icon: ImageIcon },
-      { to: "/api-products", label: "منتجات عبر API", icon: Server },
-      { to: "/providers", label: "مزودو API", icon: Cpu },
-      { to: "/api-keys", label: "مفاتيح API", icon: Code2 },
-      { to: "/provider-reports", label: "تقارير المزودين", icon: BarChart3 },
-      { to: "/auto-codes", label: "الكود / الأكواد التلقائية", icon: KeyRound },
+      { to: "/categories", label: "الأقسام", icon: FolderTree, permission: "الأقسام" },
+      { to: "/product-groups", label: "إدارة المجموعات", icon: Layers, permission: "المنتجات" },
+      { to: "/products", label: "المنتجات", icon: Package, permission: "المنتجات" },
+      { to: "/banners", label: "البنرات والعروض المميزة", icon: ImageIcon, permission: "البانرات" },
+      { to: "/api-products", label: "منتجات عبر API", icon: Server, permission: "المزودون" },
+      { to: "/providers", label: "مزودو API", icon: Cpu, permission: "المزودون" },
+      { to: "/api-keys", label: "مفاتيح API", icon: Code2, permission: "المزودون" },
+      { to: "/provider-reports", label: "تقارير المزودين", icon: BarChart3, permission: "المزودون" },
+      { to: "/auto-codes", label: "الكود / الأكواد التلقائية", icon: KeyRound, permission: "المنتجات" },
     ],
   },
 
@@ -61,11 +67,11 @@ const NEW_NAV_GROUPS: NavGroup[] = [
     id: "finance_and_marketing",
     title: "الإدارة المالية والتسويق",
     items: [
-      { to: "/payment-methods", label: "طرق الدفع", icon: CreditCard },
-      { to: "/deposits", label: "طلبات شحن الرصيد", icon: Wallet, badgeKey: "pendingDeposits" },
-      { to: "/coupons", label: "كوبونات الخصم", icon: Ticket },
-      { to: "/vip", label: "عضويات VIP والمستويات", icon: Crown },
-      { to: "/currency", label: "عملة المتجر", icon: Coins },
+      { to: "/payment-methods", label: "طرق الدفع", icon: CreditCard, permission: "طرق الدفع" },
+      { to: "/deposits", label: "طلبات شحن الرصيد", icon: Wallet, badgeKey: "pendingDeposits", permission: "الإيداعات" },
+      { to: "/coupons", label: "كوبونات الخصم", icon: Ticket, permission: "الكوبونات" },
+      { to: "/vip", label: "عضويات VIP والمستويات", icon: Crown, permission: "VIP" },
+      { to: "/currency", label: "عملة المتجر", icon: Coins, permission: "الإعدادات" },
     ],
   },
 
@@ -74,11 +80,11 @@ const NEW_NAV_GROUPS: NavGroup[] = [
     id: "users_and_permissions",
     title: "إدارة المستخدمين والصلاحيات",
     items: [
-      { to: "/users", label: "إدارة المستخدمين", icon: Users },
-      { to: "/admins", label: "المشرفون", icon: ShieldCheck },
-      { to: "/permissions", label: "الصلاحيات", icon: Lock },
-      { to: "/activity", label: "سجل النشاط", icon: Activity },
-      { to: "/profile", label: "الملف الشخصي", icon: User },
+      { to: "/users", label: "إدارة المستخدمين", icon: Users, permission: "المستخدمون" },
+      { to: "/admins", label: "المشرفون", icon: ShieldCheck, permission: "المشرفون" },
+      { to: "/permissions", label: "الصلاحيات", icon: Lock, permission: "المشرفون" },
+      { to: "/activity", label: "سجل النشاط", icon: Activity, permission: "سجل النشاط" },
+      { to: "/profile", label: "الملف الشخصي", icon: User, permission: null },
     ],
   },
 
@@ -87,14 +93,14 @@ const NEW_NAV_GROUPS: NavGroup[] = [
     id: "system_settings",
     title: "إعدادات النظام",
     items: [
-      { to: "/interface-switcher", label: "تبديل الواجهات", icon: Layers },
-      { to: "/settings", label: "الإعدادات العامة", icon: SettingsIcon },
-      { to: "/theme", label: "تخصيص الهوية والصفحات", icon: Palette },
-      { to: "/social-links", label: "الروابط الاجتماعية", icon: Share2 },
-      { to: "/notifications", label: "الإشعارات", icon: Bell },
-      { to: "/languages", label: "اللغات", icon: LangIcon },
-      { to: "/news", label: "الأخبار", icon: Megaphone },
-      { to: "/maintenance", label: "وضع الصيانة", icon: PowerOff },
+      { to: "/interface-switcher", label: "تبديل الواجهات", icon: Layers, permission: "الإعدادات" },
+      { to: "/settings", label: "الإعدادات العامة", icon: SettingsIcon, permission: "الإعدادات" },
+      { to: "/theme", label: "تخصيص الهوية والصفحات", icon: Palette, permission: "الإعدادات" },
+      { to: "/social-links", label: "الروابط الاجتماعية", icon: Share2, permission: "الإعدادات" },
+      { to: "/notifications", label: "الإشعارات", icon: Bell, permission: "الإشعارات" },
+      { to: "/languages", label: "اللغات", icon: LangIcon, permission: "الإعدادات" },
+      { to: "/news", label: "الأخبار", icon: Megaphone, permission: "الأخبار" },
+      { to: "/maintenance", label: "وضع الصيانة", icon: PowerOff, permission: "الإعدادات" },
     ],
   },
 
@@ -103,10 +109,10 @@ const NEW_NAV_GROUPS: NavGroup[] = [
     id: "advanced_tools",
     title: "الأدوات المتقدمة",
     items: [
-      { to: "/reports", label: "التقارير", icon: BarChart3 },
-      { to: "/backup", label: "النسخ الاحتياطي", icon: Database },
-      { to: "/cron-jobs", label: "المهام المجدولة (Cron)", icon: Clock },
-      { to: "/cache", label: "الذاكرة المؤقتة", icon: HardDrive },
+      { to: "/reports", label: "التقارير", icon: BarChart3, permission: "الطلبات" },
+      { to: "/backup", label: "النسخ الاحتياطي", icon: Database, permission: "النسخ الاحتياطي" },
+      { to: "/cron-jobs", label: "المهام المجدولة (Cron)", icon: Clock, permission: "الإعدادات" },
+      { to: "/cache", label: "الذاكرة المؤقتة", icon: HardDrive, permission: "الإعدادات" },
     ],
   },
 ];
@@ -223,31 +229,39 @@ export default function SidebarNew({
     return () => clearInterval(interval);
   }, []);
 
+  const { can, isSuperAdmin } = usePermissions();
+
+  // فلترة العناصر حسب الصلاحيات + إخفاء المجموعات الفارغة
+  const permissionFilteredGroups = useMemo(() => {
+    return NEW_NAV_GROUPS.map((group) => {
+      const allowedItems = group.items.filter((item) => {
+        if (item.permission == null) return true;
+        return can(item.permission);
+      });
+      return { ...group, items: allowedItems };
+    }).filter((g) => g.items.length > 0);
+  }, [can, isSuperAdmin]);
+
   // Filter groups and items based on search query
   const filteredGroups = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
-    if (!q) return NEW_NAV_GROUPS;
+    const base = permissionFilteredGroups;
 
-    return NEW_NAV_GROUPS.map((group) => {
+    if (!q) return base;
+
+    return base.map((group) => {
       const matchesGroupTitle = group.title.toLowerCase().includes(q);
       const matchedItems = group.items.filter(
         (it) => it.label.toLowerCase().includes(q) || it.to.toLowerCase().includes(q)
       );
 
-      if (matchesGroupTitle) {
-        return group; // return full group if title matches
-      }
-
+      if (matchesGroupTitle) return group;
       if (matchedItems.length > 0) {
-        return {
-          ...group,
-          items: matchedItems,
-        };
+        return { ...group, items: matchedItems };
       }
-
       return null;
     }).filter(Boolean) as NavGroup[];
-  }, [searchQuery]);
+  }, [searchQuery, permissionFilteredGroups]);
 
   // Auto-expand all matching groups when searching
   const isSearching = searchQuery.trim().length > 0;

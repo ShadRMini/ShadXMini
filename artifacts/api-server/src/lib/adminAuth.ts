@@ -57,7 +57,7 @@ export function invalidatePermissionsCache() {
   cacheTimestamp = 0;
 }
 
-async function getPermissionsMatrix(): Promise<Record<string, Record<string, boolean>>> {
+export async function getPermissionsMatrix(): Promise<Record<string, Record<string, boolean>>> {
   const now = Date.now();
   if (cachedMatrix && now - cacheTimestamp < CACHE_TTL_MS) {
     return cachedMatrix;
@@ -72,6 +72,40 @@ async function getPermissionsMatrix(): Promise<Record<string, Record<string, boo
   cachedMatrix = (row?.value as Record<string, Record<string, boolean>>) || {};
   cacheTimestamp = now;
   return cachedMatrix;
+}
+
+/**
+ * Resolves permissions for a given admin role and optional per-admin custom permissions.
+ */
+export async function getAdminPermissions(
+  role: string,
+  customPerms?: Record<string, boolean> | null
+): Promise<{ allowedSections: string[]; permissionsMap: Record<string, boolean> }> {
+  if (role === "super_admin") {
+    const permissionsMap = Object.fromEntries(ADMIN_SECTIONS.map((sec) => [sec, true]));
+    return { allowedSections: [...ADMIN_SECTIONS], permissionsMap };
+  }
+
+  const matrix = await getPermissionsMatrix();
+  const rolePerms = matrix[role] || {};
+
+  const permissionsMap: Record<string, boolean> = {};
+  const allowedSections: string[] = [];
+
+  for (const sec of ADMIN_SECTIONS) {
+    let allowed = false;
+    if (customPerms && typeof customPerms[sec] === "boolean") {
+      allowed = customPerms[sec];
+    } else {
+      allowed = !!rolePerms[sec];
+    }
+    permissionsMap[sec] = allowed;
+    if (allowed) {
+      allowedSections.push(sec);
+    }
+  }
+
+  return { allowedSections, permissionsMap };
 }
 
 /**

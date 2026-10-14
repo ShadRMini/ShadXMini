@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { NavLink } from "react-router-dom";
 import {
   LayoutDashboard, ShoppingCart, Wallet, Users, FolderTree, Package,
@@ -7,6 +7,7 @@ import {
   Settings as SettingsIcon, Palette, BarChart3, Database, User as UserIcon,
   Lock, Globe, Languages as LangIcon, PowerOff, X, Sparkles, RefreshCw, Headphones, LogIn, Layers
 } from "lucide-react";
+import { usePermissions } from "../context/PermissionsContext";
 
 export interface SidebarProps {
   open: boolean;
@@ -18,53 +19,61 @@ export interface SidebarProps {
   isToggling?: boolean;
 }
 
-// Full legacy nav list from the original Layout.tsx
-const LEGACY_NAV: { to: string; label: string; icon: any; group: string }[] = [
-  // Group 1
-  { to: "/", label: "عام", icon: LayoutDashboard, group: "لوحة الإدارة" },
-  { to: "/maintenance", label: "وضع الصيانة", icon: PowerOff, group: "لوحة الإدارة" },
-  { to: "/news", label: "الأخبار", icon: Megaphone, group: "لوحة الإدارة" },
-  { to: "/users", label: "إدارة المستخدمين (إضافة/حذف)", icon: Users, group: "لوحة الإدارة" },
-  { to: "/identity-verifications", label: "طلبات توثيق الهوية", icon: BadgeCheck, group: "لوحة الإدارة" },
+interface LegacyNavItem {
+  to: string;
+  label: string;
+  icon: React.ComponentType<{ size?: number; className?: string }>;
+  group: string;
+  permission?: string | null;
+}
 
-  // Group 2
-  { to: "/providers", label: "مزود API", icon: Server, group: "إدارة المزودين" },
-  { to: "/api-keys", label: "مفتاح API", icon: Code2, group: "إدارة المزودين" },
-  { to: "/provider-reports", label: "تقارير المزودين", icon: BarChart3, group: "إدارة المزودين" },
+// Full legacy nav list with permission mappings
+const LEGACY_NAV: LegacyNavItem[] = [
+  // Group 1: لوحة الإدارة
+  { to: "/", label: "عام", icon: LayoutDashboard, group: "لوحة الإدارة", permission: null },
+  { to: "/maintenance", label: "وضع الصيانة", icon: PowerOff, group: "لوحة الإدارة", permission: "الإعدادات" },
+  { to: "/news", label: "الأخبار", icon: Megaphone, group: "لوحة الإدارة", permission: "الأخبار" },
+  { to: "/users", label: "إدارة المستخدمين (إضافة/حذف)", icon: Users, group: "لوحة الإدارة", permission: "المستخدمون" },
+  { to: "/identity-verifications", label: "طلبات توثيق الهوية", icon: BadgeCheck, group: "لوحة الإدارة", permission: "المستخدمون" },
 
-  // Group 3
-  { to: "/categories", label: "الأقسام (إضافة/حذف)", icon: FolderTree, group: "الأقسام & المنتجات" },
-  { to: "/product-groups", label: "إدارة المجموعات", icon: FolderTree, group: "الأقسام & المنتجات" },
-  { to: "/products", label: "المنتجات (إضافة/حذف)", icon: Package, group: "الأقسام & المنتجات" },
-  { to: "/banners", label: "البانرات والعروض المميزة", icon: ImageIcon, group: "الأقسام & المنتجات" },
-  { to: "/api-products", label: "منتجات عبر API", icon: Server, group: "الأقسام & المنتجات" },
-  { to: "/auto-codes", label: "كود", icon: KeyRound, group: "الأقسام & المنتجات" },
+  // Group 2: إدارة المزودين
+  { to: "/providers", label: "مزود API", icon: Server, group: "إدارة المزودين", permission: "المزودون" },
+  { to: "/api-keys", label: "مفتاح API", icon: Code2, group: "إدارة المزودين", permission: "المزودون" },
+  { to: "/provider-reports", label: "تقارير المزودين", icon: BarChart3, group: "إدارة المزودين", permission: "المزودون" },
 
-  // Group 4
-  { to: "/orders", label: "الطلبات", icon: ShoppingCart, group: "الإدارة المالية والتسويق" },
-  { to: "/order-messages", label: "قوالب رسائل الطلبات", icon: MessageSquare, group: "الإدارة المالية والتسويق" },
-  { to: "/payment-methods", label: "طرق الدفع", icon: CreditCard, group: "الإدارة المالية والتسويق" },
-  { to: "/coupons", label: "كوبونات الخصم (إضافة/حذف)", icon: Ticket, group: "الإدارة المالية والتسويق" },
-  { to: "/vip", label: "عضويات VIP", icon: Crown, group: "الإدارة المالية والتسويق" },
-  { to: "/currency", label: "عملة المتجر", icon: Globe, group: "الإدارة المالية والتسويق" },
+  // Group 3: الأقسام & المنتجات
+  { to: "/categories", label: "الأقسام (إضافة/حذف)", icon: FolderTree, group: "الأقسام & المنتجات", permission: "الأقسام" },
+  { to: "/product-groups", label: "إدارة المجموعات", icon: FolderTree, group: "الأقسام & المنتجات", permission: "المنتجات" },
+  { to: "/products", label: "المنتجات (إضافة/حذف)", icon: Package, group: "الأقسام & المنتجات", permission: "المنتجات" },
+  { to: "/banners", label: "البانرات والعروض المميزة", icon: ImageIcon, group: "الأقسام & المنتجات", permission: "البانرات" },
+  { to: "/api-products", label: "منتجات عبر API", icon: Server, group: "الأقسام & المنتجات", permission: "المزودون" },
+  { to: "/auto-codes", label: "كود", icon: KeyRound, group: "الأقسام & المنتجات", permission: "المنتجات" },
 
-  // Group 5
-  { to: "/interface-switcher", label: "تبديل الواجهات", icon: Layers, group: "إعدادات النظام" },
-  { to: "/settings", label: "الإعدادات العامة", icon: SettingsIcon, group: "إعدادات النظام" },
-  { to: "/theme", label: "تخصيص الهوية والصفحات", icon: Palette, group: "إعدادات النظام" },
-  { to: "/social-links", label: "الروابط الاجتماعية", icon: Share2, group: "إعدادات النظام" },
-  { to: "/notifications", label: "الإشعارات", icon: Bell, group: "إعدادات النظام" },
-  { to: "/cache", label: "الذاكرة المؤقتة (مسح الكاش)", icon: Database, group: "إعدادات النظام" },
+  // Group 4: الإدارة المالية والتسويق
+  { to: "/orders", label: "الطلبات", icon: ShoppingCart, group: "الإدارة المالية والتسويق", permission: "الطلبات" },
+  { to: "/order-messages", label: "قوالب رسائل الطلبات", icon: MessageSquare, group: "الإدارة المالية والتسويق", permission: "الطلبات" },
+  { to: "/payment-methods", label: "طرق الدفع", icon: CreditCard, group: "الإدارة المالية والتسويق", permission: "طرق الدفع" },
+  { to: "/coupons", label: "كوبونات الخصم (إضافة/حذف)", icon: Ticket, group: "الإدارة المالية والتسويق", permission: "الكوبونات" },
+  { to: "/vip", label: "عضويات VIP", icon: Crown, group: "الإدارة المالية والتسويق", permission: "VIP" },
+  { to: "/currency", label: "عملة المتجر", icon: Globe, group: "الإدارة المالية والتسويق", permission: "الإعدادات" },
 
-  // Group 6
-  { to: "/activity", label: "سجل النشاط", icon: Activity, group: "الإدارة والصلاحيات" },
-  { to: "/reports", label: "التقارير", icon: BarChart3, group: "الإدارة والصلاحيات" },
-  { to: "/backup", label: "النسخ الاحتياطي", icon: Database, group: "الإدارة والصلاحيات" },
-  { to: "/cron-jobs", label: "المهام المجدولة (Cron)", icon: Activity, group: "الإدارة والصلاحيات" },
-  { to: "/permissions", label: "الصلاحيات", icon: Lock, group: "الإدارة والصلاحيات" },
-  { to: "/admins", label: "المشرفون (إضافة/حذف)", icon: ShieldCheck, group: "الإدارة والصلاحيات" },
-  { to: "/profile", label: "الملف الشخصي", icon: UserIcon, group: "الإدارة والصلاحيات" },
-  { to: "/languages", label: "اللغات", icon: LangIcon, group: "الإدارة والصلاحيات" },
+  // Group 5: إعدادات النظام
+  { to: "/interface-switcher", label: "تبديل الواجهات", icon: Layers, group: "إعدادات النظام", permission: "الإعدادات" },
+  { to: "/settings", label: "الإعدادات العامة", icon: SettingsIcon, group: "إعدادات النظام", permission: "الإعدادات" },
+  { to: "/theme", label: "تخصيص الهوية والصفحات", icon: Palette, group: "إعدادات النظام", permission: "الإعدادات" },
+  { to: "/social-links", label: "الروابط الاجتماعية", icon: Share2, group: "إعدادات النظام", permission: "الإعدادات" },
+  { to: "/notifications", label: "الإشعارات", icon: Bell, group: "إعدادات النظام", permission: "الإشعارات" },
+  { to: "/cache", label: "الذاكرة المؤقتة (مسح الكاش)", icon: Database, group: "إعدادات النظام", permission: "الإعدادات" },
+
+  // Group 6: الإدارة والصلاحيات
+  { to: "/activity", label: "سجل النشاط", icon: Activity, group: "الإدارة والصلاحيات", permission: "سجل النشاط" },
+  { to: "/reports", label: "التقارير", icon: BarChart3, group: "الإدارة والصلاحيات", permission: "الطلبات" },
+  { to: "/backup", label: "النسخ الاحتياطي", icon: Database, group: "الإدارة والصلاحيات", permission: "النسخ الاحتياطي" },
+  { to: "/cron-jobs", label: "المهام المجدولة (Cron)", icon: Activity, group: "الإدارة والصلاحيات", permission: "الإعدادات" },
+  { to: "/permissions", label: "الصلاحيات", icon: Lock, group: "الإدارة والصلاحيات", permission: "المشرفون" },
+  { to: "/admins", label: "المشرفون (إضافة/حذف)", icon: ShieldCheck, group: "الإدارة والصلاحيات", permission: "المشرفون" },
+  { to: "/profile", label: "الملف الشخصي", icon: UserIcon, group: "الإدارة والصلاحيات", permission: null },
+  { to: "/languages", label: "اللغات", icon: LangIcon, group: "الإدارة والصلاحيات", permission: "الإعدادات" },
 ];
 
 export default function SidebarLegacy({
@@ -76,10 +85,23 @@ export default function SidebarLegacy({
   onToggleSidebarMode,
   isToggling = false,
 }: SidebarProps) {
-  const groups = (LEGACY_NAV || []).reduce<Record<string, typeof LEGACY_NAV>>((acc, item) => {
-    (acc[item.group] = acc[item.group] || []).push(item);
-    return acc;
-  }, {});
+  const { can, isSuperAdmin } = usePermissions();
+
+  // فلترة العناصر حسب الصلاحيات
+  const allowedNav = useMemo(() => {
+    return LEGACY_NAV.filter((item) => {
+      if (item.permission == null) return true;
+      return can(item.permission);
+    });
+  }, [can, isSuperAdmin]);
+
+  // تجميع العناصر المسموحة فقط في مجموعات وحذف المجموعات الفارغة
+  const groups = useMemo(() => {
+    return (allowedNav || []).reduce<Record<string, LegacyNavItem[]>>((acc, item) => {
+      (acc[item.group] = acc[item.group] || []).push(item);
+      return acc;
+    }, {});
+  }, [allowedNav]);
 
   return (
     <aside
@@ -117,32 +139,51 @@ export default function SidebarLegacy({
 
       {/* Navigation Links (Scrollable) */}
       <nav className="p-3 space-y-4 flex-1 overflow-y-auto">
-        {Object.entries(groups || {}).map(([group, items]) => (
-          <div key={group}>
-            <div className="text-xs font-bold text-[#C8A45C] px-3 mb-1.5">{group}</div>
-            <div className="space-y-0.5">
-              {items.map((it) => (
-                <NavLink
-                  key={it.to}
-                  to={it.to}
-                  end={it.to === "/"}
-                  onClick={() => setOpen(false)}
-                  className={({ isActive }) =>
-                    `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                      isActive
-                        ? "bg-[#C8A45C] text-[#1A1A1A] font-black shadow-md shadow-[#C8A45C]/30"
-                        : "text-zinc-300 hover:bg-[#2D2D2D] hover:text-[#FDE68A]"
-                    }`
-                  }
-                >
-                  <it.icon size={18} className="text-[#C8A45C]" />
-                  <span>{it.label}</span>
-                </NavLink>
-              ))}
+        {Object.entries(groups || {}).map(([group, items]) => {
+          if (!items || items.length === 0) return null;
+          return (
+            <div key={group}>
+              <div className="text-xs font-bold text-[#C8A45C] px-3 mb-1.5">{group}</div>
+              <div className="space-y-0.5">
+                {items.map((it) => {
+                  const Icon = it.icon;
+                  return (
+                    <NavLink
+                      key={it.to}
+                      to={it.to}
+                      end={it.to === "/"}
+                      onClick={() => setOpen(false)}
+                      className={({ isActive }) =>
+                        `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                          isActive
+                            ? "bg-[#C8A45C] text-[#1A1A1A] font-black shadow-md shadow-[#C8A45C]/30"
+                            : "text-zinc-300 hover:bg-[#2D2D2D] hover:text-[#FDE68A]"
+                        }`
+                      }
+                    >
+                      <Icon size={18} className="text-[#C8A45C]" />
+                      <span>{it.label}</span>
+                    </NavLink>
+                  );
+                })}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </nav>
+
+      {/* Switch to New Sidebar Mode button */}
+      <div className="p-3 border-t border-[#C8A45C]/20 bg-[#141414] flex-shrink-0">
+        <button
+          type="button"
+          onClick={onToggleSidebarMode}
+          disabled={isToggling}
+          className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold bg-[#2A2A2A] hover:bg-[#333333] text-[#FDE68A] border border-[#C8A45C]/30 hover:border-[#C8A45C] transition-all cursor-pointer disabled:opacity-50"
+        >
+          <Sparkles size={14} className="text-[#C8A45C]" />
+          <span>{isToggling ? "جاري التبديل..." : "التبديل للقائمة الحديثة"}</span>
+        </button>
+      </div>
     </aside>
   );
 }

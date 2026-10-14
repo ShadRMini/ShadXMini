@@ -6,6 +6,9 @@ import Layout from "./components/Layout";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { loadAndApplyAdminTheme } from "./lib/theme";
 import { Toaster } from "sonner";
+import { PermissionsProvider } from "./context/PermissionsContext";
+import ProtectedRoute from "./components/ProtectedRoute";
+import ForbiddenPage from "./pages/ForbiddenPage";
 
 // Lazy-loaded pages
 const Dashboard = lazy(() => import("./pages/Dashboard"));
@@ -124,75 +127,98 @@ export default function App() {
 
   return (
     <ErrorBoundary>
-      <Toaster position="top-center" richColors theme="dark" closeButton />
-      <Layout
-        me={me}
-        onLogout={() => {
-          setMe(null);
-          setAuth("out");
-        }}
-      >
-        <Suspense fallback={<PageLoading />}>
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/orders" element={<Orders />} />
-            <Route path="/deposits" element={<Deposits />} />
-            <Route path="/users" element={<Users />} />
-            <Route path="/identity-verifications" element={<IdentityVerifications />} />
-            <Route path="/categories" element={<Categories />} />
-            <Route path="/product-groups" element={<ProductGroups />} />
-            <Route path="/products" element={<Products />} />
-            <Route path="/payment-methods" element={<PaymentMethods />} />
-            <Route path="/admin/payment-methods" element={<Navigate to="/payment-methods" replace />} />
-            <Route path="/banners" element={<Banners />} />
-            <Route path="/promotions" element={<Navigate to="/banners" replace />} />
-            <Route path="/news" element={<News />} />
-            <Route path="/social-links" element={<SocialLinks />} />
-            <Route path="/providers" element={<Providers />} />
-            <Route path="/providers/:id/products" element={<ProviderProducts />} />
-            <Route path="/coupons" element={<Coupons />} />
-            <Route path="/vip" element={<VipMemberships />} />
-            <Route path="/auto-codes" element={<AutoCodes />} />
-            <Route path="/order-messages" element={<OrderMessages />} />
-            <Route path="/api-keys" element={<ApiKeys />} />
-            <Route path="/notifications" element={<Notifications />} />
-            <Route path="/admins" element={<Admins />} />
-            <Route path="/admin/admins" element={<Navigate to="/admins" replace />} />
-            <Route path="/activity" element={<ActivityLog />} />
-            <Route path="/interface-switcher" element={<InterfaceSwitcher />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/theme" element={<Theme />} />
-            <Route path="/auth-pages-settings" element={<Navigate to="/theme?tab=auth" replace />} />
-            <Route path="/auth-settings" element={<Navigate to="/theme?tab=auth" replace />} />
-            <Route path="/product-page-settings" element={<Navigate to="/theme?tab=product" replace />} />
-            <Route path="/about-settings" element={<Navigate to="/theme?tab=about" replace />} />
-            <Route path="/contact-settings" element={<Navigate to="/theme?tab=contact" replace />} />
-            <Route path="/deposit-settings" element={<Navigate to="/payment-methods" replace />} />
-            <Route path="/reports" element={<Reports />} />
-            <Route path="/tickets" element={<Tickets />} />
-            <Route path="/tickets/:id" element={<TicketDetail />} />
-            <Route path="/support" element={<Tickets />} />
-            <Route path="/backup" element={<Backup />} />
-            <Route path="/profile" element={<Profile me={me} />} />
-            <Route path="/permissions" element={<Permissions />} />
-            <Route path="/currency" element={<CurrencySettings />} />
-            <Route path="/currencies" element={<Navigate to="/currency" replace />} />
-            <Route path="/api-products" element={<ApiProducts />} />
-            <Route path="/admin/api-products" element={<Navigate to="/api-products" replace />} />
-            <Route path="/provider-reports" element={<ProviderReports />} />
-            <Route path="/admin/provider-reports" element={<Navigate to="/provider-reports" replace />} />
-            <Route path="/languages" element={<Languages />} />
-            <Route path="/admin/languages" element={<Navigate to="/languages" replace />} />
-            <Route path="/maintenance" element={<Maintenance />} />
-            <Route path="/admin/maintenance" element={<Navigate to="/maintenance" replace />} />
-            <Route path="/cron-jobs" element={<CronJobs />} />
-            <Route path="/cron" element={<Navigate to="/cron-jobs" replace />} />
-            <Route path="/cache" element={<CacheManagement />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </Suspense>
-      </Layout>
+      <PermissionsProvider me={me}>
+        <Toaster position="top-center" richColors theme="dark" closeButton />
+        <Layout
+          me={me}
+          onLogout={() => {
+            setMe(null);
+            setAuth("out");
+          }}
+        >
+          <Suspense fallback={<PageLoading />}>
+            <Routes>
+              {/* Public routes within admin dashboard */}
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/profile" element={<Profile me={me} />} />
+              <Route path="/403" element={<ForbiddenPage />} />
+
+              {/* Protected routes by Section */}
+              <Route path="/orders" element={<ProtectedRoute section="الطلبات"><Orders /></ProtectedRoute>} />
+              <Route path="/order-messages" element={<ProtectedRoute section="الطلبات"><OrderMessages /></ProtectedRoute>} />
+              <Route path="/tickets" element={<ProtectedRoute section="الطلبات"><Tickets /></ProtectedRoute>} />
+              <Route path="/tickets/:id" element={<ProtectedRoute section="الطلبات"><TicketDetail /></ProtectedRoute>} />
+              <Route path="/support" element={<ProtectedRoute section="الطلبات"><Tickets /></ProtectedRoute>} />
+              <Route path="/reports" element={<ProtectedRoute section="الطلبات"><Reports /></ProtectedRoute>} />
+
+              <Route path="/deposits" element={<ProtectedRoute section="الإيداعات"><Deposits /></ProtectedRoute>} />
+
+              <Route path="/users" element={<ProtectedRoute section="المستخدمون"><Users /></ProtectedRoute>} />
+              <Route path="/identity-verifications" element={<ProtectedRoute section="المستخدمون"><IdentityVerifications /></ProtectedRoute>} />
+
+              <Route path="/categories" element={<ProtectedRoute section="الأقسام"><Categories /></ProtectedRoute>} />
+
+              <Route path="/product-groups" element={<ProtectedRoute section="المنتجات"><ProductGroups /></ProtectedRoute>} />
+              <Route path="/products" element={<ProtectedRoute section="المنتجات"><Products /></ProtectedRoute>} />
+              <Route path="/auto-codes" element={<ProtectedRoute section="المنتجات"><AutoCodes /></ProtectedRoute>} />
+
+              <Route path="/payment-methods" element={<ProtectedRoute section="طرق الدفع"><PaymentMethods /></ProtectedRoute>} />
+              <Route path="/admin/payment-methods" element={<Navigate to="/payment-methods" replace />} />
+              <Route path="/deposit-settings" element={<Navigate to="/payment-methods" replace />} />
+
+              <Route path="/banners" element={<ProtectedRoute section="البانرات"><Banners /></ProtectedRoute>} />
+              <Route path="/promotions" element={<Navigate to="/banners" replace />} />
+
+              <Route path="/news" element={<ProtectedRoute section="الأخبار"><News /></ProtectedRoute>} />
+
+              <Route path="/providers" element={<ProtectedRoute section="المزودون"><Providers /></ProtectedRoute>} />
+              <Route path="/providers/:id/products" element={<ProtectedRoute section="المزودون"><ProviderProducts /></ProtectedRoute>} />
+              <Route path="/api-products" element={<ProtectedRoute section="المزودون"><ApiProducts /></ProtectedRoute>} />
+              <Route path="/admin/api-products" element={<Navigate to="/api-products" replace />} />
+              <Route path="/api-keys" element={<ProtectedRoute section="المزودون"><ApiKeys /></ProtectedRoute>} />
+              <Route path="/provider-reports" element={<ProtectedRoute section="المزودون"><ProviderReports /></ProtectedRoute>} />
+              <Route path="/admin/provider-reports" element={<Navigate to="/provider-reports" replace />} />
+
+              <Route path="/coupons" element={<ProtectedRoute section="الكوبونات"><Coupons /></ProtectedRoute>} />
+
+              <Route path="/vip" element={<ProtectedRoute section="VIP"><VipMemberships /></ProtectedRoute>} />
+
+              <Route path="/notifications" element={<ProtectedRoute section="الإشعارات"><Notifications /></ProtectedRoute>} />
+
+              <Route path="/admins" element={<ProtectedRoute section="المشرفون"><Admins /></ProtectedRoute>} />
+              <Route path="/admin/admins" element={<Navigate to="/admins" replace />} />
+              <Route path="/permissions" element={<ProtectedRoute section="المشرفون"><Permissions /></ProtectedRoute>} />
+
+              <Route path="/activity" element={<ProtectedRoute section="سجل النشاط"><ActivityLog /></ProtectedRoute>} />
+
+              <Route path="/backup" element={<ProtectedRoute section="النسخ الاحتياطي"><Backup /></ProtectedRoute>} />
+
+              <Route path="/currency" element={<ProtectedRoute section="الإعدادات"><CurrencySettings /></ProtectedRoute>} />
+              <Route path="/currencies" element={<Navigate to="/currency" replace />} />
+              <Route path="/languages" element={<ProtectedRoute section="الإعدادات"><Languages /></ProtectedRoute>} />
+              <Route path="/admin/languages" element={<Navigate to="/languages" replace />} />
+              <Route path="/maintenance" element={<ProtectedRoute section="الإعدادات"><Maintenance /></ProtectedRoute>} />
+              <Route path="/admin/maintenance" element={<Navigate to="/maintenance" replace />} />
+              <Route path="/cron-jobs" element={<ProtectedRoute section="الإعدادات"><CronJobs /></ProtectedRoute>} />
+              <Route path="/cron" element={<Navigate to="/cron-jobs" replace />} />
+              <Route path="/cache" element={<ProtectedRoute section="الإعدادات"><CacheManagement /></ProtectedRoute>} />
+              <Route path="/interface-switcher" element={<ProtectedRoute section="الإعدادات"><InterfaceSwitcher /></ProtectedRoute>} />
+              <Route path="/settings" element={<ProtectedRoute section="الإعدادات"><Settings /></ProtectedRoute>} />
+              <Route path="/theme" element={<ProtectedRoute section="الإعدادات"><Theme /></ProtectedRoute>} />
+              <Route path="/auth-pages-settings" element={<Navigate to="/theme?tab=auth" replace />} />
+              <Route path="/auth-settings" element={<Navigate to="/theme?tab=auth" replace />} />
+              <Route path="/product-page-settings" element={<Navigate to="/theme?tab=product" replace />} />
+              <Route path="/about-settings" element={<Navigate to="/theme?tab=about" replace />} />
+              <Route path="/contact-settings" element={<Navigate to="/theme?tab=contact" replace />} />
+              <Route path="/social-links" element={<ProtectedRoute section="الإعدادات"><SocialLinks /></ProtectedRoute>} />
+
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </Suspense>
+        </Layout>
+      </PermissionsProvider>
     </ErrorBoundary>
   );
 }
+
 

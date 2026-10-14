@@ -29,7 +29,7 @@ import {
   identityVerificationsTable,
 } from "@workspace/db";
 import { and, asc, desc, eq, gte, inArray, sql } from "drizzle-orm";
-import { requireAdmin, invalidatePermissionsCache, adminPermissionsMiddleware } from "../lib/adminAuth.js";
+import { requireAdmin, invalidatePermissionsCache, adminPermissionsMiddleware, getAdminPermissions } from "../lib/adminAuth.js";
 import { getAdapter } from "../lib/adapter-registry"; 
 import { MersalAdapter } from "../lib/mersal-adapter";
 import { getTelegramConfigStatus, notifyUserDepositApproved, notifyUserDepositRejected, notifyUserOrderStatusChanged } from "../lib/telegram.js";
@@ -505,6 +505,12 @@ router.get("/admin/me", requireAdmin, async (req, res) => {
     res.status(401).json({ error: "غير موجود" });
     return;
   }
+
+  const { allowedSections, permissionsMap } = await getAdminPermissions(
+    admin.role,
+    admin.permissions as Record<string, boolean> | null
+  );
+
   res.json({
     id: admin.id,
     username: admin.username,
@@ -512,6 +518,8 @@ router.get("/admin/me", requireAdmin, async (req, res) => {
     email: admin.email,
     role: admin.role,
     twoFactorEnabled: !!admin.twoFactorSecret,
+    permissions: allowedSections,
+    permissionsMap,
   });
 });
 
