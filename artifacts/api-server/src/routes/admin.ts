@@ -29,7 +29,7 @@ import {
   identityVerificationsTable,
 } from "@workspace/db";
 import { and, asc, desc, eq, gte, inArray, sql } from "drizzle-orm";
-import { requireAdmin } from "../lib/adminAuth.js";
+import { requireAdmin, invalidatePermissionsCache, adminPermissionsMiddleware } from "../lib/adminAuth.js";
 import { getAdapter } from "../lib/adapter-registry"; 
 import { MersalAdapter } from "../lib/mersal-adapter";
 import { getTelegramConfigStatus, notifyUserDepositApproved, notifyUserDepositRejected, notifyUserOrderStatusChanged } from "../lib/telegram.js";
@@ -48,6 +48,10 @@ import { ensureDatabaseSchema } from "../lib/ensureSchema";
 import { extractStringValue } from "../services/shamcash.service.js";
 import { syncAllPendingProviderOrders } from "./orders.js";
 const router: IRouter = Router();
+
+// Global Admin RBAC Middleware (Task #89)
+router.use(adminPermissionsMiddleware);
+
 const EXTERNAL_CATEGORY_NAME = "External Provider";
 const EXTERNAL_CATEGORY_IMAGE = "https://placehold.co/600x400?text=External+Provider";
 const BCRYPT_ROUNDS = 12;
@@ -475,7 +479,7 @@ router.post("/admin/login", adminLoginRateLimit, async (req, res) => {
   }
   req.session.adminId = admin.id;
   req.session.adminUsername = admin.username;
-  req.session.adminRole = admin.role;
+  req.session.adminRole = admin.role || "admin";
   await logActivity({ id: admin.id, name: admin.username }, "login", "admin_panel");
   res.json({
     id: admin.id,
@@ -6536,6 +6540,8 @@ router.put("/admin/permissions/matrix", requireAdmin, async (req, res) => {
         target: settingsTable.key,
         set: { value: matrix },
       });
+
+    invalidatePermissionsCache();
 
     console.log("[Admin] ✅ Permissions matrix updated");
 
