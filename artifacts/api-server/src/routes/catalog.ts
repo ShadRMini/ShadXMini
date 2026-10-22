@@ -1,4 +1,4 @@
-import { Router, type IRouter } from "express";
+import { Router, type IRouter, type Response } from "express";
 import { db, categoriesTable, productGroupsTable, productsTable, newsTable, bannersTable, settingsTable, productPageConfigTable, socialLinksTable } from "@workspace/db";
 import { and, asc, eq, ilike, sql } from "drizzle-orm";
 import {
@@ -12,6 +12,10 @@ import {
 import { addUnitPrices } from "../lib/pricing.js";
 
 const router: IRouter = Router();
+
+function setPublicCacheHeaders(res: Response) {
+  res.setHeader("Cache-Control", "public, max-age=15, stale-while-revalidate=60");
+}
 
 function productRow(p: typeof productsTable.$inferSelect, categoryName: string) {
   const finalPriceUsd =
@@ -68,9 +72,7 @@ function productRow(p: typeof productsTable.$inferSelect, categoryName: string) 
 
 router.get("/categories", async (_req, res) => {
   try {
-    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
-    res.setHeader("Pragma", "no-cache");
-    res.setHeader("Expires", "0");
+    setPublicCacheHeaders(res);
     const cats = await db.select().from(categoriesTable).orderBy(asc(categoriesTable.order));
     const counts = await db
       .select({ cid: productsTable.categoryId, c: sql<number>`count(*)::int` })
@@ -98,6 +100,7 @@ router.get("/categories", async (_req, res) => {
 
 router.get("/products", async (req, res) => {
   try {
+    setPublicCacheHeaders(res);
     const { categoryId, groupId, q } = req.query as { categoryId?: string; groupId?: string; q?: string };
     const conds = [eq(productsTable.available, true)];
     if (categoryId) conds.push(eq(productsTable.categoryId, Number(categoryId)));
@@ -216,6 +219,7 @@ router.get("/news", async (_req, res) => {
 
 const handleGetBanners = async (_req: any, res: any) => {
   try {
+    setPublicCacheHeaders(res);
     const rows = await db.select().from(bannersTable).where(eq(bannersTable.active, true)).orderBy(asc(bannersTable.order));
     res.json(
       rows.map((b) => ({

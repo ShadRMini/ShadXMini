@@ -5,12 +5,20 @@ import bcrypt from "bcryptjs";
 import {
   getOrCreateCurrentUser,
   getVipBadge,
-  calculateVipLevel,
   generateUserToken,
 } from "../lib/currentUser.js";
+import { updateUserVipLevel } from "../lib/vipHelper.js";
 import { decimalToScaled } from "../lib/pricing.js";
 
 const router: IRouter = Router();
+
+export function calculateVipLevel(totalSpentUsd: number, currentVipLevel: number = 1): number {
+  if (totalSpentUsd >= 2500) return 5;
+  if (totalSpentUsd >= 1000) return 4;
+  if (totalSpentUsd >= 500) return 3;
+  if (totalSpentUsd >= 300) return 2;
+  return Math.max(1, currentVipLevel);
+}
 
 async function handleGetProfile(req: Request, res: Response) {
   try {
@@ -18,8 +26,11 @@ async function handleGetProfile(req: Request, res: Response) {
     // vip_level من DB هو المصدر الموثوق
     const storedVip = Number(u.vipLevel ?? 1);
 
-    // dynamic اختياري — قد يكون أعلى
-    const dynamicVip = calculateVipLevel(Number(u.totalSpent || 0), storedVip);
+    // تحديث وجلب مستوى VIP الموحد من DB عبر vipHelper
+    const vipCheck = u.id ? await updateUserVipLevel(u.id) : null;
+    const dynamicVip = Number(
+      (vipCheck && "newLevel" in vipCheck ? vipCheck.newLevel?.levelOrder : vipCheck?.level?.levelOrder) ?? storedVip
+    );
 
     // نفس منطق vipHelper: لا تخفيض أبداً
     const finalVip = Math.max(storedVip, dynamicVip);

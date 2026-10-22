@@ -125,7 +125,13 @@ export default function BannerCarousel({ banners: propBanners, isLoading }: Bann
   if (isLoading && (!banners || banners.length === 0)) {
     return (
       <div className="w-full max-w-4xl mx-auto px-1 sm:px-2 mb-7">
-        <Skeleton className="w-full min-h-[190px] sm:min-h-[230px] md:min-h-[260px] h-[190px] sm:h-[230px] md:h-[260px] rounded-3xl bg-[var(--theme-card)] border border-[var(--theme-primary)]/20 animate-pulse" />
+        <Skeleton
+          className="w-full min-h-[190px] sm:min-h-[230px] md:min-h-[260px] h-[190px] sm:h-[230px] md:h-[260px] rounded-3xl border animate-pulse"
+          style={{
+            backgroundColor: "var(--theme-card, #2D2D2D)",
+            borderColor: "color-mix(in srgb, var(--theme-primary, #C8A45C) 20%, transparent)",
+          }}
+        />
       </div>
     );
   }
@@ -136,7 +142,12 @@ export default function BannerCarousel({ banners: propBanners, isLoading }: Bann
     <div className="w-full max-w-4xl mx-auto px-1 sm:px-2 mb-7 relative group select-none">
       {/* Carousel Container */}
       <div
-        className="overflow-hidden rounded-3xl border border-[var(--theme-primary)]/40 bg-[var(--theme-background)] shadow-[0_10px_30px_rgba(0,0,0,0.35)] relative min-h-[190px] sm:min-h-[230px] md:min-h-[260px]"
+        className="overflow-hidden rounded-3xl border relative min-h-[190px] sm:min-h-[230px] md:min-h-[260px]"
+        style={{
+          backgroundColor: "var(--theme-background, #0a0a0a)",
+          borderColor: "color-mix(in srgb, var(--theme-primary, #C8A45C) 40%, transparent)",
+          boxShadow: "var(--theme-shadow)",
+        }}
         ref={emblaRef}
       >
         <div className="flex">
@@ -185,11 +196,18 @@ export default function BannerCarousel({ banners: propBanners, isLoading }: Bann
             const showFeatured = Boolean(banner.showFeaturedBtn ?? banner.show_featured_btn);
             const hasTopBadges = showFeatured || showReliable;
             const hasBottomActions = showDiscover || showAutoExec;
+            const cleanTitle = banner.title && banner.title.trim() !== "." ? banner.title.trim() : "";
+            const hasOverlayContent = Boolean(
+              cleanTitle || (banner.subtitle && banner.subtitle.trim()) || hasTopBadges || hasBottomActions
+            );
 
             return (
               <div
                 key={banner.id || index}
-                className="flex-[0_0_100%] min-w-0 relative min-h-[190px] sm:min-h-[230px] md:min-h-[260px] bg-gradient-to-br from-[var(--theme-card)] via-[var(--theme-background)] to-[#141414] overflow-hidden"
+                className="flex-[0_0_100%] min-w-0 relative min-h-[190px] sm:min-h-[230px] md:min-h-[260px] overflow-hidden"
+                style={{
+                  background: "linear-gradient(135deg, var(--theme-card, #1A1A1A) 0%, var(--theme-background, #0a0a0a) 100%)",
+                }}
               >
                 <BannerWrapper>
                   {/* Background Image if exists */}
@@ -197,7 +215,7 @@ export default function BannerCarousel({ banners: propBanners, isLoading }: Bann
                     <div className="absolute inset-0 w-full h-full">
                       <img
                         src={banner.image}
-                        alt={banner.title}
+                        alt={cleanTitle || "Banner"}
                         width="800"
                         height="400"
                         fetchPriority={index === 0 ? "high" : "low"}
@@ -205,16 +223,38 @@ export default function BannerCarousel({ banners: propBanners, isLoading }: Bann
                         loading={index === 0 ? "eager" : "lazy"}
                         decoding="async"
                       />
-                      {/* Subtle, crystal-clear bottom and right gradient only for text contrast without clouding the image */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent pointer-events-none" />
-                      <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/10 to-transparent pointer-events-none" />
+                      {/* Subtle dark contrast scrim only when text/badges exist — never whitewash in Light Mode */}
+                      {hasOverlayContent && (
+                        <div
+                          className="absolute inset-0 pointer-events-none"
+                          style={{
+                            background:
+                              "linear-gradient(to top, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0.15) 50%, transparent 100%)",
+                          }}
+                        />
+                      )}
                     </div>
                   ) : (
                     /* Elegant Graphic Elements when no image */
                     <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                      <div className="absolute -top-12 -left-12 w-48 h-48 rounded-full bg-[var(--theme-primary)]/15 blur-3xl" />
-                      <div className="absolute -bottom-12 -right-12 w-48 h-48 rounded-full bg-[var(--theme-primary)]/10 blur-3xl" />
-                      <div className="absolute top-1/2 left-1/4 w-32 h-32 rounded-full bg-[var(--theme-accent)]/5 blur-2xl" />
+                      <div
+                        className="absolute -top-12 -left-12 w-48 h-48 rounded-full blur-3xl"
+                        style={{
+                          backgroundColor: "color-mix(in srgb, var(--theme-primary, #C8A45C) 15%, transparent)",
+                        }}
+                      />
+                      <div
+                        className="absolute -bottom-12 -right-12 w-48 h-48 rounded-full blur-3xl"
+                        style={{
+                          backgroundColor: "color-mix(in srgb, var(--theme-primary, #C8A45C) 10%, transparent)",
+                        }}
+                      />
+                      <div
+                        className="absolute top-1/2 left-1/4 w-32 h-32 rounded-full blur-2xl"
+                        style={{
+                          backgroundColor: "color-mix(in srgb, var(--theme-accent, #FDE68A) 5%, transparent)",
+                        }}
+                      />
                     </div>
                   )}
 
@@ -225,16 +265,30 @@ export default function BannerCarousel({ banners: propBanners, isLoading }: Bann
                       <div className="flex items-center justify-between gap-2">
                         <div>
                           {showFeatured && (
-                            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--theme-primary)]/20 border border-[var(--theme-primary)]/40 text-[var(--theme-accent)] text-[11px] sm:text-xs font-bold shadow-xs">
-                              <Sparkles className="w-3.5 h-3.5 text-[var(--theme-primary)]" />
+                            <div
+                              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-[11px] sm:text-xs font-bold shadow-xs"
+                              style={{
+                                backgroundColor: "color-mix(in srgb, var(--theme-primary, #C8A45C) 20%, transparent)",
+                                borderColor: "color-mix(in srgb, var(--theme-primary, #C8A45C) 40%, transparent)",
+                                color: "var(--theme-accent, #FDE68A)",
+                              }}
+                            >
+                              <Sparkles className="w-3.5 h-3.5" style={{ color: "var(--theme-primary, #C8A45C)" }} />
                               <span>عرض مميز</span>
                             </div>
                           )}
                         </div>
                         <div>
                           {showReliable && (
-                            <div className="flex items-center gap-1 text-[10px] sm:text-xs text-zinc-300 bg-black/40 px-2.5 py-1 rounded-full border border-[var(--theme-primary)]/20">
-                              <ShieldCheck className="w-3.5 h-3.5 text-[var(--theme-primary)]" />
+                            <div
+                              className="flex items-center gap-1 text-[10px] sm:text-xs px-2.5 py-1 rounded-full border"
+                              style={{
+                                backgroundColor: "color-mix(in srgb, var(--theme-background, #0a0a0a) 55%, transparent)",
+                                borderColor: "color-mix(in srgb, var(--theme-primary, #C8A45C) 25%, transparent)",
+                                color: "var(--theme-text-secondary, #E5E7EB)",
+                              }}
+                            >
+                              <ShieldCheck className="w-3.5 h-3.5" style={{ color: "var(--theme-primary, #C8A45C)" }} />
                               <span>خدمة موثوقة</span>
                             </div>
                           )}
@@ -246,11 +300,19 @@ export default function BannerCarousel({ banners: propBanners, isLoading }: Bann
 
                     {/* Middle Content */}
                     <div className="my-auto py-2 max-w-xl">
-                      <h2 className="text-lg sm:text-2xl md:text-3xl font-black text-[var(--theme-accent)] leading-snug sm:leading-tight mb-2 drop-shadow-md">
-                        {banner.title}
-                      </h2>
+                      {cleanTitle && (
+                        <h2
+                          className="text-lg sm:text-2xl md:text-3xl font-black leading-snug sm:leading-tight mb-2 drop-shadow-md"
+                          style={{ color: "var(--theme-accent, #FDE68A)" }}
+                        >
+                          {cleanTitle}
+                        </h2>
+                      )}
                       {banner.subtitle && (
-                        <p className="text-xs sm:text-sm md:text-base text-[var(--theme-text-secondary)] line-clamp-2 leading-relaxed max-w-lg drop-shadow-xs font-medium">
+                        <p
+                          className="text-xs sm:text-sm md:text-base line-clamp-2 leading-relaxed max-w-lg drop-shadow-xs font-medium"
+                          style={{ color: "var(--theme-text-secondary, #E5E7EB)" }}
+                        >
                           {banner.subtitle}
                         </p>
                       )}
@@ -261,7 +323,14 @@ export default function BannerCarousel({ banners: propBanners, isLoading }: Bann
                       <div className="flex items-center justify-between gap-4 pt-1">
                         <div>
                           {showDiscover && (
-                            <div className="inline-flex items-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl sm:rounded-2xl bg-[var(--theme-primary)] hover:bg-[var(--theme-secondary)] text-[var(--theme-background)] font-black text-xs sm:text-sm transition-all shadow-md shadow-[var(--theme-primary)]/20 cursor-pointer group-hover:shadow-lg">
+                            <div
+                              className="inline-flex items-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl sm:rounded-2xl font-black text-xs sm:text-sm transition-all shadow-md cursor-pointer group-hover:shadow-lg"
+                              style={{
+                                backgroundColor: "var(--theme-primary, #C8A45C)",
+                                color: "var(--theme-background, #0a0a0a)",
+                                boxShadow: "0 4px 14px color-mix(in srgb, var(--theme-primary, #C8A45C) 25%, transparent)",
+                              }}
+                            >
                               <span>{banner.ctaText || "اكتشف الآن"}</span>
                               {isExternal ? (
                                 <ExternalLink className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5]" />
@@ -274,8 +343,15 @@ export default function BannerCarousel({ banners: propBanners, isLoading }: Bann
 
                         <div>
                           {showAutoExec && (
-                            <div className="flex items-center gap-1.5 text-[11px] sm:text-xs text-zinc-300 bg-black/40 px-3 py-1.5 rounded-full border border-[var(--theme-primary)]/20">
-                              <Zap className="w-3.5 h-3.5 text-[var(--theme-primary)]" />
+                            <div
+                              className="flex items-center gap-1.5 text-[11px] sm:text-xs px-3 py-1.5 rounded-full border"
+                              style={{
+                                backgroundColor: "color-mix(in srgb, var(--theme-background, #0a0a0a) 55%, transparent)",
+                                borderColor: "color-mix(in srgb, var(--theme-primary, #C8A45C) 25%, transparent)",
+                                color: "var(--theme-text-secondary, #E5E7EB)",
+                              }}
+                            >
+                              <Zap className="w-3.5 h-3.5" style={{ color: "var(--theme-primary, #C8A45C)" }} />
                               <span>تنفيذ تلقائي وفوري</span>
                             </div>
                           )}
@@ -300,7 +376,12 @@ export default function BannerCarousel({ banners: propBanners, isLoading }: Bann
                 scrollPrev();
               }}
               aria-label="السابق"
-              className="hidden sm:flex absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-[var(--theme-background)]/85 hover:bg-[var(--theme-card)] border border-[var(--theme-primary)]/40 text-[var(--theme-accent)] items-center justify-center transition-all opacity-0 group-hover:opacity-100 shadow-md cursor-pointer z-20"
+              className="hidden sm:flex absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full border items-center justify-center transition-all opacity-0 group-hover:opacity-100 shadow-md cursor-pointer z-20"
+              style={{
+                backgroundColor: "color-mix(in srgb, var(--theme-card, #1A1A1A) 90%, transparent)",
+                borderColor: "color-mix(in srgb, var(--theme-primary, #C8A45C) 40%, transparent)",
+                color: "var(--theme-primary, #C8A45C)",
+              }}
             >
               <ChevronRight className="w-5 h-5" />
             </button>
@@ -310,7 +391,12 @@ export default function BannerCarousel({ banners: propBanners, isLoading }: Bann
                 scrollNext();
               }}
               aria-label="التالي"
-              className="hidden sm:flex absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-[var(--theme-background)]/85 hover:bg-[var(--theme-card)] border border-[var(--theme-primary)]/40 text-[var(--theme-accent)] items-center justify-center transition-all opacity-0 group-hover:opacity-100 shadow-md cursor-pointer z-20"
+              className="hidden sm:flex absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full border items-center justify-center transition-all opacity-0 group-hover:opacity-100 shadow-md cursor-pointer z-20"
+              style={{
+                backgroundColor: "color-mix(in srgb, var(--theme-card, #1A1A1A) 90%, transparent)",
+                borderColor: "color-mix(in srgb, var(--theme-primary, #C8A45C) 40%, transparent)",
+                color: "var(--theme-primary, #C8A45C)",
+              }}
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
@@ -327,10 +413,18 @@ export default function BannerCarousel({ banners: propBanners, isLoading }: Bann
               onClick={() => scrollTo(index)}
               aria-label={`انتقل إلى البانر ${index + 1}`}
               className={`transition-all duration-300 rounded-full cursor-pointer ${
-                index === selectedIndex
-                  ? "w-6 h-2 bg-[var(--theme-primary)] shadow-xs shadow-[var(--theme-primary)]/50"
-                  : "w-2 h-2 bg-zinc-400 hover:bg-[var(--theme-primary)]/60"
+                index === selectedIndex ? "w-6 h-2 shadow-xs" : "w-2 h-2"
               }`}
+              style={
+                index === selectedIndex
+                  ? {
+                      backgroundColor: "var(--theme-primary, #C8A45C)",
+                      boxShadow: "0 0 8px color-mix(in srgb, var(--theme-primary, #C8A45C) 50%, transparent)",
+                    }
+                  : {
+                      backgroundColor: "var(--theme-border)",
+                    }
+              }
             />
           ))}
         </div>

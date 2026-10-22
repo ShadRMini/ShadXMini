@@ -96,7 +96,7 @@ export default function Categories() {
   );
 
   return (
-    <div className="min-h-screen bg-[var(--theme-background)] text-white flex flex-col animate-in slide-in-from-right-4 duration-300" dir="rtl">
+    <div className="min-h-screen bg-[var(--theme-background)] text-[var(--theme-text-primary)] flex flex-col animate-in slide-in-from-right-4 duration-300" dir="rtl">
       <div className="sticky top-0 z-10 bg-[var(--theme-background)]/90 backdrop-blur-xl border-b border-[var(--theme-primary)]/30 px-4 py-3 flex items-center gap-3">
         <Link href="/">
           <div className="bg-[var(--theme-card)] p-2 rounded-full cursor-pointer hover:bg-[var(--theme-input-bg)] border border-[var(--theme-primary)]/30 hover:border-[var(--theme-primary)] transition-all">
@@ -105,12 +105,12 @@ export default function Categories() {
         </Link>
         <div className="flex-1">
           <div className="relative">
-            <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+            <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--theme-text-muted)]" />
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="ابحث عن منتج أو باقة..."
-              className="pl-3 pr-9 h-10 bg-[var(--theme-card)] border-[var(--theme-primary)]/30 text-white rounded-full text-sm focus-visible:ring-[var(--theme-primary)] focus-visible:border-[var(--theme-primary)]"
+              className="pl-3 pr-9 h-10 bg-[var(--theme-card)] border-[var(--theme-primary)]/30 text-[var(--theme-text-primary)] rounded-full text-sm focus-visible:ring-[var(--theme-primary)] focus-visible:border-[var(--theme-primary)]"
             />
           </div>
         </div>
@@ -141,8 +141,8 @@ export default function Categories() {
           <div className={getProductGridClass(PRODUCT_GRID_COLS)}>
             {Array.from({ length: 6 }).map((_, i) => (
               <div key={i} className="flex flex-col items-center gap-2">
-                <Skeleton className="w-full aspect-square rounded-2xl bg-zinc-800" />
-                <Skeleton className="h-3.5 w-3/4 mx-auto bg-zinc-800" />
+                <Skeleton className="w-full aspect-square rounded-2xl bg-[var(--theme-card)]" />
+                <Skeleton className="h-3.5 w-3/4 mx-auto bg-[var(--theme-card)]" />
               </div>
             ))}
           </div>
@@ -167,8 +167,8 @@ export default function Categories() {
             <div className="w-16 h-16 bg-[var(--theme-card)] rounded-2xl flex items-center justify-center mb-4 border border-[var(--theme-primary)]/30 text-[var(--theme-primary)]">
               <Search className="w-8 h-8" />
             </div>
-            <p className="text-white font-bold">لا توجد منتجات مطابقة</p>
-            <p className="text-xs text-zinc-400 mt-1">جرّب البحث بكلمات أخرى</p>
+            <p className="text-[var(--theme-text-primary)] font-bold">لا توجد منتجات مطابقة</p>
+            <p className="text-xs text-[var(--theme-text-muted)] mt-1">جرّب البحث بكلمات أخرى</p>
           </div>
         )}
       </div>

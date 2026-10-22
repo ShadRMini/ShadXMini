@@ -202,7 +202,7 @@ export default function SettingsPage() {
   return (
     <div className="min-h-[85vh] max-w-3xl mx-auto space-y-6 pb-20 animate-in fade-in duration-300">
       {/* Top Header Card */}
-      <div className="bg-[var(--theme-background)] border border-[var(--theme-primary)]/30 text-white rounded-3xl p-6 shadow-xl relative overflow-hidden">
+      <div className="bg-[var(--theme-card)] border border-[var(--theme-border)] text-[var(--theme-text-primary)] rounded-3xl p-6 shadow-xl relative overflow-hidden">
         <div className="absolute top-0 right-0 w-48 h-48 bg-[var(--theme-primary)]/10 rounded-full blur-3xl pointer-events-none" />
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative z-10">
           <div>
@@ -210,8 +210,8 @@ export default function SettingsPage() {
               <ShieldCheck size={14} />
               <span>إدارة الحساب والأمان</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black text-white">إعدادات الحساب</h1>
-            <p className="text-xs sm:text-sm text-zinc-400 mt-1 font-medium">
+            <h1 className="text-2xl sm:text-3xl font-black text-[var(--theme-text-primary)]">إعدادات الحساب</h1>
+            <p className="text-xs sm:text-sm text-[var(--theme-text-muted)] mt-1 font-medium">
               تعديل بياناتك الشخصية، الصورة الرمزية، وتحديث كلمة المرور.
             </p>
           </div>
@@ -219,7 +219,7 @@ export default function SettingsPage() {
           <button
             type="button"
             onClick={() => setLocation("/profile")}
-            className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-zinc-800/90 hover:bg-zinc-700 text-zinc-300 text-xs font-bold border border-zinc-700 transition"
+            className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-[var(--theme-input-bg)] hover:opacity-90 text-[var(--theme-text-secondary)] text-xs font-bold border border-[var(--theme-border)] transition"
           >
             <span>العودة للملف الشخصي</span>
             <ArrowRight size={14} />
@@ -238,7 +238,7 @@ export default function SettingsPage() {
         )}
 
         {/* Section 1: Avatar Editor */}
-        <div className="bg-[var(--theme-card)] border border-[var(--theme-primary)]/35 rounded-3xl p-6 shadow-lg">
+        <div className="bg-[var(--theme-card)] border border-[var(--theme-border)] rounded-3xl p-6 shadow-lg">
           <h2 className="text-base font-extrabold text-[var(--theme-accent)] flex items-center gap-2 mb-4">
             <Camera className="w-5 h-5 text-[var(--theme-primary)]" />
             الصورة الرمزية (الأفاتار)
@@ -261,7 +261,7 @@ export default function SettingsPage() {
               </div>
               <label
                 htmlFor="avatar-file-input"
-                className="absolute -bottom-2 -left-2 bg-[var(--theme-primary)] hover:bg-[var(--theme-secondary)] text-[var(--theme-background)] p-2 rounded-2xl cursor-pointer shadow-md transition transform active:scale-95"
+                className="absolute -bottom-2 -left-2 bg-[var(--theme-primary)] hover:bg-[var(--theme-secondary)] text-[var(--theme-text-on-primary,var(--theme-background))] p-2 rounded-2xl cursor-pointer shadow-md transition transform active:scale-95"
                 title="تحميل صورة"
               >
                 <Camera size={16} />
@@ -277,7 +277,7 @@ export default function SettingsPage() {
 
             {/* Avatar Controls */}
             <div className="flex-1 w-full space-y-3">
-              <p className="text-xs text-zinc-300 font-medium">
+              <p className="text-xs text-[var(--theme-text-secondary)] font-medium">
                 اختر صورة تعبر عنك عبر تحميل ملف، أو إدخال رابط مباشر، أو اختيار أحد الرموز الجاهزة.
               </p>
 
@@ -294,7 +294,7 @@ export default function SettingsPage() {
                 <button
                   type="button"
                   onClick={() => setShowUrlInput(!showUrlInput)}
-                  className="px-3.5 py-2 rounded-xl bg-[var(--theme-input-bg)] hover:bg-zinc-700 text-zinc-200 text-xs font-bold transition border border-[var(--theme-border)]"
+                  className="px-3.5 py-2 rounded-xl bg-[var(--theme-input-bg)] hover:opacity-90 text-[var(--theme-text-primary)] text-xs font-bold transition border border-[var(--theme-border)]"
                 >
                   رابط صورة
                 </button>
@@ -313,18 +313,18 @@ export default function SettingsPage() {
 
               {/* Custom URL Input dropdown */}
               {showUrlInput && (
-                <div className="flex items-center gap-2 mt-2 pt-2 border-t border-zinc-700 animate-in fade-in">
+                <div className="flex items-center gap-2 mt-2 pt-2 border-t border-[var(--theme-border)] animate-in fade-in">
                   <input
                     type="url"
                     placeholder="https://example.com/avatar.jpg"
                     value={customUrl}
                     onChange={(e) => setCustomUrl(e.target.value)}
-                    className="flex-1 px-3 py-2 text-xs rounded-xl bg-[var(--theme-background)] border border-[var(--theme-border)] text-white focus:outline-none focus:border-[var(--theme-primary)]"
+                    className="flex-1 px-3 py-2 text-xs rounded-xl bg-[var(--theme-background)] border border-[var(--theme-border)] text-[var(--theme-text-primary)] focus:outline-none focus:border-[var(--theme-primary)]"
                   />
                   <button
                     type="button"
                     onClick={handleApplyCustomUrl}
-                    className="px-3 py-2 bg-[var(--theme-primary)] text-[var(--theme-background)] text-xs font-black rounded-xl hover:bg-[var(--theme-secondary)]"
+                    className="px-3 py-2 bg-[var(--theme-primary)] text-[var(--theme-text-on-primary,var(--theme-background))] text-xs font-black rounded-xl hover:bg-[var(--theme-secondary)]"
                   >
                     تطبيق
                   </button>
@@ -333,7 +333,7 @@ export default function SettingsPage() {
 
               {/* Avatar Presets */}
               <div className="pt-2">
-                <div className="text-[11px] font-bold text-zinc-400 mb-1.5 flex items-center gap-1">
+                <div className="text-[11px] font-bold text-[var(--theme-text-muted)] mb-1.5 flex items-center gap-1">
                   <Sparkles size={12} className="text-[var(--theme-primary)]" />
                   نماذج سريعة
                 </div>
@@ -357,7 +357,7 @@ export default function SettingsPage() {
         </div>
 
         {/* Section 2: Basic Profile Info */}
-        <div className="bg-[var(--theme-card)] border border-[var(--theme-primary)]/35 rounded-3xl p-6 shadow-lg space-y-4">
+        <div className="bg-[var(--theme-card)] border border-[var(--theme-border)] rounded-3xl p-6 shadow-lg space-y-4">
           <h2 className="text-base font-extrabold text-[var(--theme-accent)] flex items-center gap-2 mb-2">
             <User className="w-5 h-5 text-[var(--theme-primary)]" />
             البيانات الأساسية
@@ -366,7 +366,7 @@ export default function SettingsPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Username Input */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-zinc-300 flex items-center gap-1">
+              <label className="text-xs font-bold text-[var(--theme-text-secondary)] flex items-center gap-1">
                 <span>اسم المستخدم</span>
                 <span className="text-red-400">*</span>
               </label>
@@ -377,18 +377,18 @@ export default function SettingsPage() {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   placeholder="اسم المستخدم (3 أحرف على الأقل)"
-                  className="w-full px-3.5 py-2.5 pr-10 text-sm rounded-2xl bg-[var(--theme-input-bg)] border border-[var(--theme-border)] text-white placeholder:text-zinc-500 focus:outline-none focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary)]/20 transition"
+                  className="w-full px-3.5 py-2.5 pr-10 text-sm rounded-2xl bg-[var(--theme-input-bg)] border border-[var(--theme-border)] text-[var(--theme-text-primary)] placeholder:text-[var(--theme-text-muted)] focus:outline-none focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary)]/20 transition"
                 />
-                <User size={18} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
+                <User size={18} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[var(--theme-text-muted)] pointer-events-none" />
               </div>
-              <p className="text-[11px] text-zinc-400 font-medium">
+              <p className="text-[11px] text-[var(--theme-text-muted)] font-medium">
                 يظهر اسم المستخدم في طلباتك وتفاعلاتك داخل المتجر.
               </p>
             </div>
 
             {/* Email Input */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-zinc-300 flex items-center gap-1">
+              <label className="text-xs font-bold text-[var(--theme-text-secondary)] flex items-center gap-1">
                 <span>البريد الإلكتروني</span>
                 <span className="text-red-400">*</span>
               </label>
@@ -400,35 +400,35 @@ export default function SettingsPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="example@domain.com"
                   dir="ltr"
-                  className="w-full px-3.5 py-2.5 pr-10 text-sm rounded-2xl bg-[var(--theme-input-bg)] border border-[var(--theme-border)] text-white placeholder:text-zinc-500 focus:outline-none focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary)]/20 transition text-right"
+                  className="w-full px-3.5 py-2.5 pr-10 text-sm rounded-2xl bg-[var(--theme-input-bg)] border border-[var(--theme-border)] text-[var(--theme-text-primary)] placeholder:text-[var(--theme-text-muted)] focus:outline-none focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary)]/20 transition text-right"
                 />
-                <Mail size={18} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
+                <Mail size={18} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[var(--theme-text-muted)] pointer-events-none" />
               </div>
-              <p className="text-[11px] text-zinc-400 font-medium">
+              <p className="text-[11px] text-[var(--theme-text-muted)] font-medium">
                 يستخدم لاستعادة الحساب واستقبال إشعارات الطلبات.
               </p>
             </div>
           </div>
 
           {/* Readonly Account Details */}
-          <div className="pt-2 border-t border-zinc-700 grid grid-cols-2 sm:grid-cols-3 gap-3">
-            <div className="bg-[var(--theme-background)] p-3 rounded-2xl border border-zinc-700">
-              <span className="text-[10px] text-zinc-400 font-bold block">معرّف الحساب (ID)</span>
+          <div className="pt-2 border-t border-[var(--theme-border)] grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <div className="bg-[var(--theme-background)] p-3 rounded-2xl border border-[var(--theme-border)]">
+              <span className="text-[10px] text-[var(--theme-text-muted)] font-bold block">معرّف الحساب (ID)</span>
               <span className="text-xs font-mono font-black text-[var(--theme-primary)]">
                 {user?.displayId || user?.id || "---"}
               </span>
             </div>
 
-            <div className="bg-[var(--theme-background)] p-3 rounded-2xl border border-zinc-700">
-              <span className="text-[10px] text-zinc-400 font-bold block">مستوى العضوية</span>
-              <span className="text-xs font-black text-white">
+            <div className="bg-[var(--theme-background)] p-3 rounded-2xl border border-[var(--theme-border)]">
+              <span className="text-[10px] text-[var(--theme-text-muted)] font-bold block">مستوى العضوية</span>
+              <span className="text-xs font-black text-[var(--theme-text-primary)]">
                 {user?.vipBadge?.name || "عضوية عامة"}
               </span>
             </div>
 
-            <div className="bg-[var(--theme-background)] p-3 rounded-2xl border border-zinc-700 col-span-2 sm:col-span-1">
-              <span className="text-[10px] text-zinc-400 font-bold block">تاريخ الانضمام</span>
-              <span className="text-xs font-bold text-zinc-300">
+            <div className="bg-[var(--theme-background)] p-3 rounded-2xl border border-[var(--theme-border)] col-span-2 sm:col-span-1">
+              <span className="text-[10px] text-[var(--theme-text-muted)] font-bold block">تاريخ الانضمام</span>
+              <span className="text-xs font-bold text-[var(--theme-text-secondary)]">
                 {user?.createdAt ? new Date(user.createdAt).toLocaleDateString("ar-EG") : "عضو مميز"}
               </span>
             </div>
@@ -436,7 +436,7 @@ export default function SettingsPage() {
         </div>
 
         {/* Section 3: Password & Security */}
-        <div className="bg-[var(--theme-card)] border border-[var(--theme-primary)]/35 rounded-3xl p-6 shadow-lg space-y-4">
+        <div className="bg-[var(--theme-card)] border border-[var(--theme-border)] rounded-3xl p-6 shadow-lg space-y-4">
           <h2 className="text-base font-extrabold text-[var(--theme-accent)] flex items-center gap-2 mb-2">
             <Lock className="w-5 h-5 text-[var(--theme-primary)]" />
             الأمان وكلمة المرور
@@ -445,7 +445,7 @@ export default function SettingsPage() {
           {/* Current Password Field */}
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
-              <label className="text-xs font-bold text-zinc-300 flex items-center gap-1">
+              <label className="text-xs font-bold text-[var(--theme-text-secondary)] flex items-center gap-1">
                 <span>كلمة المرور الحالية</span>
                 {user?.hasPassword !== false && <span className="text-red-400">*</span>}
               </label>
@@ -458,28 +458,28 @@ export default function SettingsPage() {
                 onChange={(e) => setCurrentPassword(e.target.value)}
                 placeholder="أدخل كلمة المرور الحالية لتأكيد الحفظ"
                 dir="ltr"
-                className="w-full px-3.5 py-2.5 pr-10 pl-10 text-sm rounded-2xl bg-[var(--theme-input-bg)] border border-[var(--theme-border)] text-white placeholder:text-zinc-500 focus:outline-none focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary)]/20 transition text-right"
+                className="w-full px-3.5 py-2.5 pr-10 pl-10 text-sm rounded-2xl bg-[var(--theme-input-bg)] border border-[var(--theme-border)] text-[var(--theme-text-primary)] placeholder:text-[var(--theme-text-muted)] focus:outline-none focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary)]/20 transition text-right"
               />
-              <Lock size={18} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
+              <Lock size={18} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[var(--theme-text-muted)] pointer-events-none" />
               <button
                 type="button"
                 onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-200 transition"
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--theme-text-muted)] hover:text-[var(--theme-text-primary)] transition"
               >
                 {showCurrentPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
           </div>
 
-          <div className="pt-2 border-t border-zinc-700">
-            <p className="text-xs font-extrabold text-zinc-300 mb-3">
+          <div className="pt-2 border-t border-[var(--theme-border)]">
+            <p className="text-xs font-extrabold text-[var(--theme-text-secondary)] mb-3">
               تغيير كلمة المرور (اختياري):
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* New Password */}
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-zinc-300">كلمة المرور الجديدة</label>
+                <label className="text-xs font-bold text-[var(--theme-text-secondary)]">كلمة المرور الجديدة</label>
                 <div className="relative">
                   <input
                     type={showNewPassword ? "text" : "password"}
@@ -487,23 +487,23 @@ export default function SettingsPage() {
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="اتركها فارغة إذا لا ترغب بتغييرها"
                     dir="ltr"
-                    className="w-full px-3.5 py-2.5 pr-10 pl-10 text-sm rounded-2xl bg-[var(--theme-input-bg)] border border-[var(--theme-border)] text-white placeholder:text-zinc-500 focus:outline-none focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary)]/20 transition text-right"
+                    className="w-full px-3.5 py-2.5 pr-10 pl-10 text-sm rounded-2xl bg-[var(--theme-input-bg)] border border-[var(--theme-border)] text-[var(--theme-text-primary)] placeholder:text-[var(--theme-text-muted)] focus:outline-none focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary)]/20 transition text-right"
                   />
-                  <Lock size={18} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
+                  <Lock size={18} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[var(--theme-text-muted)] pointer-events-none" />
                   <button
                     type="button"
                     onClick={() => setShowNewPassword(!showNewPassword)}
-                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-200 transition"
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--theme-text-muted)] hover:text-[var(--theme-text-primary)] transition"
                   >
                     {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
-                <span className="text-[11px] text-zinc-400 font-medium">6 خانات على الأقل</span>
+                <span className="text-[11px] text-[var(--theme-text-muted)] font-medium">6 خانات على الأقل</span>
               </div>
 
               {/* Confirm New Password */}
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-zinc-300">تأكيد كلمة المرور الجديدة</label>
+                <label className="text-xs font-bold text-[var(--theme-text-secondary)]">تأكيد كلمة المرور الجديدة</label>
                 <div className="relative">
                   <input
                     type={showConfirmPassword ? "text" : "password"}
@@ -511,13 +511,13 @@ export default function SettingsPage() {
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="أعد إدخال كلمة المرور الجديدة"
                     dir="ltr"
-                    className="w-full px-3.5 py-2.5 pr-10 pl-10 text-sm rounded-2xl bg-[var(--theme-input-bg)] border border-[var(--theme-border)] text-white placeholder:text-zinc-500 focus:outline-none focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary)]/20 transition text-right"
+                    className="w-full px-3.5 py-2.5 pr-10 pl-10 text-sm rounded-2xl bg-[var(--theme-input-bg)] border border-[var(--theme-border)] text-[var(--theme-text-primary)] placeholder:text-[var(--theme-text-muted)] focus:outline-none focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary)]/20 transition text-right"
                   />
-                  <Lock size={18} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
+                  <Lock size={18} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[var(--theme-text-muted)] pointer-events-none" />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-200 transition"
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--theme-text-muted)] hover:text-[var(--theme-text-primary)] transition"
                   >
                     {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
@@ -532,7 +532,7 @@ export default function SettingsPage() {
           <button
             type="button"
             onClick={() => setLocation("/profile")}
-            className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-[var(--theme-card)] hover:bg-[var(--theme-input-bg)] text-zinc-300 text-sm font-bold border border-zinc-700 transition active:scale-95 cursor-pointer"
+            className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-[var(--theme-card)] hover:bg-[var(--theme-input-bg)] text-[var(--theme-text-secondary)] text-sm font-bold border border-[var(--theme-border)] transition active:scale-95 cursor-pointer"
           >
             إلغاء
           </button>
@@ -540,7 +540,7 @@ export default function SettingsPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full sm:w-auto px-8 py-3 rounded-2xl bg-[var(--theme-primary)] hover:bg-[var(--theme-secondary)] text-[var(--theme-background)] text-sm font-black shadow-lg shadow-[var(--theme-primary)]/25 transition flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
+            className="w-full sm:w-auto px-8 py-3 rounded-2xl bg-[var(--theme-primary)] hover:bg-[var(--theme-secondary)] text-[var(--theme-text-on-primary,var(--theme-background))] text-sm font-black shadow-lg shadow-[var(--theme-primary)]/25 transition flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
           >
             {loading ? (
               <>

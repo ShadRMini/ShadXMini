@@ -1,6 +1,6 @@
 import session from "express-session";
 import type { RequestHandler, Request, Response, NextFunction } from "express";
-import { db, settingsTable } from "@workspace/db";
+import { db, adminsTable, settingsTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 
 const isProduction = process.env.NODE_ENV === "production";
@@ -434,6 +434,65 @@ export const adminPermissionsMiddleware: RequestHandler = async (req: Request, r
   if (!req.session.adminId) {
     res.status(401).json({ error: "غير مصرح" });
     return;
+  }
+
+  // Task #95 C15a: verify admin is still active in DB
+  try {
+    const [adminRow] = await db
+      .select({ active: adminsTable.active, role: adminsTable.role })
+      .from(adminsTable)
+      .where(eq(adminsTable.id, req.session.adminId))
+      .limit(1);
+
+    if (!adminRow || !adminRow.active) {
+      req.session.destroy(() => {});
+      res.status(401).json({ error: "الحساب معطل أو محذوف", code: "ADMIN_INACTIVE" });
+      return;
+    }
+
+    // مزامنة role إذا تغيّر
+    if (adminRow.role && adminRow.role !== req.session.adminRole) {
+      req.session.adminRole = adminRow.role;
+    }
+  } catch (err) {
+    console.error("[adminPermissionsMiddleware] DB active check error:", err);
+    res.status(500).json({ error: "فشل التحقق من حالة المشرف" });
+    return;
+  }
+
+  // Task #95 C15a: CSRF protection via Origin check (for sameSite:none in production)
+  const method = req.method.toUpperCase();
+  if (["POST", "PUT", "PATCH", "DELETE"].includes(method)) {
+    const origin = req.headers.origin || req.headers.referer || "";
+    const clientUrls = (process.env.CLIENT_URL || "")
+      .split(",")
+      .map((s) => s.trim().replace(/\/+$/, ""))
+      .filter(Boolean);
+    const adminUrls = (process.env.ADMIN_URL || "")
+      .split(",")
+      .map((s) => s.trim().replace(/\/+$/, ""))
+      .filter(Boolean);
+    const allowedOrigins = [
+      ...clientUrls,
+      ...adminUrls,
+      "https://shadxmini.vercel.app",
+      "https://shad-x-mini-xpay-admin.vercel.app",
+      "http://localhost:3000",
+      "http://localhost:5173",
+    ].filter(Boolean);
+
+    const isDevDynamicAllowed =
+      !isProduction &&
+      (origin.includes("localhost") ||
+        origin.includes("127.0.0.1") ||
+        origin.includes(".run.app") ||
+        origin.includes("googleusercontent.com"));
+
+    if (origin && !isDevDynamicAllowed && !allowedOrigins.some((allowed) => origin.startsWith(allowed))) {
+      console.warn(`[CSRF Block] origin=${origin} path=${req.path}`);
+      res.status(403).json({ error: "طلب مرفوض — مصدر غير مصرح", code: "CSRF_BLOCKED" });
+      return;
+    }
   }
 
   // 3. User session endpoints bypass section checks (me, dashboard, profile, 2FA)

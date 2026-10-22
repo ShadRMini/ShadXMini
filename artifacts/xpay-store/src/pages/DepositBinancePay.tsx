@@ -250,13 +250,13 @@ export function DepositBinancePay() {
         <Link href="/wallet">
           <button
             type="button"
-            className="inline-flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors p-2 -mr-2 rounded-xl hover:bg-muted/50"
+            className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)] transition-colors p-2 -mr-2 rounded-xl hover:bg-[var(--theme-card)]"
           >
             <ArrowRight className="w-4 h-4" />
             <span>الرجوع للمحفظة</span>
           </button>
         </Link>
-        <span className="text-xs font-bold text-amber-600 bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20 flex items-center gap-1.5">
+        <span className="text-xs font-bold text-[var(--theme-binance,#F0B90B)] bg-[var(--theme-binance,#F0B90B)]/10 px-3 py-1 rounded-full border border-[var(--theme-binance,#F0B90B)]/25 flex items-center gap-1.5">
           <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
             <path d="M12 2L6.5 7.5L8.5 9.5L12 6L15.5 9.5L17.5 7.5L12 2ZM2 12L7.5 17.5L9.5 15.5L6 12L9.5 8.5L7.5 6.5L2 12ZM12 22L17.5 16.5L15.5 14.5L12 18L8.5 14.5L6.5 16.5L12 22ZM22 12L16.5 6.5L14.5 8.5L18 12L14.5 15.5L16.5 17.5L22 12ZM12 9.5L9.5 12L12 14.5L14.5 12L12 9.5Z" />
           </svg>
@@ -265,25 +265,25 @@ export function DepositBinancePay() {
       </div>
 
       {/* Main Container Card */}
-      <div className="bg-card rounded-3xl border border-border/80 shadow-sm overflow-hidden p-5 sm:p-7 space-y-6">
+      <div className="bg-[var(--theme-card)] rounded-3xl border border-[var(--theme-border)] shadow-sm overflow-hidden p-5 sm:p-7 space-y-6">
         
         {/* Step Indicator Header */}
-        <div className="border-b border-border/60 pb-5">
+        <div className="border-b border-[var(--theme-border)] pb-5">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2.5">
-              <div className="w-10 h-10 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-600 font-bold shadow-xs">
+              <div className="w-10 h-10 rounded-2xl bg-[var(--theme-binance,#F0B90B)]/10 border border-[var(--theme-binance,#F0B90B)]/25 flex items-center justify-center text-[var(--theme-binance,#F0B90B)] font-bold shadow-xs">
                 <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
                   <path d="M12 2L6.5 7.5L8.5 9.5L12 6L15.5 9.5L17.5 7.5L12 2ZM2 12L7.5 17.5L9.5 15.5L6 12L9.5 8.5L7.5 6.5L2 12ZM12 22L17.5 16.5L15.5 14.5L12 18L8.5 14.5L6.5 16.5L12 22ZM22 12L16.5 6.5L14.5 8.5L18 12L14.5 15.5L16.5 17.5L22 12ZM12 9.5L9.5 12L12 14.5L14.5 12L12 9.5Z" />
                 </svg>
               </div>
               <div>
-                <h2 className="text-lg sm:text-xl font-black text-foreground tracking-tight">
+                <h2 className="text-lg sm:text-xl font-black text-[var(--theme-text-primary)] tracking-tight">
                   {step === "invoice" && "إنشاء فاتورة Binance Pay"}
                   {step === "verify" && "تأكيد عملية الدفع"}
                   {step === "approved" && "تم تأكيد الإيداع بنجاح"}
                   {step === "rejected" && "تم رفض طلب الإيداع"}
                 </h2>
-                <p className="text-xs text-muted-foreground mt-0.5">
+                <p className="text-xs text-[var(--theme-text-secondary)] mt-0.5">
                   {step === "invoice" && "حدد المبلغ المطلوب وامسح الرمز لإتمام الدفع"}
                   {step === "verify" && "أدخل رقم العملية (Transaction Ref) لتأكيد الإيداع"}
                   {step === "approved" && "تم شحن رصيد حسابك بنجاح"}
@@ -294,17 +294,17 @@ export function DepositBinancePay() {
 
             {/* Stepper badge */}
             {(step === "invoice" || step === "verify") && (
-              <div className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1 bg-muted/60 rounded-full border border-border/60">
-                <span className={step === "invoice" ? "text-amber-600 font-bold" : "text-muted-foreground"}>1</span>
-                <span className="text-muted-foreground/60">/</span>
-                <span className={step === "verify" ? "text-amber-600 font-bold" : "text-muted-foreground"}>2</span>
+              <div className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1 bg-[var(--theme-input-bg)] rounded-full border border-[var(--theme-border)]">
+                <span className={step === "invoice" ? "text-[var(--theme-binance,#F0B90B)] font-bold" : "text-[var(--theme-text-muted)]"}>1</span>
+                <span className="text-[var(--theme-text-muted)]/60">/</span>
+                <span className={step === "verify" ? "text-[var(--theme-binance,#F0B90B)] font-bold" : "text-[var(--theme-text-muted)]"}>2</span>
               </div>
             )}
           </div>
 
           {/* Quick Notice Banner */}
-          <div className="rounded-2xl p-3.5 bg-amber-500/10 border border-amber-500/20 flex items-start gap-2.5 text-xs text-amber-700 dark:text-amber-300">
-            <Info className="w-4 h-4 shrink-0 mt-0.5 text-amber-600" />
+          <div className="rounded-2xl p-3.5 bg-[var(--theme-binance,#F0B90B)]/10 border border-[var(--theme-binance,#F0B90B)]/25 flex items-start gap-2.5 text-xs text-[var(--theme-text-primary)]">
+            <Info className="w-4 h-4 shrink-0 mt-0.5 text-[var(--theme-binance,#F0B90B)]" />
             <div className="leading-relaxed">
               <strong>ملاحظة هامة:</strong> التحقق من إيداعات Binance Pay يتم يدوياً من قِبل إدارة المنصة خلال دقائق إلى بضع ساعات. يرجى التأكد من إدخال رقم العملية بدقة.
             </div>
@@ -317,10 +317,10 @@ export function DepositBinancePay() {
             
             {/* Amount Input */}
             <div className="space-y-2">
-              <label className="text-xs sm:text-sm font-bold text-foreground flex items-center justify-between">
+              <label className="text-xs sm:text-sm font-bold text-[var(--theme-text-primary)] flex items-center justify-between">
                 <span>المبلغ المطلوب إيداعه (USDT):</span>
                 {minAmount > 0 && (
-                  <span className="text-[11px] font-normal text-muted-foreground">
+                  <span className="text-[11px] font-normal text-[var(--theme-text-muted)]">
                     الحد الأدنى: {minAmount} USDT
                   </span>
                 )}
@@ -335,10 +335,10 @@ export function DepositBinancePay() {
                   placeholder="أدخل المبلغ..."
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
-                  className="h-12 text-lg font-bold pl-16 rounded-2xl bg-muted/20 border-border focus-visible:ring-amber-500/20"
+                  className="h-12 text-lg font-bold pl-16 rounded-2xl bg-[var(--theme-input-bg)] border-[var(--theme-border)] text-[var(--theme-text-primary)] focus-visible:ring-[var(--theme-primary)]/20"
                   required
                 />
-                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-muted-foreground bg-muted px-2 py-1 rounded-lg">
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-[var(--theme-text-secondary)] bg-[var(--theme-card)] px-2 py-1 rounded-lg border border-[var(--theme-border)]">
                   USDT
                 </div>
               </div>
@@ -352,8 +352,8 @@ export function DepositBinancePay() {
                     onClick={() => setAmount(String(val))}
                     className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all ${
                       parseFloat(amount) === val
-                        ? "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30"
-                        : "bg-muted/40 hover:bg-muted text-muted-foreground border-border/60"
+                        ? "bg-[var(--theme-binance,#F0B90B)]/15 text-[var(--theme-binance,#F0B90B)] border-[var(--theme-binance,#F0B90B)]/30"
+                        : "bg-[var(--theme-input-bg)] hover:bg-[var(--theme-card-hover)] text-[var(--theme-text-secondary)] border-[var(--theme-border)]"
                     }`}
                   >
                     ${val}
@@ -363,12 +363,12 @@ export function DepositBinancePay() {
             </div>
 
             {/* QR Code and Account ID Preview */}
-            <div className="bg-muted/30 border border-border/60 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-center gap-5">
+            <div className="bg-[var(--theme-input-bg)] border border-[var(--theme-border)] rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-center gap-5">
               {/* QR Rendering Section */}
               {hasCustomQrImage ? (
                 <div
                   onClick={() => setShowLightbox(true)}
-                  className="relative group cursor-pointer w-36 h-36 bg-white p-2.5 rounded-2xl border border-border/80 shadow-xs flex items-center justify-center shrink-0"
+                  className="relative group cursor-pointer w-36 h-36 bg-white p-2.5 rounded-2xl border border-[var(--theme-border)] shadow-xs flex items-center justify-center shrink-0"
                   title="اضغط للتكبير"
                 >
                   <img
@@ -384,7 +384,7 @@ export function DepositBinancePay() {
               ) : canRenderQrFromAddress ? (
                 <div
                   onClick={() => setShowLightbox(true)}
-                  className="relative group cursor-pointer w-36 h-36 bg-white p-2.5 rounded-2xl border border-border/80 shadow-xs flex items-center justify-center shrink-0"
+                  className="relative group cursor-pointer w-36 h-36 bg-white p-2.5 rounded-2xl border border-[var(--theme-border)] shadow-xs flex items-center justify-center shrink-0"
                   title="اضغط للتكبير"
                 >
                   <QRCodeSVG
@@ -399,10 +399,10 @@ export function DepositBinancePay() {
                   </div>
                 </div>
               ) : (
-                <div className="w-36 h-36 bg-muted/50 rounded-2xl border border-dashed border-border/80 flex flex-col items-center justify-center text-muted-foreground p-3 text-center shrink-0">
-                  <AlertCircle className="w-7 h-7 mb-1.5 text-amber-500/80" />
-                  <p className="text-xs font-bold text-foreground">لا يوجد QR متاح</p>
-                  <p className="text-[10px] text-muted-foreground mt-0.5 leading-tight">
+                <div className="w-36 h-36 bg-[var(--theme-card)] rounded-2xl border border-dashed border-[var(--theme-border)] flex flex-col items-center justify-center text-[var(--theme-text-muted)] p-3 text-center shrink-0">
+                  <AlertCircle className="w-7 h-7 mb-1.5 text-[var(--theme-binance,#F0B90B)]/80" />
+                  <p className="text-xs font-bold text-[var(--theme-text-primary)]">لا يوجد QR متاح</p>
+                  <p className="text-[10px] text-[var(--theme-text-muted)] mt-0.5 leading-tight">
                     استخدم معرّف الحساب
                   </p>
                 </div>
@@ -411,31 +411,31 @@ export function DepositBinancePay() {
               {/* Account details */}
               <div className="space-y-3 flex-1 text-center sm:text-right w-full">
                 <div>
-                  <div className="text-xs text-muted-foreground font-medium mb-1">
+                  <div className="text-xs text-[var(--theme-text-secondary)] font-medium mb-1">
                     معرّف حساب Binance Pay (Pay ID):
                   </div>
                   {walletAddress ? (
-                    <div className="flex items-center justify-between bg-background border border-border/80 rounded-xl px-3 py-2">
-                      <span className="font-mono text-xs sm:text-sm font-bold text-foreground truncate select-all">
+                    <div className="flex items-center justify-between bg-[var(--theme-card)] border border-[var(--theme-border)] rounded-xl px-3 py-2">
+                      <span className="font-mono text-xs sm:text-sm font-bold text-[var(--theme-text-primary)] truncate select-all">
                         {walletAddress}
                       </span>
                       <button
                         type="button"
                         onClick={handleCopyWallet}
-                        className="text-xs font-semibold text-amber-600 hover:text-amber-700 p-1 rounded hover:bg-amber-500/10 transition-colors flex items-center gap-1 shrink-0 mr-1"
+                        className="text-xs font-semibold text-[var(--theme-binance,#F0B90B)] hover:opacity-80 p-1 rounded hover:bg-[var(--theme-binance,#F0B90B)]/10 transition-colors flex items-center gap-1 shrink-0 mr-1"
                       >
                         {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
                         <span>{copied ? "تم النسخ" : "نسخ"}</span>
                       </button>
                     </div>
                   ) : (
-                    <div className="bg-background border border-border/80 rounded-xl px-3 py-2 text-xs text-muted-foreground text-center">
+                    <div className="bg-[var(--theme-card)] border border-[var(--theme-border)] rounded-xl px-3 py-2 text-xs text-[var(--theme-text-muted)] text-center">
                       يرجى التواصل مع الإدارة لتعيين معرف الدفع
                     </div>
                   )}
                 </div>
 
-                <p className="text-[11px] text-muted-foreground leading-relaxed">
+                <p className="text-[11px] text-[var(--theme-text-muted)] leading-relaxed">
                   {shouldDisplayQr
                     ? "يمكنك مسح الرمز مباشرة من تطبيق Binance أو التحويل يدويًا عبر معرّف الحساب أعلاه."
                     : "يرجى نسخ معرّف الحساب أعلاه وإتمام الدفع من داخل تطبيق Binance."}
@@ -447,7 +447,7 @@ export function DepositBinancePay() {
             <Button
               type="submit"
               disabled={isCreatingInvoice || numAmount <= 0}
-              className="w-full h-12 text-sm font-bold rounded-2xl bg-amber-600 hover:bg-amber-700 text-white shadow-sm transition-all"
+              className="w-full h-12 text-sm font-bold rounded-2xl bg-[var(--theme-primary)] hover:bg-[var(--theme-secondary)] text-[var(--theme-text-on-primary,var(--theme-background))] shadow-sm transition-all"
             >
               {isCreatingInvoice ? (
                 <div className="flex items-center gap-2">
@@ -468,22 +468,22 @@ export function DepositBinancePay() {
         {step === "verify" && (
           <div className="space-y-6">
             {/* Invoice Info Box */}
-            <div className="bg-muted/40 rounded-2xl p-4 border border-border/60 space-y-3">
-              <div className="flex items-center justify-between text-xs pb-2 border-b border-border/40">
-                <span className="text-muted-foreground">رقم الفاتورة:</span>
-                <span className="font-mono font-bold text-foreground">#{depositId}</span>
+            <div className="bg-[var(--theme-input-bg)] rounded-2xl p-4 border border-[var(--theme-border)] space-y-3">
+              <div className="flex items-center justify-between text-xs pb-2 border-b border-[var(--theme-border)]">
+                <span className="text-[var(--theme-text-secondary)]">رقم الفاتورة:</span>
+                <span className="font-mono font-bold text-[var(--theme-text-primary)]">#{depositId}</span>
               </div>
-              <div className="flex items-center justify-between text-xs pb-2 border-b border-border/40">
-                <span className="text-muted-foreground">المبلغ المطلوب:</span>
-                <span className="font-bold text-amber-600 text-sm">{amount} USDT</span>
+              <div className="flex items-center justify-between text-xs pb-2 border-b border-[var(--theme-border)]">
+                <span className="text-[var(--theme-text-secondary)]">المبلغ المطلوب:</span>
+                <span className="font-bold text-[var(--theme-binance,#F0B90B)] text-sm">{amount} USDT</span>
               </div>
-              <div className="flex items-center justify-between text-xs pb-2 border-b border-border/40">
-                <span className="text-muted-foreground">معرف Binance Pay:</span>
-                <span className="font-mono font-bold text-foreground">{walletAddress}</span>
+              <div className="flex items-center justify-between text-xs pb-2 border-b border-[var(--theme-border)]">
+                <span className="text-[var(--theme-text-secondary)]">معرف Binance Pay:</span>
+                <span className="font-mono font-bold text-[var(--theme-text-primary)]">{walletAddress}</span>
               </div>
               <div className="flex items-center justify-between text-xs">
-                <span className="text-muted-foreground">حالة الطلب:</span>
-                <span className="inline-flex items-center gap-1 font-bold text-amber-600 bg-amber-500/10 px-2 py-0.5 rounded-md">
+                <span className="text-[var(--theme-text-secondary)]">حالة الطلب:</span>
+                <span className="inline-flex items-center gap-1 font-bold text-[var(--theme-warning,#F59E0B)] bg-[var(--theme-warning,#F59E0B)]/10 px-2 py-0.5 rounded-md">
                   <Clock className="w-3 h-3" />
                   {isSubmitted ? "قيد المراجعة اليدوية" : "بانتظار التحويل ورقم العملية"}
                 </span>
@@ -492,10 +492,10 @@ export function DepositBinancePay() {
 
             {/* QR Code Quick View in Step 2 */}
             {shouldDisplayQr && (
-              <div className="flex items-center gap-4 p-3.5 bg-background rounded-2xl border border-border/60">
+              <div className="flex items-center gap-4 p-3.5 bg-[var(--theme-input-bg)] rounded-2xl border border-[var(--theme-border)]">
                 <div 
                   onClick={() => setShowLightbox(true)}
-                  className="w-16 h-16 bg-white p-1 rounded-xl border border-border/80 shrink-0 cursor-pointer overflow-hidden flex items-center justify-center"
+                  className="w-16 h-16 bg-white p-1 rounded-xl border border-[var(--theme-border)] shrink-0 cursor-pointer overflow-hidden flex items-center justify-center"
                   title="اضغط للتكبير"
                 >
                   {hasCustomQrImage ? (
@@ -514,8 +514,8 @@ export function DepositBinancePay() {
                   )}
                 </div>
                 <div className="text-xs space-y-1">
-                  <div className="font-bold text-foreground">هل أتممت عملية التحويل من تطبيق بينانس؟</div>
-                  <div className="text-muted-foreground text-[11px]">
+                  <div className="font-bold text-[var(--theme-text-primary)]">هل أتممت عملية التحويل من تطبيق بينانس؟</div>
+                  <div className="text-[var(--theme-text-secondary)] text-[11px]">
                     قم بنسخ رقم العملية (Transaction ID / Order ID) من إيصال التحويل والصقه بالأسفل.
                   </div>
                 </div>
@@ -525,8 +525,8 @@ export function DepositBinancePay() {
             {/* Transaction Ref Input Form */}
             <form onSubmit={handleSubmitRef} className="space-y-4">
               <div className="space-y-2">
-                <label className="text-xs sm:text-sm font-bold text-foreground flex items-center gap-1.5">
-                  <Hash className="w-4 h-4 text-amber-600" />
+                <label className="text-xs sm:text-sm font-bold text-[var(--theme-text-primary)] flex items-center gap-1.5">
+                  <Hash className="w-4 h-4 text-[var(--theme-binance,#F0B90B)]" />
                   <span>رقم العملية (Transaction Reference / ID):</span>
                 </label>
                 <Input
@@ -535,11 +535,11 @@ export function DepositBinancePay() {
                   value={transactionRef}
                   onChange={(e) => setTransactionRef(e.target.value)}
                   disabled={isSubmitted || isSubmittingRef}
-                  className="h-12 font-mono text-sm rounded-2xl bg-muted/20 border-border focus-visible:ring-amber-500/20 text-left"
+                  className="h-12 font-mono text-sm rounded-2xl bg-[var(--theme-input-bg)] border-[var(--theme-border)] text-[var(--theme-text-primary)] focus-visible:ring-[var(--theme-primary)]/20 text-left"
                   dir="ltr"
                   required
                 />
-                <p className="text-[11px] text-muted-foreground">
+                <p className="text-[11px] text-[var(--theme-text-muted)]">
                   تجد رقم العملية في تفاصيل الدفعة أو الإشعار داخل تطبيق Binance.
                 </p>
               </div>
@@ -548,7 +548,7 @@ export function DepositBinancePay() {
                 <Button
                   type="submit"
                   disabled={isSubmittingRef || !transactionRef.trim()}
-                  className="w-full h-12 text-sm font-bold rounded-2xl bg-amber-600 hover:bg-amber-700 text-white shadow-sm transition-all"
+                  className="w-full h-12 text-sm font-bold rounded-2xl bg-[var(--theme-primary)] hover:bg-[var(--theme-secondary)] text-[var(--theme-text-on-primary,var(--theme-background))] shadow-sm transition-all"
                 >
                   {isSubmittingRef ? (
                     <div className="flex items-center gap-2">
@@ -561,20 +561,20 @@ export function DepositBinancePay() {
                 </Button>
               ) : (
                 <div className="space-y-3">
-                  <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-center space-y-2">
-                    <div className="w-8 h-8 rounded-full bg-amber-500/20 text-amber-600 mx-auto flex items-center justify-center animate-pulse">
+                  <div className="p-4 rounded-2xl bg-[var(--theme-warning,#F59E0B)]/10 border border-[var(--theme-warning,#F59E0B)]/25 text-center space-y-2">
+                    <div className="w-8 h-8 rounded-full bg-[var(--theme-warning,#F59E0B)]/20 text-[var(--theme-warning,#F59E0B)] mx-auto flex items-center justify-center animate-pulse">
                       <Clock className="w-4 h-4" />
                     </div>
-                    <div className="font-bold text-sm text-foreground">
+                    <div className="font-bold text-sm text-[var(--theme-text-primary)]">
                       طلبك قيد المراجعة اليدوية
                     </div>
-                    <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+                    <p className="text-xs text-[var(--theme-text-secondary)] max-w-sm mx-auto">
                       تم استلام رقم العملية بنجاح. سنقوم بتحديث رصيدك فور مراجعة التحويل من قبل فريق الإدارة. يمكنك البقاء في هذه الصفحة أو الانتقال ومتابعة الحالة من سجل الإيداعات.
                     </p>
                   </div>
 
-                  <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
-                    <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-600" />
+                  <div className="flex items-center justify-center gap-2 text-xs text-[var(--theme-text-muted)]">
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-[var(--theme-binance,#F0B90B)]" />
                     <span>يتم فحص الحالة تلقائياً كل 5 ثوانٍ...</span>
                   </div>
                 </div>
@@ -582,16 +582,16 @@ export function DepositBinancePay() {
             </form>
 
             {/* Back to Step 1 or to Wallet */}
-            <div className="pt-3 border-t border-border/40 flex items-center justify-between text-xs">
+            <div className="pt-3 border-t border-[var(--theme-border)] flex items-center justify-between text-xs">
               <button
                 type="button"
                 onClick={() => setStep("invoice")}
-                className="text-muted-foreground hover:text-foreground font-semibold"
+                className="text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)] font-semibold"
               >
                 تعديل المبلغ أو إنشاء فاتورة جديدة
               </button>
               <Link href="/deposits">
-                <span className="text-amber-600 hover:underline font-bold cursor-pointer">
+                <span className="text-[var(--theme-primary)] hover:underline font-bold cursor-pointer">
                   سجل طلبات الإيداع
                 </span>
               </Link>
@@ -602,26 +602,26 @@ export function DepositBinancePay() {
         {/* STEP: Approved State */}
         {step === "approved" && (
           <div className="text-center py-6 space-y-5">
-            <div className="w-16 h-16 rounded-3xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 mx-auto flex items-center justify-center shadow-sm">
+            <div className="w-16 h-16 rounded-3xl bg-[var(--theme-success,#10B981)]/10 border border-[var(--theme-success,#10B981)]/20 text-[var(--theme-success,#10B981)] mx-auto flex items-center justify-center shadow-sm">
               <CheckCircle2 className="w-8 h-8" />
             </div>
             <div className="space-y-1.5">
-              <h3 className="text-xl font-black text-foreground">
+              <h3 className="text-xl font-black text-[var(--theme-text-primary)]">
                 تم قبول وإيداع الرصيد بنجاح!
               </h3>
-              <p className="text-xs sm:text-sm text-muted-foreground max-w-md mx-auto">
+              <p className="text-xs sm:text-sm text-[var(--theme-text-secondary)] max-w-md mx-auto">
                 تمت مراجعة عملية تحويل Binance Pay بنجاح وإضافة المبلغ ({amount} USDT) إلى محفظتك.
               </p>
             </div>
 
             <div className="pt-4 flex flex-col sm:flex-row gap-3 justify-center max-w-xs mx-auto">
               <Link href="/wallet">
-                <Button className="w-full rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold">
+                <Button className="w-full rounded-2xl bg-[var(--theme-success,#10B981)] hover:opacity-90 text-white font-bold">
                   عرض المحفظة والرصيد
                 </Button>
               </Link>
               <Link href="/">
-                <Button variant="outline" className="w-full rounded-2xl font-bold">
+                <Button variant="outline" className="w-full rounded-2xl font-bold border-[var(--theme-border)] text-[var(--theme-text-primary)]">
                   الرئيسية والمتجر
                 </Button>
               </Link>
@@ -632,14 +632,14 @@ export function DepositBinancePay() {
         {/* STEP: Rejected State */}
         {step === "rejected" && (
           <div className="text-center py-6 space-y-5">
-            <div className="w-16 h-16 rounded-3xl bg-red-500/10 border border-red-500/20 text-red-600 mx-auto flex items-center justify-center shadow-sm">
+            <div className="w-16 h-16 rounded-3xl bg-[var(--theme-error,#EF4444)]/10 border border-[var(--theme-error,#EF4444)]/20 text-[var(--theme-error,#EF4444)] mx-auto flex items-center justify-center shadow-sm">
               <XCircle className="w-8 h-8" />
             </div>
             <div className="space-y-1.5">
-              <h3 className="text-xl font-black text-foreground">
+              <h3 className="text-xl font-black text-[var(--theme-text-primary)]">
                 تم رفض طلب الإيداع
               </h3>
-              <p className="text-xs sm:text-sm text-muted-foreground max-w-md mx-auto">
+              <p className="text-xs sm:text-sm text-[var(--theme-text-secondary)] max-w-md mx-auto">
                 تعذر تأكيد عملية الدفع. يرجى التأكد من صحة رقم العملية والمبلغ المحول، أو التواصل مع فريق الدعم الفني.
               </p>
             </div>
@@ -652,12 +652,12 @@ export function DepositBinancePay() {
                   setIsSubmitted(false);
                   setTransactionRef("");
                 }}
-                className="w-full rounded-2xl bg-foreground text-background font-bold"
+                className="w-full rounded-2xl bg-[var(--theme-primary)] text-[var(--theme-text-on-primary,var(--theme-background))] font-bold"
               >
                 محاولة مرة أخرى
               </Button>
               <Link href="/contact">
-                <Button variant="outline" className="w-full rounded-2xl font-bold">
+                <Button variant="outline" className="w-full rounded-2xl font-bold border-[var(--theme-border)] text-[var(--theme-text-primary)]">
                   تواصل مع الدعم
                 </Button>
               </Link>
@@ -679,11 +679,11 @@ export function DepositBinancePay() {
             <button
               type="button"
               onClick={() => setShowLightbox(false)}
-              className="absolute top-3 left-3 w-8 h-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground"
+              className="absolute top-3 left-3 w-8 h-8 rounded-full bg-[var(--theme-input-bg)] flex items-center justify-center text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)]"
             >
               <X className="w-5 h-5" />
             </button>
-            <div className="flex items-center justify-center gap-2 text-amber-600 font-bold text-sm">
+            <div className="flex items-center justify-center gap-2 text-[var(--theme-binance,#F0B90B)] font-bold text-sm">
               <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
                 <path d="M12 2L6.5 7.5L8.5 9.5L12 6L15.5 9.5L17.5 7.5L12 2ZM2 12L7.5 17.5L9.5 15.5L6 12L9.5 8.5L7.5 6.5L2 12ZM12 22L17.5 16.5L15.5 14.5L12 18L8.5 14.5L6.5 16.5L12 22ZM22 12L16.5 6.5L14.5 8.5L18 12L14.5 15.5L16.5 17.5L22 12ZM12 9.5L9.5 12L12 14.5L14.5 12L12 9.5Z" />
               </svg>
@@ -705,13 +705,13 @@ export function DepositBinancePay() {
                 />
               )}
             </div>
-            <div className="font-mono text-xs text-muted-foreground break-all bg-muted/40 p-2.5 rounded-xl">
+            <div className="font-mono text-xs text-[var(--theme-text-secondary)] break-all bg-[var(--theme-input-bg)] p-2.5 rounded-xl">
               {walletAddress}
             </div>
             <Button
               type="button"
               onClick={() => setShowLightbox(false)}
-              className="w-full rounded-xl bg-foreground text-background"
+              className="w-full rounded-xl bg-[var(--theme-primary)] text-[var(--theme-text-on-primary,var(--theme-background))] font-bold"
             >
               إغلاق
             </Button>

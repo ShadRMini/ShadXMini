@@ -904,9 +904,10 @@ export default function SettingsNew() {
                       <input
                         type="number"
                         step="any"
-                        value={settings.exchange_rate ?? settings.currency_rate_usd_syp ?? 15000}
+                        value={settings.usd_to_syp ?? settings.exchange_rate ?? settings.currency_rate_usd_syp ?? 145}
                         onChange={(e) => {
                           handleValueChange("exchange_rate", e.target.value);
+                          handleValueChange("usd_to_syp", e.target.value);
                           handleValueChange("currency_rate_usd_syp", e.target.value);
                         }}
                         className={`w-full bg-[#1A1A1A] border ${

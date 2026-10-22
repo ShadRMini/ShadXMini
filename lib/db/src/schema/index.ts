@@ -11,6 +11,7 @@ import {
   jsonb,
   unique,
   uniqueIndex,
+  index,
 } from "drizzle-orm/pg-core";
 
 export const quantityTypeEnum = pgEnum("quantity_type", ["fixed", "range", "list"]);
@@ -93,7 +94,10 @@ export const productsTable = pgTable("products", {
   providerId: integer("provider_id"),
   source: text("source").notNull().default("manual"),
   providerProductId: integer("provider_product_id"),
-});
+}, (table) => ({
+  categoryIdx: index("idx_products_category").on(table.categoryId),
+  groupIdx: index("idx_products_group").on(table.groupId),
+}));
 
 export const newsTable = pgTable("news", {
   id: serial("id").primaryKey(),
@@ -163,7 +167,11 @@ export const ordersTable = pgTable("orders", {
   status: text("status").notNull().default("wait"),
   meta: jsonb("meta"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+}, (table) => ({
+  userCreatedIdx: index("idx_orders_user_created").on(table.userId, table.createdAt),
+  statusIdx: index("idx_orders_status").on(table.status),
+  productIdx: index("idx_orders_product").on(table.productId),
+}));
 
 export const depositsTable = pgTable(
   "deposits",
@@ -186,11 +194,14 @@ export const depositsTable = pgTable(
     pendingReview: boolean("pending_review").default(false),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
-  (table) => [
-    uniqueIndex("idx_deposits_approved_tx_ref")
+  (table) => ({
+    approvedTxRefIdx: uniqueIndex("idx_deposits_approved_tx_ref")
       .on(table.transactionRef)
       .where(sql`status = 'approved' AND transaction_ref IS NOT NULL`),
-  ],
+    userCreatedIdx: index("idx_deposits_user_created").on(table.userId, table.createdAt),
+    txIdIdx: index("idx_deposits_tx_id").on(table.transactionId),
+    statusIdx: index("idx_deposits_status").on(table.status),
+  }),
 );
 
 export const verifyRateLimitsTable = pgTable(
@@ -347,7 +358,9 @@ export const notificationsTable = pgTable("notifications", {
   isRead: boolean("is_read").notNull().default(false),
   readAt: timestamp("read_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+}, (table) => ({
+  userReadIdx: index("idx_notifications_user_read").on(table.targetUserId, table.isRead),
+}));
 
 export const ticketsTable = pgTable("tickets", {
   id: serial("id").primaryKey(),

@@ -311,6 +311,19 @@ export default function About() {
               </p>
             </div>
           </div>
+
+          {/* Refund Policy Section */}
+          <div
+            className="p-5 sm:p-6 border border-[var(--theme-border)] rounded-2xl shadow-xl space-y-3"
+            style={{ backgroundColor: "var(--about-card-color, var(--theme-card))" }}
+          >
+            <h2 className="text-xl font-black text-[var(--theme-primary)]">سياسة الاسترجاع والاستبدال</h2>
+            <div className="space-y-2 text-sm text-[var(--theme-text-secondary)]">
+              <p>• في حال رفض المزود للطلب، يُسترد الرصيد تلقائياً وفورياً إلى محفظتك.</p>
+              <p>• في حال تأخر تنفيذ الطلب أكثر من 24 ساعة، يُسترد الرصيد تلقائياً.</p>
+              <p>• لا يمكن استرداد المنتجات الرقمية بعد تسليمها (أكواد، بطاقات، شحن).</p>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -339,7 +352,7 @@ export default function About() {
           <div
             className="w-10 h-10 rounded-2xl flex items-center justify-center border"
             style={{
-              backgroundColor: "rgba(200, 164, 92, 0.15)",
+              backgroundColor: "color-mix(in srgb, var(--about-title-color, var(--theme-primary)) 15%, transparent)",
               borderColor: "var(--about-border-color, var(--theme-border))",
               color: "var(--about-title-color, var(--theme-primary))",
             }}
@@ -403,7 +416,7 @@ export default function About() {
                   {section.content}
                 </p>
                 {section.image && (
-                  <div className="rounded-2xl overflow-hidden border border-white/10 mt-3">
+                  <div className="rounded-2xl overflow-hidden border border-[var(--theme-border)] mt-3">
                     <img
                       src={section.image}
                       alt={section.title}
@@ -420,14 +433,14 @@ export default function About() {
                 {(section.members || []).map((m, idx) => (
                   <div
                     key={idx}
-                    className="p-3.5 rounded-2xl border border-white/10 bg-black/20 flex items-start gap-3"
+                    className="p-3.5 rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-input-bg)] flex items-start gap-3"
                   >
                     <div
                       className="w-11 h-11 rounded-2xl overflow-hidden shrink-0 flex items-center justify-center font-black text-sm border"
                       style={{
-                        backgroundColor: `${style.title_color || "#C8A45C"}20`,
-                        borderColor: `${style.title_color || "#C8A45C"}40`,
-                        color: style.title_color || "#C8A45C",
+                        backgroundColor: `color-mix(in srgb, ${style.title_color || "var(--theme-primary)"} 15%, transparent)`,
+                        borderColor: `color-mix(in srgb, ${style.title_color || "var(--theme-primary)"} 25%, transparent)`,
+                        color: style.title_color || "var(--theme-primary)",
                       }}
                     >
                       {m.image ? (
@@ -437,10 +450,10 @@ export default function About() {
                       )}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <h3 className="font-black text-xs sm:text-sm text-white truncate">{m.name}</h3>
+                      <h3 className="font-black text-xs sm:text-sm text-[var(--theme-text-primary)] truncate">{m.name}</h3>
                       <div
                         className="text-xs font-bold mt-0.5"
-                        style={{ color: style.title_color || "#C8A45C" }}
+                        style={{ color: style.title_color || "var(--theme-primary)" }}
                       >
                         {m.role}
                       </div>
@@ -461,11 +474,11 @@ export default function About() {
                 {(section.statistics || []).map((st, idx) => (
                   <div
                     key={idx}
-                    className="p-3.5 rounded-2xl bg-black/25 border border-white/10 flex flex-col justify-center items-center"
+                    className="p-3.5 rounded-2xl bg-[var(--theme-input-bg)] border border-[var(--theme-border)] flex flex-col justify-center items-center"
                   >
                     <div
                       className="text-xl sm:text-2xl font-black tracking-tight"
-                      style={{ color: style.title_color || "#C8A45C" }}
+                      style={{ color: style.title_color || "var(--theme-primary)" }}
                     >
                       {st.value}
                     </div>
@@ -481,7 +494,7 @@ export default function About() {
                 {section.email && (
                   <div
                     onClick={() => copyToClipboard(section.email!, "البريد الإلكتروني")}
-                    className="flex items-center justify-between gap-2 p-3 rounded-2xl bg-black/25 border border-white/10 cursor-pointer hover:border-[var(--theme-primary)] transition"
+                    className="flex items-center justify-between gap-2 p-3 rounded-2xl bg-[var(--theme-input-bg)] border border-[var(--theme-border)] cursor-pointer hover:border-[var(--theme-primary)] transition"
                   >
                     <div className="flex items-center gap-2 truncate">
                       <Mail className="w-4 h-4 shrink-0" style={{ color: style.title_color }} />
@@ -494,7 +507,7 @@ export default function About() {
                 {section.phone && (
                   <div
                     onClick={() => copyToClipboard(section.phone!, "رقم الهاتف")}
-                    className="flex items-center justify-between gap-2 p-3 rounded-2xl bg-black/25 border border-white/10 cursor-pointer hover:border-[var(--theme-primary)] transition"
+                    className="flex items-center justify-between gap-2 p-3 rounded-2xl bg-[var(--theme-input-bg)] border border-[var(--theme-border)] cursor-pointer hover:border-[var(--theme-primary)] transition"
                   >
                     <div className="flex items-center gap-2 truncate">
                       <Phone className="w-4 h-4 shrink-0" style={{ color: style.title_color }} />
@@ -507,7 +520,7 @@ export default function About() {
                 {section.address && (
                   <div
                     onClick={() => copyToClipboard(section.address!, "العنوان")}
-                    className="flex items-center justify-between gap-2 p-3 rounded-2xl bg-black/25 border border-white/10 cursor-pointer hover:border-[var(--theme-primary)] transition"
+                    className="flex items-center justify-between gap-2 p-3 rounded-2xl bg-[var(--theme-input-bg)] border border-[var(--theme-border)] cursor-pointer hover:border-[var(--theme-primary)] transition"
                   >
                     <div className="flex items-center gap-2 truncate">
                       <MapPin className="w-4 h-4 shrink-0" style={{ color: style.title_color }} />
@@ -520,6 +533,23 @@ export default function About() {
             )}
           </div>
         ))}
+
+        {/* Refund Policy Section */}
+        <div
+          className="p-5 sm:p-6 border shadow-xl transition relative overflow-hidden space-y-3"
+          style={{
+            backgroundColor: "var(--about-card-color, var(--about-card-bg, var(--theme-card)))",
+            borderRadius: style.border_radius || "var(--theme-border-radius, 16px)",
+            borderColor: "var(--about-border-color, var(--theme-border))",
+          }}
+        >
+          <h2 className="text-xl font-black text-[var(--theme-primary)]">سياسة الاسترجاع والاستبدال</h2>
+          <div className="space-y-2 text-sm text-[var(--theme-text-secondary)]">
+            <p>• في حال رفض المزود للطلب، يُسترد الرصيد تلقائياً وفورياً إلى محفظتك.</p>
+            <p>• في حال تأخر تنفيذ الطلب أكثر من 24 ساعة، يُسترد الرصيد تلقائياً.</p>
+            <p>• لا يمكن استرداد المنتجات الرقمية بعد تسليمها (أكواد، بطاقات، شحن).</p>
+          </div>
+        </div>
       </div>
     </div>
   );

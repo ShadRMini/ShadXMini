@@ -54,20 +54,20 @@ export function SessionTimer({
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;
   const isExpired = timeLeft <= 0;
-  const isRed = timeLeft < 120 && timeLeft > 0; // < 2 minutes: #EF4444
-  const isOrange = timeLeft >= 120 && timeLeft <= 300; // 2-5 minutes: #F59E0B
-  const isGreen = timeLeft > 300; // > 5 minutes: #10B981
+  const isRed = timeLeft < 120 && timeLeft > 0;
+  const isOrange = timeLeft >= 120 && timeLeft <= 300;
+  const isGreen = timeLeft > 300;
 
   return (
     <div
       className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border text-xs font-mono font-bold transition-colors shadow-xs ${
         isExpired
-          ? "border-red-500/50 bg-red-500/15 text-[#EF4444]"
+          ? "border-red-500/50 bg-red-500/15 text-red-500"
           : isRed
-          ? "border-red-500/60 bg-red-500/15 text-[#EF4444] animate-pulse"
+          ? "border-red-500/60 bg-red-500/15 text-red-500 animate-pulse"
           : isOrange
-          ? "border-amber-500/50 bg-amber-500/15 text-[#F59E0B]"
-          : "border-emerald-500/50 bg-emerald-500/15 text-[#10B981]"
+          ? "border-[var(--theme-primary,#F59E0B)]/50 bg-[var(--theme-card,#2D2D2D)] text-[var(--theme-primary,#F59E0B)]"
+          : "border-emerald-500/50 bg-emerald-500/15 text-emerald-500"
       } ${className}`}
       dir="rtl"
     >

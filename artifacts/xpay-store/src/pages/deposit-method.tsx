@@ -38,6 +38,33 @@ const depositSchema = z.object({
   proofImage: z.string().optional(),
 });
 
+async function compressImage(file: File, maxWidth = 1280, quality = 0.75): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        let { width, height } = img;
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return reject(new Error("Canvas not supported"));
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL("image/jpeg", quality));
+      };
+      img.onerror = () => reject(new Error("Failed to load image"));
+      img.src = String(e.target?.result || "");
+    };
+    reader.onerror = () => reject(new Error("Failed to read file"));
+    reader.readAsDataURL(file);
+  });
+}
+
 type UiMethod = {
   code: string;
   name: string;
@@ -220,20 +247,24 @@ export default function DepositMethod() {
     },
   });
 
-  const onProofFileChange = (file?: File) => {
+  const onProofFileChange = async (file?: File) => {
     if (!file) {
       form.setValue("proofImage", "");
       setProofImageName("");
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      const base64 = typeof reader.result === "string" ? reader.result : "";
-      form.setValue("proofImage", base64);
-      setProofImageName(file.name);
-    };
-    reader.readAsDataURL(file);
+    setProofImageName(file.name);
+    const setReceiptImage = (val: string) => form.setValue("proofImage", val);
+    try {
+      const compressed = await compressImage(file, 1280, 0.75);
+      setReceiptImage(compressed);
+    } catch (err) {
+      console.error("Compression failed, using original:", err);
+      const reader = new FileReader();
+      reader.onload = (e) => setReceiptImage(String(e.target?.result || ""));
+      reader.readAsDataURL(file);
+    }
   };
 
   const onSubmit = (values: z.infer<typeof depositSchema>) => {
@@ -408,17 +439,17 @@ export default function DepositMethod() {
 
   if (isLoading && visibleMethods.length === 0) {
     return (
-      <div className="min-h-screen bg-[var(--theme-background)] p-4 pt-8 text-white" dir="rtl">
-        <Skeleton className="h-8 w-32 mb-8 bg-zinc-800" />
-        <Skeleton className="h-48 w-full rounded-3xl mb-6 bg-zinc-800" />
-        <Skeleton className="h-64 w-full rounded-3xl bg-zinc-800" />
+      <div className="min-h-screen bg-[var(--theme-background)] p-4 pt-8 text-[var(--theme-text-primary)]" dir="rtl">
+        <Skeleton className="h-8 w-32 mb-8 bg-[var(--theme-card)]" />
+        <Skeleton className="h-48 w-full rounded-3xl mb-6 bg-[var(--theme-card)]" />
+        <Skeleton className="h-64 w-full rounded-3xl bg-[var(--theme-card)]" />
       </div>
     );
   }
 
   if (!method) {
     return (
-      <div className="min-h-screen bg-[var(--theme-background)] p-4 text-center pt-20 text-zinc-400" dir="rtl">
+      <div className="min-h-screen bg-[var(--theme-background)] p-4 text-center pt-20 text-[var(--theme-text-muted)]" dir="rtl">
         طريقة الدفع غير موجودة
       </div>
     );
@@ -426,16 +457,16 @@ export default function DepositMethod() {
 
   return (
     <div 
-      className="min-h-screen text-white pb-24 animate-in slide-in-from-right-4 duration-300" 
-      style={{ backgroundColor: cfg?.bg_color || "#1A1A1A" }}
+      className="min-h-screen text-[var(--theme-text-primary)] pb-24 animate-in slide-in-from-right-4 duration-300" 
+      style={{ backgroundColor: cfg?.bg_color || "var(--theme-background)" }}
       dir="rtl"
     >
       {/* Header bar */}
       <div 
         className="sticky top-0 z-20 backdrop-blur-xl px-4 py-3.5 flex items-center justify-between border-b shadow-md"
         style={{
-          backgroundColor: cfg?.bg_color ? `${cfg.bg_color}F2` : "#1A1A1AF2",
-          borderColor: cfg?.border_color ? `${cfg.border_color}33` : "#C8A45C33",
+          backgroundColor: cfg?.bg_color ? `${cfg.bg_color}F2` : "color-mix(in srgb, var(--theme-background) 95%, transparent)",
+          borderColor: cfg?.border_color ? `${cfg.border_color}33` : "var(--theme-border)",
         }}
       >
         <div className="flex items-center gap-3">
@@ -443,8 +474,8 @@ export default function DepositMethod() {
             <div 
               className="bg-[var(--theme-card)] p-2 rounded-xl border transition-colors cursor-pointer shadow-xs"
               style={{
-                borderColor: cfg?.border_color ? `${cfg.border_color}66` : "#C8A45C66",
-                color: cfg?.title_color || "#C8A45C",
+                borderColor: cfg?.border_color ? `${cfg.border_color}66` : "var(--theme-border)",
+                color: cfg?.title_color || "var(--theme-primary)",
               }}
             >
               <ChevronRight className="w-5 h-5" />
@@ -453,19 +484,19 @@ export default function DepositMethod() {
           <div>
             <h1 
               className="font-bold text-base sm:text-lg"
-              style={{ color: cfg?.title_color || "#FDE68A" }}
+              style={{ color: cfg?.title_color || "var(--theme-accent)" }}
             >
               {cfg?.page_title || getMethodName(method)}
             </h1>
-            <p className="text-[11px] text-zinc-400">{cfg?.page_subtitle || getMethodSubtitle(method)}</p>
+            <p className="text-[11px] text-[var(--theme-text-muted)]">{cfg?.page_subtitle || getMethodSubtitle(method)}</p>
           </div>
         </div>
         <span 
           className="text-[11px] px-2.5 py-1 rounded-full border font-bold"
           style={{
-            backgroundColor: `${cfg?.title_color || "#C8A45C"}20`,
-            borderColor: `${cfg?.border_color || "#C8A45C"}50`,
-            color: cfg?.title_color || "#FDE68A",
+            backgroundColor: cfg?.title_color ? `${cfg.title_color}20` : "color-mix(in srgb, var(--theme-primary) 12%, transparent)",
+            borderColor: cfg?.border_color ? `${cfg.border_color}50` : "color-mix(in srgb, var(--theme-primary) 30%, transparent)",
+            color: cfg?.title_color || "var(--theme-accent)",
           }}
         >
           بوابة الدفع
@@ -477,23 +508,23 @@ export default function DepositMethod() {
         <div 
           className="p-5 sm:p-6 rounded-3xl bg-[var(--theme-card)] border shadow-xl relative overflow-hidden"
           style={{
-            borderColor: cfg?.border_color ? `${cfg.border_color}55` : "#C8A45C55",
-            color: cfg?.text_color || undefined,
+            borderColor: cfg?.border_color ? `${cfg.border_color}55` : "var(--theme-border)",
+            color: cfg?.text_color || "var(--theme-text-primary)",
           }}
         >
           <div className="flex items-center justify-between mb-4">
             <h2 
               className="font-black text-lg sm:text-xl"
-              style={{ color: cfg?.title_color || "#FDE68A" }}
+              style={{ color: cfg?.title_color || "var(--theme-accent)" }}
             >
               {cfg?.page_title || getMethodSubtitle(method)}
             </h2>
             <div 
               className="text-[11px] font-bold px-2.5 py-1 rounded-full border"
               style={{
-                backgroundColor: `${cfg?.title_color || "#C8A45C"}20`,
-                borderColor: `${cfg?.border_color || "#C8A45C"}50`,
-                color: cfg?.title_color || "#FDE68A",
+                backgroundColor: cfg?.title_color ? `${cfg.title_color}20` : "color-mix(in srgb, var(--theme-primary) 12%, transparent)",
+                borderColor: cfg?.border_color ? `${cfg.border_color}50` : "color-mix(in srgb, var(--theme-primary) 30%, transparent)",
+                color: cfg?.title_color || "var(--theme-accent)",
               }}
             >
               وسيلة معتمدة
@@ -510,24 +541,24 @@ export default function DepositMethod() {
             <div 
               className="p-4 rounded-2xl border shadow-inner"
               style={{
-                backgroundColor: cfg?.bg_color ? `${cfg.bg_color}EE` : "#1A1A1A",
-                borderColor: cfg?.border_color ? `${cfg.border_color}44` : "#C8A45C44",
+                backgroundColor: cfg?.bg_color ? `${cfg.bg_color}EE` : "var(--theme-input-bg)",
+                borderColor: cfg?.border_color ? `${cfg.border_color}44` : "var(--theme-border)",
               }}
             >
               <div 
                 className="text-[11px] font-bold mb-2"
-                style={{ color: cfg?.title_color || "#C8A45C" }}
+                style={{ color: cfg?.title_color || "var(--theme-primary)" }}
               >
                 عنوان المحفظة / الرقم:
               </div>
               <div className="flex items-center justify-between gap-3">
-                <div className="font-mono text-sm font-bold text-white truncate select-all">{method.walletAddress}</div>
+                <div className="font-mono text-sm font-bold text-[var(--theme-text-primary)] truncate select-all">{method.walletAddress}</div>
                 <button
                   onClick={() => copyToClipboard(method.walletAddress!)}
                   className="shrink-0 px-3 py-1.5 rounded-xl flex items-center gap-1.5 transition font-bold text-xs cursor-pointer shadow-xs"
                   style={{
-                    backgroundColor: cfg?.button_color || "#C8A45C",
-                    color: cfg?.button_color ? "#1A1A1A" : "#1A1A1A",
+                    backgroundColor: cfg?.button_color || "var(--theme-primary)",
+                    color: "var(--theme-text-on-primary, var(--theme-background))",
                   }}
                 >
                   <Copy className="w-3.5 h-3.5" />
@@ -595,7 +626,7 @@ export default function DepositMethod() {
                         </SelectItem>
                       </SelectContent>
                     </Select>
-                    <FormMessage className="text-red-400 text-xs" />
+                    <FormMessage className="text-[var(--theme-error,#EF4444)] text-xs" />
                   </FormItem>
                 )}
               />
@@ -629,7 +660,7 @@ export default function DepositMethod() {
                         ))}
                       </div>
                     )}
-                    <FormMessage className="text-red-400 text-xs" />
+                    <FormMessage className="text-[var(--theme-error,#EF4444)] text-xs" />
                   </FormItem>
                 )}
               />
@@ -652,7 +683,7 @@ export default function DepositMethod() {
                           className="h-12 bg-[var(--theme-input-bg)] border-[var(--theme-border)] text-[var(--theme-text-primary)] placeholder:text-[var(--theme-text-muted)] rounded-xl text-base font-mono focus:border-[var(--theme-primary)] focus:ring-1 focus:ring-[var(--theme-primary)]"
                         />
                       </FormControl>
-                      <FormMessage className="text-red-400 text-xs" />
+                      <FormMessage className="text-[var(--theme-error,#EF4444)] text-xs" />
                     </FormItem>
                   )}
                 />
@@ -671,7 +702,7 @@ export default function DepositMethod() {
                             type="file"
                             accept="image/*"
                             onChange={(e) => onProofFileChange(e.target.files?.[0])}
-                            className="h-12 bg-[var(--theme-input-bg)] border-[var(--theme-border)] text-[var(--theme-text-primary)] rounded-xl text-xs sm:text-sm file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-[var(--theme-primary)] file:text-black hover:file:opacity-90"
+                            className="h-12 bg-[var(--theme-input-bg)] border-[var(--theme-border)] text-[var(--theme-text-primary)] rounded-xl text-xs sm:text-sm file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-[var(--theme-primary)] file:text-[var(--theme-text-on-primary,var(--theme-background))] hover:file:opacity-90"
                           />
                           {!isShamCashManual ? (
                             <Input
@@ -684,7 +715,7 @@ export default function DepositMethod() {
                           {proofImageName ? <div className="text-xs text-[var(--theme-accent)]">الملف المحدد: {proofImageName}</div> : null}
                         </div>
                       </FormControl>
-                      <FormMessage className="text-red-400 text-xs" />
+                      <FormMessage className="text-[var(--theme-error,#EF4444)] text-xs" />
                     </FormItem>
                   )}
                 />
@@ -697,7 +728,7 @@ export default function DepositMethod() {
                   className="w-full h-13 rounded-2xl text-base font-black transition-all shadow-lg cursor-pointer active:scale-98 disabled:opacity-50"
                   style={{
                     backgroundColor: cfg?.button_color || "var(--theme-primary)",
-                    color: cfg?.button_color ? "#1A1A1A" : "#1A1A1A",
+                    color: "var(--theme-text-on-primary, var(--theme-background))",
                   }}
                 >
                   {cfg?.confirm_button_text ||
@@ -732,7 +763,7 @@ export default function DepositMethod() {
                 type="button"
                 onClick={verifyAutoInvoice}
                 disabled={autoVerifying}
-                className="w-full h-12 rounded-xl font-black bg-[var(--theme-primary)] hover:opacity-90 text-black transition shadow-md cursor-pointer"
+                className="w-full h-12 rounded-xl font-black bg-[var(--theme-primary)] hover:opacity-90 text-[var(--theme-text-on-primary,var(--theme-background))] transition shadow-md cursor-pointer"
               >
                 {autoVerifying ? "جاري التحقق..." : "تحقق من العملية"}
               </Button>

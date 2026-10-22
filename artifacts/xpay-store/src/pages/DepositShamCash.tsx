@@ -176,13 +176,13 @@ export function DepositShamCash() {
         <Link href="/deposit">
           <button 
             type="button"
-            className="inline-flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors p-2 -mr-2 rounded-xl hover:bg-muted/50"
+            className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)] transition-colors p-2 -mr-2 rounded-xl hover:bg-[var(--theme-card)]"
           >
             <ArrowRight className="w-4 h-4" />
             <span>الرجوع للمحفظة</span>
           </button>
         </Link>
-        <span className="text-xs font-semibold text-emerald-600 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20 flex items-center gap-1.5">
+        <span className="text-xs font-semibold text-[var(--theme-shamcash,#00875A)] bg-[var(--theme-shamcash,#00875A)]/10 px-3 py-1 rounded-full border border-[var(--theme-shamcash,#00875A)]/25 flex items-center gap-1.5">
           <ShieldCheck className="w-3.5 h-3.5" />
           شام كاش تلقائي
         </span>
@@ -221,22 +221,22 @@ export function DepositShamCash() {
           onClick={() => setShowLightbox(false)}
         >
           <div 
-            className="relative bg-white dark:bg-zinc-900 p-6 rounded-3xl max-w-sm w-full shadow-2xl text-center space-y-4 border border-zinc-200 dark:border-zinc-800"
+            className="relative bg-[var(--theme-card)] p-6 rounded-3xl max-w-sm w-full shadow-2xl text-center space-y-4 border border-[var(--theme-border)]"
             onClick={(e) => e.stopPropagation()}
           >
             <button
               type="button"
               onClick={() => setShowLightbox(false)}
-              className="absolute top-3 left-3 w-8 h-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground"
+              className="absolute top-3 left-3 w-8 h-8 rounded-full bg-[var(--theme-input-bg)] flex items-center justify-center text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)]"
             >
               <X className="w-5 h-5" />
             </button>
-            <h3 className="font-bold text-foreground text-sm">
+            <h3 className="font-bold text-[var(--theme-text-primary)] text-sm">
               رمز الاستجابة السريعة (QR Code)
             </h3>
             {qrImageUrl || walletAddress ? (
               <>
-                <div className="w-64 h-64 mx-auto p-2 bg-white rounded-2xl border flex items-center justify-center overflow-hidden">
+                <div className="w-64 h-64 mx-auto p-2 bg-white rounded-2xl border border-[var(--theme-border)] flex items-center justify-center overflow-hidden">
                   {qrImageUrl ? (
                     <img src={qrImageUrl} alt="QR Big" className="w-full h-full object-contain" />
                   ) : (
@@ -248,21 +248,21 @@ export function DepositShamCash() {
                     />
                   )}
                 </div>
-                <div className="font-mono text-xs text-muted-foreground break-all bg-muted/40 p-2 rounded-xl">
+                <div className="font-mono text-xs text-[var(--theme-text-secondary)] break-all bg-[var(--theme-input-bg)] p-2 rounded-xl">
                   {walletAddress}
                 </div>
               </>
             ) : (
               <div className="p-6 text-center space-y-3">
-                <AlertCircle className="w-10 h-10 text-amber-500 mx-auto" />
-                <p className="text-sm font-bold text-foreground">لا توجد محفظة مُعدّة</p>
-                <p className="text-xs text-muted-foreground">يرجى التواصل مع الدعم</p>
+                <AlertCircle className="w-10 h-10 text-[var(--theme-warning,#F59E0B)] mx-auto" />
+                <p className="text-sm font-bold text-[var(--theme-text-primary)]">لا توجد محفظة مُعدّة</p>
+                <p className="text-xs text-[var(--theme-text-muted)]">يرجى التواصل مع الدعم</p>
               </div>
             )}
             <Button
               type="button"
               onClick={() => setShowLightbox(false)}
-              className="w-full rounded-xl bg-foreground text-background cursor-pointer"
+              className="w-full rounded-xl bg-[var(--theme-primary)] text-[var(--theme-text-on-primary,var(--theme-background))] cursor-pointer"
             >
               إغلاق
             </Button>

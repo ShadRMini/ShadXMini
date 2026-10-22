@@ -32,8 +32,8 @@ export const defaultCurrencySettings: CurrencySettings = {
   base_currency: "USD",
   currencySymbol: "$",
   currency_symbol: "$",
-  usdToSyp: 15000,
-  usd_to_syp: 15000,
+  usdToSyp: 145,
+  usd_to_syp: 145,
   usdToTry: 34.5,
   usd_to_try: 34.5,
   usdToEur: 0.92,
@@ -49,8 +49,8 @@ export const defaultCurrencySettings: CurrencySettings = {
   thousands_separator: ",",
   decimalSeparator: ".",
   decimal_separator: ".",
-  exchangeRate: 15000,
-  exchange_rate: 15000,
+  exchangeRate: 145,
+  exchange_rate: 145,
 };
 
 interface CurrencyContextType {
@@ -70,12 +70,12 @@ const CurrencyContext = createContext<CurrencyContextType>({
   currencySettings: defaultCurrencySettings,
   baseCurrency: "USD",
   currencySymbol: "$",
-  exchangeRate: 15000,
+  exchangeRate: 145,
   showBothCurrencies: true,
   formatPrice: (amount) => `$${Number(amount || 0).toFixed(2)}`,
   formatPriceWithSyp: (amount) => ({ primary: `$${Number(amount || 0).toFixed(2)}` }),
   convertUsdToLocal: (amount) => Number(amount || 0),
-  convertUsdToSyp: (amount) => Number(amount || 0) * 15000,
+  convertUsdToSyp: (amount) => Number(amount || 0) * 145,
   refreshCurrency: async () => {},
 });
 
@@ -99,8 +99,8 @@ export function CurrencyProvider({ children }: { children: React.ReactNode }) {
           base_currency: String(data.baseCurrency || data.base_currency || "USD"),
           currencySymbol: String(data.currencySymbol || data.currency_symbol || (data.baseCurrency === "SYP" ? "ل.س" : "$")),
           currency_symbol: String(data.currencySymbol || data.currency_symbol || (data.baseCurrency === "SYP" ? "ل.س" : "$")),
-          usdToSyp: Number(data.usdToSyp || data.usd_to_syp || data.exchangeRate || data.exchange_rate || 15000),
-          usd_to_syp: Number(data.usdToSyp || data.usd_to_syp || data.exchangeRate || data.exchange_rate || 15000),
+          usdToSyp: Number(data.usdToSyp || data.usd_to_syp || data.exchangeRate || data.exchange_rate || 145),
+          usd_to_syp: Number(data.usdToSyp || data.usd_to_syp || data.exchangeRate || data.exchange_rate || 145),
           usdToTry: Number(data.usdToTry || data.usd_to_try || 34.5),
           usd_to_try: Number(data.usdToTry || data.usd_to_try || 34.5),
           usdToEur: Number(data.usdToEur || data.usd_to_eur || 0.92),
@@ -124,8 +124,8 @@ export function CurrencyProvider({ children }: { children: React.ReactNode }) {
           thousands_separator: String(data.thousandsSeparator || data.thousands_separator || ","),
           decimalSeparator: String(data.decimalSeparator || data.decimal_separator || "."),
           decimal_separator: String(data.decimalSeparator || data.decimal_separator || "."),
-          exchangeRate: Number(data.exchangeRate || data.exchange_rate || data.usdToSyp || data.usd_to_syp || 15000),
-          exchange_rate: Number(data.exchangeRate || data.exchange_rate || data.usdToSyp || data.usd_to_syp || 15000),
+          exchangeRate: Number(data.exchangeRate || data.exchange_rate || data.usdToSyp || data.usd_to_syp || 145),
+          exchange_rate: Number(data.exchangeRate || data.exchange_rate || data.usdToSyp || data.usd_to_syp || 145),
         };
 
         setCurrencySettings(merged);
@@ -164,13 +164,13 @@ export function CurrencyProvider({ children }: { children: React.ReactNode }) {
 
   const baseCurrency = currencySettings.baseCurrency;
   const currencySymbol = currencySettings.currencySymbol;
-  const exchangeRate = currencySettings.exchangeRate || currencySettings.usdToSyp || 15000;
+  const exchangeRate = currencySettings.exchangeRate || currencySettings.usdToSyp || 145;
   const showBothCurrencies = currencySettings.showBothCurrencies;
 
   const convertUsdToLocal = useCallback((amountInUsd: number) => {
     const num = Number(amountInUsd) || 0;
     if (baseCurrency === "USD") return num;
-    if (baseCurrency === "SYP") return num * (currencySettings.usdToSyp || exchangeRate || 15000);
+    if (baseCurrency === "SYP") return num * (currencySettings.usdToSyp || exchangeRate || 145);
     if (baseCurrency === "TRY") return num * (currencySettings.usdToTry || 34.5);
     if (baseCurrency === "EUR") return num * (currencySettings.usdToEur || 0.92);
     if (baseCurrency === "SAR") return num * (currencySettings.usdToSar || 3.75);
@@ -179,7 +179,7 @@ export function CurrencyProvider({ children }: { children: React.ReactNode }) {
 
   const convertUsdToSyp = useCallback((amountInUsd: number) => {
     const num = Number(amountInUsd) || 0;
-    const rate = currencySettings.usdToSyp || exchangeRate || 15000;
+    const rate = currencySettings.usdToSyp || exchangeRate || 145;
     return num * rate;
   }, [currencySettings.usdToSyp, exchangeRate]);
 

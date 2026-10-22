@@ -1,13 +1,16 @@
-import { Router, type IRouter } from "express";
+import { Router, type IRouter, type Response } from "express";
 import { db, paymentMethodsTable, settingsTable, socialLinksTable } from "@workspace/db";
 import { asc, eq, sql } from "drizzle-orm";
 import { ListPaymentMethodsResponse, ListSocialLinksResponse } from "@workspace/api-zod";
 import { getOrCreateCurrentUser } from "../lib/currentUser.js";
-import { DEFAULT_VALUES_TO_REJECT } from "../lib/sanitizers.js";
 import { requireAdmin } from "../lib/adminAuth.js";
 import { rateLimit } from "../lib/rateLimit.js";
 
 const router: IRouter = Router();
+
+function setPublicCacheHeaders(res: Response) {
+  res.setHeader("Cache-Control", "public, max-age=15, stale-while-revalidate=60");
+}
 
 router.get("/payment-methods", async (_req, res) => {
   res.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
@@ -54,8 +57,11 @@ router.get("/social-links", async (_req, res) => {
   );
 });
 
-router.get(["/theme", "/theme-settings", "/public/theme-settings", "/admin/theme-settings"], async (_req, res) => {
+router.get(["/theme", "/theme-settings", "/public/theme-settings", "/admin/theme-settings"], async (req, res) => {
   try {
+    if (!req.path.startsWith("/admin")) {
+      setPublicCacheHeaders(res);
+    }
     const rows = await db.select().from(settingsTable);
     const map = new Map(rows.map((row) => [row.key, row.value]));
 
@@ -170,11 +176,11 @@ router.get(["/theme", "/theme-settings", "/public/theme-settings", "/admin/theme
     const getPageCustomSetting = (key: string, legacyVal?: string) => {
       const dbVal = getSettingStr(key, "");
       const cleanDb = String(dbVal || "").trim().toLowerCase();
-      if (cleanDb && !cleanDb.startsWith("var(") && !DEFAULT_VALUES_TO_REJECT.includes(cleanDb)) {
+      if (cleanDb && !cleanDb.startsWith("var(")) {
         return String(dbVal).trim();
       }
       const cleanLeg = String(legacyVal || "").trim().toLowerCase();
-      if (cleanLeg && !cleanLeg.startsWith("var(") && !DEFAULT_VALUES_TO_REJECT.includes(cleanLeg)) {
+      if (cleanLeg && !cleanLeg.startsWith("var(")) {
         return String(legacyVal).trim();
       }
       return "";
@@ -243,20 +249,20 @@ router.get(["/theme", "/theme-settings", "/public/theme-settings", "/admin/theme
     const contactShadow = getSettingStr("contact_shadow", "");
 
     // Balance Card Section
-    const balanceGradientStart = getSettingStr("balance_gradient_start", "#1E40AF");
-    const balanceGradientMid = getSettingStr("balance_gradient_mid", "#3B82F6");
-    const balanceGradientEnd = getSettingStr("balance_gradient_end", "#60A5FA");
-    const balanceTextColor = getSettingStr("balance_text_color", "#FFFFFF");
-    const balanceSubtextColor = getSettingStr("balance_subtext_color", "#E0F2FE");
-    const balanceBadgeColor = getSettingStr("balance_badge_color", "#FFFFFF");
-    const balanceCurrencyColor = getSettingStr("balance_currency_color", "#FFFFFF");
+    const balanceGradientStart = getSettingStr("balance_gradient_start", "");
+    const balanceGradientMid = getSettingStr("balance_gradient_mid", "");
+    const balanceGradientEnd = getSettingStr("balance_gradient_end", "");
+    const balanceTextColor = getSettingStr("balance_text_color", "");
+    const balanceSubtextColor = getSettingStr("balance_subtext_color", "");
+    const balanceBadgeColor = getSettingStr("balance_badge_color", "");
+    const balanceCurrencyColor = getSettingStr("balance_currency_color", "");
     const balanceRadius = getSettingStr("balance_radius", "24");
     const balancePadding = getSettingStr("balance_padding", "24");
     const balanceAmountSize = getSettingStr("balance_amount_size", "32");
     const balanceLabelSize = getSettingStr("balance_label_size", "14");
     const balanceShadow = getSettingStr("balance_shadow", "heavy");
     const balanceGlowEnabled = getSettingStr("balance_glow_enabled", "true");
-    const balanceGlowColor = getSettingStr("balance_glow_color", "#3B82F6");
+    const balanceGlowColor = getSettingStr("balance_glow_color", "");
 
     const responseData = {
       // Full raw keys
@@ -471,7 +477,7 @@ router.get(["/theme", "/theme-settings", "/public/theme-settings", "/admin/theme
       logo_size: themeLogoSize,
     };
 
-    console.log("[API /theme] Retrieved theme configuration successfully:", responseData);
+    // console.log removed — was logging full theme object (150+ lines) on every request
     res.json(responseData);
   } catch (err: any) {
     console.error("[API /theme] Error fetching theme settings:", err);
@@ -766,6 +772,7 @@ router.get("/app-settings", async (_req, res) => {
 });
 
 const getPublicSettingsHandler = async (_req: any, res: any) => {
+  setPublicCacheHeaders(res);
   const rows = await db.select().from(settingsTable);
   const map = new Map(rows.map((row) => [row.key, row.value]));
   const logo = String(map.get("brand_logo_url") || map.get("site_logo") || "");
@@ -832,8 +839,8 @@ const getPublicSettingsHandler = async (_req: any, res: any) => {
     baseCurrency: String(map.get("base_currency") || map.get("primary_currency") || "USD"),
     currency_symbol: String(map.get("currency_symbol") || "$"),
     currencySymbol: String(map.get("currency_symbol") || "$"),
-    usd_to_syp: Number(map.get("usd_to_syp") || map.get("exchange_rate") || 15000),
-    usdToSyp: Number(map.get("usd_to_syp") || map.get("exchange_rate") || 15000),
+    usd_to_syp: Number(map.get("usd_to_syp") || map.get("exchange_rate") || 145),
+    usdToSyp: Number(map.get("usd_to_syp") || map.get("exchange_rate") || 145),
     usd_to_try: Number(map.get("usd_to_try") || 34.5),
     usdToTry: Number(map.get("usd_to_try") || 34.5),
     usd_to_eur: Number(map.get("usd_to_eur") || 0.92),
@@ -853,6 +860,7 @@ const getPublicSettingsHandler = async (_req: any, res: any) => {
 };
 
 const getPublicCurrencySettingsHandler = async (_req: any, res: any) => {
+  setPublicCacheHeaders(res);
   try {
     const rows = await db.select().from(settingsTable);
     const map = new Map(rows.map((row) => [row.key, row.value]));
@@ -863,7 +871,7 @@ const getPublicCurrencySettingsHandler = async (_req: any, res: any) => {
 
     const baseCurrency = String(map.get("base_currency") || map.get("primary_currency") || (agg as any).storeCurrency || (agg as any).baseCurrency || "USD");
     const currencySymbol = String(map.get("currency_symbol") || (agg as any).currencySymbol || (baseCurrency === "SYP" ? "ل.س" : "$"));
-    const usdToSyp = Number(map.get("usd_to_syp") || map.get("exchange_rate") || (agg as any).usdToSyp || (agg as any).exchangeRate || 15000);
+    const usdToSyp = Number(map.get("usd_to_syp") || map.get("exchange_rate") || (agg as any).usdToSyp || (agg as any).exchangeRate || 145);
     const usdToTry = Number(map.get("usd_to_try") || (agg as any).usdToTry || 34.5);
     const usdToEur = Number(map.get("usd_to_eur") || (agg as any).usdToEur || 0.92);
     const usdToSar = Number(map.get("usd_to_sar") || (agg as any).usdToSar || 3.75);
@@ -916,8 +924,8 @@ const getPublicCurrencySettingsHandler = async (_req: any, res: any) => {
       base_currency: "USD",
       currencySymbol: "$",
       currency_symbol: "$",
-      usdToSyp: 15000,
-      usd_to_syp: 15000,
+      usdToSyp: 145,
+      usd_to_syp: 145,
       usdToTry: 34.5,
       usdToEur: 0.92,
       usdToSar: 3.75,
@@ -930,8 +938,8 @@ const getPublicCurrencySettingsHandler = async (_req: any, res: any) => {
       thousands_separator: ",",
       decimalSeparator: ".",
       decimal_separator: ".",
-      exchangeRate: 15000,
-      exchange_rate: 15000,
+      exchangeRate: 145,
+      exchange_rate: 145,
     });
   }
 };
@@ -939,6 +947,7 @@ const getPublicCurrencySettingsHandler = async (_req: any, res: any) => {
 router.get("/settings/public", getPublicSettingsHandler);
 router.get("/public-settings", getPublicSettingsHandler);
 router.get("/public/app-settings", getPublicSettingsHandler);
+router.get("/public/store-settings", getPublicSettingsHandler);
 router.get("/public/currency-settings", getPublicCurrencySettingsHandler);
 router.get("/currency-settings", getPublicCurrencySettingsHandler);
 router.get("/currency/settings", getPublicCurrencySettingsHandler);
@@ -1030,7 +1039,7 @@ const getPublicContactConfigHandler = async (_req: any, res: any) => {
     if (config && config.styles && typeof config.styles === "object") {
       const sanitizedStyles: Record<string, string> = { ...config.styles };
       for (const [key, val] of Object.entries(sanitizedStyles)) {
-        if (typeof val === "string" && DEFAULT_VALUES_TO_REJECT.includes(val.trim().toLowerCase())) {
+        if (typeof val !== "string" || val.trim() === "") {
           sanitizedStyles[key] = "";
         }
       }
@@ -1277,19 +1286,19 @@ const DEFAULT_STORE_AUTH_CONFIG = {
   common: {
     backToHomeText: "العودة للصفحة الرئيسية",
     styles: {
-      titleColor: "#C8A45C",
-      subtitleColor: "#9CA3AF",
-      labelColor: "#E5E7EB",
-      inputTextColor: "#FFFFFF",
-      inputBgColor: "#3D3D3D",
-      inputBorderColor: "#4B5563",
-      inputFocusBorderColor: "#C8A45C",
-      buttonBgColor: "#C8A45C",
-      buttonTextColor: "#1A1A1A",
-      buttonHoverColor: "#B8954A",
-      brandingBgColor: "#C8A45C",
-      brandingTextColor: "#FFFFFF",
-      brandingIconColor: "#FFFFFF",
+      titleColor: "",
+      subtitleColor: "",
+      labelColor: "",
+      inputTextColor: "",
+      inputBgColor: "",
+      inputBorderColor: "",
+      inputFocusBorderColor: "",
+      buttonBgColor: "",
+      buttonTextColor: "",
+      buttonHoverColor: "",
+      brandingBgColor: "",
+      brandingTextColor: "",
+      brandingIconColor: "",
     },
   },
 };

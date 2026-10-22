@@ -139,13 +139,13 @@ const NotificationCard = React.memo(function NotificationCard({
       case "payment":
         return {
           icon: CreditCard,
-          colorClass: "text-emerald-400 bg-emerald-500/15 border-emerald-500/40",
+          colorClass: "text-[var(--theme-success,#10B981)] bg-[var(--theme-success,#10B981)]/15 border-[var(--theme-success,#10B981)]/40",
           name: "مدفوعات",
         };
       case "offer":
         return {
           icon: Tag,
-          colorClass: "text-amber-400 bg-amber-500/15 border-amber-500/40",
+          colorClass: "text-[var(--theme-warning,#F59E0B)] bg-[var(--theme-warning,#F59E0B)]/15 border-[var(--theme-warning,#F59E0B)]/40",
           name: "عرض",
         };
       case "system":
@@ -171,8 +171,8 @@ const NotificationCard = React.memo(function NotificationCard({
       onClick={() => onCardClick(item)}
       className={`group relative rounded-2xl p-4 sm:p-5 border transition-all duration-200 cursor-pointer select-none overflow-hidden ${
         isUnread
-          ? "bg-[var(--theme-card)] border-[var(--theme-primary)]/40 border-r-4 border-r-[var(--theme-primary)] shadow-lg shadow-black/40"
-          : "bg-[var(--theme-card)] border-[var(--theme-primary)]/20 opacity-85 hover:opacity-100 hover:border-[var(--theme-primary)]/40"
+          ? "bg-[var(--theme-card)] border-[var(--theme-primary)]/40 border-r-4 border-r-[var(--theme-primary)] shadow-lg"
+          : "bg-[var(--theme-card)] border-[var(--theme-border)] opacity-85 hover:opacity-100 hover:border-[var(--theme-primary)]/40"
       }`}
     >
       {/* Background glow on unread */}
@@ -192,14 +192,14 @@ const NotificationCard = React.memo(function NotificationCard({
           <div className="flex-1 min-w-0 space-y-1.5">
             {/* Header row */}
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-[11px] font-bold px-2 py-0.5 rounded-md bg-[var(--theme-background)] text-zinc-400 border border-zinc-800">
+              <span className="text-[11px] font-bold px-2 py-0.5 rounded-md bg-[var(--theme-background)] text-[var(--theme-text-muted)] border border-[var(--theme-border)]">
                 {meta.name}
               </span>
 
               {item.title && (
                 <h3
                   className={`text-sm sm:text-base font-bold truncate ${
-                    isUnread ? "text-[var(--theme-accent)]" : "text-zinc-100"
+                    isUnread ? "text-[var(--theme-accent)]" : "text-[var(--theme-text-primary)]"
                   }`}
                 >
                   {item.title}
@@ -207,19 +207,19 @@ const NotificationCard = React.memo(function NotificationCard({
               )}
 
               {isUnread && (
-                <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-[var(--theme-primary)] text-[var(--theme-background)] shadow-sm shadow-[var(--theme-primary)]/40 animate-pulse">
+                <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-[var(--theme-primary)] text-[var(--theme-text-on-primary,var(--theme-background))] shadow-sm shadow-[var(--theme-primary)]/40 animate-pulse">
                   جديد
                 </span>
               )}
             </div>
 
             {/* Description / Content */}
-            <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed break-words line-clamp-3">
+            <p className="text-xs sm:text-sm text-[var(--theme-text-secondary)] leading-relaxed break-words line-clamp-3">
               {item.content}
             </p>
 
             {/* Footer row: Time & Link indicator */}
-            <div className="flex items-center gap-3 pt-1 text-xs text-zinc-400 flex-wrap">
+            <div className="flex items-center gap-3 pt-1 text-xs text-[var(--theme-text-muted)] flex-wrap">
               <div className="flex items-center gap-1.5">
                 <Clock size={13} className="text-[var(--theme-primary)]" />
                 <span>{relativeTime}</span>
@@ -429,22 +429,22 @@ export default function NotificationsPage() {
   // If user is not authenticated
   if (!authLoading && !user) {
     return (
-      <div className="max-w-md mx-auto my-12 p-6 rounded-3xl bg-[var(--theme-background)] border border-[var(--theme-primary)]/30 text-center shadow-2xl text-white" dir="rtl">
+      <div className="max-w-md mx-auto my-12 p-6 rounded-3xl bg-[var(--theme-card)] border border-[var(--theme-border)] text-center shadow-2xl text-[var(--theme-text-primary)]" dir="rtl">
         <div className="w-16 h-16 rounded-2xl bg-[var(--theme-primary)]/20 border border-[var(--theme-primary)]/40 text-[var(--theme-primary)] flex items-center justify-center mx-auto mb-4 shadow-lg shadow-[var(--theme-primary)]/10">
           <ShieldAlert size={32} />
         </div>
         <h2 className="text-xl font-black text-[var(--theme-accent)] mb-2">تسجيل الدخول مطلوب</h2>
-        <p className="text-xs text-zinc-300 mb-6 leading-relaxed">
+        <p className="text-xs text-[var(--theme-text-secondary)] mb-6 leading-relaxed">
           يرجى تسجيل الدخول بحسابك لعرض إشعارات وتنبيهات طلباتك وشحناتك المالية.
         </p>
         <div className="flex gap-3">
           <Link href="/login" className="flex-1">
-            <Button className="w-full bg-[var(--theme-primary)] hover:bg-[var(--theme-accent)] text-[var(--theme-background)] font-bold rounded-xl text-xs py-3 shadow-md">
+            <Button className="w-full bg-[var(--theme-primary)] hover:bg-[var(--theme-accent)] text-[var(--theme-text-on-primary,var(--theme-background))] font-bold rounded-xl text-xs py-3 shadow-md">
               تسجيل الدخول
             </Button>
           </Link>
           <Link href="/register" className="flex-1">
-            <Button variant="outline" className="w-full border-zinc-700 hover:border-[var(--theme-primary)] text-white rounded-xl text-xs py-3">
+            <Button variant="outline" className="w-full border-[var(--theme-border)] hover:border-[var(--theme-primary)] text-[var(--theme-text-primary)] rounded-xl text-xs py-3">
               حساب جديد
             </Button>
           </Link>
@@ -494,12 +494,12 @@ export default function NotificationsPage() {
                   الإشعارات والتنبيهات
                 </h1>
                 {unreadCount > 0 && (
-                  <span className="bg-[var(--theme-primary)] text-[var(--theme-background)] text-xs font-black px-2.5 py-0.5 rounded-full shadow-xs">
+                  <span className="bg-[var(--theme-primary)] text-[var(--theme-text-on-primary,var(--theme-background))] text-xs font-black px-2.5 py-0.5 rounded-full shadow-xs">
                     {unreadCount} غير مقروء
                   </span>
                 )}
               </div>
-              <p className="text-xs sm:text-sm text-zinc-300 mt-1 font-medium">
+              <p className="text-xs sm:text-sm text-[var(--theme-text-secondary)] mt-1 font-medium">
                 لديك <span className="text-[var(--theme-accent)] font-bold">{notifications.length}</span> إشعار في حسابك
               </p>
             </div>
@@ -511,7 +511,7 @@ export default function NotificationsPage() {
             <button
               onClick={() => fetchNotifications(false)}
               disabled={refreshing || loading}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[var(--theme-background)] hover:bg-zinc-800 border border-zinc-700 hover:border-[var(--theme-primary)]/50 text-zinc-300 text-xs font-bold transition active:scale-95 cursor-pointer disabled:opacity-50"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[var(--theme-background)] hover:bg-[var(--theme-input-bg)] border border-[var(--theme-border)] hover:border-[var(--theme-primary)]/50 text-[var(--theme-text-secondary)] text-xs font-bold transition active:scale-95 cursor-pointer disabled:opacity-50"
               title="تحديث الإشعارات"
               aria-label="تحديث الإشعارات"
             >
@@ -535,7 +535,7 @@ export default function NotificationsPage() {
             {notifications.length > 0 && (
               <button
                 onClick={() => setShowDeleteAllModal(true)}
-                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-red-500/15 hover:bg-red-500/25 border border-red-500/30 text-red-300 text-xs font-bold transition active:scale-95 cursor-pointer"
+                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-red-500/15 hover:bg-red-500/25 border border-red-500/30 text-red-400 text-xs font-bold transition active:scale-95 cursor-pointer"
               >
                 <Trash2 size={16} className="text-red-400" />
                 <span>حذف الكل</span>
@@ -545,7 +545,7 @@ export default function NotificationsPage() {
         </div>
 
         {/* Filter Tabs */}
-        <div className="mt-6 pt-4 border-t border-zinc-700/60 flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+        <div className="mt-6 pt-4 border-t border-[var(--theme-border)] flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
           <button
             onClick={() => {
               setFilter("all");
@@ -553,8 +553,8 @@ export default function NotificationsPage() {
             }}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 ${
               filter === "all"
-                ? "bg-[var(--theme-primary)] text-[var(--theme-background)] shadow-md shadow-[var(--theme-primary)]/25"
-                : "bg-[var(--theme-background)] text-zinc-300 hover:text-white hover:bg-zinc-800 border border-zinc-700/60"
+                ? "bg-[var(--theme-primary)] text-[var(--theme-text-on-primary,var(--theme-background))] shadow-md shadow-[var(--theme-primary)]/25"
+                : "bg-[var(--theme-background)] text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)] hover:bg-[var(--theme-input-bg)] border border-[var(--theme-border)]"
             }`}
           >
             الكل ({notifications.length})
@@ -567,15 +567,15 @@ export default function NotificationsPage() {
             }}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 flex items-center gap-1.5 ${
               filter === "unread"
-                ? "bg-[var(--theme-primary)] text-[var(--theme-background)] shadow-md shadow-[var(--theme-primary)]/25"
-                : "bg-[var(--theme-background)] text-zinc-300 hover:text-white hover:bg-zinc-800 border border-zinc-700/60"
+                ? "bg-[var(--theme-primary)] text-[var(--theme-text-on-primary,var(--theme-background))] shadow-md shadow-[var(--theme-primary)]/25"
+                : "bg-[var(--theme-background)] text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)] hover:bg-[var(--theme-input-bg)] border border-[var(--theme-border)]"
             }`}
           >
             <span>غير مقروءة</span>
             {unreadCount > 0 && (
               <span
                 className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono font-bold ${
-                  filter === "unread" ? "bg-[var(--theme-background)] text-[var(--theme-accent)]" : "bg-[var(--theme-primary)] text-[var(--theme-background)]"
+                  filter === "unread" ? "bg-[var(--theme-background)] text-[var(--theme-accent)]" : "bg-[var(--theme-primary)] text-[var(--theme-text-on-primary,var(--theme-background))]"
                 }`}
               >
                 {unreadCount}
@@ -590,11 +590,11 @@ export default function NotificationsPage() {
             }}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 flex items-center gap-1.5 ${
               filter === "order"
-                ? "bg-[var(--theme-primary)] text-[var(--theme-background)] shadow-md shadow-[var(--theme-primary)]/25"
-                : "bg-[var(--theme-background)] text-zinc-300 hover:text-white hover:bg-zinc-800 border border-zinc-700/60"
+                ? "bg-[var(--theme-primary)] text-[var(--theme-text-on-primary,var(--theme-background))] shadow-md shadow-[var(--theme-primary)]/25"
+                : "bg-[var(--theme-background)] text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)] hover:bg-[var(--theme-input-bg)] border border-[var(--theme-border)]"
             }`}
           >
-            <ShoppingBag size={14} className={filter === "order" ? "text-[var(--theme-background)]" : "text-[var(--theme-primary)]"} />
+            <ShoppingBag size={14} className={filter === "order" ? "text-[var(--theme-text-on-primary,var(--theme-background))]" : "text-[var(--theme-primary)]"} />
             <span>الطلبات</span>
           </button>
 
@@ -605,11 +605,11 @@ export default function NotificationsPage() {
             }}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 flex items-center gap-1.5 ${
               filter === "payment"
-                ? "bg-[var(--theme-primary)] text-[var(--theme-background)] shadow-md shadow-[var(--theme-primary)]/25"
-                : "bg-[var(--theme-background)] text-zinc-300 hover:text-white hover:bg-zinc-800 border border-zinc-700/60"
+                ? "bg-[var(--theme-primary)] text-[var(--theme-text-on-primary,var(--theme-background))] shadow-md shadow-[var(--theme-primary)]/25"
+                : "bg-[var(--theme-background)] text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)] hover:bg-[var(--theme-input-bg)] border border-[var(--theme-border)]"
             }`}
           >
-            <CreditCard size={14} className={filter === "payment" ? "text-[var(--theme-background)]" : "text-emerald-400"} />
+            <CreditCard size={14} className={filter === "payment" ? "text-[var(--theme-text-on-primary,var(--theme-background))]" : "text-[var(--theme-success,#10B981)]"} />
             <span>المدفوعات</span>
           </button>
 
@@ -620,11 +620,11 @@ export default function NotificationsPage() {
             }}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 flex items-center gap-1.5 ${
               filter === "offer"
-                ? "bg-[var(--theme-primary)] text-[var(--theme-background)] shadow-md shadow-[var(--theme-primary)]/25"
-                : "bg-[var(--theme-background)] text-zinc-300 hover:text-white hover:bg-zinc-800 border border-zinc-700/60"
+                ? "bg-[var(--theme-primary)] text-[var(--theme-text-on-primary,var(--theme-background))] shadow-md shadow-[var(--theme-primary)]/25"
+                : "bg-[var(--theme-background)] text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)] hover:bg-[var(--theme-input-bg)] border border-[var(--theme-border)]"
             }`}
           >
-            <Tag size={14} className={filter === "offer" ? "text-[var(--theme-background)]" : "text-amber-400"} />
+            <Tag size={14} className={filter === "offer" ? "text-[var(--theme-text-on-primary,var(--theme-background))]" : "text-[var(--theme-warning,#F59E0B)]"} />
             <span>العروض</span>
           </button>
 
@@ -635,11 +635,11 @@ export default function NotificationsPage() {
             }}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 flex items-center gap-1.5 ${
               filter === "system"
-                ? "bg-[var(--theme-primary)] text-[var(--theme-background)] shadow-md shadow-[var(--theme-primary)]/25"
-                : "bg-[var(--theme-background)] text-zinc-300 hover:text-white hover:bg-zinc-800 border border-zinc-700/60"
+                ? "bg-[var(--theme-primary)] text-[var(--theme-text-on-primary,var(--theme-background))] shadow-md shadow-[var(--theme-primary)]/25"
+                : "bg-[var(--theme-background)] text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)] hover:bg-[var(--theme-input-bg)] border border-[var(--theme-border)]"
             }`}
           >
-            <Bell size={14} className={filter === "system" ? "text-[var(--theme-background)]" : "text-sky-400"} />
+            <Bell size={14} className={filter === "system" ? "text-[var(--theme-text-on-primary,var(--theme-background))]" : "text-sky-400"} />
             <span>النظام</span>
           </button>
         </div>
@@ -652,26 +652,26 @@ export default function NotificationsPage() {
           Array.from({ length: 4 }).map((_, i) => (
             <div
               key={i}
-              className="bg-[var(--theme-card)] border border-[var(--theme-primary)]/20 rounded-2xl p-5 flex items-start gap-4 animate-pulse"
+              className="bg-[var(--theme-card)] border border-[var(--theme-border)] rounded-2xl p-5 flex items-start gap-4 animate-pulse"
             >
-              <div className="w-11 h-11 rounded-xl bg-zinc-800 shrink-0" />
+              <div className="w-11 h-11 rounded-xl bg-[var(--theme-input-bg)] shrink-0" />
               <div className="flex-1 space-y-2.5">
-                <div className="h-4 bg-zinc-800 rounded-md w-1/3" />
-                <div className="h-3 bg-zinc-800/80 rounded-md w-3/4" />
-                <div className="h-2.5 bg-zinc-800/60 rounded-md w-1/4" />
+                <div className="h-4 bg-[var(--theme-input-bg)] rounded-md w-1/3" />
+                <div className="h-3 bg-[var(--theme-input-bg)]/80 rounded-md w-3/4" />
+                <div className="h-2.5 bg-[var(--theme-input-bg)]/60 rounded-md w-1/4" />
               </div>
             </div>
           ))
         ) : filteredNotifications.length === 0 ? (
           // Empty State
-          <div className="p-12 text-center bg-[var(--theme-card)] border border-[var(--theme-primary)]/20 rounded-3xl shadow-xl">
-            <div className="w-18 h-18 rounded-3xl bg-zinc-800/80 border border-zinc-700 flex items-center justify-center mx-auto mb-4 text-zinc-500 shadow-inner">
+          <div className="p-12 text-center bg-[var(--theme-card)] border border-[var(--theme-border)] rounded-3xl shadow-xl">
+            <div className="w-18 h-18 rounded-3xl bg-[var(--theme-input-bg)] border border-[var(--theme-border)] flex items-center justify-center mx-auto mb-4 text-[var(--theme-text-muted)] shadow-inner">
               <Bell size={32} />
             </div>
             <h3 className="text-base sm:text-lg font-black text-[var(--theme-accent)] mb-1.5">
               لا توجد إشعارات حالياً
             </h3>
-            <p className="text-xs sm:text-sm text-zinc-400 max-w-md mx-auto leading-relaxed">
+            <p className="text-xs sm:text-sm text-[var(--theme-text-muted)] max-w-md mx-auto leading-relaxed">
               ستظهر هنا جميع الإشعارات والتنبيهات المتعلقة بحسابك وطلباتك وعمليات الشحن.
             </p>
           </div>
@@ -713,8 +713,8 @@ export default function NotificationsPage() {
               <AlertTriangle size={28} />
             </div>
 
-            <h3 className="text-lg font-black text-white mb-2">تأكيد حذف جميع الإشعارات</h3>
-            <p className="text-xs text-zinc-300 mb-6 leading-relaxed">
+            <h3 className="text-lg font-black text-[var(--theme-text-primary)] mb-2">تأكيد حذف جميع الإشعارات</h3>
+            <p className="text-xs text-[var(--theme-text-secondary)] mb-6 leading-relaxed">
               هل أنت متأكد من رغبتك في حذف كافة الإشعارات والتنبيهات؟ لن تتمكن من التراجع عن هذه الخطوة.
             </p>
 
@@ -729,7 +729,7 @@ export default function NotificationsPage() {
               <button
                 onClick={() => setShowDeleteAllModal(false)}
                 disabled={deletingAll}
-                className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold py-3 rounded-xl text-xs transition cursor-pointer"
+                className="flex-1 bg-[var(--theme-input-bg)] hover:opacity-90 text-[var(--theme-text-secondary)] border border-[var(--theme-border)] font-bold py-3 rounded-xl text-xs transition cursor-pointer"
               >
                 إلغاء
               </button>

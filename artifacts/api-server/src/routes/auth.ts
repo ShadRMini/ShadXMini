@@ -2,7 +2,7 @@ import { Router, type IRouter } from "express";
 import { db, usersTable } from "@workspace/db";
 import { eq, or, sql } from "drizzle-orm";
 import bcrypt from "bcryptjs";
-import { generateUserToken, generateNextDisplayId, calculateVipLevel, getVipBadge } from "../lib/currentUser.js";
+import { generateUserToken, generateNextDisplayId, updateUserVipLevel, getVipBadge } from "../lib/currentUser.js";
 import { rateLimit } from "../lib/rateLimit.js";
 
 const router: IRouter = Router();
@@ -38,8 +38,13 @@ router.post("/auth/register", authRegisterRateLimit, async (req, res) => {
       return res.status(400).json({ error: "البريد الإلكتروني غير صالح." });
     }
 
-    if (!cleanPassword || cleanPassword.length < 6) {
-      return res.status(400).json({ error: "كلمة المرور يجب أن تكون 6 خانات أو أكثر." });
+    if (cleanPassword.length < 6) {
+      res.status(400).json({ error: "كلمة المرور قصيرة جداً" });
+      return;
+    }
+    if (cleanPassword.length > 72) {
+      res.status(400).json({ error: "كلمة المرور طويلة جداً" });
+      return;
     }
 
     // Check if user or email already exists
@@ -157,11 +162,10 @@ router.post("/auth/login", authLoginRateLimit, async (req, res) => {
       return res.status(401).json({ error: "كلمة المرور غير صحيحة." });
     }
 
-    // Update dynamic VIP level if spending increased
-    const dynamicVip = calculateVipLevel(Number(user.totalSpent || 0), user.vipLevel ?? 1);
-    if (dynamicVip !== user.vipLevel) {
-      await db.update(usersTable).set({ vipLevel: dynamicVip }).where(eq(usersTable.id, user.id));
-      user.vipLevel = dynamicVip;
+    // Update dynamic VIP level if spending increased (using unified DB vipHelper)
+    const vipResult = await updateUserVipLevel(user.id);
+    if (vipResult?.upgraded && vipResult.newLevel?.levelOrder) {
+      user.vipLevel = Number(vipResult.newLevel.levelOrder);
     }
 
     const token = generateUserToken(user);

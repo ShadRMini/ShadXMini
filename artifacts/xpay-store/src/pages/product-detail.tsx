@@ -245,10 +245,10 @@ const DEFAULT_SECTIONS: SectionConfig[] = [
   { id: "rating", visible: true, order: 4, label: "شارات التقييم وشارات الخدمة", title: "التقييمات" },
   { id: "description", visible: true, order: 5, label: "وصف المنتج والملاحظات", title: "الوصف" },
   { id: "quantity", visible: true, order: 6, label: "تحديد الكمية وباقات الشحن", title: "اختيار الكمية" },
-  { id: "add_to_cart", visible: true, order: 7, label: "زر الإضافة إلى السلة", title: "إضافة إلى السلة", button_text: "إضافة إلى السلة" },
+  { id: "add_to_cart", visible: false, order: 7, label: "زر الإضافة إلى السلة", title: "إضافة إلى السلة", button_text: "إضافة إلى السلة" },
   { id: "buy_now", visible: true, order: 8, label: "زر الشراء وتأكيد الطلب", title: "شراء الآن", button_text: "شراء الآن" },
   { id: "guarantees", visible: true, order: 9, label: "شارات الأمان والضمان الفوري", title: "الضمان والراحة" },
-  { id: "reviews", visible: true, order: 10, label: "آراء وتقييمات العملاء", title: "التقييمات والمراجعات" },
+  { id: "reviews", visible: false, order: 10, label: "آراء وتقييمات العملاء", title: "التقييمات والمراجعات" },
   { id: "related_products", visible: true, order: 11, label: "منتجات ذات صلة بنفس القسم", title: "منتجات قد تعجبك" },
   { id: "share_buttons", visible: true, order: 12, label: "أزرار المشاركة والمفضلة", title: "مشاركة والمفضلة" },
   { id: "specifications", visible: false, order: 13, label: "المواصفات التقنية والشحن", title: "المواصفات والتفاصيل" }
@@ -348,6 +348,24 @@ export default function ProductDetail() {
   const [customFieldValues, setCustomFieldValues] = useState<Record<string, string>>({});
   const [isFavorite, setIsFavorite] = useState(false);
   const [favLoading, setFavLoading] = useState(false);
+
+  // Task #95 C15c: persist Player ID per product in sessionStorage
+  useEffect(() => {
+    if (!product?.id) return;
+    const saved = sessionStorage.getItem(`player_id_${product.id}`);
+    if (saved && !accountId) {
+      setAccountId(saved);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [product?.id]);
+
+  useEffect(() => {
+    if (accountId && product?.id) {
+      try {
+        sessionStorage.setItem(`player_id_${product.id}`, accountId);
+      } catch {}
+    }
+  }, [accountId, product?.id]);
 
   const dynamicParams = useMemo(() => {
     const p = product as any;
@@ -477,14 +495,32 @@ export default function ProductDetail() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#1A1A1A] p-6 max-w-5xl mx-auto space-y-6">
-        <Skeleton className="w-48 h-10 rounded-xl bg-zinc-800" />
+      <div
+        className="min-h-screen p-6 max-w-5xl mx-auto space-y-6"
+        style={{ backgroundColor: "var(--theme-background, #1A1A1A)" }}
+      >
+        <Skeleton
+          className="w-48 h-10 rounded-xl"
+          style={{ backgroundColor: "var(--theme-card, #2D2D2D)" }}
+        />
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-          <Skeleton className="md:col-span-5 h-72 rounded-3xl bg-zinc-800" />
+          <Skeleton
+            className="md:col-span-5 h-72 rounded-3xl"
+            style={{ backgroundColor: "var(--theme-card, #2D2D2D)" }}
+          />
           <div className="md:col-span-7 space-y-4">
-            <Skeleton className="h-10 w-3/4 rounded-xl bg-zinc-800" />
-            <Skeleton className="h-6 w-1/4 rounded-lg bg-zinc-800" />
-            <Skeleton className="h-32 w-full rounded-2xl bg-zinc-800" />
+            <Skeleton
+              className="h-10 w-3/4 rounded-xl"
+              style={{ backgroundColor: "var(--theme-card, #2D2D2D)" }}
+            />
+            <Skeleton
+              className="h-6 w-1/4 rounded-lg"
+              style={{ backgroundColor: "var(--theme-card, #2D2D2D)" }}
+            />
+            <Skeleton
+              className="h-32 w-full rounded-2xl"
+              style={{ backgroundColor: "var(--theme-card, #2D2D2D)" }}
+            />
           </div>
         </div>
       </div>
@@ -492,7 +528,14 @@ export default function ProductDetail() {
   }
 
   if (!product) {
-    return <div className="p-8 text-center mt-20 text-white font-bold text-lg">المنتج غير موجود أو تم إزالته</div>;
+    return (
+      <div
+        className="p-8 text-center mt-20 font-bold text-lg"
+        style={{ color: "var(--theme-text-primary, #FFFFFF)" }}
+      >
+        المنتج غير موجود أو تم إزالته
+      </div>
+    );
   }
 
   const isPackage = product.productType === "package";
@@ -714,8 +757,11 @@ export default function ProductDetail() {
         return (
           <div
             key={sec.id}
-            className="border border-[var(--theme-border,rgba(200,164,92,0.35))] rounded-3xl p-6 shadow-2xl flex flex-col items-center justify-center relative group overflow-hidden"
-            style={{ backgroundColor: "var(--theme-card)" }}
+            className="border rounded-3xl p-theme shadow-2xl flex flex-col items-center justify-center relative group overflow-hidden"
+            style={{
+              backgroundColor: "var(--theme-card, #2D2D2D)",
+              borderColor: "var(--theme-border, #3A3A3A)",
+            }}
           >
             <div className="absolute top-4 right-4 z-10">
               {product.available ? (
@@ -730,8 +776,12 @@ export default function ProductDetail() {
             </div>
 
             <div
-              className="relative rounded-2xl overflow-hidden cursor-pointer group/img transition-transform duration-300 hover:scale-[1.02] flex items-center justify-center border border-[var(--theme-border,rgba(200,164,92,0.3))] p-3 shadow-inner"
-              style={{ ...imageSizeStyle, backgroundColor: "var(--theme-background)" }}
+              className="relative rounded-2xl overflow-hidden cursor-pointer group/img transition-transform duration-300 hover:scale-[1.02] flex items-center justify-center border p-3 shadow-inner"
+              style={{
+                ...imageSizeStyle,
+                backgroundColor: "var(--theme-background, #1A1A1A)",
+                borderColor: "var(--theme-border, #3A3A3A)",
+              }}
               onClick={() => product.image && setIsLightboxOpen(true)}
             >
               {product.image ? (
@@ -744,9 +794,17 @@ export default function ProductDetail() {
                   className="w-full h-full object-contain transition-transform duration-500 group-hover/img:scale-105"
                 />
               ) : (
-                <div className="w-full h-full min-h-[180px] bg-gradient-to-br from-[#2D2D2D] to-[#1A1A1A] flex flex-col items-center justify-center p-4 text-center">
+                <div
+                  className="w-full h-full min-h-[180px] flex flex-col items-center justify-center p-4 text-center"
+                  style={{
+                    background:
+                      "linear-gradient(to bottom right, var(--theme-card, #2D2D2D), var(--theme-background, #1A1A1A))",
+                  }}
+                >
                   <ShoppingCart className="w-12 h-12 mb-2" style={{ color: "var(--theme-primary)", opacity: 0.5 }} />
-                  <span className="text-xs text-zinc-400">{product.name}</span>
+                  <span className="text-xs" style={{ color: "var(--theme-text-muted, #9E9E9E)" }}>
+                    {product.name}
+                  </span>
                 </div>
               )}
 
@@ -758,7 +816,10 @@ export default function ProductDetail() {
               )}
             </div>
 
-            <div className="mt-3 text-[11px] text-zinc-400 flex items-center gap-1">
+            <div
+              className="mt-3 text-[11px] flex items-center gap-1"
+              style={{ color: "var(--theme-text-muted, #9E9E9E)" }}
+            >
               <Sparkles size={12} style={{ color: "var(--theme-primary)" }} />
               <span>{sec.title || "شحن أوتوماتيكي ومباشر للحساب"}</span>
             </div>
@@ -776,7 +837,7 @@ export default function ProductDetail() {
                 className="text-xs font-bold px-3 py-1 rounded-full border"
                 style={{
                   color: "var(--theme-primary)",
-                  backgroundColor: "rgba(200, 164, 92, 0.15)",
+                  backgroundColor: "color-mix(in srgb, var(--theme-primary, #C8A45C) 15%, transparent)",
                   borderColor: "var(--theme-border)",
                 }}
               >
@@ -792,7 +853,13 @@ export default function ProductDetail() {
                 </span>
               )}
               {product.productType && (
-                <span className="text-[11px] text-zinc-400 px-2.5 py-1 rounded-full font-mono" style={{ backgroundColor: "var(--theme-background)" }}>
+                <span
+                  className="text-[11px] px-2.5 py-1 rounded-full font-mono"
+                  style={{
+                    backgroundColor: "var(--theme-background)",
+                    color: "var(--theme-text-muted, #9E9E9E)",
+                  }}
+                >
                   {product.productType === "amount" ? "رصيد / كميات" : "باقة محددة"}
                 </span>
               )}
@@ -821,16 +888,23 @@ export default function ProductDetail() {
         return (
           <div
             key={sec.id}
-            className="border border-[var(--theme-border,rgba(200,164,92,0.4))] p-4 rounded-2xl shadow-inner space-y-3"
+            className="border p-4 rounded-2xl shadow-inner space-y-3"
             style={{
               backgroundColor: getCustomOrFallback(
                 customization.info_box_bg_color,
                 "var(--product-card-color, var(--theme-card))"
-              )
+              ),
+              borderColor: "var(--theme-border, #3A3A3A)",
             }}
           >
             {hasVipDiscount && (
-              <div className="flex items-center justify-between border border-[#C8A45C]/40 px-3 py-1.5 rounded-xl text-xs" style={{ backgroundColor: "rgba(200, 164, 92, 0.15)" }}>
+              <div
+                className="flex items-center justify-between border px-3 py-1.5 rounded-xl text-xs"
+                style={{
+                  backgroundColor: "color-mix(in srgb, var(--theme-primary, #C8A45C) 15%, transparent)",
+                  borderColor: "color-mix(in srgb, var(--theme-primary, #C8A45C) 40%, transparent)",
+                }}
+              >
                 <div className="flex items-center gap-1.5 font-bold" style={{ color: vipBadgeColor }}>
                   <Crown size={15} />
                   <span>
@@ -871,19 +945,28 @@ export default function ProductDetail() {
                     {unitFormatted.primary}
                   </div>
                   {hasVipDiscount && (
-                    <span className="text-xs line-through text-zinc-500 font-mono">
+                    <span
+                      className="text-xs line-through font-mono"
+                      style={{ color: "var(--theme-text-muted, #71717A)" }}
+                    >
                       {baseUnitFormatted.primary}
                     </span>
                   )}
                 </div>
                 {unitFormatted.secondary && (
-                  <div className="text-[11px] text-zinc-400 font-normal">
+                  <div
+                    className="text-[11px] font-normal"
+                    style={{ color: "var(--theme-text-muted, #9E9E9E)" }}
+                  >
                     {unitFormatted.secondary}
                   </div>
                 )}
               </div>
 
-              <div className="text-left border-r border-zinc-700/80 pr-4">
+              <div
+                className="text-left border-r pr-4"
+                style={{ borderColor: "var(--theme-border, #3A3A3A)" }}
+              >
                 <div 
                   className="text-xs font-semibold" 
                   style={{ 
@@ -897,7 +980,10 @@ export default function ProductDetail() {
                 </div>
                 <div className="flex items-baseline justify-end gap-2">
                   {hasVipDiscount && (
-                    <span className="text-xs line-through text-zinc-500 font-mono">
+                    <span
+                      className="text-xs line-through font-mono"
+                      style={{ color: "var(--theme-text-muted, #71717A)" }}
+                    >
                       {baseTotalFormatted.primary}
                     </span>
                   )}
@@ -914,7 +1000,10 @@ export default function ProductDetail() {
                   </div>
                 </div>
                 {totalFormatted.secondary && (
-                  <div className="text-[11px] text-zinc-400 font-normal">
+                  <div
+                    className="text-[11px] font-normal"
+                    style={{ color: "var(--theme-text-muted, #9E9E9E)" }}
+                  >
                     {totalFormatted.secondary}
                   </div>
                 )}
@@ -927,8 +1016,11 @@ export default function ProductDetail() {
         return (
           <div
             key={sec.id}
-            className="flex items-center gap-3 px-4 py-2.5 rounded-2xl border border-[var(--theme-border,rgba(255,255,255,0.1))] text-xs"
-            style={{ backgroundColor: "var(--theme-background)" }}
+            className="flex items-center gap-3 px-4 py-2.5 rounded-2xl border text-xs"
+            style={{
+              backgroundColor: "var(--theme-background)",
+              borderColor: "var(--theme-border, #3A3A3A)",
+            }}
           >
             <div className="flex" style={{ color: "var(--theme-primary)" }}>★★★★★</div>
             <span className="font-bold" style={{ color: "var(--theme-text-primary)" }}>4.9 / 5.0 ⭐</span>
@@ -940,8 +1032,12 @@ export default function ProductDetail() {
         return (
           <div
             key={sec.id}
-            className="p-4 rounded-2xl border border-[var(--theme-border,rgba(255,255,255,0.1))] text-xs leading-relaxed space-y-1"
-            style={{ backgroundColor: "var(--theme-background)", color: "var(--theme-text-secondary)" }}
+            className="p-4 rounded-2xl border text-xs leading-relaxed space-y-1"
+            style={{
+              backgroundColor: "var(--theme-background)",
+              color: "var(--theme-text-secondary)",
+              borderColor: "var(--theme-border, #3A3A3A)",
+            }}
           >
             <div className="font-bold mb-1" style={{ color: "var(--theme-primary)" }}>
               {sec.title && sec.title !== "تفاصيل وملاحظات المنتج:" && sec.title !== "الوصف" ? sec.title : "تفاصيل وملاحظات المنتج:"}
@@ -952,14 +1048,18 @@ export default function ProductDetail() {
 
       case "quantity":
         return (
-          <div key={sec.id} className="space-y-3 pt-2 border-t border-[var(--theme-border,rgba(255,255,255,0.1))]">
+          <div
+            key={sec.id}
+            className="space-y-3 pt-2 border-t"
+            style={{ borderColor: "var(--theme-border, #3A3A3A)" }}
+          >
             {isPackage ? (
               <div
                 className="p-4 rounded-2xl transition border flex items-center justify-between shadow-inner"
                 style={{
                   backgroundColor: getCustomOrFallback(
                     customization.quantity_input_bg || customization.player_id_input_bg,
-                    "var(--theme-card, rgba(200, 164, 92, 0.1))"
+                    "color-mix(in srgb, var(--theme-primary, #C8A45C) 10%, var(--theme-card, #2D2D2D))"
                   ),
                   borderColor: getCustomOrFallback(
                     customization.quantity_input_border || customization.player_id_input_border,
@@ -973,7 +1073,10 @@ export default function ProductDetail() {
                     <div className="text-xs font-bold" style={{ color: getCustomOrFallback(customization.disclaimer_text_color, "var(--theme-text-primary)") }}>
                       حزمة واحدة (الحزمة كاملة)
                     </div>
-                    <div className="text-[11px] text-zinc-400">
+                    <div
+                      className="text-[11px]"
+                      style={{ color: "var(--theme-text-muted, #9E9E9E)" }}
+                    >
                       يتم شراء هذا المنتج كحزمة متكاملة دفعة واحدة
                     </div>
                   </div>
@@ -981,7 +1084,7 @@ export default function ProductDetail() {
                 <div
                   className="text-xs font-extrabold px-3 py-1.5 rounded-xl border border-[var(--theme-border)]"
                   style={{
-                    backgroundColor: "rgba(200, 164, 92, 0.15)",
+                    backgroundColor: "color-mix(in srgb, var(--theme-primary, #C8A45C) 15%, transparent)",
                     color: "var(--theme-primary)"
                   }}
                 >
@@ -1021,7 +1124,7 @@ export default function ProductDetail() {
                 style={{
                   backgroundColor: getCustomOrFallback(
                     customization.quantity_input_bg || customization.player_id_input_bg,
-                    "var(--theme-card, rgba(200, 164, 92, 0.1))"
+                    "color-mix(in srgb, var(--theme-primary, #C8A45C) 10%, var(--theme-card, #2D2D2D))"
                   ),
                   borderWidth: "1px",
                   borderStyle: "solid",
@@ -1272,11 +1375,11 @@ export default function ProductDetail() {
                           }
                         }}
                         placeholder={cfg.placeholder}
-                        className="h-13 rounded-2xl px-4 text-base placeholder:text-zinc-500 font-mono transition-all"
+                        className="h-13 rounded-2xl px-4 text-base font-mono transition-all"
                         style={{
-                          backgroundColor: getCustomOrFallback(customization.player_id_input_bg, "var(--theme-background)"),
-                          borderColor: getCustomOrFallback(customization.player_id_input_border, "var(--theme-border)"),
-                          color: getCustomOrFallback(customization.player_id_input_text, "var(--theme-text-primary)"),
+                          backgroundColor: getCustomOrFallback(customization.player_id_input_bg, "var(--theme-input-bg, var(--theme-background, #1A1A1A))"),
+                          borderColor: getCustomOrFallback(customization.player_id_input_border, "var(--theme-border, #3A3A3A)"),
+                          color: getCustomOrFallback(customization.player_id_input_text, "var(--theme-text-primary, #FFFFFF)"),
                         }}
                         onFocus={(e) => {
                           e.currentTarget.style.borderColor = getCustomOrFallback(customization.player_id_input_focus, "var(--theme-primary)");
@@ -1303,11 +1406,11 @@ export default function ProductDetail() {
                       value={accountId}
                       onChange={(e) => setAccountId(e.target.value)}
                       placeholder="أدخل معرّف الحساب (مثال: 123456789)"
-                      className="h-13 rounded-2xl px-4 text-base placeholder:text-zinc-500 font-mono transition-all"
+                      className="h-13 rounded-2xl px-4 text-base placeholder:text-[var(--theme-text-muted,#71717A)] font-mono transition-all"
                       style={{
-                        backgroundColor: getCustomOrFallback(customization.player_id_input_bg, "var(--theme-background)"),
-                        borderColor: getCustomOrFallback(customization.player_id_input_border, "var(--theme-border)"),
-                        color: getCustomOrFallback(customization.player_id_input_text, "var(--theme-text-primary)"),
+                        backgroundColor: getCustomOrFallback(customization.player_id_input_bg, "var(--theme-input-bg, var(--theme-background, #1A1A1A))"),
+                        borderColor: getCustomOrFallback(customization.player_id_input_border, "var(--theme-border, #3A3A3A)"),
+                        color: getCustomOrFallback(customization.player_id_input_text, "var(--theme-text-primary, #FFFFFF)"),
                       }}
                       onFocus={(e) => {
                         e.currentTarget.style.borderColor = getCustomOrFallback(customization.player_id_input_focus, "var(--theme-primary)");
@@ -1321,7 +1424,14 @@ export default function ProductDetail() {
 
                 {purchaseMode === "balance" && (
                   <div className="space-y-3 pt-2">
-                    <div className="rounded-2xl border border-[#C8A45C]/40 px-4 py-2.5 font-bold text-xs flex items-center justify-between" style={{ backgroundColor: "rgba(200, 164, 92, 0.15)", color: "var(--theme-accent)" }}>
+                    <div
+                      className="rounded-2xl border px-4 py-2.5 font-bold text-xs flex items-center justify-between"
+                      style={{
+                        backgroundColor: "color-mix(in srgb, var(--theme-primary, #C8A45C) 15%, transparent)",
+                        borderColor: "color-mix(in srgb, var(--theme-primary, #C8A45C) 40%, transparent)",
+                        color: "var(--theme-accent, #DFBD69)",
+                      }}
+                    >
                       <span>الكمية المحددة للشحن:</span>
                       <span className="font-mono text-base">{quantity} وحدة</span>
                     </div>
@@ -1334,11 +1444,11 @@ export default function ProductDetail() {
                         value={phoneNumber}
                         onChange={(e) => setPhoneNumber(e.target.value)}
                         placeholder="أدخل رقم الخط (09XXXXXXXX)"
-                        className="h-13 rounded-2xl px-4 text-base placeholder:text-zinc-500 font-mono transition-all"
+                        className="h-13 rounded-2xl px-4 text-base placeholder:text-[var(--theme-text-muted,#71717A)] font-mono transition-all"
                         style={{
-                          backgroundColor: getCustomOrFallback(customization.player_id_input_bg, "var(--theme-background)"),
-                          borderColor: getCustomOrFallback(customization.player_id_input_border, "var(--theme-border)"),
-                          color: getCustomOrFallback(customization.player_id_input_text, "var(--theme-text-primary)"),
+                          backgroundColor: getCustomOrFallback(customization.player_id_input_bg, "var(--theme-input-bg, var(--theme-background, #1A1A1A))"),
+                          borderColor: getCustomOrFallback(customization.player_id_input_border, "var(--theme-border, #3A3A3A)"),
+                          color: getCustomOrFallback(customization.player_id_input_text, "var(--theme-text-primary, #FFFFFF)"),
                         }}
                         onFocus={(e) => {
                           e.currentTarget.style.borderColor = getCustomOrFallback(customization.player_id_input_focus, "var(--theme-primary)");
@@ -1353,7 +1463,13 @@ export default function ProductDetail() {
               </>
             )}
 
-            <p className="text-[11px] p-3 rounded-2xl flex items-center gap-2 font-medium" style={{ backgroundColor: "var(--theme-card, rgba(200,164,92,0.08))", color: getCustomOrFallback(customization.disclaimer_text_color, "var(--theme-text-secondary)") }}>
+            <p
+              className="text-[11px] p-3 rounded-2xl flex items-center gap-2 font-medium"
+              style={{
+                backgroundColor: "color-mix(in srgb, var(--theme-primary, #C8A45C) 8%, var(--theme-card, #2D2D2D))",
+                color: getCustomOrFallback(customization.disclaimer_text_color, "var(--theme-text-secondary, #D4D4D8)"),
+              }}
+            >
               <AlertCircle className="w-4 h-4 shrink-0" style={{ color: getCustomOrFallback(customization.action_buttons_color, "var(--theme-primary)") }} />
               برجاء التأكد من صحة البيانات المدخلة قبل تأكيد عملية الشراء.
             </p>
@@ -1372,12 +1488,13 @@ export default function ProductDetail() {
             style={{
               backgroundColor: getCustomOrFallback(
                 customization.purchase_button_bg || customization.button_color,
-                "var(--theme-primary)"
+                "var(--theme-primary, #C8A45C)"
               ),
               color: getCustomOrFallback(
                 customization.purchase_button_text || customization.button_text_color,
-                "var(--theme-text-on-primary)"
+                "var(--theme-text-on-primary, var(--theme-background, #1A1A1A))"
               ),
+              boxShadow: "0 8px 20px -5px color-mix(in srgb, var(--theme-primary, #C8A45C) 40%, transparent)",
             }}
           >
             {createOrder.isPending ? (
@@ -1396,40 +1513,89 @@ export default function ProductDetail() {
 
       case "guarantees":
         return (
-          <div key={sec.id} className="border border-[var(--theme-border,rgba(200,164,92,0.25))] rounded-3xl p-5 shadow-xl space-y-3.5" style={{ backgroundColor: "var(--theme-card)" }}>
-            <h3 className="text-xs font-bold flex items-center gap-2 border-b border-[var(--theme-border,rgba(255,255,255,0.1))] pb-2.5" style={{ color: "var(--theme-accent)" }}>
+          <div
+            key={sec.id}
+            className="border rounded-3xl p-5 shadow-xl space-y-3.5"
+            style={{
+              backgroundColor: "var(--theme-card)",
+              borderColor: "var(--theme-border, #3A3A3A)",
+            }}
+          >
+            <h3
+              className="text-xs font-bold flex items-center gap-2 border-b pb-2.5"
+              style={{
+                color: "var(--theme-accent)",
+                borderColor: "var(--theme-border, #3A3A3A)",
+              }}
+            >
               <ShieldCheck size={16} style={{ color: "var(--theme-primary)" }} />
               {sec.title || "ضمانات وأمان الخدمة في المتجر"}
             </h3>
 
             <div className="space-y-2.5 text-xs">
-              <div className="flex items-center gap-3 p-2.5 rounded-2xl border border-[var(--theme-border,rgba(255,255,255,0.1))]" style={{ backgroundColor: "var(--theme-background)" }}>
-                <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: "rgba(200, 164, 92, 0.15)", color: "var(--theme-primary)" }}>
+              <div
+                className="flex items-center gap-3 p-2.5 rounded-2xl border"
+                style={{
+                  backgroundColor: "var(--theme-background)",
+                  borderColor: "var(--theme-border, #3A3A3A)",
+                }}
+              >
+                <div
+                  className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
+                  style={{
+                    backgroundColor: "color-mix(in srgb, var(--theme-primary, #C8A45C) 15%, transparent)",
+                    color: "var(--theme-primary)",
+                  }}
+                >
                   <Zap size={18} />
                 </div>
                 <div>
-                  <div className="font-bold text-zinc-200">معالجة فورية وتلقائية ⚡</div>
-                  <div className="text-[10px] text-zinc-400">يتم إرسال الشحن مباشرة بعد الشراء دون تأخير</div>
+                  <div className="font-bold" style={{ color: "var(--theme-text-primary, #E4E4E7)" }}>
+                    معالجة فورية وتلقائية ⚡
+                  </div>
+                  <div className="text-[10px]" style={{ color: "var(--theme-text-muted, #9E9E9E)" }}>
+                    يتم إرسال الشحن مباشرة بعد الشراء دون تأخير
+                  </div>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 p-2.5 rounded-2xl border border-[var(--theme-border,rgba(255,255,255,0.1))]" style={{ backgroundColor: "var(--theme-background)" }}>
+              <div
+                className="flex items-center gap-3 p-2.5 rounded-2xl border"
+                style={{
+                  backgroundColor: "var(--theme-background)",
+                  borderColor: "var(--theme-border, #3A3A3A)",
+                }}
+              >
                 <div className="w-8 h-8 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
                   <ShieldCheck size={18} />
                 </div>
                 <div>
-                  <div className="font-bold text-zinc-200">ضمان آمن 100% 🔒</div>
-                  <div className="text-[10px] text-zinc-400">طرق دفع موثوقة وشحن رسمي معتمد</div>
+                  <div className="font-bold" style={{ color: "var(--theme-text-primary, #E4E4E7)" }}>
+                    ضمان آمن 100% 🔒
+                  </div>
+                  <div className="text-[10px]" style={{ color: "var(--theme-text-muted, #9E9E9E)" }}>
+                    طرق دفع موثوقة وشحن رسمي معتمد
+                  </div>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 p-2.5 rounded-2xl border border-[var(--theme-border,rgba(255,255,255,0.1))]" style={{ backgroundColor: "var(--theme-background)" }}>
+              <div
+                className="flex items-center gap-3 p-2.5 rounded-2xl border"
+                style={{
+                  backgroundColor: "var(--theme-background)",
+                  borderColor: "var(--theme-border, #3A3A3A)",
+                }}
+              >
                 <div className="w-8 h-8 rounded-xl bg-blue-500/15 border border-blue-500/30 flex items-center justify-center text-blue-400 shrink-0">
                   <Headphones size={18} />
                 </div>
                 <div>
-                  <div className="font-bold text-zinc-200">متابعة ودعم 24/7 🎧</div>
-                  <div className="text-[10px] text-zinc-400">فريق الدعم الفني جاهز لمساعدتك في أي وقت</div>
+                  <div className="font-bold" style={{ color: "var(--theme-text-primary, #E4E4E7)" }}>
+                    متابعة ودعم 24/7 🎧
+                  </div>
+                  <div className="text-[10px]" style={{ color: "var(--theme-text-muted, #9E9E9E)" }}>
+                    فريق الدعم الفني جاهز لمساعدتك في أي وقت
+                  </div>
                 </div>
               </div>
             </div>
@@ -1440,36 +1606,65 @@ export default function ProductDetail() {
         return (
           <div
             key={sec.id}
-            className="border border-[var(--theme-border,rgba(200,164,92,0.25))] rounded-3xl p-6 shadow-xl space-y-4"
-            style={{ backgroundColor: "var(--theme-card)" }}
+            className="border rounded-3xl p-6 shadow-xl space-y-4"
+            style={{
+              backgroundColor: "var(--theme-card)",
+              borderColor: "var(--theme-border, #3A3A3A)",
+            }}
           >
-            <div className="flex items-center justify-between border-b border-[var(--theme-border,rgba(255,255,255,0.1))] pb-3">
+            <div
+              className="flex items-center justify-between border-b pb-3"
+              style={{ borderColor: "var(--theme-border, #3A3A3A)" }}
+            >
               <h3 className="text-sm font-bold flex items-center gap-2" style={{ color: "var(--theme-accent)" }}>
                 <Star size={18} style={{ color: "var(--theme-primary)", fill: "var(--theme-primary)" }} />
                 {sec.title || "تقييمات وآراء العملاء على الخدمة"}
               </h3>
-              <span className="text-xs font-mono font-bold px-2.5 py-1 rounded-full border border-[var(--theme-border,rgba(200,164,92,0.3))]" style={{ color: "var(--theme-primary)", backgroundColor: "var(--theme-background)" }}>
+              <span
+                className="text-xs font-mono font-bold px-2.5 py-1 rounded-full border"
+                style={{
+                  color: "var(--theme-primary)",
+                  backgroundColor: "var(--theme-background)",
+                  borderColor: "var(--theme-border, #3A3A3A)",
+                }}
+              >
                 4.9 / 5.0 ⭐
               </span>
             </div>
 
             <div className="space-y-3 text-xs">
-              <div className="p-3 rounded-2xl border border-[var(--theme-border,rgba(255,255,255,0.1))] space-y-1" style={{ backgroundColor: "var(--theme-background)" }}>
+              <div
+                className="p-3 rounded-2xl border space-y-1"
+                style={{
+                  backgroundColor: "var(--theme-background)",
+                  borderColor: "var(--theme-border, #3A3A3A)",
+                }}
+              >
                 <div className="flex items-center justify-between">
-                  <span className="font-bold text-zinc-200">أحمد م.</span>
+                  <span className="font-bold" style={{ color: "var(--theme-text-primary, #E4E4E7)" }}>
+                    أحمد م.
+                  </span>
                   <div className="flex" style={{ color: "var(--theme-primary)" }}>★★★★★</div>
                 </div>
-                <p className="text-zinc-400 text-[11px]">
+                <p className="text-[11px]" style={{ color: "var(--theme-text-muted, #9E9E9E)" }}>
                   سرعة تنفيذ مذهلة! وصل الشحن للحساب خلال أقل من 30 ثانية. شكراً لكم.
                 </p>
               </div>
 
-              <div className="p-3 rounded-2xl border border-[var(--theme-border,rgba(255,255,255,0.1))] space-y-1" style={{ backgroundColor: "var(--theme-background)" }}>
+              <div
+                className="p-3 rounded-2xl border space-y-1"
+                style={{
+                  backgroundColor: "var(--theme-background)",
+                  borderColor: "var(--theme-border, #3A3A3A)",
+                }}
+              >
                 <div className="flex items-center justify-between">
-                  <span className="font-bold text-zinc-200">خالد ع.</span>
+                  <span className="font-bold" style={{ color: "var(--theme-text-primary, #E4E4E7)" }}>
+                    خالد ع.
+                  </span>
                   <div className="flex" style={{ color: "var(--theme-primary)" }}>★★★★★</div>
                 </div>
-                <p className="text-zinc-400 text-[11px]">
+                <p className="text-[11px]" style={{ color: "var(--theme-text-muted, #9E9E9E)" }}>
                   أفضل متجر التعامل معه سريع والدعم الفني متجاوب دائماً.
                 </p>
               </div>
@@ -1517,10 +1712,18 @@ export default function ProductDetail() {
               type="button"
               onClick={toggleFavorite}
               disabled={favLoading}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[var(--theme-border,rgba(255,255,255,0.1))] text-xs font-bold text-zinc-300 hover:text-white transition cursor-pointer"
-              style={{ backgroundColor: "var(--theme-background)" }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold hover:opacity-80 transition cursor-pointer"
+              style={{
+                backgroundColor: "var(--theme-background)",
+                borderColor: "var(--theme-border, #3A3A3A)",
+                color: "var(--theme-text-secondary, #D4D4D8)",
+              }}
             >
-              <Heart size={16} className={isFavorite ? "fill-[#C8A45C]" : ""} style={{ color: isFavorite ? "var(--theme-primary)" : "currentColor" }} />
+              <Heart
+                size={16}
+                className={isFavorite ? "fill-current" : ""}
+                style={{ color: isFavorite ? "var(--theme-primary)" : "currentColor" }}
+              />
               <span>المفضلة</span>
             </button>
             <button
@@ -1533,8 +1736,12 @@ export default function ProductDetail() {
                   toast.success("تم نسخ رابط المنتج للحافظة!");
                 }
               }}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[var(--theme-border,rgba(255,255,255,0.1))] text-xs font-bold text-zinc-300 hover:text-white transition cursor-pointer"
-              style={{ backgroundColor: "var(--theme-background)" }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold hover:opacity-80 transition cursor-pointer"
+              style={{
+                backgroundColor: "var(--theme-background)",
+                borderColor: "var(--theme-border, #3A3A3A)",
+                color: "var(--theme-text-secondary, #D4D4D8)",
+              }}
             >
               <Share2 size={16} />
               <span>مشاركة</span>
@@ -1544,10 +1751,27 @@ export default function ProductDetail() {
 
       case "specifications":
         return (
-          <div key={sec.id} className="p-4 bg-[#1A1A1A] rounded-2xl border border-zinc-800 text-xs space-y-2">
-            <div className="font-bold text-[#FDE68A]">{sec.title || "المواصفات والتفاصيل التقنية"}</div>
-            <div className="grid grid-cols-2 gap-2 text-zinc-400 text-[11px]">
-              <div>نوع الخدمة: <span className="text-white font-mono">{product.productType || "عام"}</span></div>
+          <div
+            key={sec.id}
+            className="p-4 rounded-2xl border text-xs space-y-2"
+            style={{
+              backgroundColor: "var(--theme-background, #1A1A1A)",
+              borderColor: "var(--theme-border, #3A3A3A)",
+            }}
+          >
+            <div className="font-bold" style={{ color: "var(--theme-accent, #FDE68A)" }}>
+              {sec.title || "المواصفات والتفاصيل التقنية"}
+            </div>
+            <div
+              className="grid grid-cols-2 gap-2 text-[11px]"
+              style={{ color: "var(--theme-text-muted, #9E9E9E)" }}
+            >
+              <div>
+                نوع الخدمة:{" "}
+                <span className="font-mono" style={{ color: "var(--theme-text-primary, #FFFFFF)" }}>
+                  {product.productType || "عام"}
+                </span>
+              </div>
               <div>حالة الشحن: <span className="text-emerald-400 font-bold">تلقائي أوتوماتيكي</span></div>
             </div>
           </div>
@@ -1561,11 +1785,18 @@ export default function ProductDetail() {
   // RENDER: LEGACY VIEW
   if (isLegacy) {
     return (
-      <div className="min-h-screen text-white pb-24 animate-in fade-in duration-300" style={customBgStyle} dir="rtl">
+      <div className="min-h-screen pb-24 animate-in fade-in duration-300" style={customBgStyle} dir="rtl">
         {/* Top Floating Control Bar */}
         <div className="p-4 flex items-center justify-between max-w-4xl mx-auto">
           <Link href={`/categories/${product.categoryId}`}>
-            <div className="bg-[#2D2D2D] border border-[#C8A45C]/40 px-3 py-1.5 rounded-xl cursor-pointer hover:bg-black/80 transition flex items-center gap-1 text-[#C8A45C] text-xs font-bold">
+            <div
+              className="border px-3 py-1.5 rounded-xl cursor-pointer hover:opacity-90 transition flex items-center gap-1 text-xs font-bold"
+              style={{
+                backgroundColor: "var(--theme-card, #2D2D2D)",
+                borderColor: "color-mix(in srgb, var(--theme-primary, #C8A45C) 40%, transparent)",
+                color: "var(--theme-primary, #C8A45C)",
+              }}
+            >
               <ChevronRight className="w-4 h-4" />
               <span>الرجوع للتصنيف</span>
             </div>
@@ -1574,7 +1805,12 @@ export default function ProductDetail() {
           <button
             type="button"
             onClick={() => setLegacyOverride(false)}
-            className="text-xs bg-[#C8A45C]/20 border border-[#C8A45C]/40 text-[#FDE68A] px-3 py-1 rounded-xl flex items-center gap-1.5 cursor-pointer hover:bg-[#C8A45C]/30"
+            className="text-xs border px-3 py-1 rounded-xl flex items-center gap-1.5 cursor-pointer hover:opacity-90"
+            style={{
+              backgroundColor: "color-mix(in srgb, var(--theme-primary, #C8A45C) 20%, transparent)",
+              borderColor: "color-mix(in srgb, var(--theme-primary, #C8A45C) 40%, transparent)",
+              color: "var(--theme-accent, #FDE68A)",
+            }}
           >
             <LayoutGrid size={14} />
             <span>التبديل إلى التصميم المطور الحديث</span>
@@ -1582,54 +1818,133 @@ export default function ProductDetail() {
         </div>
 
         {/* Big Banner Container */}
-        <div className="relative w-full h-64 bg-[#2D2D2D] rounded-b-[2rem] overflow-hidden shadow-2xl border-b border-[#C8A45C]/30">
+        <div
+          className="relative w-full h-64 rounded-b-[2rem] overflow-hidden shadow-2xl border-b"
+          style={{
+            backgroundColor: "var(--theme-card, #2D2D2D)",
+            borderColor: "color-mix(in srgb, var(--theme-primary, #C8A45C) 30%, transparent)",
+          }}
+        >
           <div className="absolute top-4 left-4 z-20">
             <button
               type="button"
               onClick={toggleFavorite}
               disabled={favLoading}
-              className="bg-black/60 backdrop-blur-md p-2.5 rounded-full cursor-pointer hover:bg-black/80 transition-all text-white border border-[#C8A45C]/40 active:scale-95"
+              className="bg-black/60 backdrop-blur-md p-2.5 rounded-full cursor-pointer hover:bg-black/80 transition-all text-white border active:scale-95"
+              style={{
+                borderColor: "color-mix(in srgb, var(--theme-primary, #C8A45C) 40%, transparent)",
+              }}
             >
               <Heart
                 size={20}
-                className={`transition-colors ${isFavorite ? "fill-[#C8A45C] text-[#C8A45C]" : "text-white"}`}
+                className={`transition-colors ${isFavorite ? "fill-current" : "text-white"}`}
+                style={isFavorite ? { color: "var(--theme-primary, #C8A45C)" } : undefined}
               />
             </button>
           </div>
           {product.image ? (
             <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
           ) : (
-            <div className="w-full h-full bg-[#1A1A1A] flex items-center justify-center">
-              <ShoppingCart className="w-16 h-16 text-[#C8A45C]/50" />
+            <div
+              className="w-full h-full flex items-center justify-center"
+              style={{ backgroundColor: "var(--theme-background, #1A1A1A)" }}
+            >
+              <ShoppingCart
+                className="w-16 h-16"
+                style={{ color: "color-mix(in srgb, var(--theme-primary, #C8A45C) 50%, transparent)" }}
+              />
             </div>
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#1A1A1A] via-[#1A1A1A]/30 to-transparent" />
+          <div
+            className="absolute inset-0"
+            style={{
+              background:
+                "linear-gradient(to top, var(--theme-background, #1A1A1A), color-mix(in srgb, var(--theme-background, #1A1A1A) 30%, transparent), transparent)",
+            }}
+          />
         </div>
 
         <div className="px-5 -mt-6 relative z-10 max-w-2xl mx-auto space-y-4">
-          <h1 className="text-2xl font-black text-white leading-tight mb-1">{product.name}</h1>
-          <div className="text-xs text-[#C8A45C] font-semibold">{product.categoryName}</div>
+          <h1
+            className="text-2xl font-black leading-tight mb-1"
+            style={{ color: "var(--theme-text-primary, #FFFFFF)" }}
+          >
+            {product.name}
+          </h1>
+          <div
+            className="text-xs font-semibold"
+            style={{ color: "var(--theme-primary, #C8A45C)" }}
+          >
+            {product.categoryName}
+          </div>
 
           <div
-            className="space-y-6 border border-[#C8A45C]/35 p-5 rounded-3xl shadow-xl"
-            style={{ backgroundColor: "var(--product-card-color, var(--theme-card))" }}
+            className="space-y-6 border p-5 rounded-3xl shadow-xl"
+            style={{
+              backgroundColor: "var(--product-card-color, var(--theme-card))",
+              borderColor: "color-mix(in srgb, var(--theme-primary, #C8A45C) 35%, transparent)",
+            }}
           >
             {/* Purchase Form Elements */}
             <div>
               <div className="flex justify-between items-center mb-3">
-                <label className="text-sm font-bold text-white">{isPackage ? "نوع الطلب" : "الكمية المطلوبة"}</label>
-                {!isPackage && <span className="text-xs text-[#C8A45C]">(الحد الأدنى: {minQty.toLocaleString()})</span>}
+                <label
+                  className="text-sm font-bold"
+                  style={{ color: "var(--theme-text-primary, #FFFFFF)" }}
+                >
+                  {isPackage ? "نوع الطلب" : "الكمية المطلوبة"}
+                </label>
+                {!isPackage && (
+                  <span
+                    className="text-xs"
+                    style={{ color: "var(--theme-primary, #C8A45C)" }}
+                  >
+                    (الحد الأدنى: {minQty.toLocaleString()})
+                  </span>
+                )}
               </div>
 
               {isPackage ? (
-                <div className="rounded-2xl border border-[#C8A45C]/50 bg-[#C8A45C]/10 px-4 py-4 text-center">
-                  <div className="text-xs text-zinc-300 mb-1">📦 حزمة واحدة (الحزمة كاملة)</div>
-                  <div className="text-xl font-black text-[#FDE68A]">كمية ثابتة (1)</div>
+                <div
+                  className="rounded-2xl border px-4 py-4 text-center"
+                  style={{
+                    borderColor: "color-mix(in srgb, var(--theme-primary, #C8A45C) 50%, transparent)",
+                    backgroundColor: "color-mix(in srgb, var(--theme-primary, #C8A45C) 10%, transparent)",
+                  }}
+                >
+                  <div
+                    className="text-xs mb-1"
+                    style={{ color: "var(--theme-text-secondary, #D4D4D8)" }}
+                  >
+                    📦 حزمة واحدة (الحزمة كاملة)
+                  </div>
+                  <div
+                    className="text-xl font-black"
+                    style={{ color: "var(--theme-accent, #FDE68A)" }}
+                  >
+                    كمية ثابتة (1)
+                  </div>
                 </div>
               ) : usesFixedQuantity ? (
-                <div className="rounded-2xl border border-[#C8A45C]/50 bg-[#C8A45C]/10 px-4 py-4 text-center">
-                  <div className="text-xs text-zinc-300 mb-1">كمية رسمية ثابتة من المزود</div>
-                  <div className="text-xl font-black text-[#FDE68A]">{minQty.toLocaleString()}</div>
+                <div
+                  className="rounded-2xl border px-4 py-4 text-center"
+                  style={{
+                    borderColor: "color-mix(in srgb, var(--theme-primary, #C8A45C) 50%, transparent)",
+                    backgroundColor: "color-mix(in srgb, var(--theme-primary, #C8A45C) 10%, transparent)",
+                  }}
+                >
+                  <div
+                    className="text-xs mb-1"
+                    style={{ color: "var(--theme-text-secondary, #D4D4D8)" }}
+                  >
+                    كمية رسمية ثابتة من المزود
+                  </div>
+                  <div
+                    className="text-xl font-black"
+                    style={{ color: "var(--theme-accent, #FDE68A)" }}
+                  >
+                    {minQty.toLocaleString()}
+                  </div>
                 </div>
               ) : usesOfficialQuantityList ? (
                 <div className="grid grid-cols-2 gap-2">
@@ -1641,18 +1956,33 @@ export default function ProductDetail() {
                         setQuantity(value);
                         setQuantityInput(String(value));
                       }}
-                      className={`rounded-2xl border px-3 py-3 text-sm font-black transition cursor-pointer ${
+                      className="rounded-2xl border px-3 py-3 text-sm font-black transition cursor-pointer"
+                      style={
                         quantity === value
-                          ? "border-[#C8A45C] bg-[#C8A45C] text-[#1A1A1A] shadow-md shadow-[#C8A45C]/30"
-                          : "border-[#4B5563] bg-[#1A1A1A] text-white hover:border-[#C8A45C]/60"
-                      }`}
+                          ? {
+                              borderColor: "var(--theme-primary, #C8A45C)",
+                              backgroundColor: "var(--theme-primary, #C8A45C)",
+                              color: "var(--theme-background, #1A1A1A)",
+                            }
+                          : {
+                              borderColor: "var(--theme-border, #4B5563)",
+                              backgroundColor: "var(--theme-background, #1A1A1A)",
+                              color: "var(--theme-text-primary, #FFFFFF)",
+                            }
+                      }
                     >
                       {value.toLocaleString()}
                     </button>
                   ))}
                 </div>
               ) : (
-                <div className="bg-[#1A1A1A] border border-[#4B5563] focus-within:border-[#C8A45C] p-2 rounded-2xl transition">
+                <div
+                  className="border p-2 rounded-2xl transition"
+                  style={{
+                    backgroundColor: "var(--theme-background, #1A1A1A)",
+                    borderColor: "var(--theme-border, #4B5563)",
+                  }}
+                >
                   <Input
                     type="text"
                     inputMode="numeric"
@@ -1673,12 +2003,15 @@ export default function ProductDetail() {
                   const Icon = cfg.icon;
                   return (
                     <div key={param} className="space-y-1.5">
-                      <label className="text-sm font-bold text-white mb-1 flex items-center justify-between">
+                      <label
+                        className="text-sm font-bold mb-1 flex items-center justify-between"
+                        style={{ color: "var(--theme-text-primary, #FFFFFF)" }}
+                      >
                         <span className="flex items-center gap-1.5">
-                          <Icon size={15} className="text-[#C8A45C]" />
+                          <Icon size={15} style={{ color: "var(--theme-primary, #C8A45C)" }} />
                           <span>{param} *</span>
                         </span>
-                        <span className="text-xs text-[#C8A45C] font-normal">{cfg.help}</span>
+                        <span className="text-xs font-normal" style={{ color: "var(--theme-primary, #C8A45C)" }}>{cfg.help}</span>
                       </label>
                       <Input
                         type={cfg.type}
@@ -1693,7 +2026,12 @@ export default function ProductDetail() {
                           }
                         }}
                         placeholder={cfg.placeholder}
-                        className="h-12 bg-[#3D3D3D] border-[#4B5563] text-white rounded-2xl px-4 focus-visible:ring-[#C8A45C] focus-visible:border-[#C8A45C] text-base placeholder:text-zinc-400"
+                        className="h-12 rounded-2xl px-4 text-base"
+                        style={{
+                          backgroundColor: "var(--theme-input-bg, #3D3D3D)",
+                          borderColor: "var(--theme-border, #4B5563)",
+                          color: "var(--theme-text-primary, #FFFFFF)",
+                        }}
                       />
                     </div>
                   );
@@ -1703,28 +2041,35 @@ export default function ProductDetail() {
               <>
                 {(purchaseMode === "apps" || purchaseMode === "games") && (
                   <div>
-                    <label className="text-sm font-bold text-white mb-2 block">معرّف الحساب (ID) *</label>
+                    <label className="text-sm font-bold mb-2 block" style={{ color: "var(--theme-text-primary, #FFFFFF)" }}>معرّف الحساب (ID) *</label>
                     <Input
                       value={accountId}
                       onChange={(e) => setAccountId(e.target.value)}
                       placeholder="أدخل معرّف الحساب (Player ID)"
-                      className="h-12 bg-[#3D3D3D] border-[#4B5563] text-white rounded-2xl px-4 focus-visible:ring-[#C8A45C] focus-visible:border-[#C8A45C] text-base placeholder:text-zinc-400"
+                      className="h-12 bg-[var(--theme-input-bg,var(--theme-background,#1A1A1A))] border-[var(--theme-border,#3A3A3A)] text-[var(--theme-text-primary,#FFFFFF)] rounded-2xl px-4 focus-visible:ring-[var(--theme-primary,#C8A45C)] focus-visible:border-[var(--theme-primary,#C8A45C)] text-base placeholder:text-[var(--theme-text-muted,#9E9E9E)]"
                     />
                   </div>
                 )}
 
                 {purchaseMode === "balance" && (
                   <div className="space-y-3">
-                    <div className="rounded-2xl border border-[#C8A45C]/40 bg-[#C8A45C]/10 px-4 py-3 text-[#FDE68A] font-bold text-sm">
+                    <div
+                      className="rounded-2xl border px-4 py-3 font-bold text-sm"
+                      style={{
+                        borderColor: "color-mix(in srgb, var(--theme-primary, #C8A45C) 40%, transparent)",
+                        backgroundColor: "color-mix(in srgb, var(--theme-primary, #C8A45C) 10%, transparent)",
+                        color: "var(--theme-accent, #FDE68A)",
+                      }}
+                    >
                       الكمية المحددة: {quantity} وحدة
                     </div>
                     <div>
-                      <label className="text-sm font-bold text-white mb-2 block">رقم الخط *</label>
+                      <label className="text-sm font-bold mb-2 block" style={{ color: "var(--theme-text-primary, #FFFFFF)" }}>رقم الخط *</label>
                       <Input
                         value={phoneNumber}
                         onChange={(e) => setPhoneNumber(e.target.value)}
                         placeholder="09XXXXXXXX"
-                        className="h-12 bg-[#3D3D3D] border-[#4B5563] text-white rounded-2xl px-4 focus-visible:ring-[#C8A45C] focus-visible:border-[#C8A45C] text-base placeholder:text-zinc-400"
+                        className="h-12 bg-[var(--theme-input-bg,var(--theme-background,#1A1A1A))] border-[var(--theme-border,#3A3A3A)] text-[var(--theme-text-primary,#FFFFFF)] rounded-2xl px-4 focus-visible:ring-[var(--theme-primary,#C8A45C)] focus-visible:border-[var(--theme-primary,#C8A45C)] text-base placeholder:text-[var(--theme-text-muted,#9E9E9E)]"
                       />
                     </div>
                   </div>
@@ -1732,32 +2077,63 @@ export default function ProductDetail() {
               </>
             )}
 
-            <div className="rounded-2xl bg-[#1A1A1A] border border-[#C8A45C]/30 p-4 text-center space-y-2">
+            <div
+              className="rounded-2xl border p-4 text-center space-y-2"
+              style={{
+                backgroundColor: "var(--theme-background, #1A1A1A)",
+                borderColor: "color-mix(in srgb, var(--theme-primary, #C8A45C) 30%, transparent)",
+              }}
+            >
               {hasVipDiscount && (
-                <div className="flex items-center justify-center gap-1.5 text-xs font-bold py-1 px-3 rounded-full bg-[#C8A45C]/15 border border-[#C8A45C]/30 mx-auto w-fit" style={{ color: vipBadgeColor }}>
+                <div
+                  className="flex items-center justify-center gap-1.5 text-xs font-bold py-1 px-3 rounded-full border mx-auto w-fit"
+                  style={{
+                    color: vipBadgeColor,
+                    backgroundColor: "color-mix(in srgb, var(--theme-primary, #C8A45C) 15%, transparent)",
+                    borderColor: "color-mix(in srgb, var(--theme-primary, #C8A45C) 30%, transparent)",
+                  }}
+                >
                   <Crown size={14} />
                   <span>خصم {vipBadgeName || "VIP"} ({vipDiscountPercent}%)</span>
                   {totalSavingsUsd > 0 && <span className="text-emerald-400 font-mono">وفرت {formatPrice(totalSavingsUsd)}</span>}
                 </div>
               )}
-              <div className="text-xs text-zinc-400 font-semibold">السعر الإجمالي</div>
+              <div
+                className="text-xs font-semibold"
+                style={{ color: "var(--theme-text-muted, #9E9E9E)" }}
+              >
+                السعر الإجمالي
+              </div>
               <div className="flex items-baseline justify-center gap-2">
                 {hasVipDiscount && (
-                  <span className="text-sm line-through text-zinc-500 font-mono">
+                  <span
+                    className="text-sm line-through font-mono"
+                    style={{ color: "var(--theme-text-muted, #71717A)" }}
+                  >
                     {formatPrice(baseTotalUsd)}
                   </span>
                 )}
-                <div className="text-3xl font-black text-[#FDE68A]">{formatPrice(totalUsd)}</div>
+                <div
+                  className="text-3xl font-black"
+                  style={{ color: "var(--theme-accent, #FDE68A)" }}
+                >
+                  {formatPrice(totalUsd)}
+                </div>
               </div>
               {formatPriceWithSyp(totalUsd).secondary && (
-                <div className="text-xs text-zinc-400 font-medium">{formatPriceWithSyp(totalUsd).secondary}</div>
+                <div
+                  className="text-xs font-medium"
+                  style={{ color: "var(--theme-text-muted, #9E9E9E)" }}
+                >
+                  {formatPriceWithSyp(totalUsd).secondary}
+                </div>
               )}
             </div>
 
             <Button
               onClick={handlePurchase}
               disabled={createOrder.isPending || !product.available}
-              className="w-full h-14 rounded-2xl text-base font-black bg-[#C8A45C] hover:bg-[#B8954A] text-[#1A1A1A] shadow-lg shadow-[#C8A45C]/25 transition cursor-pointer"
+              className="w-full h-14 rounded-2xl text-base font-black bg-[var(--theme-button-bg,var(--theme-primary,#C8A45C))] hover:opacity-90 text-[var(--theme-button-text,var(--theme-background,#1A1A1A))] shadow-lg transition cursor-pointer"
             >
               {createOrder.isPending ? "جاري تنفيذ الطلب..." : "تأكيد الشراء الفوري"}
             </Button>
@@ -1770,7 +2146,7 @@ export default function ProductDetail() {
   // RENDER: MODERN ENHANCED GRID VIEW
   return (
     <div
-      className="min-h-screen text-white pb-24 transition-colors duration-300 animate-in fade-in duration-500"
+      className="min-h-screen pb-24 transition-colors duration-300 animate-in fade-in duration-500"
       style={customBgStyle}
       dir="rtl"
     >
@@ -1784,30 +2160,46 @@ export default function ProductDetail() {
             <button
               type="button"
               onClick={() => setIsLightboxOpen(false)}
-              className="absolute -top-12 left-0 p-2 text-white hover:text-[#C8A45C] bg-white/10 rounded-full transition cursor-pointer"
+              className="absolute -top-12 left-0 p-2 text-white hover:text-[var(--theme-primary)] bg-white/10 rounded-full transition cursor-pointer"
             >
               <X size={24} />
             </button>
             <img
               src={product.image}
               alt={product.name}
-              className="max-w-full max-h-[80vh] object-contain rounded-2xl border-2 border-[#C8A45C]/50 shadow-2xl"
+              className="max-w-full max-h-[80vh] object-contain rounded-2xl border-2 shadow-2xl"
+              style={{
+                borderColor: "color-mix(in srgb, var(--theme-primary, #C8A45C) 50%, transparent)",
+              }}
             />
-            <p className="text-zinc-300 text-xs mt-3 font-semibold">{product.name}</p>
+            <p
+              className="text-xs mt-3 font-semibold"
+              style={{ color: "var(--theme-text-secondary, #D4D4D8)" }}
+            >
+              {product.name}
+            </p>
           </div>
         </div>
       )}
 
       {/* Main Container */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-4 space-y-6">
+      <div className="max-w-6xl mx-auto px-theme pt-4 space-y-6">
         {/* Top Breadcrumbs & Control Bar */}
         <div
-          className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl border border-[var(--theme-border,rgba(200,164,92,0.25))] backdrop-blur-md shadow-lg"
-          style={{ backgroundColor: "var(--theme-card)" }}
+          className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl border backdrop-blur-md shadow-lg"
+          style={{
+            backgroundColor: "var(--theme-card)",
+            borderColor: "var(--theme-border, #3A3A3A)",
+          }}
         >
           <div className="flex items-center gap-2 text-xs">
             <Link href="/">
-              <span className="hover:text-white transition cursor-pointer font-medium" style={{ color: getCustomOrFallback(customization.breadcrumb_text_color, "var(--theme-text-secondary)") }}>الرئيسية</span>
+              <span
+                className="hover:opacity-80 transition cursor-pointer font-medium"
+                style={{ color: getCustomOrFallback(customization.breadcrumb_text_color, "var(--theme-text-secondary)") }}
+              >
+                الرئيسية
+              </span>
             </Link>
             <ChevronRight size={14} style={{ color: getCustomOrFallback(customization.breadcrumb_text_color, "var(--theme-text-secondary)") }} />
             <Link href={`/categories/${product.categoryId}`}>
@@ -1831,10 +2223,11 @@ export default function ProductDetail() {
                   toast.success("تم نسخ رابط المنتج للمشاركة 📋");
                 }
               }}
-              className="p-2 rounded-xl border border-[var(--theme-border,rgba(255,255,255,0.1))] transition cursor-pointer text-xs flex items-center gap-1.5"
+              className="p-2 rounded-xl border transition cursor-pointer text-xs flex items-center gap-1.5"
               style={{
                 color: getCustomOrFallback(customization.action_buttons_color, "var(--theme-primary)"),
                 backgroundColor: customization.action_buttons_bg === "transparent" ? "var(--theme-background)" : getCustomOrFallback(customization.action_buttons_bg, "var(--theme-background)"),
+                borderColor: "var(--theme-border, #3A3A3A)",
               }}
               title="مشاركة المنتج"
             >
@@ -1847,14 +2240,19 @@ export default function ProductDetail() {
               type="button"
               onClick={toggleFavorite}
               disabled={favLoading}
-              className="p-2 rounded-xl border border-[var(--theme-border,rgba(255,255,255,0.1))] transition cursor-pointer text-xs flex items-center gap-1.5"
+              className="p-2 rounded-xl border transition cursor-pointer text-xs flex items-center gap-1.5"
               style={{
                 color: getCustomOrFallback(customization.action_buttons_color, "var(--theme-primary)"),
                 backgroundColor: customization.action_buttons_bg === "transparent" ? "var(--theme-background)" : getCustomOrFallback(customization.action_buttons_bg, "var(--theme-background)"),
+                borderColor: "var(--theme-border, #3A3A3A)",
               }}
               title="إضافة للمفضلة"
             >
-              <Heart size={16} className={isFavorite ? "fill-[#C8A45C]" : ""} style={{ color: isFavorite ? "var(--theme-primary)" : "currentColor" }} />
+              <Heart
+                size={16}
+                className={isFavorite ? "fill-current" : ""}
+                style={{ color: isFavorite ? "var(--theme-primary)" : "currentColor" }}
+              />
               <span className="hidden sm:inline">{isFavorite ? "المفضلة" : "إضافة للمفضلة"}</span>
             </button>
 
@@ -1862,10 +2260,11 @@ export default function ProductDetail() {
             <button
               type="button"
               onClick={() => setLegacyOverride(true)}
-              className="p-2 rounded-xl border border-[var(--theme-border,rgba(255,255,255,0.1))] transition cursor-pointer text-xs flex items-center gap-1"
+              className="p-2 rounded-xl border transition cursor-pointer text-xs flex items-center gap-1"
               style={{
                 color: getCustomOrFallback(customization.action_buttons_color, "var(--theme-text-secondary)"),
                 backgroundColor: customization.action_buttons_bg === "transparent" ? "var(--theme-background)" : getCustomOrFallback(customization.action_buttons_bg, "var(--theme-background)"),
+                borderColor: "var(--theme-border, #3A3A3A)",
               }}
               title="التبديل إلى الوضع الكلاسيكي"
             >
@@ -1887,8 +2286,11 @@ export default function ProductDetail() {
           {/* RIGHT COLUMN (md:col-span-7) */}
           <div className="md:col-span-7 space-y-5">
             <div
-              className="border border-[var(--theme-border,rgba(200,164,92,0.3))] rounded-3xl p-6 shadow-2xl space-y-6"
-              style={{ backgroundColor: getCustomOrFallback(customization.info_box_bg_color, "var(--product-card-color, var(--theme-card))") }}
+              className="border rounded-3xl p-theme shadow-2xl space-y-6"
+              style={{
+                backgroundColor: getCustomOrFallback(customization.info_box_bg_color, "var(--product-card-color, var(--theme-card))"),
+                borderColor: "var(--theme-border, #3A3A3A)",
+              }}
             >
               {sections
                 .filter(

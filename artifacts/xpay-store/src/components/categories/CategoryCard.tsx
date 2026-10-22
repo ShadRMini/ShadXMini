@@ -78,7 +78,7 @@ export default function CategoryCard({
           <div
             className="w-full aspect-square rounded-2xl border shadow-md group-hover:shadow-lg transition-all duration-300 overflow-hidden relative flex items-center justify-center"
             style={{
-              backgroundColor: "var(--theme-card)",
+              backgroundColor: "var(--theme-card, #2D2D2D)",
               borderColor: "var(--theme-border)",
             }}
           >
@@ -98,24 +98,29 @@ export default function CategoryCard({
               <div
                 className="w-full h-full border flex flex-col items-center justify-center p-2.5 text-center relative overflow-hidden group-hover:scale-105 transition-transform duration-300"
                 style={{
-                  backgroundColor: "var(--theme-card)",
+                  backgroundColor: "var(--theme-card, #2D2D2D)",
                   borderColor: "var(--theme-border)",
                 }}
               >
-                <div className="absolute -top-3 -right-3 w-12 h-12 bg-amber-500/10 rounded-full blur-lg pointer-events-none" />
+                <div
+                  className="absolute -top-3 -right-3 w-12 h-12 rounded-full blur-lg pointer-events-none"
+                  style={{
+                    backgroundColor: "color-mix(in srgb, var(--theme-primary, #C8A45C) 10%, transparent)",
+                  }}
+                />
                 <div
                   className="w-9 h-9 rounded-xl border flex items-center justify-center mb-1.5 shadow-xs"
                   style={{
-                    backgroundColor: "rgba(200, 164, 92, 0.2)",
+                    backgroundColor: "color-mix(in srgb, var(--theme-primary, #C8A45C) 20%, transparent)",
                     borderColor: "var(--theme-border)",
-                    color: "var(--theme-primary)",
+                    color: "var(--theme-primary, #C8A45C)",
                   }}
                 >
                   <FolderTree size={18} />
                 </div>
                 <span
                   className="text-[10px] font-bold line-clamp-1 leading-tight px-1"
-                  style={{ color: "var(--theme-accent)" }}
+                  style={{ color: "var(--theme-accent, #FDE68A)" }}
                 >
                   {name}
                 </span>
@@ -123,39 +128,44 @@ export default function CategoryCard({
             )}
 
             {/* Subtle bottom gradient glow for depth */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity pointer-events-none" />
+            <div
+              className="absolute inset-0 opacity-60 group-hover:opacity-40 transition-opacity pointer-events-none"
+              style={{
+                background: "linear-gradient(to top, color-mix(in srgb, var(--theme-background, #0a0a0a) 60%, transparent) 0%, transparent 100%)",
+              }}
+            />
 
             {/* Guest Lock Overlay on Hover */}
             {isGuest && (
               <div
                 className="absolute inset-0 backdrop-blur-xs flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 p-2 text-center"
-                style={{ backgroundColor: "rgba(26, 26, 26, 0.85)" }}
+                style={{ backgroundColor: "color-mix(in srgb, var(--theme-card, #1A1A1A) 85%, transparent)" }}
               >
                 <div
                   className="w-8 h-8 rounded-full border flex items-center justify-center mb-1 shadow-sm"
                   style={{
-                    backgroundColor: "rgba(200, 164, 92, 0.2)",
-                    borderColor: "var(--theme-primary)",
-                    color: "var(--theme-primary)",
+                    backgroundColor: "color-mix(in srgb, var(--theme-primary, #C8A45C) 20%, transparent)",
+                    borderColor: "var(--theme-primary, #C8A45C)",
+                    color: "var(--theme-primary, #C8A45C)",
                   }}
                 >
                   <Lock size={15} />
                 </div>
                 <span
                   className="text-[10px] font-bold line-clamp-1"
-                  style={{ color: "var(--theme-accent)" }}
+                  style={{ color: "var(--theme-accent, #FDE68A)" }}
                 >
                   سجّل دخولك للعرض
                 </span>
               </div>
             )}
-            
+
             {productCount !== undefined && productCount > 0 && (
               <span
                 className="absolute bottom-1.5 left-1.5 text-[9px] font-bold px-1.5 py-0.5 rounded-md border shadow-xs pointer-events-none z-10"
                 style={{
-                  backgroundColor: "rgba(26, 26, 26, 0.85)",
-                  color: "var(--theme-accent)",
+                  backgroundColor: "color-mix(in srgb, var(--theme-card, #1A1A1A) 85%, transparent)",
+                  color: "var(--theme-accent, #FDE68A)",
                   borderColor: "var(--theme-border)",
                 }}
               >
@@ -167,7 +177,7 @@ export default function CategoryCard({
           {/* Category Label */}
           <span
             className="text-xs font-bold text-center transition-colors leading-tight line-clamp-1 px-1"
-            style={{ color: "var(--theme-text-primary)" }}
+            style={{ color: "var(--theme-text-primary, #E5E7EB)" }}
           >
             {name}
           </span>

@@ -111,7 +111,7 @@ const DEFAULT_CONFIG: ContactPageConfig = {
       icon: "MessageCircle",
       value: "+963900000000",
       link: "https://wa.me/963900000000",
-      color: "#25D366",
+      color: "var(--theme-whatsapp, #25D366)",
       active: true,
       order: 1,
     },
@@ -121,7 +121,7 @@ const DEFAULT_CONFIG: ContactPageConfig = {
       icon: "Send",
       value: "@ShadXMiniSupport",
       link: "https://t.me/ShadXMiniSupport",
-      color: "#0088CC",
+      color: "var(--theme-telegram, #0088CC)",
       active: true,
       order: 2,
     },
@@ -131,7 +131,7 @@ const DEFAULT_CONFIG: ContactPageConfig = {
       icon: "Mail",
       value: "support@shadxmini.com",
       link: "mailto:support@shadxmini.com",
-      color: "#C8A45C",
+      color: "var(--theme-primary, #C8A45C)",
       active: true,
       order: 3,
     },
@@ -141,7 +141,7 @@ const DEFAULT_CONFIG: ContactPageConfig = {
       icon: "Phone",
       value: "+963 900 000 000",
       link: "tel:+963900000000",
-      color: "#3B82F6",
+      color: "var(--theme-accent, #3B82F6)",
       active: true,
       order: 4,
     },
@@ -193,18 +193,19 @@ const DEFAULT_CONFIG: ContactPageConfig = {
   },
 };
 
+// Legacy colors sanitized to var(--theme-*)
 const REJECTED_COLORS = [
-  "#1a1a1a",
-  "#2d2d2d",
-  "#c8a45c",
-  "#fde68a",
-  "#e5e7eb",
-  "#3d3d3d",
-  "#242424",
-  "#ffffff",
-  "#b8954a",
-  "#111827",
-  "#374151",
+  "#1a1a1a", // var(--theme-background)
+  "#2d2d2d", // var(--theme-card)
+  "#c8a45c", // var(--theme-primary)
+  "#fde68a", // var(--theme-accent)
+  "#e5e7eb", // var(--theme-text-primary)
+  "#3d3d3d", // var(--theme-border)
+  "#242424", // var(--theme-input-bg)
+  "#ffffff", // var(--theme-text-primary)
+  "#b8954a", // var(--theme-primary-hover)
+  "#111827", // var(--theme-background)
+  "#374151", // var(--theme-border)
 ];
 
 function sanitizeColor(val: string | undefined, fallbackCssVar: string): string {
@@ -433,15 +434,15 @@ export default function ContactPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[var(--theme-background)] text-white p-4 max-w-5xl mx-auto space-y-8" dir="rtl">
+      <div className="min-h-screen bg-[var(--theme-background)] text-[var(--theme-text-primary)] p-4 max-w-5xl mx-auto space-y-8" dir="rtl">
         <div className="text-center pt-8 pb-4 space-y-3">
-          <Skeleton className="w-16 h-16 rounded-3xl mx-auto bg-zinc-800" />
-          <Skeleton className="w-48 h-8 mx-auto bg-zinc-800" />
-          <Skeleton className="w-80 h-4 mx-auto bg-zinc-800" />
+          <Skeleton className="w-16 h-16 rounded-3xl mx-auto bg-[var(--theme-card)]" />
+          <Skeleton className="w-48 h-8 mx-auto bg-[var(--theme-card)]" />
+          <Skeleton className="w-80 h-4 mx-auto bg-[var(--theme-card)]" />
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[1, 2, 3, 4].map((i) => (
-            <Skeleton key={i} className="h-44 rounded-3xl bg-zinc-800" />
+            <Skeleton key={i} className="h-44 rounded-3xl bg-[var(--theme-card)]" />
           ))}
         </div>
       </div>
@@ -469,9 +470,9 @@ export default function ContactPage() {
         actionLabel: "محادثة الآن",
         actionHref: `https://wa.me/${cleanWhatsapp}`,
         icon: MessageCircle,
-        iconColor: "text-[#25D366]",
-        bgGlow: "bg-[#25D366]/10",
-        borderColor: "border-[#25D366]/40",
+        iconColor: "text-[var(--theme-whatsapp,#25D366)]",
+        bgGlow: "bg-[var(--theme-whatsapp,#25D366)]/10",
+        borderColor: "border-[var(--theme-whatsapp,#25D366)]/40",
       },
       {
         key: "telegram",
@@ -481,9 +482,9 @@ export default function ContactPage() {
         actionLabel: "فتح تليجرام",
         actionHref: `https://t.me/${cleanTelegram}`,
         icon: Send,
-        iconColor: "text-[#0088cc]",
-        bgGlow: "bg-[#0088cc]/10",
-        borderColor: "border-[#0088cc]/40",
+        iconColor: "text-[var(--theme-telegram,#0088cc)]",
+        bgGlow: "bg-[var(--theme-telegram,#0088cc)]/10",
+        borderColor: "border-[var(--theme-telegram,#0088cc)]/40",
       },
       {
         key: "email",
@@ -513,7 +514,7 @@ export default function ContactPage() {
 
     return (
       <div
-        className="min-h-screen pb-24 p-4 max-w-5xl mx-auto selection:bg-[var(--theme-primary)] selection:text-black space-y-8"
+        className="min-h-screen pb-24 p-4 max-w-5xl mx-auto selection:bg-[var(--theme-primary)] selection:text-[var(--theme-text-on-primary)] space-y-8"
         dir="rtl"
         style={{
           backgroundColor: "var(--contact-bg-color, var(--theme-background))",
@@ -557,17 +558,17 @@ export default function ContactPage() {
                   >
                     <Icon size={26} className={card.iconColor} />
                   </div>
-                  <h3 className="text-base font-bold text-white mb-1 group-hover:text-[var(--theme-accent)] transition-colors text-center">
+                  <h3 className="text-base font-bold text-[var(--theme-text-primary)] mb-1 group-hover:text-[var(--theme-accent)] transition-colors text-center">
                     {card.title}
                   </h3>
-                  <p className="text-xs text-zinc-400 mb-3 text-center">{card.subtitle}</p>
-                  <div className="flex items-center justify-center gap-2 bg-[var(--theme-background)] px-3 py-1.5 rounded-xl border border-zinc-800 text-xs font-mono text-zinc-300 mb-4 w-full max-w-[220px]">
+                  <p className="text-xs text-[var(--theme-text-muted)] mb-3 text-center">{card.subtitle}</p>
+                  <div className="flex items-center justify-center gap-2 bg-[var(--theme-background)] px-3 py-1.5 rounded-xl border border-[var(--theme-border)] text-xs font-mono text-[var(--theme-text-secondary)] mb-4 w-full max-w-[220px]">
                     <span className="truncate text-center" dir="ltr">
                       {card.value}
                     </span>
                     <button
                       onClick={() => handleCopy(card.value, card.key)}
-                      className="text-zinc-500 hover:text-[var(--theme-primary)] transition p-1 cursor-pointer shrink-0"
+                      className="text-[var(--theme-text-muted)] hover:text-[var(--theme-primary)] transition p-1 cursor-pointer shrink-0"
                       title="نسخ"
                     >
                       {isCopied ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
@@ -578,7 +579,7 @@ export default function ContactPage() {
                   href={card.actionHref}
                   target={card.key !== "phone" ? "_blank" : undefined}
                   rel="noreferrer"
-                  className="w-full inline-flex items-center justify-center gap-2 bg-[var(--theme-primary)] hover:bg-[var(--theme-accent)] text-[var(--theme-background)] font-black text-xs py-2.5 rounded-xl shadow-md transition active:scale-95 cursor-pointer"
+                  className="w-full inline-flex items-center justify-center gap-2 bg-[var(--theme-primary)] hover:bg-[var(--theme-accent)] text-[var(--theme-text-on-primary,var(--theme-background))] font-black text-xs py-2.5 rounded-xl shadow-md transition active:scale-95 cursor-pointer"
                 >
                   <span>{card.actionLabel}</span>
                   <ExternalLink size={13} />
@@ -675,7 +676,7 @@ export default function ContactPage() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full inline-flex items-center justify-center gap-2 bg-[var(--theme-primary)] hover:opacity-90 text-white font-black text-sm py-3.5 rounded-xl shadow-lg transition active:scale-[0.98] cursor-pointer disabled:opacity-50"
+                className="w-full inline-flex items-center justify-center gap-2 bg-[var(--theme-primary)] hover:opacity-90 text-[var(--theme-text-on-primary,#FFFFFF)] font-black text-sm py-3.5 rounded-xl shadow-lg transition active:scale-[0.98] cursor-pointer disabled:opacity-50"
               >
                 <Send size={16} className={submitting ? "animate-spin" : ""} />
                 <span>{submitting ? "جاري إرسال رسالتك..." : "إرسال الرسالة الآن"}</span>
@@ -743,7 +744,7 @@ export default function ContactPage() {
                     <div
                       className={`w-7 h-7 rounded-xl flex items-center justify-center shrink-0 border transition-transform ${
                         isOpen
-                          ? "bg-[var(--theme-primary)] text-white border-[var(--theme-primary)] rotate-180"
+                          ? "bg-[var(--theme-primary)] text-[var(--theme-text-on-primary,#FFFFFF)] border-[var(--theme-primary)] rotate-180"
                           : "bg-[var(--theme-input-bg)] text-[var(--theme-text-muted)] border-[var(--theme-border)]"
                       }`}
                     >
@@ -780,7 +781,7 @@ export default function ContactPage() {
 
   return (
     <div
-      className="min-h-screen pb-24 p-4 selection:bg-[var(--theme-primary)] selection:text-black transition-colors"
+      className="min-h-screen pb-24 p-4 selection:bg-[var(--theme-primary)] selection:text-[var(--theme-text-on-primary)] transition-colors"
       style={{
         backgroundColor: "var(--contact-bg-color, var(--contact-bg, var(--theme-background)))",
         color: "var(--contact-text-color, var(--contact-text, var(--theme-text-primary)))",
@@ -836,7 +837,10 @@ export default function ContactPage() {
               {activeChannels.map((channel) => {
                 const IconComponent = getChannelIconComponent(channel.icon);
                 const isCopied = copiedId === channel.id;
-                const channelColor = channel.color || styles.title_color || "#C8A45C";
+                const channelColor = sanitizeColor(
+                  channel.color,
+                  sanitizeColor(styles.title_color, "var(--contact-title-color, var(--theme-primary, #C8A45C))")
+                );
 
                 return (
                   <motion.div
@@ -845,8 +849,8 @@ export default function ContactPage() {
                     transition={{ duration: 0.2 }}
                     className="w-full max-w-[280px] sm:w-[calc(50%-0.75rem)] sm:max-w-[320px] lg:w-[calc(25%-0.75rem)] rounded-3xl p-6 flex flex-col items-center text-center justify-between shadow-xl relative overflow-hidden group border"
                     style={{
-                      backgroundColor: styles.card_bg || "var(--contact-card-color, var(--theme-card))",
-                      borderColor: `${channelColor}40`,
+                      backgroundColor: sanitizeColor(styles.card_bg, "var(--contact-card-color, var(--theme-card))"),
+                      borderColor: `color-mix(in srgb, ${channelColor} 25%, transparent)`,
                     }}
                   >
                     {/* Background glow using channel's color */}
@@ -858,9 +862,10 @@ export default function ContactPage() {
                     <div className="flex flex-col items-center w-full">
                       {/* Channel Icon Badge */}
                       <div
-                        className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4 shadow-md group-hover:scale-105 transition-transform text-white"
+                        className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4 shadow-md group-hover:scale-105 transition-transform"
                         style={{
                           backgroundColor: channelColor,
+                          color: "var(--theme-text-on-primary, #FFFFFF)",
                         }}
                       >
                         <IconComponent size={26} />
@@ -868,7 +873,7 @@ export default function ContactPage() {
 
                       <h3
                         className="text-base font-bold mb-1 group-hover:brightness-125 transition-all text-center"
-                        style={{ color: styles.text_color || "#FFFFFF" }}
+                        style={{ color: sanitizeColor(styles.text_color, "var(--contact-text-color, var(--theme-text-primary, #FFFFFF))") }}
                       >
                         {channel.name}
                       </h3>
@@ -877,9 +882,9 @@ export default function ContactPage() {
                       <div
                         className="flex items-center justify-center gap-2 px-3 py-1.5 rounded-xl text-xs font-mono mb-4 border w-full max-w-[220px]"
                         style={{
-                          backgroundColor: `${styles.bg_color || "#1A1A1A"}CC`,
-                          borderColor: `${styles.border_color || "#C8A45C"}25`,
-                          color: styles.text_color || "#E5E7EB",
+                          backgroundColor: `color-mix(in srgb, ${sanitizeColor(styles.bg_color, "var(--theme-input-bg, #1A1A1A)")} 80%, transparent)`,
+                          borderColor: `color-mix(in srgb, ${sanitizeColor(styles.border_color, "var(--theme-border, #C8A45C)")} 40%, transparent)`,
+                          color: sanitizeColor(styles.text_color, "var(--contact-text-color, var(--theme-text-secondary, #E5E7EB))"),
                         }}
                       >
                         <span className="truncate text-center" dir="ltr">
@@ -888,7 +893,7 @@ export default function ContactPage() {
                         <button
                           type="button"
                           onClick={() => handleCopy(channel.value, channel.id)}
-                          className="text-zinc-400 hover:text-white transition p-1 cursor-pointer shrink-0"
+                          className="text-[var(--theme-text-muted)] hover:text-[var(--theme-primary)] transition p-1 cursor-pointer shrink-0"
                           title="نسخ النص"
                           aria-label="نسخ"
                         >
@@ -909,7 +914,7 @@ export default function ContactPage() {
                       className="w-full inline-flex items-center justify-center gap-2 font-bold text-xs py-2.5 rounded-xl shadow-md transition active:scale-95 cursor-pointer"
                       style={{
                         backgroundColor: channelColor,
-                        color: "#1A1A1A",
+                        color: "var(--theme-text-on-primary, var(--theme-background, #1A1A1A))",
                       }}
                     >
                       <span>تواصل الآن</span>
@@ -1128,7 +1133,7 @@ export default function ContactPage() {
                     className="w-full inline-flex items-center justify-center gap-2 font-black text-sm py-3.5 rounded-xl shadow-lg transition active:scale-[0.98] cursor-pointer disabled:opacity-50"
                     style={{
                       backgroundColor: sanitizeColor(styles.title_color, "var(--contact-button-color, var(--theme-primary))"),
-                      color: "#FFFFFF",
+                      color: "var(--theme-text-on-primary, #FFFFFF)",
                     }}
                   >
                     <Send size={16} className={submitting ? "animate-spin" : ""} />
@@ -1271,7 +1276,7 @@ export default function ContactPage() {
                           backgroundColor: isOpen
                             ? sanitizeColor(styles.title_color, "var(--contact-button-color, var(--theme-primary))")
                             : "var(--theme-input-bg)",
-                          color: isOpen ? "#FFFFFF" : "var(--theme-text-primary)",
+                          color: isOpen ? "var(--theme-text-on-primary, #FFFFFF)" : "var(--theme-text-primary)",
                           borderColor: "var(--theme-border)",
                         }}
                       >

@@ -204,60 +204,7 @@ export function getShortAccountId(identifier: string | number): string {
   return short.padStart(4, "0");
 }
 
-export function calculateVipLevel(totalSpentUsd: number, currentVipLevel: number = 1): number {
-  if (totalSpentUsd >= 2500) return 5;
-  if (totalSpentUsd >= 1000) return 4;
-  if (totalSpentUsd >= 500) return 3;
-  if (totalSpentUsd >= 300) return 2;
-  return Math.max(1, currentVipLevel);
-}
-
-export async function updateUserVipLevel(userId: number) {
-  try {
-    const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId)).limit(1);
-    if (!user) return null;
-
-    const totalSpent = Number(user.totalSpent || 0);
-    const levels = await db
-      .select()
-      .from(vipMembershipsTable)
-      .where(eq(vipMembershipsTable.hidden, false))
-      .orderBy(desc(vipMembershipsTable.levelOrder));
-
-    if (!levels || levels.length === 0) return user.vipLevel;
-
-    // Find highest level requirement met by user totalSpent
-    let matchedLevel = levels[levels.length - 1];
-    for (const lvl of levels) {
-      if (totalSpent >= Number(lvl.requiredAmount)) {
-        matchedLevel = lvl;
-        break;
-      }
-    }
-
-    const matchedOrder = matchedLevel.levelOrder || matchedLevel.id;
-    const currentVip = user.vipLevel || 1;
-    let targetVip = Math.max(matchedOrder, currentVip);
-
-    if (targetVip !== user.vipLevel) {
-      await db.update(usersTable).set({ vipLevel: targetVip }).where(eq(usersTable.id, userId));
-      try {
-        await createInternalNotification({
-          targetType: "user",
-          targetUserId: userId,
-          title: "🎉 تهانينا! تم ترقية مستوى عضويتك",
-          content: `مرحباً ${user.username}، تم ترقية حسابك رسمياً إلى مستوى ${matchedLevel.name}. استمتع بخصم ${matchedLevel.discountPercent || matchedLevel.profitPct || 0}% وكافة المزايا الفاخرة!`,
-        });
-      } catch (e) {
-        console.warn("VIP upgrade notification error:", e);
-      }
-    }
-    return targetVip;
-  } catch (err) {
-    console.error("Error in updateUserVipLevel:", err);
-    return null;
-  }
-}
+export { updateUserVipLevel } from "./vipHelper.js";
 
 export function getVipBadge(vipLevel: number): { label: string; name: string; color: string } {
   switch (vipLevel) {
@@ -335,6 +282,9 @@ export async function getOrCreateCurrentUser(req?: Request) {
         .limit(1);
       if (users.length > 0) {
         const u = users[0]!;
+        if (u.banned) {
+          throw new BannedUserError();
+        }
         if (!u.displayId) {
           const nextDisp = await generateNextDisplayId();
           const [updated] = await db

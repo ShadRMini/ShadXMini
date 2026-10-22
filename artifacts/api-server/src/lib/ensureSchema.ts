@@ -1295,28 +1295,28 @@ export async function ensureDatabaseSchema() {
     // 12. Ensure default flat color settings in settings table
     const DEFAULT_COLORS = [
       // Auth Pages
-      { key: "auth_bg_color", val: "#1A1A1A" },
-      { key: "auth_card_color", val: "#2D2D2D" },
-      { key: "auth_text_color", val: "#FFFFFF" },
-      { key: "auth_button_color", val: "#C8A45C" },
+      { key: "auth_bg_color", val: "" },
+      { key: "auth_card_color", val: "" },
+      { key: "auth_text_color", val: "" },
+      { key: "auth_button_color", val: "" },
 
       // Product Page
-      { key: "product_bg_color", val: "#1A1A1A" },
-      { key: "product_card_color", val: "#2D2D2D" },
-      { key: "product_text_color", val: "#FFFFFF" },
-      { key: "product_price_color", val: "#C8A45C" },
-      { key: "product_button_color", val: "#C8A45C" },
-      { key: "product_border_color", val: "#C8A45C" },
+      { key: "product_bg_color", val: "" },
+      { key: "product_card_color", val: "" },
+      { key: "product_text_color", val: "" },
+      { key: "product_price_color", val: "" },
+      { key: "product_button_color", val: "" },
+      { key: "product_border_color", val: "" },
 
       // About Page
-      { key: "about_bg_color", val: "#1A1A1A" },
-      { key: "about_card_color", val: "#2D2D2D" },
-      { key: "about_text_color", val: "#FFFFFF" },
+      { key: "about_bg_color", val: "" },
+      { key: "about_card_color", val: "" },
+      { key: "about_text_color", val: "" },
 
       // Contact Page
-      { key: "contact_bg_color", val: "#1A1A1A" },
-      { key: "contact_card_color", val: "#2D2D2D" },
-      { key: "contact_text_color", val: "#FFFFFF" },
+      { key: "contact_bg_color", val: "" },
+      { key: "contact_card_color", val: "" },
+      { key: "contact_text_color", val: "" },
     ];
 
     for (const item of DEFAULT_COLORS) {
@@ -1365,6 +1365,20 @@ export async function ensureDatabaseSchema() {
     }
 
     console.log("[ensureSchema] ✅ Default flat color settings ensured in Neon DB");
+
+    // 19. Ensure performance indexes (C15b)
+    await db.execute(sql`
+      CREATE INDEX IF NOT EXISTS idx_products_category ON products(category_id);
+      CREATE INDEX IF NOT EXISTS idx_products_group ON products(group_id);
+      CREATE INDEX IF NOT EXISTS idx_orders_user_created ON orders(user_id, created_at);
+      CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
+      CREATE INDEX IF NOT EXISTS idx_orders_product ON orders(product_id);
+      CREATE INDEX IF NOT EXISTS idx_deposits_user_created ON deposits(user_id, created_at);
+      CREATE INDEX IF NOT EXISTS idx_deposits_tx_id ON deposits(transaction_id);
+      CREATE INDEX IF NOT EXISTS idx_deposits_status ON deposits(status);
+      CREATE INDEX IF NOT EXISTS idx_notifications_user_read ON notifications(target_user_id, is_read);
+    `);
+    console.log("[ensureSchema] ✅ Performance indexes (products, orders, deposits, notifications) ensured");
 
     schemaEnsured = true;
     console.log("[DB Schema] Runtime schema verified and synchronized successfully.");

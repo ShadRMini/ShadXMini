@@ -39,9 +39,9 @@ export default function OrderDetail() {
           color: "var(--theme-text-primary)",
         }}
       >
-        <Skeleton className="h-8 w-32 mb-8 bg-zinc-800" />
-        <Skeleton className="h-32 w-full rounded-3xl mb-4 bg-zinc-800" />
-        <Skeleton className="h-64 w-full rounded-3xl bg-zinc-800" />
+        <Skeleton className="h-8 w-32 mb-8 bg-[var(--theme-card)]" />
+        <Skeleton className="h-32 w-full rounded-3xl mb-4 bg-[var(--theme-card)]" />
+        <Skeleton className="h-64 w-full rounded-3xl bg-[var(--theme-card)]" />
       </div>
     );
   }
@@ -97,7 +97,7 @@ export default function OrderDetail() {
       <div 
         className="sticky top-0 z-10 backdrop-blur-xl border-b px-4 py-3 flex items-center gap-3"
         style={{
-          backgroundColor: "rgba(26, 26, 26, 0.9)",
+          backgroundColor: "color-mix(in srgb, var(--theme-background) 90%, transparent)",
           borderColor: "var(--theme-border)",
         }}
       >
@@ -127,15 +127,15 @@ export default function OrderDetail() {
           className="p-6 rounded-3xl border relative overflow-hidden transition"
           style={{
             backgroundColor: isAccept
-              ? "rgba(16, 185, 129, 0.12)"
+              ? "color-mix(in srgb, var(--theme-success, #10B981) 12%, transparent)"
               : isReject
-                ? "rgba(239, 68, 68, 0.12)"
-                : "rgba(245, 158, 11, 0.12)",
+                ? "color-mix(in srgb, var(--theme-error, #EF4444) 12%, transparent)"
+                : "color-mix(in srgb, var(--theme-warning, #F59E0B) 12%, transparent)",
             borderColor: isAccept
-              ? "rgba(16, 185, 129, 0.35)"
+              ? "color-mix(in srgb, var(--theme-success, #10B981) 35%, transparent)"
               : isReject
-                ? "rgba(239, 68, 68, 0.35)"
-                : "rgba(245, 158, 11, 0.35)",
+                ? "color-mix(in srgb, var(--theme-error, #EF4444) 35%, transparent)"
+                : "color-mix(in srgb, var(--theme-warning, #F59E0B) 35%, transparent)",
             borderWidth: "1px",
             borderStyle: "solid",
           }}
@@ -145,16 +145,16 @@ export default function OrderDetail() {
               className="w-16 h-16 rounded-2xl flex items-center justify-center mb-3 shadow-lg"
               style={{
                 backgroundColor: isAccept
-                  ? "#10B981"
+                  ? "var(--theme-success, #10B981)"
                   : isReject
-                    ? "#EF4444"
+                    ? "var(--theme-error, #EF4444)"
                     : "var(--theme-primary)",
-                color: isAccept || isReject ? "#FFFFFF" : "var(--theme-text-on-primary)",
+                color: isAccept || isReject ? "var(--theme-text-on-primary, #FFFFFF)" : "var(--theme-text-on-primary)",
                 boxShadow: isAccept
-                  ? "0 0 20px rgba(16, 185, 129, 0.3)"
+                  ? "0 0 20px color-mix(in srgb, var(--theme-success, #10B981) 30%, transparent)"
                   : isReject
-                    ? "0 0 20px rgba(239, 68, 68, 0.3)"
-                    : "0 0 20px rgba(200, 164, 92, 0.3)",
+                    ? "0 0 20px color-mix(in srgb, var(--theme-error, #EF4444) 30%, transparent)"
+                    : "0 0 20px color-mix(in srgb, var(--theme-primary) 30%, transparent)",
               }}
             >
               {isAccept ? (
@@ -165,10 +165,10 @@ export default function OrderDetail() {
                 <Clock className="w-8 h-8" />
               )}
             </div>
-            <h2 className="text-xl font-black text-white mb-1">
+            <h2 className="text-xl font-black mb-1" style={{ color: "var(--theme-text-primary)" }}>
               {isAccept ? "اكتمل الطلب بنجاح" : isReject ? "تم رفض الطلب" : "الطلب قيد الانتظار والمعالجة"}
             </h2>
-            <p className="text-sm text-zinc-300 max-w-sm">
+            <p className="text-sm max-w-sm" style={{ color: "var(--theme-text-secondary)" }}>
               {isAccept
                 ? "تم تنفيذ طلبك وإرسال كافة القسائم أو الشحن المطلوب بنجاح."
                 : isReject
@@ -205,7 +205,7 @@ export default function OrderDetail() {
               )}
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="font-black text-white mb-1 text-base truncate">{order.productName}</h3>
+              <h3 className="font-black mb-1 text-base truncate" style={{ color: "var(--theme-text-primary)" }}>{order.productName}</h3>
               <div className="text-sm" style={{ color: "var(--theme-text-secondary)" }}>
                 الكمية المطلوبة: <span className="font-black" style={{ color: "var(--theme-accent)" }}>{order.quantity}</span>
               </div>
@@ -223,7 +223,7 @@ export default function OrderDetail() {
                 <button
                   type="button"
                   onClick={() => copyToClipboard(order.orderNumber, "رقم الطلب")}
-                  className="transition-colors cursor-pointer p-1 rounded-lg hover:bg-white/5"
+                  className="transition-colors cursor-pointer p-1 rounded-lg hover:bg-[var(--theme-input-bg)]"
                   style={{ color: "var(--theme-text-secondary)" }}
                   title="نسخ رقم الطلب"
                 >
@@ -243,13 +243,13 @@ export default function OrderDetail() {
               <div className="flex justify-between items-center">
                 <span style={{ color: "var(--theme-text-secondary)" }}>معرف الحساب / الرقم</span>
                 <div className="flex items-center gap-2">
-                  <span className="font-mono font-bold text-white px-2.5 py-1 rounded-lg border border-[var(--theme-border)]" style={{ backgroundColor: "var(--theme-background)" }}>
+                  <span className="font-mono font-bold px-2.5 py-1 rounded-lg border border-[var(--theme-border)]" style={{ backgroundColor: "var(--theme-background)", color: "var(--theme-text-primary)" }}>
                     {order.userIdentifier}
                   </span>
                   <button
                     type="button"
                     onClick={() => copyToClipboard(order.userIdentifier!, "المعرف")}
-                    className="transition-colors cursor-pointer p-1 rounded-lg hover:bg-white/5"
+                    className="transition-colors cursor-pointer p-1 rounded-lg hover:bg-[var(--theme-input-bg)]"
                     style={{ color: "var(--theme-text-secondary)" }}
                     title="نسخ المعرف"
                   >
@@ -268,7 +268,7 @@ export default function OrderDetail() {
                   {formatPrice(order.totalUsd)}
                 </div>
                 {formatPriceWithSyp(order.totalUsd).secondary && (
-                  <div className="text-xs font-medium text-zinc-400 mt-0.5">
+                  <div className="text-xs font-medium mt-0.5" style={{ color: "var(--theme-text-muted)" }}>
                     {formatPriceWithSyp(order.totalUsd).secondary}
                   </div>
                 )}
@@ -286,7 +286,7 @@ export default function OrderDetail() {
           }}
         >
           <div>
-            <div className="font-bold text-white mb-1 text-sm">هل تواجه استفساراً حول الطلب؟</div>
+            <div className="font-bold mb-1 text-sm" style={{ color: "var(--theme-text-primary)" }}>هل تواجه استفساراً حول الطلب؟</div>
             <div className="text-xs" style={{ color: "var(--theme-text-secondary)" }}>فريق الدعم الفني المباشر جاهز لمساعدتك</div>
           </div>
           <Link href="/orders">

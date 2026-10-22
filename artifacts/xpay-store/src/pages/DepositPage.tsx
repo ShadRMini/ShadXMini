@@ -182,10 +182,10 @@ export default function DepositPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen p-6 flex flex-col items-center justify-center space-y-4" dir="rtl">
-        <Skeleton className="w-16 h-16 rounded-2xl bg-zinc-800 animate-pulse" />
-        <Skeleton className="w-48 h-6 rounded-xl bg-zinc-800 animate-pulse" />
-        <Skeleton className="w-64 h-4 rounded-xl bg-zinc-800 animate-pulse" />
+      <div className="min-h-screen bg-[var(--theme-background)] p-6 flex flex-col items-center justify-center space-y-4" dir="rtl">
+        <Skeleton className="w-16 h-16 rounded-2xl bg-[var(--theme-card)] animate-pulse" />
+        <Skeleton className="w-48 h-6 rounded-xl bg-[var(--theme-card)] animate-pulse" />
+        <Skeleton className="w-64 h-4 rounded-xl bg-[var(--theme-card)] animate-pulse" />
       </div>
     );
   }
@@ -492,7 +492,7 @@ export default function DepositPage() {
             >
               <Clock className="w-4 h-4 shrink-0 mt-0.5" style={{ color: "var(--theme-primary)" }} />
               <span>
-                سيتم إنشاء فاتورة صالحة لمدة <strong className="text-white">15 دقيقة</strong>. يرجى إتمام الدفع خلال هذه المدة.
+                سيتم إنشاء فاتورة صالحة لمدة <strong className="text-[var(--theme-text-primary)]">15 دقيقة</strong>. يرجى إتمام الدفع خلال هذه المدة.
               </span>
             </div>
 
@@ -503,7 +503,7 @@ export default function DepositPage() {
               className="w-full h-13 rounded-2xl font-black text-base shadow-xl transition-all cursor-pointer flex items-center justify-center gap-2 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50"
               style={{
                 backgroundColor: "var(--theme-primary)",
-                color: "var(--theme-background)",
+                color: "var(--theme-text-on-primary, var(--theme-background))",
               }}
             >
               {submitting ? (

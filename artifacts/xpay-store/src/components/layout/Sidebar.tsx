@@ -22,7 +22,7 @@ import {
 import { useAuth } from "@/lib/auth-context";
 import { useStoreSettings } from "@/lib/store-settings-context";
 import { useAppData } from "@/contexts/AppDataContext";
-import { getStoreThemeMode, setStoreThemeMode, toggleStoreThemeMode, applyStoreTheme } from "@/lib/theme";
+import { getStoreThemeMode, setStoreThemeMode, toggleStoreThemeMode, applyStoreTheme, getCachedThemeSettings } from "@/lib/theme";
 import { toast } from "sonner";
 
 interface SidebarProps {
@@ -126,21 +126,20 @@ export default function Sidebar({ brandLogo, onClose }: SidebarProps) {
     >
       {/* Header / Brand */}
       <div
-        className={`p-5 border-b flex items-center justify-between min-h-[72px] ${onClose ? "justify-between" : ""}`}
+        className={`px-3.5 py-2 md:p-5 border-b flex items-center justify-between min-h-[44px] md:min-h-[72px] ${onClose ? "justify-between" : ""}`}
         style={{
           borderColor: "var(--theme-border)",
         }}
       >
         {/* Brand Logo & Name - Hidden on mobile (<768px), visible on md/lg and desktop */}
         <Link href="/" className="hidden md:flex items-center gap-3">
-          {brandLogo ? (
+          {(brandLogo || getCachedThemeSettings()?.theme_logo_url || storeSettings.theme_logo_url || storeSettings.brandLogoUrl) ? (
             <img
-              src={brandLogo}
+              src={brandLogo || getCachedThemeSettings()?.theme_logo_url || storeSettings.theme_logo_url || storeSettings.brandLogoUrl}
               alt={storeSettings.siteName || "ShadMini"}
               className="store-brand-logo object-contain rounded-xl transition-all duration-200"
               style={{
                 height: "var(--theme-logo-size, 80px)",
-                maxHeight: "56px",
                 maxWidth: "200px",
                 width: "auto",
               }}
@@ -148,7 +147,7 @@ export default function Sidebar({ brandLogo, onClose }: SidebarProps) {
           ) : (
             <span 
               className="text-xl font-black tracking-wide"
-              style={{ color: "var(--theme-accent)" }}
+              style={{ color: "var(--theme-logo-text-color, var(--theme-accent))" }}
             >
               {storeSettings.siteName || "ShadMini"}
             </span>
@@ -156,16 +155,23 @@ export default function Sidebar({ brandLogo, onClose }: SidebarProps) {
         </Link>
         {onClose && (
           <div className="flex items-center justify-between w-full md:w-auto">
-            <span className="text-sm font-bold md:hidden" style={{ color: "var(--theme-text-muted)" }}>
+            <span
+              className="text-xs font-semibold tracking-wide md:hidden"
+              style={{ color: "var(--theme-text-muted)" }}
+            >
               القائمة
             </span>
             <button
               onClick={onClose}
-              className="lg:hidden p-1.5 rounded-xl transition cursor-pointer"
-              style={{ color: "var(--theme-text-muted)" }}
+              className="lg:hidden w-7 h-7 rounded-full flex items-center justify-center transition-all duration-200 active:scale-90 cursor-pointer hover:opacity-80"
+              style={{
+                backgroundColor: "color-mix(in srgb, var(--theme-text-muted, #64748B) 12%, transparent)",
+                border: "1px solid var(--theme-border, rgba(148, 163, 184, 0.25))",
+                color: "var(--theme-text-secondary, var(--theme-text-primary))",
+              }}
               aria-label="إغلاق القائمة"
             >
-              <X size={20} />
+              <X size={15} strokeWidth={2.25} />
             </button>
           </div>
         )}
@@ -194,15 +200,21 @@ export default function Sidebar({ brandLogo, onClose }: SidebarProps) {
                   className="w-12 h-12 rounded-2xl font-black flex items-center justify-center text-xl shadow-md"
                   style={{
                     backgroundColor: "var(--theme-primary)",
-                    color: "#1A1A1A",
+                    color: "var(--theme-background, #1A1A1A)",
                   }}
                 >
                   {displayName.charAt(0).toUpperCase()}
                 </div>
               )}
               {isVip && (
-                <div className="absolute -top-1 -right-1 bg-amber-400 text-black p-0.5 rounded-full shadow-xs">
-                  <Crown size={12} className="fill-black" />
+                <div
+                  className="absolute -top-1 -right-1 p-0.5 rounded-full shadow-xs"
+                  style={{
+                    backgroundColor: "var(--theme-accent, #FDE68A)",
+                    color: "var(--theme-background, #1A1A1A)",
+                  }}
+                >
+                  <Crown size={12} className="fill-current" />
                 </div>
               )}
             </div>
@@ -216,17 +228,28 @@ export default function Sidebar({ brandLogo, onClose }: SidebarProps) {
                   {displayName}
                 </span>
                 <span
-                  className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${
+                  className="text-[10px] font-extrabold px-2 py-0.5 rounded-full shadow-xs"
+                  style={
                     vipLevel >= 4
-                      ? "bg-amber-400 text-zinc-950 shadow-xs"
+                      ? {
+                          backgroundColor: "var(--theme-accent, #FDE68A)",
+                          color: "var(--theme-background, #1A1A1A)",
+                        }
                       : vipLevel === 3
-                      ? "bg-yellow-400 text-zinc-950"
+                      ? {
+                          backgroundColor: "var(--theme-primary, #C8A45C)",
+                          color: "var(--theme-background, #1A1A1A)",
+                        }
                       : vipLevel === 2
-                      ? "bg-blue-400 text-zinc-950"
-                      : isDark
-                      ? "bg-zinc-700 text-zinc-300"
-                      : "bg-zinc-200 text-zinc-700"
-                  }`}
+                      ? {
+                          backgroundColor: "color-mix(in srgb, var(--theme-primary, #C8A45C) 25%, transparent)",
+                          color: "var(--theme-primary, #C8A45C)",
+                        }
+                      : {
+                          backgroundColor: "var(--theme-input-bg, #3D3D3D)",
+                          color: "var(--theme-text-secondary, #E5E7EB)",
+                        }
+                  }
                 >
                   {vipBadgeName}
                 </span>
@@ -268,7 +291,7 @@ export default function Sidebar({ brandLogo, onClose }: SidebarProps) {
                 className="w-full font-bold text-xs py-2 rounded-xl transition cursor-pointer shadow-sm"
                 style={{
                   backgroundColor: "var(--theme-primary)",
-                  color: "#1A1A1A",
+                  color: "var(--theme-background, #1A1A1A)",
                 }}
               >
                 {storeSettings.guestPreviewLoginButton || "تسجيل الدخول"}
@@ -304,15 +327,15 @@ export default function Sidebar({ brandLogo, onClose }: SidebarProps) {
                 className="flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-semibold transition-all cursor-pointer select-none"
                 style={{
                   backgroundColor: isActive ? "var(--theme-primary)" : "transparent",
-                  color: isActive ? "#1A1A1A" : "var(--theme-text-primary)",
+                  color: isActive ? "var(--theme-background, #1A1A1A)" : "var(--theme-text-primary)",
                   fontWeight: isActive ? 700 : 500,
-                  boxShadow: isActive ? "0 4px 12px rgba(200, 164, 92, 0.25)" : "none",
+                  boxShadow: isActive ? "0 4px 12px color-mix(in srgb, var(--theme-primary, #C8A45C) 25%, transparent)" : "none",
                 }}
               >
                 <div className="flex items-center gap-3">
                   <item.icon
                     size={18}
-                    style={{ color: isActive ? "#1A1A1A" : "var(--theme-primary)" }}
+                    style={{ color: isActive ? "var(--theme-background, #1A1A1A)" : "var(--theme-primary)" }}
                   />
                   <span>{item.label}</span>
                 </div>
@@ -321,8 +344,8 @@ export default function Sidebar({ brandLogo, onClose }: SidebarProps) {
                     <span
                       className="text-[10px] font-black px-2 py-0.5 rounded-full"
                       style={{
-                        backgroundColor: isActive ? "#1A1A1A" : "var(--theme-primary)",
-                        color: isActive ? "var(--theme-accent)" : "#1A1A1A",
+                        backgroundColor: isActive ? "var(--theme-background, #1A1A1A)" : "var(--theme-primary)",
+                        color: isActive ? "var(--theme-accent)" : "var(--theme-background, #1A1A1A)",
                       }}
                     >
                       {item.badge}
@@ -370,7 +393,7 @@ export default function Sidebar({ brandLogo, onClose }: SidebarProps) {
             <div
               className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
               style={{
-                backgroundColor: "rgba(200, 164, 92, 0.15)",
+                backgroundColor: "color-mix(in srgb, var(--theme-primary, #C8A45C) 15%, transparent)",
                 color: "var(--theme-primary)",
               }}
             >
@@ -396,18 +419,21 @@ export default function Sidebar({ brandLogo, onClose }: SidebarProps) {
           <div
             className="w-11 h-6 flex items-center rounded-full p-1 transition-colors duration-300"
             style={{
-              backgroundColor: isDark ? "var(--theme-primary)" : "#D1D5DB",
+              backgroundColor: isDark ? "var(--theme-primary)" : "var(--theme-input-bg, #D1D5DB)",
             }}
           >
             <div
               className={`w-4 h-4 rounded-full shadow-md transform transition-transform duration-300 flex items-center justify-center ${
-                isDark ? "translate-x-0 bg-zinc-950" : "-translate-x-5 bg-white"
+                isDark ? "translate-x-0" : "-translate-x-5"
               }`}
+              style={{
+                backgroundColor: "var(--theme-background, #1A1A1A)",
+              }}
             >
               {isDark ? (
                 <Moon size={9} style={{ color: "var(--theme-accent)" }} />
               ) : (
-                <Sun size={9} className="text-amber-500" />
+                <Sun size={9} style={{ color: "var(--theme-primary, #C8A45C)" }} />
               )}
             </div>
           </div>
@@ -417,9 +443,10 @@ export default function Sidebar({ brandLogo, onClose }: SidebarProps) {
       {/* Footer / Logout */}
       {user && (
         <div
-          className={`p-3 border-t ${
-            isDark ? "border-zinc-800" : "border-zinc-200"
-          }`}
+          className="p-3 border-t"
+          style={{
+            borderColor: "var(--theme-border, #2D2D2D)",
+          }}
         >
           <button
             type="button"

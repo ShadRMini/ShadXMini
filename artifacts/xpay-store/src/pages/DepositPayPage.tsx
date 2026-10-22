@@ -449,9 +449,9 @@ export default function DepositPayPage() {
       <div className="max-w-4xl mx-auto p-4 sm:p-6 mt-2">
         {/* Expired Notification Banner */}
         {isExpired && (
-          <div className="mb-6 p-4 rounded-2xl bg-red-500/15 border border-red-500/30 flex items-center justify-between gap-4 text-red-300 animate-in fade-in">
+          <div className="mb-6 p-4 rounded-2xl bg-[var(--theme-error,#EF4444)]/15 border border-[var(--theme-error,#EF4444)]/30 flex items-center justify-between gap-4 text-[var(--theme-error,#EF4444)] animate-in fade-in">
             <div className="flex items-center gap-3">
-              <AlertTriangle className="w-5 h-5 text-red-400 shrink-0" />
+              <AlertTriangle className="w-5 h-5 text-[var(--theme-error,#EF4444)] shrink-0" />
               <div className="text-xs sm:text-sm">
                 <span className="font-bold block">انتهت صلاحية هذه الفاتورة</span>
                 يرجى العودة لصفحة الإيداع وإنشاء فاتورة جديدة.
@@ -461,7 +461,7 @@ export default function DepositPayPage() {
               <Button
                 size="sm"
                 variant="outline"
-                className="rounded-xl border-red-500/40 text-red-200 hover:bg-red-500/20 text-xs shrink-0"
+                className="rounded-xl border-[var(--theme-error,#EF4444)]/40 text-[var(--theme-error,#EF4444)] hover:bg-[var(--theme-error,#EF4444)]/20 text-xs shrink-0"
               >
                 فاتورة جديدة
               </Button>
@@ -471,8 +471,8 @@ export default function DepositPayPage() {
 
         {/* Success Banner */}
         {depositStatus === "approved" && (
-          <div className="mb-6 p-4 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center gap-3 text-emerald-300 animate-in fade-in">
-            <CheckCircle2 className="w-6 h-6 text-emerald-400 shrink-0" />
+          <div className="mb-6 p-4 rounded-2xl bg-[var(--theme-success,#10B981)]/15 border border-[var(--theme-success,#10B981)]/30 flex items-center gap-3 text-[var(--theme-success,#10B981)] animate-in fade-in">
+            <CheckCircle2 className="w-6 h-6 text-[var(--theme-success,#10B981)] shrink-0" />
             <div className="text-xs sm:text-sm">
               <span className="font-bold block">تم تأكيد الإيداع بنجاح!</span>
               تمت إضافة الرصيد إلى محفظتك، جاري التوجيه لسجل العمليات...
@@ -540,15 +540,15 @@ export default function DepositPayPage() {
                       style={{ width: "100%", height: "100%" }}
                     />
                   ) : (
-                    <div className="flex flex-col items-center justify-center p-2 text-center text-amber-500 font-bold text-xs gap-1">
-                      <AlertTriangle className="w-8 h-8 text-amber-500" />
+                    <div className="flex flex-col items-center justify-center p-2 text-center text-[var(--theme-warning,#F59E0B)] font-bold text-xs gap-1">
+                      <AlertTriangle className="w-8 h-8 text-[var(--theme-warning,#F59E0B)]" />
                       <span>يرجى التواصل مع الدعم</span>
                     </div>
                   )}
 
                   {(walletAddress || qrImageSrc) && (
                     <div className="absolute inset-0 rounded-2xl bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white gap-1 p-2">
-                      <Maximize2 className="w-6 h-6 text-amber-300 drop-shadow" />
+                      <Maximize2 className="w-6 h-6 text-[var(--theme-accent)] drop-shadow" />
                       <span className="text-[11px] font-bold bg-black/60 px-2.5 py-1 rounded-full">
                         انقر للتكبير
                       </span>
@@ -643,7 +643,7 @@ export default function DepositPayPage() {
                   className="px-4 py-2 rounded-xl flex items-center gap-2 font-bold text-xs transition cursor-pointer shadow-md active:scale-95"
                   style={{
                     backgroundColor: "var(--theme-primary)",
-                    color: "var(--theme-background)",
+                    color: "var(--theme-text-on-primary, var(--theme-background))",
                   }}
                 >
                   <Copy className="w-3.5 h-3.5" />
@@ -772,7 +772,7 @@ export default function DepositPayPage() {
                 </p>
                 <ol className="list-decimal list-inside space-y-1 text-xs">
                   <li>افتح تطبيق شام كاش وحوّل المبلغ المطلوب إلى العنوان أعلاه.</li>
-                  <li>انسخ <span className="font-bold text-white">رقم العملية (Transaction ID)</span> بعد إتمام التحويل.</li>
+                  <li>انسخ <span className="font-bold text-[var(--theme-text-primary)]">رقم العملية (Transaction ID)</span> بعد إتمام التحويل.</li>
                   <li>ألصق رقم العملية في الحقل أدناه واضغط على زر التحقق.</li>
                 </ol>
               </div>
@@ -838,7 +838,7 @@ export default function DepositPayPage() {
                 className="w-full h-13 rounded-2xl font-black text-base transition-all shadow-lg cursor-pointer active:scale-98 disabled:opacity-50 flex items-center justify-center gap-2"
                 style={{
                   backgroundColor: "var(--theme-primary)",
-                  color: "var(--theme-background)",
+                  color: "var(--theme-text-on-primary, var(--theme-background))",
                 }}
               >
                 {verifying ? (
@@ -888,7 +888,7 @@ export default function DepositPayPage() {
           onClick={() => setLightboxOpen(false)}
         >
           <div
-            className="relative max-w-[90vw] max-h-[90vh] bg-white rounded-3xl p-4 sm:p-6 shadow-2xl border-4 flex flex-col items-center"
+            className="relative max-w-[90vw] max-h-[90vh] bg-[var(--theme-card)] rounded-3xl p-4 sm:p-6 shadow-2xl border-4 flex flex-col items-center"
             style={{
               borderColor: "var(--theme-accent)",
             }}
@@ -905,15 +905,15 @@ export default function DepositPayPage() {
             {walletAddress || qrImageSrc ? (
               <>
                 <div className="text-center mb-3">
-                  <h4 className="text-base font-black text-zinc-900">
+                  <h4 className="text-base font-black text-[var(--theme-text-primary)]">
                     رمز استجابة شام كاش (1080x1080)
                   </h4>
-                  <p className="text-xs font-mono font-bold text-zinc-600 mt-0.5 select-all">
+                  <p className="text-xs font-mono font-bold text-[var(--theme-text-secondary)] mt-0.5 select-all">
                     {walletAddress}
                   </p>
                 </div>
 
-                <div className="w-[min(80vw,480px)] aspect-square flex items-center justify-center bg-white p-2 overflow-hidden">
+                <div className="w-[min(80vw,480px)] aspect-square flex items-center justify-center bg-white rounded-2xl p-2 overflow-hidden">
                   {qrImageSrc ? (
                     <img
                       src={qrImageSrc}
@@ -937,7 +937,7 @@ export default function DepositPayPage() {
                   <button
                     type="button"
                     onClick={() => copyToClipboard(walletAddress, "تم نسخ عنوان المحفظة")}
-                    className="px-5 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition cursor-pointer shadow-md text-white bg-zinc-900 hover:bg-zinc-800"
+                    className="px-5 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition cursor-pointer shadow-md text-[var(--theme-text-on-primary,var(--theme-background))] bg-[var(--theme-primary)] hover:opacity-90"
                   >
                     <Copy className="w-4 h-4" />
                     <span>نسخ العنوان</span>
@@ -945,7 +945,7 @@ export default function DepositPayPage() {
                   <button
                     type="button"
                     onClick={() => setLightboxOpen(false)}
-                    className="px-5 py-2.5 rounded-xl font-bold text-xs border border-zinc-300 text-zinc-700 hover:bg-zinc-100 transition cursor-pointer"
+                    className="px-5 py-2.5 rounded-xl font-bold text-xs border border-[var(--theme-border)] text-[var(--theme-text-secondary)] hover:bg-[var(--theme-input-bg)] transition cursor-pointer"
                   >
                     إغلاق
                   </button>
@@ -953,13 +953,13 @@ export default function DepositPayPage() {
               </>
             ) : (
               <div className="p-8 text-center space-y-3">
-                <AlertCircle className="w-12 h-12 text-amber-500 mx-auto" />
-                <p className="text-sm font-bold text-zinc-900">لا توجد محفظة مُعدّة</p>
-                <p className="text-xs text-zinc-500">يرجى التواصل مع الدعم</p>
+                <AlertCircle className="w-12 h-12 text-[var(--theme-warning,#F59E0B)] mx-auto" />
+                <p className="text-sm font-bold text-[var(--theme-text-primary)]">لا توجد محفظة مُعدّة</p>
+                <p className="text-xs text-[var(--theme-text-muted)]">يرجى التواصل مع الدعم</p>
                 <button
                   type="button"
                   onClick={() => setLightboxOpen(false)}
-                  className="mt-4 px-6 py-2 rounded-xl text-xs font-bold bg-zinc-900 text-white cursor-pointer"
+                  className="mt-4 px-6 py-2 rounded-xl text-xs font-bold bg-[var(--theme-primary)] text-[var(--theme-text-on-primary,var(--theme-background))] cursor-pointer"
                 >
                   إغلاق
                 </button>

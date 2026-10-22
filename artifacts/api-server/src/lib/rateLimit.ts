@@ -23,8 +23,9 @@ setInterval(() => {
 }, 60_000).unref();
 
 function clientIp(req: Parameters<RequestHandler>[0]): string {
-  const forwarded = String(req.headers["x-forwarded-for"] || "").split(",")[0]?.trim();
-  return forwarded || req.ip || req.socket.remoteAddress || "unknown";
+  // Task #95 C15a: use req.ip (trust proxy is configured in app.ts)
+  // NEVER trust X-Forwarded-For[0] directly — it's attacker-controlled
+  return req.ip || "unknown";
 }
 
 export function rateLimit(options: RateLimitOptions): RequestHandler {

@@ -29,9 +29,9 @@ export default function DepositsList() {
 
   const StatusBadge = ({ status }: { status: string }) => {
     switch (status) {
-      case 'approved': return <span className="bg-emerald-500/10 text-emerald-500 px-2 py-0.5 rounded text-[10px] font-bold">مقبول</span>;
-      case 'rejected': return <span className="bg-destructive/10 text-destructive px-2 py-0.5 rounded text-[10px] font-bold">مرفوض</span>;
-      case 'pending': default: return <span className="bg-amber-500/10 text-amber-500 px-2 py-0.5 rounded text-[10px] font-bold">قيد الانتظار</span>;
+      case 'approved': return <span className="bg-[var(--theme-success,#10B981)]/10 text-[var(--theme-success,#10B981)] px-2 py-0.5 rounded text-[10px] font-bold">مقبول</span>;
+      case 'rejected': return <span className="bg-[var(--theme-error,#EF4444)]/10 text-[var(--theme-error,#EF4444)] px-2 py-0.5 rounded text-[10px] font-bold">مرفوض</span>;
+      case 'pending': default: return <span className="bg-[var(--theme-warning,#F59E0B)]/10 text-[var(--theme-warning,#F59E0B)] px-2 py-0.5 rounded text-[10px] font-bold">قيد الانتظار</span>;
     }
   };
 
@@ -77,7 +77,7 @@ export default function DepositsList() {
             style={{ color: "var(--theme-text-primary)" }}
           >
             {summaryLoading ? (
-              <Skeleton className="h-8 w-24 bg-zinc-800" />
+              <Skeleton className="h-8 w-24 bg-[var(--theme-background)]" />
             ) : (
               <>
                 <span>{formatPrice(summary?.totalApprovedUsd || 0)}</span>
@@ -100,31 +100,31 @@ export default function DepositsList() {
             >
               <div className="text-[11px] mb-1" style={{ color: "var(--theme-text-muted)" }}>الكل</div>
               <div className="font-bold" style={{ color: "var(--theme-text-primary)" }}>
-                {summaryLoading ? <Skeleton className="h-5 w-8 mx-auto bg-zinc-800" /> : summary?.totalCount || 0}
+                {summaryLoading ? <Skeleton className="h-5 w-8 mx-auto bg-[var(--theme-card)]" /> : summary?.totalCount || 0}
               </div>
             </div>
             <div 
               className="rounded-2xl p-3 text-center border transition"
               style={{
-                backgroundColor: "rgba(16, 185, 129, 0.12)",
-                borderColor: "rgba(16, 185, 129, 0.3)",
+                backgroundColor: "color-mix(in srgb, var(--theme-success, #10B981) 12%, transparent)",
+                borderColor: "color-mix(in srgb, var(--theme-success, #10B981) 30%, transparent)",
               }}
             >
-              <div className="text-[11px] text-emerald-400 mb-1">مكتملة</div>
-              <div className="font-bold text-emerald-400">
-                {summaryLoading ? <Skeleton className="h-5 w-8 mx-auto bg-zinc-800" /> : summary?.approvedCount || 0}
+              <div className="text-[11px] text-[var(--theme-success,#10B981)] mb-1">مكتملة</div>
+              <div className="font-bold text-[var(--theme-success,#10B981)]">
+                {summaryLoading ? <Skeleton className="h-5 w-8 mx-auto bg-[var(--theme-card)]" /> : summary?.approvedCount || 0}
               </div>
             </div>
             <div 
               className="rounded-2xl p-3 text-center border transition"
               style={{
-                backgroundColor: "rgba(245, 158, 11, 0.12)",
-                borderColor: "rgba(245, 158, 11, 0.3)",
+                backgroundColor: "color-mix(in srgb, var(--theme-warning, #F59E0B) 12%, transparent)",
+                borderColor: "color-mix(in srgb, var(--theme-warning, #F59E0B) 30%, transparent)",
               }}
             >
-              <div className="text-[11px] text-amber-400 mb-1">بالانتظار</div>
-              <div className="font-bold text-amber-400">
-                {summaryLoading ? <Skeleton className="h-5 w-8 mx-auto bg-zinc-800" /> : summary?.pendingCount || 0}
+              <div className="text-[11px] text-[var(--theme-warning,#F59E0B)] mb-1">بالانتظار</div>
+              <div className="font-bold text-[var(--theme-warning,#F59E0B)]">
+                {summaryLoading ? <Skeleton className="h-5 w-8 mx-auto bg-[var(--theme-card)]" /> : summary?.pendingCount || 0}
               </div>
             </div>
           </div>
@@ -142,7 +142,7 @@ export default function DepositsList() {
                 className="px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-colors cursor-pointer"
                 style={{
                   backgroundColor: isActive ? "var(--theme-primary)" : "var(--theme-card)",
-                  color: isActive ? "#1A1A1A" : "var(--theme-text-muted)",
+                  color: isActive ? "var(--theme-text-on-primary, var(--theme-background))" : "var(--theme-text-muted)",
                   border: `1px solid ${isActive ? "var(--theme-primary)" : "var(--theme-border)"}`,
                 }}
               >
@@ -164,10 +164,10 @@ export default function DepositsList() {
                   borderColor: "var(--theme-border)",
                 }}
               >
-                <Skeleton className="w-12 h-12 rounded-xl shrink-0 bg-zinc-800" />
+                <Skeleton className="w-12 h-12 rounded-xl shrink-0 bg-[var(--theme-background)]" />
                 <div className="flex-1 space-y-2 py-1">
-                  <Skeleton className="h-4 w-3/4 bg-zinc-800" />
-                  <Skeleton className="h-3 w-1/2 bg-zinc-800" />
+                  <Skeleton className="h-4 w-3/4 bg-[var(--theme-background)]" />
+                  <Skeleton className="h-3 w-1/2 bg-[var(--theme-background)]" />
                 </div>
               </div>
             ))

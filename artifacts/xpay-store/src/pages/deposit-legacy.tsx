@@ -64,15 +64,15 @@ export default function LegacyDeposit() {
     switch (method.code) {
       case "binance_pay":
       case "usdt_auto":
-        return <ShieldCheck className="w-8 h-8 text-[#FCD535]" />;
+        return <ShieldCheck className="w-8 h-8 text-[var(--theme-binance,#FCD535)]" />;
       case "syriatel_cash":
-        return <Smartphone className="w-8 h-8 text-[#E31837]" />;
+        return <Smartphone className="w-8 h-8 text-[var(--theme-syriatel,#E31837)]" />;
       case "mtn_cash":
-        return <Smartphone className="w-8 h-8 text-[#FFCC00]" />;
+        return <Smartphone className="w-8 h-8 text-[var(--theme-mtn,#FFCC00)]" />;
       case "sham_cash":
       case "sham_cash_auto":
       default:
-        return <Landmark className="w-8 h-8 text-primary" />;
+        return <Landmark className="w-8 h-8 text-[var(--theme-shamcash,var(--theme-primary))]" />;
     }
   };
 

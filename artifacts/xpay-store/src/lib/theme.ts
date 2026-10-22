@@ -1,6 +1,49 @@
 import { getThemePreset, THEME_PRESETS, ThemePreset } from "./theme-presets";
 import { apiFetch } from "./api-client";
 
+// ========== Semantic Vars Helpers (Task #91 C11a) ==========
+
+function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
+  try {
+    const cleaned = hex.replace('#', '').trim();
+    if (cleaned.length !== 6 && cleaned.length !== 3) return null;
+    const full = cleaned.length === 3
+      ? cleaned.split('').map(c => c + c).join('')
+      : cleaned;
+    return {
+      r: parseInt(full.substring(0, 2), 16),
+      g: parseInt(full.substring(2, 4), 16),
+      b: parseInt(full.substring(4, 6), 16),
+    };
+  } catch {
+    return null;
+  }
+}
+
+function getContrastTextColor(bgColor: string): string {
+  // Handle rgba/rgb
+  if (bgColor.startsWith('rgb')) {
+    const match = bgColor.match(/\d+/g);
+    if (match && match.length >= 3) {
+      const [r, g, b] = match.slice(0, 3).map(Number);
+      const lum = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+      return lum > 0.4 ? '#000000' : '#FFFFFF';
+    }
+  }
+  
+  const rgb = hexToRgb(bgColor);
+  if (!rgb) return '#FFFFFF';
+  
+  // Relative luminance
+  const toLinear = (c: number) => {
+    const s = c / 255;
+    return s <= 0.03928 ? s / 12.92 : Math.pow(s, 2.2);
+  };
+  const L = 0.2126 * toLinear(rgb.r) + 0.7152 * toLinear(rgb.g) + 0.0722 * toLinear(rgb.b);
+  
+  return L > 0.4 ? '#000000' : '#FFFFFF';
+}
+
 export interface StoreThemeSettings {
   primary: string;
   secondary?: string;
@@ -28,6 +71,10 @@ export interface StoreThemeSettings {
   theme_shadow?: string;
   theme_default_mode?: string;
   theme_logo_size?: string;
+  theme_logo_url?: string;
+  theme_logo_text_color?: string;
+  logoUrl?: string;
+  logoTextColor?: string;
   auth_bg_color?: string;
   auth_card_color?: string;
   auth_text_color?: string;
@@ -71,6 +118,21 @@ export const DEFAULT_STORE_THEME: StoreThemeSettings = {
   theme_shadow: "medium",
   theme_default_mode: "dark",
   theme_logo_size: "80px",
+  theme_logo_url: "",
+  theme_logo_text_color: "#C8A45C",
+  success: "#10B981",
+  warning: "#F59E0B",
+  error: "#EF4444",
+  info: "#3B82F6",
+  binance: "#F0B90B",
+  shamcash: "#00875A",
+  syriatel: "#E31837",
+  mtn: "#FFCC00",
+  usdt: "#14B8A6",
+  tierPro: "#9CA3AF",
+  tierSilver: "#C0C0C0",
+  tierDiamond: "#60A5FA",
+  tierVip: "#A855F7",
 };
 
 let cachedThemeSettings: StoreThemeSettings = { ...DEFAULT_STORE_THEME };
@@ -106,22 +168,26 @@ export function ensureGoogleFontsLoaded(arabicFont: string, englishFont: string)
 /**
  * Helper to convert shadow style name to CSS box-shadow
  */
-function getShadowCss(shadow: string, primaryColor: string, isLight = false): string {
-  switch (shadow) {
+function getShadowCss(level: string, primaryColor: string, isLight = false): string {
+  const shadowColor = isLight
+    ? "color-mix(in srgb, var(--theme-text-primary, #000) 12%, transparent)"
+    : "color-mix(in srgb, var(--theme-background, #000) 60%, transparent)";
+
+  switch (level) {
     case "none":
       return "none";
     case "soft":
-      return isLight ? "0 2px 8px rgba(0, 0, 0, 0.05)" : "0 4px 14px rgba(0, 0, 0, 0.15)";
-    case "glow":
-      return `0 0 25px ${primaryColor}40, 0 4px 15px ${isLight ? "rgba(0,0,0,0.06)" : "rgba(0,0,0,0.3)"}`;
+      return `0 1px 2px ${shadowColor}`;
+    case "medium":
+      return `0 4px 12px ${shadowColor}`;
     case "large":
     case "deep":
-      return isLight ? "0 10px 25px -3px rgba(0, 0, 0, 0.08)" : "0 15px 35px -5px rgba(0, 0, 0, 0.5)";
-    case "medium":
+    case "heavy":
+      return `0 8px 24px ${shadowColor}`;
+    case "glow":
+      return `0 0 24px color-mix(in srgb, ${primaryColor} 30%, transparent)`;
     default:
-      return isLight
-        ? "0 4px 18px rgba(0, 0, 0, 0.07)"
-        : "0 8px 25px -4px rgba(0, 0, 0, 0.35), 0 4px 10px -2px rgba(0, 0, 0, 0.2)";
+      return `0 4px 12px ${shadowColor}`;
   }
 }
 
@@ -276,7 +342,9 @@ export function applyStoreTheme(theme?: Partial<StoreThemeSettings> | null | und
     ? (customLightBorder || presetLight.border)
     : (customBorder || presetDark.border);
 
-  const shadowColor = isLight ? "rgba(0, 0, 0, 0.08)" : "rgba(0, 0, 0, 0.35)";
+  const shadowColor = isLight
+    ? "color-mix(in srgb, var(--theme-text-primary, #000) 12%, transparent)"
+    : "color-mix(in srgb, var(--theme-background, #000) 60%, transparent)";
 
   const fontArabic = String(currentTheme.fontArabic || currentTheme.theme_font_arabic || currentTheme.font || DEFAULT_STORE_THEME.fontArabic).trim();
   const fontEnglish = String(currentTheme.fontEnglish || currentTheme.theme_font_english || DEFAULT_STORE_THEME.fontEnglish).trim();
@@ -286,17 +354,73 @@ export function applyStoreTheme(theme?: Partial<StoreThemeSettings> | null | und
   const rawShadow = String(currentTheme.shadow || currentTheme.theme_shadow || "medium").trim();
   const shadowCss = getShadowCss(rawShadow, primary, isLight);
 
-  const headerGradStart = currentTheme.theme_header_gradient_start || currentTheme.headerGradientStart || activePalette.headerGradientStart;
-  const headerGradEnd = currentTheme.theme_header_gradient_end || currentTheme.headerGradientEnd || activePalette.headerGradientEnd;
-  const bottomNavBg = currentTheme.theme_bottom_nav || currentTheme.bottomNav || activePalette.bottomNav;
-  const bottomNavActive = currentTheme.theme_bottom_nav_active || currentTheme.bottomNavActive || activePalette.bottomNavActive;
-  const sidebarBg = currentTheme.theme_sidebar_bg || currentTheme.sidebar || activePalette.sidebar;
+  const headerGradStart = String(
+    isLight
+      ? (currentTheme.light_header_gradient_start || currentTheme.lightHeaderGradientStart || presetLight.headerGradientStart || bgPrimary)
+      : (currentTheme.theme_header_gradient_start || currentTheme.headerGradientStart || presetDark.headerGradientStart || bgPrimary)
+  ).trim();
+  const headerGradEnd = String(
+    isLight
+      ? (currentTheme.light_header_gradient_end || currentTheme.lightHeaderGradientEnd || presetLight.headerGradientEnd || bgPrimary)
+      : (currentTheme.theme_header_gradient_end || currentTheme.headerGradientEnd || presetDark.headerGradientEnd || bgPrimary)
+  ).trim();
+  const headerGradient = `linear-gradient(90deg, ${headerGradStart} 0%, ${headerGradEnd} 100%)`;
+  const bottomNavBg = String(
+    isLight
+      ? (currentTheme.light_bottom_nav || currentTheme.lightBottomNav || presetLight.bottomNav || bgPrimary)
+      : (currentTheme.theme_bottom_nav || currentTheme.bottomNav || presetDark.bottomNav || bgPrimary)
+  ).trim();
+  const bottomNavActive = String(
+    isLight
+      ? (currentTheme.light_bottom_nav_active || currentTheme.lightBottomNavActive || presetLight.bottomNavActive || primary)
+      : (currentTheme.theme_bottom_nav_active || currentTheme.bottomNavActive || presetDark.bottomNavActive || primary)
+  ).trim();
+  const bottomNavActiveBg = `rgba(${getHexRgbString(bottomNavActive)}, 0.2)`;
+  const sidebarBg = String(
+    isLight
+      ? (currentTheme.light_sidebar_bg || currentTheme.lightSidebar || presetLight.sidebar || bgPrimary)
+      : (currentTheme.theme_sidebar_bg || currentTheme.sidebar || presetDark.sidebar || bgPrimary)
+  ).trim();
+  const logoUrl = String(currentTheme.theme_logo_url || currentTheme.logoUrl || "").trim();
+  const logoTextColor = String(currentTheme.theme_logo_text_color || currentTheme.logoTextColor || accent).trim();
   const paddingPx = `${currentTheme.theme_padding || currentTheme.padding || 24}px`;
   const headingSizePx = `${currentTheme.theme_heading_size || currentTheme.headingSize || 20}px`;
 
   // Set Core CSS variables
   root.style.setProperty("--theme-mode", currentMode);
   root.style.setProperty("--theme-primary", primary);
+
+  // ========== Semantic Vars (Task #91 C11a) ==========
+  const textOnPrimary = getContrastTextColor(primary);
+
+  // Semantic status colors (ثابتة - لا تتغير مع الثيم)
+  root.style.setProperty("--theme-success", "#10B981");
+  root.style.setProperty("--theme-warning", "#F59E0B");
+  root.style.setProperty("--theme-error", "#EF4444");
+  root.style.setProperty("--theme-info", "#3B82F6");
+
+  // Text color on primary buttons (محسوب ديناميكياً)
+  root.style.setProperty("--theme-text-on-primary", textOnPrimary);
+
+  // Card hover (يُحسب من card + text-primary)
+  root.style.setProperty(
+    "--theme-card-hover",
+    `color-mix(in srgb, ${bgCard} 88%, ${textPrimary} 12%)`
+  );
+
+  // Brand colors (ثابتة - هوية مزودين)
+  root.style.setProperty("--theme-binance", "#F0B90B");
+  root.style.setProperty("--theme-shamcash", "#00875A");
+  root.style.setProperty("--theme-syriatel", "#E31837");
+  root.style.setProperty("--theme-mtn", "#FFCC00");
+  root.style.setProperty("--theme-usdt", "#14B8A6");
+
+  // VIP Tier colors (ثابتة - دلالية)
+  root.style.setProperty("--theme-tier-pro", "#9CA3AF");
+  root.style.setProperty("--theme-tier-silver", "#C0C0C0");
+  root.style.setProperty("--theme-tier-diamond", "#60A5FA");
+  root.style.setProperty("--theme-tier-vip", "#A855F7");
+
   root.style.setProperty("--theme-secondary", secondary);
   root.style.setProperty("--theme-accent", accent);
   root.style.setProperty("--theme-background", bgPrimary);
@@ -307,9 +431,12 @@ export function applyStoreTheme(theme?: Partial<StoreThemeSettings> | null | und
   root.style.setProperty("--theme-text-muted", textMuted);
   root.style.setProperty("--theme-border", borderColor);
   root.style.setProperty("--theme-input-bg", bgInput);
-  root.style.setProperty("--theme-header-gradient", `linear-gradient(90deg, ${headerGradStart} 0%, ${headerGradEnd} 100%)`);
+  root.style.setProperty("--theme-header-gradient-start", headerGradStart);
+  root.style.setProperty("--theme-header-gradient-end", headerGradEnd);
+  root.style.setProperty("--theme-header-gradient", headerGradient);
   root.style.setProperty("--theme-bottom-nav", bottomNavBg);
   root.style.setProperty("--theme-bottom-nav-active", bottomNavActive);
+  root.style.setProperty("--theme-bottom-nav-active-bg", bottomNavActiveBg);
   root.style.setProperty("--theme-sidebar-bg", sidebarBg);
   root.style.setProperty("--theme-font-arabic", fontArabic);
   root.style.setProperty("--theme-font-english", fontEnglish);
@@ -319,6 +446,8 @@ export function applyStoreTheme(theme?: Partial<StoreThemeSettings> | null | und
   root.style.setProperty("--theme-shadow", shadowCss);
   root.style.setProperty("--theme-padding", paddingPx);
   root.style.setProperty("--theme-logo-size", currentTheme.theme_logo_size || currentTheme.logoSize || "80px");
+  root.style.setProperty("--theme-logo-url", logoUrl);
+  root.style.setProperty("--theme-logo-text-color", logoTextColor);
 
   // ShamCash CSS variables
   root.style.setProperty("--shamcash-page-bg", currentTheme.shamcash_page_bg || "var(--theme-background)");
@@ -365,7 +494,7 @@ export function applyStoreTheme(theme?: Partial<StoreThemeSettings> | null | und
   root.style.setProperty("--theme-accent", accent);
   root.style.setProperty("--theme-background", bgPrimary);
   root.style.setProperty("--theme-card", bgCard);
-  root.style.setProperty("--theme-sidebar-bg", bgPrimary);
+  root.style.setProperty("--theme-sidebar-bg", sidebarBg);
   root.style.setProperty("--theme-input", bgInput);
   root.style.setProperty("--theme-text-primary", textPrimary);
   root.style.setProperty("--theme-text-muted", textMuted);
@@ -376,6 +505,8 @@ export function applyStoreTheme(theme?: Partial<StoreThemeSettings> | null | und
   root.style.setProperty("--theme-shadow", shadowCss);
   root.style.setProperty("--theme-logo-size", logoSizePx);
   root.style.setProperty("--logo-size", logoSizePx);
+  root.style.setProperty("--theme-logo-url", logoUrl);
+  root.style.setProperty("--theme-logo-text-color", logoTextColor);
 
   // Core & Component CSS Variables
   root.style.setProperty("--primary", primary);
@@ -400,52 +531,10 @@ export function applyStoreTheme(theme?: Partial<StoreThemeSettings> | null | und
   // Helper to format shadow
   const formatShadow = (s?: string) => getShadowCss(s || "medium", primary, isLight);
 
-  const DEFAULT_VALUES_TO_REJECT = [
-    "",
-    "initial",
-    "none",
-    "inherit",
-    "unset",
-    "#1a1a1a",
-    "#2d2d2d",
-    "#c8a45c",
-    "#0f172a",
-    "#13355f",
-    "#b8954a",
-    "#fde68a",
-    "#3d3d3d",
-    "#242424",
-    "#ffffff",
-    "#f5ca35",
-    "#dcb220",
-    "#e5e7eb",
-    "#111827",
-    "#374151",
-    "#1c1917",
-    "#44403c",
-    "#78716c",
-    "#efece6",
-    "#f5f2eb",
-    "cairo",
-    "inter",
-    "'cairo', sans-serif",
-    "'inter', sans-serif",
-    "cairo, sans-serif",
-    "inter, sans-serif",
-    "rgba(200, 164, 92, 0.25)",
-    "rgba(0,0,0,0.1)",
-    "rgba(200,164,92,0.25)",
-  ];
-
   // Helper to set or remove custom section properties
   const setOrRemoveProp = (propNames: string[], val?: string) => {
     const cleanVal = String(val || "").trim();
-    const lowerVal = cleanVal.toLowerCase();
-    if (
-      cleanVal &&
-      !cleanVal.startsWith("var(") &&
-      !DEFAULT_VALUES_TO_REJECT.includes(lowerVal)
-    ) {
+    if (cleanVal && !cleanVal.startsWith("var(")) {
       propNames.forEach((p) => root.style.setProperty(p, cleanVal));
     } else {
       propNames.forEach((p) => root.style.removeProperty(p));
@@ -506,24 +595,32 @@ export function applyStoreTheme(theme?: Partial<StoreThemeSettings> | null | und
   setOrRemoveProp(["--contact-font-family"], contactFont ? formatFont(contactFont) : "");
 
   // --- Balance Card Section Variables ---
-  const balanceGradStart = currentTheme.balance_gradient_start || currentTheme.balanceGradientStart || "#1E40AF";
-  const balanceGradMid = currentTheme.balance_gradient_mid || currentTheme.balanceGradientMid || "#3B82F6";
-  const balanceGradEnd = currentTheme.balance_gradient_end || currentTheme.balanceGradientEnd || "#60A5FA";
+  const balanceGradStart = currentTheme.balance_gradient_start || currentTheme.balanceGradientStart || primary;
+  const balanceGradMid = currentTheme.balance_gradient_mid || currentTheme.balanceGradientMid || secondary;
+  const balanceGradEnd = currentTheme.balance_gradient_end || currentTheme.balanceGradientEnd || accent;
   const balanceTextColor = currentTheme.balance_text_color || currentTheme.balanceTextColor || "#FFFFFF";
-  const balanceSubtextColor = currentTheme.balance_subtext_color || currentTheme.balanceSubtextColor || "#E0F2FE";
+  const balanceSubtextColor = currentTheme.balance_subtext_color || currentTheme.balanceSubtextColor || textSecondary;
   const balanceBadgeColor = currentTheme.balance_badge_color || currentTheme.balanceBadgeColor || "#FFFFFF";
-  const balanceCurrencyColor = currentTheme.balance_currency_color || currentTheme.balanceCurrencyColor || "#FFFFFF";
+  const textOnBalanceBadge = getContrastTextColor(balanceBadgeColor);
+  const balanceCurrencyColor = currentTheme.balance_currency_color || currentTheme.balanceCurrencyColor || textSecondary;
   const balanceRadius = `${currentTheme.balance_radius ?? currentTheme.balanceRadius ?? 24}px`;
   const balancePadding = `${currentTheme.balance_padding ?? currentTheme.balancePadding ?? 24}px`;
   const balanceAmountSize = `${currentTheme.balance_amount_size ?? currentTheme.balanceAmountSize ?? 32}px`;
   const balanceLabelSize = `${currentTheme.balance_label_size ?? currentTheme.balanceLabelSize ?? 14}px`;
   const balanceShadow = formatShadow(currentTheme.balance_shadow || currentTheme.balanceShadow || "heavy");
-  const balanceGlowColor = currentTheme.balance_glow_color || currentTheme.balanceGlowColor || "#3B82F6";
+  const balanceGlowColor = currentTheme.balance_glow_color || currentTheme.balanceGlowColor || primary;
 
-  root.style.setProperty("--balance-gradient", `linear-gradient(135deg, ${balanceGradStart} 0%, ${balanceGradMid} 50%, ${balanceGradEnd} 100%)`);
+  root.style.setProperty("--balance-gradient-start", balanceGradStart);
+  root.style.setProperty("--balance-gradient-mid", balanceGradMid);
+  root.style.setProperty("--balance-gradient-end", balanceGradEnd);
+  root.style.setProperty(
+    "--balance-gradient",
+    `linear-gradient(135deg, var(--balance-gradient-start, var(--theme-primary)) 0%, var(--balance-gradient-mid, var(--theme-secondary)) 50%, var(--balance-gradient-end, var(--theme-accent)) 100%)`
+  );
   root.style.setProperty("--balance-text-color", balanceTextColor);
   root.style.setProperty("--balance-subtext-color", balanceSubtextColor);
   root.style.setProperty("--balance-badge-color", balanceBadgeColor);
+  root.style.setProperty("--theme-text-on-balance-badge", textOnBalanceBadge);
   root.style.setProperty("--balance-currency-color", balanceCurrencyColor);
   root.style.setProperty("--balance-radius", balanceRadius);
   root.style.setProperty("--balance-padding", balancePadding);
@@ -547,12 +644,32 @@ export function applyStoreTheme(theme?: Partial<StoreThemeSettings> | null | und
   styleTag.innerHTML = `
     :root {
       --theme-primary: ${primary} !important;
+      --theme-success: #10B981 !important;
+      --theme-warning: #F59E0B !important;
+      --theme-error: #EF4444 !important;
+      --theme-info: #3B82F6 !important;
+      --theme-text-on-primary: ${textOnPrimary} !important;
+      --theme-text-on-balance-badge: ${textOnBalanceBadge} !important;
+      --theme-card-hover: color-mix(in srgb, ${bgCard} 88%, ${textPrimary} 12%) !important;
+      --theme-binance: #F0B90B !important;
+      --theme-shamcash: #00875A !important;
+      --theme-syriatel: #E31837 !important;
+      --theme-mtn: #FFCC00 !important;
+      --theme-usdt: #14B8A6 !important;
+      --theme-tier-pro: #9CA3AF !important;
+      --theme-tier-silver: #C0C0C0 !important;
+      --theme-tier-diamond: #60A5FA !important;
+      --theme-tier-vip: #A855F7 !important;
       --theme-secondary: ${secondary} !important;
       --theme-accent: ${accent} !important;
       --theme-background: ${bgPrimary} !important;
       --theme-card: ${bgCard} !important;
-      --theme-sidebar-bg: ${bgPrimary} !important;
+      --theme-sidebar-bg: ${sidebarBg} !important;
       --theme-header-bg: ${bgPrimary} !important;
+      --theme-header-gradient: ${headerGradient} !important;
+      --theme-bottom-nav: ${bottomNavBg} !important;
+      --theme-bottom-nav-active: ${bottomNavActive} !important;
+      --theme-bottom-nav-active-bg: ${bottomNavActiveBg} !important;
       --theme-footer-bg: ${bgPrimary} !important;
       --theme-border: ${borderColor} !important;
       --theme-input: ${bgInput} !important;
@@ -567,6 +684,8 @@ export function applyStoreTheme(theme?: Partial<StoreThemeSettings> | null | und
       --theme-shadow: ${shadowCss} !important;
       --theme-logo-size: ${logoSizePx} !important;
       --logo-size: ${logoSizePx} !important;
+      --theme-logo-url: ${logoUrl} !important;
+      --theme-logo-text-color: ${logoTextColor} !important;
       --header-height: 72px !important;
 
       --primary: ${primary} !important;
@@ -598,7 +717,7 @@ export function applyStoreTheme(theme?: Partial<StoreThemeSettings> | null | und
     .bg-theme-accent { background-color: ${accent} !important; }
     .bg-theme-background { background-color: ${bgPrimary} !important; }
     .bg-theme-card { background-color: ${bgCard} !important; }
-    .bg-theme-sidebar { background-color: ${bgPrimary} !important; }
+    .bg-theme-sidebar { background-color: ${sidebarBg} !important; }
     .bg-theme-input { background-color: ${bgInput} !important; }
     .text-theme-primary { color: ${primary} !important; }
     .text-theme-text { color: ${textPrimary} !important; }
@@ -614,14 +733,14 @@ export function applyStoreTheme(theme?: Partial<StoreThemeSettings> | null | und
     .store-brand-logo,
     .theme-logo {
       height: ${logoSizePx};
-      max-height: calc(var(--header-height, 72px) - 20px);
+      max-height: ${logoSizePx};
       width: auto;
       max-width: 260px;
       object-fit: contain;
     }
 
     .logo-container {
-      height: var(--header-height, 72px);
+      min-height: var(--header-height, 72px);
       display: flex;
       align-items: center;
       overflow: hidden;
@@ -718,12 +837,30 @@ export function applyStoreTheme(theme?: Partial<StoreThemeSettings> | null | und
       color: #000000 !important;
     }
   `;
+
+  try {
+    window.dispatchEvent(new CustomEvent("xpay_theme_applied", { detail: currentTheme }));
+  } catch {}
 }
 
-const THEME_CACHE_KEY = "xpay_theme_cache";
+const THEME_CACHE_KEY = "xpay_theme_cache_v2";
+const THEME_CACHE_VERSION_KEY = "xpay_theme_cache_version";
+const CURRENT_CACHE_VERSION = "v2";
+
+function ensureFreshThemeCacheVersion() {
+  try {
+    if (localStorage.getItem(THEME_CACHE_VERSION_KEY) !== CURRENT_CACHE_VERSION) {
+      localStorage.removeItem("xpay_theme_cache");
+      localStorage.removeItem("xpay_admin_theme_cache");
+      localStorage.removeItem("xpay_shamcash_cache");
+      localStorage.setItem(THEME_CACHE_VERSION_KEY, CURRENT_CACHE_VERSION);
+    }
+  } catch {}
+}
 
 export function getCachedThemeSettings(): StoreThemeSettings | null {
   try {
+    ensureFreshThemeCacheVersion();
     const raw = localStorage.getItem(THEME_CACHE_KEY);
     if (!raw) return null;
     return JSON.parse(raw);
@@ -734,6 +871,7 @@ export function getCachedThemeSettings(): StoreThemeSettings | null {
 
 export function setCachedThemeSettings(theme: StoreThemeSettings) {
   try {
+    ensureFreshThemeCacheVersion();
     localStorage.setItem(THEME_CACHE_KEY, JSON.stringify(theme));
   } catch {}
 }
@@ -759,6 +897,7 @@ export async function loadAndApplyStoreTheme(apiBase = ""): Promise<StoreThemeSe
       const data = await apiFetch<StoreThemeSettings>(endpoint);
       if (data && typeof data === "object") {
         console.log("[Theme] Received from endpoint:", endpoint, data);
+        cachedThemeSettings = { ...DEFAULT_STORE_THEME, ...data };
         setCachedThemeSettings(data);
         applyStoreTheme(data);
         return data;

@@ -162,15 +162,16 @@ export default function Login() {
       <div
         className="min-h-[100dvh] flex flex-col justify-center items-center p-4 sm:p-6 transition-colors duration-200"
         style={{
-          backgroundColor: "var(--auth-bg-color, var(--theme-background))",
-          color: "var(--auth-text-color, var(--theme-text-primary))",
+          backgroundColor: "var(--auth-bg-color, var(--theme-background, #121212))",
+          color: "var(--auth-text-color, var(--theme-text-primary, #FFFFFF))",
         }}
         dir="rtl"
       >
         <div
-          className="w-full max-w-md rounded-3xl p-6 sm:p-8 shadow-2xl border border-[var(--theme-primary)]/40 relative overflow-hidden"
+          className="w-full max-w-md rounded-3xl p-6 sm:p-8 shadow-2xl border relative overflow-hidden"
           style={{
-            backgroundColor: "var(--auth-card-color, var(--theme-card))",
+            backgroundColor: "var(--auth-card-color, var(--theme-card, #1E1E1E))",
+            borderColor: "color-mix(in srgb, var(--theme-primary, #C8A45C) 40%, transparent)",
           }}
         >
           <div className="text-center mb-6 relative z-10 flex flex-col items-center">
@@ -183,10 +184,18 @@ export default function Login() {
                 />
               </Link>
             ) : null}
-            <h1 className="text-2xl sm:text-3xl font-black text-[var(--theme-accent)] tracking-wide">
+            <h1
+              className="text-2xl sm:text-3xl font-black tracking-wide"
+              style={{ color: "var(--theme-accent, #DFBD69)" }}
+            >
               تسجيل الدخول
             </h1>
-            <p className="text-sm font-medium text-zinc-400 mt-1">مرحباً بك مجددًا في المتجر</p>
+            <p
+              className="text-sm font-medium mt-1"
+              style={{ color: "var(--theme-text-muted, #9E9E9E)" }}
+            >
+              مرحباً بك مجددًا في المتجر
+            </p>
           </div>
 
           {error && (
@@ -198,11 +207,17 @@ export default function Login() {
 
           <form onSubmit={handleSubmit} className="space-y-4 relative z-10">
             <div>
-              <label className="block text-xs font-bold text-zinc-300 mb-1.5">
+              <label
+                className="block text-xs font-bold mb-1.5"
+                style={{ color: "var(--theme-text-secondary, #D4D4D8)" }}
+              >
                 اسم المستخدم أو البريد الإلكتروني
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-zinc-500">
+                <div
+                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none"
+                  style={{ color: "var(--theme-text-muted, #9E9E9E)" }}
+                >
                   <User size={18} />
                 </div>
                 <input
@@ -211,15 +226,28 @@ export default function Login() {
                   onChange={(e) => setIdentifier(e.target.value)}
                   placeholder="أدخل اسم المستخدم أو الإيميل"
                   disabled={loading}
-                  className="w-full bg-[var(--theme-input-bg)] border border-zinc-600 rounded-xl pr-10 pl-3 py-3 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:border-[var(--theme-primary)] transition"
+                  className="w-full border rounded-xl pr-10 pl-3 py-3 text-sm focus:outline-none focus:border-[var(--theme-primary)] transition"
+                  style={{
+                    backgroundColor: "var(--theme-input-bg, #2A2A2A)",
+                    borderColor: "var(--theme-border, #3A3A3A)",
+                    color: "var(--theme-text-primary, #FFFFFF)",
+                  }}
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-zinc-300 mb-1.5">كلمة المرور</label>
+              <label
+                className="block text-xs font-bold mb-1.5"
+                style={{ color: "var(--theme-text-secondary, #D4D4D8)" }}
+              >
+                كلمة المرور
+              </label>
               <div className="relative">
-                <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-zinc-500">
+                <div
+                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none"
+                  style={{ color: "var(--theme-text-muted, #9E9E9E)" }}
+                >
                   <Lock size={18} />
                 </div>
                 <input
@@ -228,12 +256,18 @@ export default function Login() {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   disabled={loading}
-                  className="w-full bg-[var(--theme-input-bg)] border border-zinc-600 rounded-xl pr-10 pl-10 py-3 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:border-[var(--theme-primary)] transition"
+                  className="w-full border rounded-xl pr-10 pl-10 py-3 text-sm focus:outline-none focus:border-[var(--theme-primary)] transition"
+                  style={{
+                    backgroundColor: "var(--theme-input-bg, #2A2A2A)",
+                    borderColor: "var(--theme-border, #3A3A3A)",
+                    color: "var(--theme-text-primary, #FFFFFF)",
+                  }}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 left-0 pl-3 flex items-center text-zinc-400 hover:text-zinc-200 transition"
+                  className="absolute inset-y-0 left-0 pl-3 flex items-center hover:opacity-80 transition"
+                  style={{ color: "var(--theme-text-muted, #9E9E9E)" }}
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
@@ -243,10 +277,14 @@ export default function Login() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-[var(--theme-primary)] hover:bg-[var(--theme-secondary)] active:scale-[0.98] text-zinc-950 font-black py-3.5 px-4 rounded-xl shadow-lg flex items-center justify-center gap-2 text-sm transition-all disabled:opacity-50 mt-2"
+              className="w-full hover:brightness-95 active:scale-[0.98] font-black py-3.5 px-4 rounded-xl shadow-lg flex items-center justify-center gap-2 text-sm transition-all disabled:opacity-50 mt-2"
+              style={{
+                backgroundColor: "var(--theme-primary, #C8A45C)",
+                color: "var(--theme-background, #1A1A1A)",
+              }}
             >
               {loading ? (
-                <div className="w-5 h-5 border-2 border-zinc-950 border-t-transparent rounded-full animate-spin" />
+                <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
               ) : (
                 <>
                   <LogIn size={18} />
@@ -256,10 +294,17 @@ export default function Login() {
             </button>
           </form>
 
-          <div className="mt-6 text-center border-t border-zinc-700/80 pt-5 relative z-10">
-            <p className="text-xs sm:text-sm text-zinc-400">
+          <div
+            className="mt-6 text-center border-t pt-5 relative z-10"
+            style={{ borderColor: "var(--theme-border, #3A3A3A)" }}
+          >
+            <p className="text-xs sm:text-sm" style={{ color: "var(--theme-text-muted, #9E9E9E)" }}>
               ليس لديك حساب بعد؟{" "}
-              <Link href="/register" className="font-black text-[var(--theme-accent)] hover:underline">
+              <Link
+                href="/register"
+                className="font-black hover:underline"
+                style={{ color: "var(--theme-accent, #DFBD69)" }}
+              >
                 إنشاء حساب جديد
               </Link>
             </p>
@@ -277,16 +322,17 @@ export default function Login() {
       dir="rtl"
       style={{
         backgroundColor: "var(--auth-bg-color, var(--theme-background, #121212))",
-        color: "var(--auth-text-color, var(--theme-text-primary, inherit))",
+        color: "var(--auth-text-color, var(--theme-text-primary, #FFFFFF))",
         fontFamily: "var(--theme-font-arabic, 'Cairo', sans-serif)",
       }}
     >
       {/* Outer Card Container */}
       <div
         id="login-card"
-        className="w-full max-w-4xl shadow-2xl rounded-3xl overflow-hidden border border-zinc-200/80 dark:border-zinc-800 flex flex-col lg:flex-row transition-all duration-200"
+        className="w-full max-w-4xl shadow-2xl rounded-3xl overflow-hidden border flex flex-col lg:flex-row transition-all duration-200"
         style={{
           backgroundColor: "var(--auth-card-color, var(--theme-card, #1E1E1E))",
+          borderColor: "var(--auth-border-color, var(--theme-border, #3A3A3A))",
           borderRadius: "var(--theme-border-radius, 24px)",
         }}
       >
@@ -296,26 +342,39 @@ export default function Login() {
           id="login-branding-panel"
           className="w-full lg:w-1/2 p-6 sm:p-8 lg:p-12 flex flex-col justify-between items-center text-center relative overflow-hidden transition-colors duration-200"
           style={{
-            backgroundColor: authConfig.common.styles.brandingBgColor || "var(--auth-button-color, var(--theme-primary))",
-            color: authConfig.common.styles.brandingTextColor || "#FFFFFF",
+            backgroundColor: authConfig.common.styles.brandingBgColor || "var(--auth-button-color, var(--theme-primary, #C8A45C))",
+            color: authConfig.common.styles.brandingTextColor || "var(--theme-text-primary, #FFFFFF)",
           }}
         >
           {/* Subtle background ambient circles */}
-          <div className="absolute -top-12 -left-12 w-48 h-48 rounded-full bg-white/10 blur-2xl pointer-events-none" />
-          <div className="absolute -bottom-12 -right-12 w-48 h-48 rounded-full bg-black/10 blur-2xl pointer-events-none" />
+          <div
+            className="absolute -top-12 -left-12 w-48 h-48 rounded-full blur-2xl pointer-events-none"
+            style={{ backgroundColor: "color-mix(in srgb, var(--theme-text-primary, #FFFFFF) 10%, transparent)" }}
+          />
+          <div
+            className="absolute -bottom-12 -right-12 w-48 h-48 rounded-full blur-2xl pointer-events-none"
+            style={{ backgroundColor: "color-mix(in srgb, var(--theme-background, #121212) 15%, transparent)" }}
+          />
 
           {/* Centered Brand Content */}
           <div className="my-auto py-2 sm:py-6 flex flex-col items-center z-10 w-full">
             {/* Big Icon in rounded translucent square */}
             <div
               id="login-brand-icon-box"
-              className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 rounded-2xl sm:rounded-3xl bg-white/20 dark:bg-black/15 backdrop-blur-md flex items-center justify-center shadow-lg border border-white/25 mb-4 sm:mb-6 transition-transform hover:scale-105 duration-300"
+              className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 rounded-2xl sm:rounded-3xl backdrop-blur-md flex items-center justify-center shadow-lg border mb-4 sm:mb-6 transition-transform hover:scale-105 duration-300"
+              style={{
+                backgroundColor: "color-mix(in srgb, var(--theme-text-primary, #FFFFFF) 20%, transparent)",
+                borderColor: "color-mix(in srgb, var(--theme-text-primary, #FFFFFF) 25%, transparent)",
+              }}
             >
-              {renderAuthIcon(authConfig.login.branding.icon || "LogIn", "w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 text-white drop-shadow-sm")}
+              {renderAuthIcon(authConfig.login.branding.icon || "LogIn", "w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 drop-shadow-sm")}
             </div>
 
             {/* Title & Subtitle */}
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight mb-2 drop-shadow-xs" style={{ color: authConfig.common.styles.brandingTextColor || "#FFFFFF" }}>
+            <h2
+              className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight mb-2 drop-shadow-xs"
+              style={{ color: authConfig.common.styles.brandingTextColor || "var(--theme-text-primary, #FFFFFF)" }}
+            >
               {authConfig.login.branding.title}
             </h2>
             <p className="text-xs sm:text-sm lg:text-base opacity-90 font-medium max-w-xs leading-relaxed">
@@ -326,11 +385,21 @@ export default function Login() {
             {authConfig.login.branding.benefits && authConfig.login.branding.benefits.length > 0 && (
               <div className="hidden sm:flex flex-col gap-3.5 mt-6 sm:mt-8 w-full max-w-xs text-right">
                 {authConfig.login.branding.benefits.map((b, idx) => (
-                  <div key={idx} className="flex items-center gap-3 bg-black/10 dark:bg-black/20 backdrop-blur-xs px-4 py-2.5 rounded-xl border border-white/10">
-                    <div className="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
-                      {renderAuthIcon(b.icon, "w-4 h-4 text-white")}
+                  <div
+                    key={idx}
+                    className="flex items-center gap-3 backdrop-blur-xs px-4 py-2.5 rounded-xl border"
+                    style={{
+                      backgroundColor: "color-mix(in srgb, var(--theme-background, #121212) 15%, transparent)",
+                      borderColor: "color-mix(in srgb, var(--theme-text-primary, #FFFFFF) 15%, transparent)",
+                    }}
+                  >
+                    <div
+                      className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
+                      style={{ backgroundColor: "color-mix(in srgb, var(--theme-text-primary, #FFFFFF) 20%, transparent)" }}
+                    >
+                      {renderAuthIcon(b.icon, "w-4 h-4")}
                     </div>
-                    <span className="text-xs sm:text-sm font-semibold text-white">{b.text}</span>
+                    <span className="text-xs sm:text-sm font-semibold">{b.text}</span>
                   </div>
                 ))}
               </div>
@@ -342,19 +411,25 @@ export default function Login() {
         {/* Form area: Left on desktop (second child in RTL flex-row), bottom on mobile */}
         <div
           id="login-form-panel"
-          className="w-full lg:w-1/2 p-6 sm:p-8 lg:p-12 flex flex-col justify-center text-zinc-900 dark:text-zinc-100"
+          className="w-full lg:w-1/2 p-6 sm:p-8 lg:p-12 flex flex-col justify-center"
           style={{
             backgroundColor: "var(--auth-card-color, var(--theme-card, #1E1E1E))",
-            color: "var(--auth-text-color, var(--theme-text-primary, inherit))",
+            color: "var(--auth-text-color, var(--theme-text-primary, #FFFFFF))",
           }}
         >
           <div className="w-full max-w-md mx-auto">
             {/* Header */}
             <div className="mb-6 sm:mb-8 text-right">
-              <h1 className="text-2xl sm:text-3xl font-black tracking-tight" style={{ color: authConfig.common.styles.titleColor }}>
+              <h1
+                className="text-2xl sm:text-3xl font-black tracking-tight"
+                style={{ color: authConfig.common.styles.titleColor || "var(--auth-title-color, var(--theme-primary, #C8A45C))" }}
+              >
                 {authConfig.login.title}
               </h1>
-              <p className="text-xs sm:text-sm mt-1 font-medium" style={{ color: authConfig.common.styles.subtitleColor }}>
+              <p
+                className="text-xs sm:text-sm mt-1 font-medium"
+                style={{ color: authConfig.common.styles.subtitleColor || "var(--theme-text-muted, #9E9E9E)" }}
+              >
                 {authConfig.login.subtitle}
               </p>
             </div>
@@ -374,11 +449,17 @@ export default function Login() {
             <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
               {/* Username / Email Field */}
               <div id="login-field-identifier">
-                <label className="block text-xs sm:text-sm font-bold mb-1.5 text-right" style={{ color: authConfig.common.styles.labelColor }}>
+                <label
+                  className="block text-xs sm:text-sm font-bold mb-1.5 text-right"
+                  style={{ color: authConfig.common.styles.labelColor || "var(--auth-text-color, var(--theme-text-secondary, var(--theme-text-primary, #FFFFFF)))" }}
+                >
                   {authConfig.login.fields.usernameLabel}
                 </label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-zinc-400 dark:text-zinc-500">
+                  <div
+                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none"
+                    style={{ color: "var(--theme-text-muted, #9E9E9E)" }}
+                  >
                     <User size={19} />
                   </div>
                   <input
@@ -393,9 +474,9 @@ export default function Login() {
                     disabled={loading}
                     className="w-full rounded-xl sm:rounded-2xl pr-11 pl-4 py-3 sm:py-3.5 text-sm transition duration-150 border-2"
                     style={{
-                      backgroundColor: authConfig.common.styles.inputBgColor,
-                      color: authConfig.common.styles.inputTextColor,
-                      borderColor: authConfig.common.styles.inputBorderColor,
+                      backgroundColor: authConfig.common.styles.inputBgColor || "var(--theme-input-bg, var(--theme-background, #121212))",
+                      color: authConfig.common.styles.inputTextColor || "var(--auth-text-color, var(--theme-text-primary, #FFFFFF))",
+                      borderColor: authConfig.common.styles.inputBorderColor || "var(--auth-border-color, var(--theme-border, #3A3A3A))",
                     }}
                   />
                 </div>
@@ -403,11 +484,17 @@ export default function Login() {
 
               {/* Password Field */}
               <div id="login-field-password">
-                <label className="block text-xs sm:text-sm font-bold mb-1.5 text-right" style={{ color: authConfig.common.styles.labelColor }}>
+                <label
+                  className="block text-xs sm:text-sm font-bold mb-1.5 text-right"
+                  style={{ color: authConfig.common.styles.labelColor || "var(--auth-text-color, var(--theme-text-secondary, var(--theme-text-primary, #FFFFFF)))" }}
+                >
                   {authConfig.login.fields.passwordLabel}
                 </label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-zinc-400 dark:text-zinc-500">
+                  <div
+                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none"
+                    style={{ color: "var(--theme-text-muted, #9E9E9E)" }}
+                  >
                     <Lock size={19} />
                   </div>
                   <input
@@ -422,16 +509,17 @@ export default function Login() {
                     disabled={loading}
                     className="w-full rounded-xl sm:rounded-2xl pr-11 pl-11 py-3 sm:py-3.5 text-sm transition duration-150 border-2"
                     style={{
-                      backgroundColor: authConfig.common.styles.inputBgColor,
-                      color: authConfig.common.styles.inputTextColor,
-                      borderColor: authConfig.common.styles.inputBorderColor,
+                      backgroundColor: authConfig.common.styles.inputBgColor || "var(--theme-input-bg, var(--theme-background, #121212))",
+                      color: authConfig.common.styles.inputTextColor || "var(--auth-text-color, var(--theme-text-primary, #FFFFFF))",
+                      borderColor: authConfig.common.styles.inputBorderColor || "var(--auth-border-color, var(--theme-border, #3A3A3A))",
                     }}
                   />
                   <button
                     type="button"
                     id="login-toggle-password"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 transition cursor-pointer"
+                    className="absolute inset-y-0 left-0 pl-3.5 flex items-center hover:opacity-80 transition cursor-pointer"
+                    style={{ color: "var(--theme-text-muted, #9E9E9E)" }}
                     aria-label={showPassword ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"}
                   >
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -446,9 +534,9 @@ export default function Login() {
                 disabled={loading}
                 className="w-full min-h-[48px] sm:min-h-[52px] font-black py-3 px-5 rounded-xl sm:rounded-2xl shadow-lg flex items-center justify-center gap-2 text-sm sm:text-base transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:brightness-95 active:scale-[0.99] mt-2"
                 style={{
-                  backgroundColor: authConfig.common.styles.buttonBgColor || "var(--auth-button-color, var(--theme-primary))",
-                  color: authConfig.common.styles.buttonTextColor || "#1A1A1A",
-                  boxShadow: "0 10px 20px -5px rgba(200, 164, 92, 0.35)",
+                  backgroundColor: authConfig.common.styles.buttonBgColor || "var(--auth-button-color, var(--theme-primary, #C8A45C))",
+                  color: authConfig.common.styles.buttonTextColor || "var(--theme-background, #1A1A1A)",
+                  boxShadow: "0 10px 20px -5px color-mix(in srgb, var(--auth-button-color, var(--theme-primary, #C8A45C)) 35%, transparent)",
                 }}
               >
                 {loading ? (
@@ -466,7 +554,7 @@ export default function Login() {
                     id="login-forgot-password"
                     onClick={handleForgotPassword}
                     className="text-xs sm:text-sm hover:underline transition font-medium cursor-pointer"
-                    style={{ color: authConfig.common.styles.titleColor }}
+                    style={{ color: authConfig.common.styles.titleColor || "var(--auth-title-color, var(--theme-primary, #C8A45C))" }}
                   >
                     {authConfig.login.fields.forgotPasswordText}
                   </button>
@@ -476,11 +564,20 @@ export default function Login() {
               {/* Divider */}
               {authConfig.login.showDivider && (
                 <div className="relative flex items-center justify-center my-4 sm:my-5">
-                  <div className="grow border-t border-zinc-200 dark:border-zinc-700/80" />
-                  <span className="shrink-0 px-3 text-xs text-zinc-400 dark:text-zinc-500 font-medium">
+                  <div
+                    className="grow border-t"
+                    style={{ borderColor: "var(--theme-border, #3A3A3A)" }}
+                  />
+                  <span
+                    className="shrink-0 px-3 text-xs font-medium"
+                    style={{ color: "var(--theme-text-muted, #9E9E9E)" }}
+                  >
                     {authConfig.login.dividerText}
                   </span>
-                  <div className="grow border-t border-zinc-200 dark:border-zinc-700/80" />
+                  <div
+                    className="grow border-t"
+                    style={{ borderColor: "var(--theme-border, #3A3A3A)" }}
+                  />
                 </div>
               )}
 
@@ -490,7 +587,12 @@ export default function Login() {
                   type="button"
                   id="login-google-button"
                   onClick={handleGoogleLogin}
-                  className="w-full min-h-[48px] bg-white dark:bg-zinc-800/80 hover:bg-zinc-50 dark:hover:bg-zinc-700/80 border border-zinc-200 dark:border-zinc-700 rounded-xl sm:rounded-2xl py-3 px-4 flex items-center justify-center gap-3 text-xs sm:text-sm font-bold text-zinc-700 dark:text-zinc-200 transition-all duration-150 cursor-pointer shadow-xs active:scale-[0.99]"
+                  className="w-full min-h-[48px] hover:brightness-110 border rounded-xl sm:rounded-2xl py-3 px-4 flex items-center justify-center gap-3 text-xs sm:text-sm font-bold transition-all duration-150 cursor-pointer shadow-xs active:scale-[0.99]"
+                  style={{
+                    backgroundColor: "var(--theme-input-bg, #2A2A2A)",
+                    borderColor: "var(--theme-border, #3A3A3A)",
+                    color: "var(--theme-text-primary, #FFFFFF)",
+                  }}
                 >
                   <GoogleIcon className="w-5 h-5 shrink-0" />
                   <span>{authConfig.login.googleButtonText}</span>
@@ -498,13 +600,16 @@ export default function Login() {
               )}
 
               {/* Register Link */}
-              <div className="pt-3 text-center text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 font-medium">
+              <div
+                className="pt-3 text-center text-xs sm:text-sm font-medium"
+                style={{ color: "var(--theme-text-muted, #9E9E9E)" }}
+              >
                 {authConfig.login.fields.switchToRegisterText}{" "}
                 <Link
                   href="/register"
                   id="login-to-register-link"
                   className="font-bold underline-offset-4 hover:underline transition"
-                  style={{ color: authConfig.common.styles.titleColor }}
+                  style={{ color: authConfig.common.styles.titleColor || "var(--auth-title-color, var(--theme-primary, #C8A45C))" }}
                 >
                   {authConfig.login.fields.switchToRegisterLink}
                 </Link>
@@ -515,7 +620,8 @@ export default function Login() {
                 <Link
                   href="/"
                   id="login-back-to-home"
-                  className="inline-flex items-center gap-2 text-xs sm:text-sm text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 transition font-semibold"
+                  className="inline-flex items-center gap-2 text-xs sm:text-sm hover:opacity-80 transition font-semibold"
+                  style={{ color: "var(--theme-text-muted, #9E9E9E)" }}
                 >
                   <span>{authConfig.common.backToHomeText}</span>
                   <ArrowRight size={15} />

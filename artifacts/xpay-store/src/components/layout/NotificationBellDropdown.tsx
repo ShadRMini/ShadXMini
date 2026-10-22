@@ -107,7 +107,14 @@ export default function NotificationBellDropdown() {
       >
         <Bell className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
         {unreadCount > 0 && (
-          <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 bg-gradient-to-r from-red-600 to-amber-600 text-white font-mono text-[10px] font-black rounded-full flex items-center justify-center border border-[var(--bg-primary)] shadow-md animate-bounce">
+          <span
+            className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 font-mono text-[10px] font-black rounded-full flex items-center justify-center border shadow-md animate-bounce"
+            style={{
+              backgroundColor: "var(--theme-primary, #C8A45C)",
+              color: "var(--theme-background, #1A1A1A)",
+              borderColor: "var(--theme-background, #1A1A1A)",
+            }}
+          >
             {unreadCount > 99 ? "99+" : unreadCount}
           </span>
         )}
@@ -126,7 +133,7 @@ export default function NotificationBellDropdown() {
           <div
             className="p-3.5 border-b flex items-center justify-between"
             style={{
-              backgroundColor: "rgba(200,164,92,0.1)",
+              backgroundColor: "color-mix(in srgb, var(--theme-primary, #C8A45C) 10%, transparent)",
               borderColor: "var(--theme-border, rgba(200,164,92,0.2))",
             }}
           >
@@ -134,7 +141,7 @@ export default function NotificationBellDropdown() {
               <div
                 className="p-1.5 rounded-lg"
                 style={{
-                  backgroundColor: "rgba(200,164,92,0.15)",
+                  backgroundColor: "color-mix(in srgb, var(--theme-primary, #C8A45C) 15%, transparent)",
                   color: "var(--theme-primary)",
                 }}
               >
@@ -147,7 +154,7 @@ export default function NotificationBellDropdown() {
                 <span
                   className="text-[10px] px-2 py-0.5 rounded-full font-bold"
                   style={{
-                    backgroundColor: "rgba(200,164,92,0.2)",
+                    backgroundColor: "color-mix(in srgb, var(--theme-primary, #C8A45C) 20%, transparent)",
                     color: "var(--theme-primary)",
                   }}
                 >
@@ -169,7 +176,7 @@ export default function NotificationBellDropdown() {
           </div>
 
           {/* List Content */}
-          <div className="max-h-80 overflow-y-auto divide-y divide-[var(--border-color,rgba(255,255,255,0.06))] custom-scrollbar">
+          <div className="max-h-80 overflow-y-auto divide-y divide-[var(--theme-border,rgba(255,255,255,0.06))] custom-scrollbar">
             {loading ? (
               <div className="p-6 text-center text-xs text-[var(--text-muted)]">
                 <div
@@ -203,7 +210,7 @@ export default function NotificationBellDropdown() {
                     key={item.id}
                     className="p-3 transition-colors"
                     style={{
-                      backgroundColor: isUnread ? "rgba(200,164,92,0.1)" : "transparent",
+                      backgroundColor: isUnread ? "color-mix(in srgb, var(--theme-primary, #C8A45C) 10%, transparent)" : "transparent",
                       borderRightWidth: isUnread ? "2px" : "0px",
                       borderRightColor: "var(--theme-primary)",
                     }}
@@ -260,7 +267,7 @@ export default function NotificationBellDropdown() {
               className="w-full flex items-center justify-center gap-1.5 py-2 text-xs font-bold border rounded-xl transition cursor-pointer"
               style={{
                 color: "var(--theme-primary)",
-                backgroundColor: "rgba(200, 164, 92, 0.15)",
+                backgroundColor: "color-mix(in srgb, var(--theme-primary, #C8A45C) 15%, transparent)",
                 borderColor: "var(--theme-border)",
               }}
             >

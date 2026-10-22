@@ -256,13 +256,13 @@ export function DepositInvoicePay() {
   if (!invoiceId) {
     return (
       <div className="w-full max-w-xl mx-auto px-4 py-12 text-center space-y-4" dir="rtl">
-        <AlertTriangle className="w-12 h-12 text-amber-500 mx-auto" />
-        <h2 className="text-xl font-bold">لم يتم العثور على الفاتورة</h2>
-        <p className="text-sm text-muted-foreground">
+        <AlertTriangle className="w-12 h-12 text-[var(--theme-warning,#F59E0B)] mx-auto" />
+        <h2 className="text-xl font-bold text-[var(--theme-text-primary)]">لم يتم العثور على الفاتورة</h2>
+        <p className="text-sm text-[var(--theme-text-secondary)]">
           يرجى العودة لصفحة الإيداع وإنشاء فاتورة جديدة.
         </p>
         <Link href="/deposit">
-          <Button className="rounded-xl">الرجوع لصفحة الإيداع</Button>
+          <Button className="rounded-xl bg-[var(--theme-primary)] text-[var(--theme-text-on-primary,var(--theme-background))]">الرجوع لصفحة الإيداع</Button>
         </Link>
       </div>
     );
@@ -277,7 +277,7 @@ export function DepositInvoicePay() {
           <Link href="/deposit/shamcash">
             <button
               type="button"
-              className="w-10 h-10 rounded-2xl bg-muted/70 hover:bg-muted border border-border/80 flex items-center justify-center text-foreground transition-all shadow-xs"
+              className="w-10 h-10 rounded-2xl bg-[var(--theme-card)] hover:bg-[var(--theme-input-bg)] border border-[var(--theme-border)] flex items-center justify-center text-[var(--theme-text-primary)] transition-all shadow-xs"
               title="رجوع"
             >
               <ArrowRight className="w-5 h-5" />
@@ -287,7 +287,7 @@ export function DepositInvoicePay() {
             <h1 className="text-xl sm:text-2xl font-black text-[var(--theme-primary)] tracking-tight">
               تفاصيل دفع الفاتورة
             </h1>
-            <p className="text-xs sm:text-sm text-muted-foreground">
+            <p className="text-xs sm:text-sm text-[var(--theme-text-secondary)]">
               قم بالتحويل عبر شام كاش ثم أدخل رقم العملية
             </p>
           </div>
@@ -298,8 +298,8 @@ export function DepositInvoicePay() {
           <div
             className={`px-4 py-2 rounded-2xl border text-center transition-all shadow-xs ${
               isExpired
-                ? "bg-destructive/10 border-destructive/30 text-destructive"
-                : "bg-emerald-500/10 border-emerald-500/25 text-emerald-600 dark:text-emerald-400"
+                ? "bg-[var(--theme-error,#EF4444)]/10 border-[var(--theme-error,#EF4444)]/30 text-[var(--theme-error,#EF4444)]"
+                : "bg-[var(--theme-shamcash,#00875A)]/10 border-[var(--theme-shamcash,#00875A)]/25 text-[var(--theme-shamcash,#00875A)]"
             }`}
           >
             <div className="flex items-center gap-1.5 text-[11px] font-bold justify-center">
@@ -319,8 +319,8 @@ export function DepositInvoicePay() {
 
       {/* Success Alert if already approved */}
       {status === "approved" && (
-        <div className="p-4 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-800 dark:text-emerald-300 flex items-center gap-3 shadow-md animate-in zoom-in-95">
-          <CheckCircle2 className="w-6 h-6 text-emerald-600 shrink-0" />
+        <div className="p-4 rounded-2xl bg-[var(--theme-success,#10B981)]/15 border border-[var(--theme-success,#10B981)]/30 text-[var(--theme-success,#10B981)] flex items-center gap-3 shadow-md animate-in zoom-in-95">
+          <CheckCircle2 className="w-6 h-6 text-[var(--theme-success,#10B981)] shrink-0" />
           <div>
             <div className="font-bold text-sm">تم تأكيد الإيداع بنجاح!</div>
             <div className="text-xs opacity-90">تم تحديث رصيدك بنجاح، جاري تحويلك للمحفظة...</div>
@@ -329,16 +329,16 @@ export function DepositInvoicePay() {
       )}
 
       {/* 2. Verification Form Card (Image 2 middle section) */}
-      <div className="bg-card border border-border/80 rounded-3xl p-6 sm:p-7 shadow-xl shadow-black/5 space-y-5">
+      <div className="bg-[var(--theme-card)] border border-[var(--theme-border)] rounded-3xl p-6 sm:p-7 shadow-xl shadow-black/5 space-y-5">
         {/* Card Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <CheckCircle2 className="w-5 h-5 text-[var(--theme-primary)]" />
-            <h2 className="text-base sm:text-lg font-bold text-foreground">
+            <h2 className="text-base sm:text-lg font-bold text-[var(--theme-text-primary)]">
               التحقق من رقم العملية
             </h2>
           </div>
-          <span className="inline-flex items-center gap-1 text-[11px] font-bold px-3 py-1 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+          <span className="inline-flex items-center gap-1 text-[11px] font-bold px-3 py-1 rounded-full bg-[var(--theme-info,#3B82F6)]/10 text-[var(--theme-info,#3B82F6)] border border-[var(--theme-info,#3B82F6)]/20">
             <Sparkles className="w-3 h-3" />
             تحقق آلي فوري
           </span>
@@ -347,8 +347,8 @@ export function DepositInvoicePay() {
         {/* Input & Action */}
         <form onSubmit={handleVerify} className="space-y-4">
           <div className="space-y-2">
-            <label className="text-xs font-bold text-foreground block">
-              أدخل رقم عملية شام كاش <span className="text-destructive">*</span>
+            <label className="text-xs font-bold text-[var(--theme-text-primary)] block">
+              أدخل رقم عملية شام كاش <span className="text-[var(--theme-error,#EF4444)]">*</span>
             </label>
             <Input
               type="text"
@@ -357,7 +357,7 @@ export function DepositInvoicePay() {
               placeholder="مثال: 123456789"
               value={transactionRef}
               onChange={(e) => setTransactionRef(e.target.value)}
-              className="h-12 rounded-xl text-left font-mono font-bold text-base px-4 border-border/80 focus:border-[var(--theme-primary)] tracking-wider"
+              className="h-12 rounded-xl text-left font-mono font-bold text-base px-4 bg-[var(--theme-input-bg)] border-[var(--theme-border)] text-[var(--theme-text-primary)] focus:border-[var(--theme-primary)] tracking-wider"
             />
           </div>
 
@@ -369,7 +369,7 @@ export function DepositInvoicePay() {
               className="w-full h-12 rounded-2xl font-bold text-sm sm:text-base shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
               style={{
                 backgroundColor: methodConfig?.button_color || "var(--theme-primary)",
-                color: methodConfig?.button_color ? "#141414" : undefined,
+                color: "var(--theme-text-on-primary, var(--theme-background))",
               }}
             >
               {verifying ? (
@@ -386,67 +386,67 @@ export function DepositInvoicePay() {
             </Button>
           </div>
 
-          <p className="text-[11px] text-muted-foreground text-center leading-relaxed">
+          <p className="text-[11px] text-[var(--theme-text-muted)] text-center leading-relaxed">
             سيتم التحقق عبر مزود الدفع فوراً وإضافة المبلغ لحسابك دون تأخير.
           </p>
         </form>
       </div>
 
       {/* 3. Steps Card (Image 2) */}
-      <div className="bg-muted/40 border border-border/70 rounded-3xl p-5 sm:p-6 space-y-3 relative overflow-hidden">
+      <div className="bg-[var(--theme-card)] border border-[var(--theme-border)] rounded-3xl p-5 sm:p-6 space-y-3 relative overflow-hidden">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-bold text-foreground">
+          <h3 className="text-sm font-bold text-[var(--theme-text-primary)]">
             خطوات إتمام الإيداع:
           </h3>
-          <ShieldCheck className="w-5 h-5 text-muted-foreground/60" />
+          <ShieldCheck className="w-5 h-5 text-[var(--theme-text-muted)]" />
         </div>
 
-        <ol className="space-y-2 text-xs sm:text-sm text-muted-foreground leading-relaxed list-decimal list-inside pr-1">
-          <li className="font-medium text-foreground/90">
+        <ol className="space-y-2 text-xs sm:text-sm text-[var(--theme-text-secondary)] leading-relaxed list-decimal list-inside pr-1">
+          <li className="font-medium text-[var(--theme-text-secondary)]">
             افتح تطبيق شام كاش وحوّل المبلغ المطلوب إلى العنوان.
           </li>
-          <li className="font-medium text-foreground/90">
-            انسخ <strong className="text-foreground font-bold">رقم العملية (Transaction ID)</strong> بعد إتمام التحويل.
+          <li className="font-medium text-[var(--theme-text-secondary)]">
+            انسخ <strong className="text-[var(--theme-text-primary)] font-bold">رقم العملية (Transaction ID)</strong> بعد إتمام التحويل.
           </li>
-          <li className="font-medium text-foreground/90">
+          <li className="font-medium text-[var(--theme-text-secondary)]">
             ألصق رقم العملية في الحقل أعلاه واضغط على زر التحقق.
           </li>
         </ol>
       </div>
 
       {/* 4. Current Invoice Details Card (Image 2 bottom section) */}
-      <div className="bg-card border border-border/80 rounded-3xl p-6 sm:p-7 shadow-xl shadow-black/5 space-y-4">
+      <div className="bg-[var(--theme-card)] border border-[var(--theme-border)] rounded-3xl p-6 sm:p-7 shadow-xl shadow-black/5 space-y-4">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <FileText className="w-5 h-5 text-[var(--theme-primary)]" />
-            <h2 className="text-base sm:text-lg font-bold text-foreground">
+            <h2 className="text-base sm:text-lg font-bold text-[var(--theme-text-primary)]">
               بيانات الفاتورة الحالية
             </h2>
           </div>
-          <span className="inline-flex items-center gap-1 text-[11px] font-bold px-3 py-1 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+          <span className="inline-flex items-center gap-1 text-[11px] font-bold px-3 py-1 rounded-full bg-[var(--theme-info,#3B82F6)]/10 text-[var(--theme-info,#3B82F6)] border border-[var(--theme-info,#3B82F6)]/20">
             بانتظار التحويل
           </span>
         </div>
 
         {/* Invoice ID Box */}
-        <div className="bg-muted/40 border border-border/70 rounded-2xl p-3.5 flex items-center justify-between gap-3">
+        <div className="bg-[var(--theme-input-bg)] border border-[var(--theme-border)] rounded-2xl p-3.5 flex items-center justify-between gap-3">
           <div className="space-y-0.5 overflow-hidden">
-            <span className="text-[11px] font-semibold text-muted-foreground block">
+            <span className="text-[11px] font-semibold text-[var(--theme-text-secondary)] block">
               رقم الفاتورة (Invoice ID)
             </span>
-            <span className="font-mono font-bold text-xs sm:text-sm text-foreground truncate block select-all">
+            <span className="font-mono font-bold text-xs sm:text-sm text-[var(--theme-text-primary)] truncate block select-all">
               {invoiceId}
             </span>
           </div>
           <button
             type="button"
             onClick={handleCopyInvoice}
-            className="shrink-0 p-2 rounded-xl bg-background border border-border hover:bg-muted text-muted-foreground hover:text-foreground transition-colors shadow-2xs"
+            className="shrink-0 p-2 rounded-xl bg-[var(--theme-card)] border border-[var(--theme-border)] hover:bg-[var(--theme-card-hover)] text-[var(--theme-text-secondary)] hover:text-[var(--theme-text-primary)] transition-colors shadow-2xs"
             title="نسخ رقم الفاتورة"
           >
             {copiedInvoice ? (
-              <Check className="w-4 h-4 text-emerald-600" />
+              <Check className="w-4 h-4 text-[var(--theme-success,#10B981)]" />
             ) : (
               <Copy className="w-4 h-4" />
             )}
@@ -454,18 +454,18 @@ export function DepositInvoicePay() {
         </div>
 
         {/* Amount Box */}
-        <div className="bg-muted/40 border border-border/70 rounded-2xl p-3.5 flex items-center justify-between gap-3">
+        <div className="bg-[var(--theme-input-bg)] border border-[var(--theme-border)] rounded-2xl p-3.5 flex items-center justify-between gap-3">
           <div className="space-y-0.5">
-            <span className="text-[11px] font-semibold text-muted-foreground block">
+            <span className="text-[11px] font-semibold text-[var(--theme-text-secondary)] block">
               المبلغ المطلوب تحويله
             </span>
             <div className="flex items-baseline gap-1.5">
-              <span className="text-xl sm:text-2xl font-black text-foreground font-mono">
+              <span className="text-xl sm:text-2xl font-black text-[var(--theme-text-primary)] font-mono">
                 {currency} {amount}
               </span>
             </div>
           </div>
-          <div className="shrink-0 px-3 py-1 rounded-xl bg-background border border-border font-mono font-bold text-xs text-muted-foreground">
+          <div className="shrink-0 px-3 py-1 rounded-xl bg-[var(--theme-card)] border border-[var(--theme-border)] font-mono font-bold text-xs text-[var(--theme-text-secondary)]">
             {currency}
           </div>
         </div>

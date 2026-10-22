@@ -1,7 +1,7 @@
 import { Router, type IRouter } from "express";
 import { timingSafeEqual } from "node:crypto";
-import { db, depositsTable, paymentMethodsTable, shamcashUsedTransactionRefsTable, usersTable, verifyRateLimitsTable } from "@workspace/db";
-import { and, desc, eq, gte, ne, or, sql } from "drizzle-orm";
+import { db, depositsTable, paymentMethodsTable, settingsTable, shamcashUsedTransactionRefsTable, usersTable, verifyRateLimitsTable } from "@workspace/db";
+import { and, desc, eq, gte, inArray, ne, or, sql } from "drizzle-orm";
 import {
   CreateDepositBody,
   CreateDepositResponse,
@@ -28,6 +28,23 @@ const SAM_API_BASE_URL = process.env.SAM_API_BASE_URL || "https://www.sam-api.pr
 const SAM_PAY_BASE_URL =
   process.env.SAM_PAY_BASE_URL ||
   SAM_API_BASE_URL.replace(/\/api\/?$/i, "");
+
+// Task #95 C15a: read real SYP exchange rate from settingsTable (fallback 145)
+async function getExchangeRateSyp(): Promise<number> {
+  try {
+    const rows = await db
+      .select()
+      .from(settingsTable)
+      .where(inArray(settingsTable.key, ["exchange_rate_syp", "usd_to_syp", "exchange_rate", "currency_settings"]));
+    const map = new Map(rows.map((r) => [r.key, r.value]));
+    const agg = map.get("currency_settings");
+    const aggRate = agg && typeof agg === "object" ? ((agg as any).usdToSyp || (agg as any).exchangeRate) : undefined;
+    const rate = Number(map.get("exchange_rate_syp") || map.get("usd_to_syp") || map.get("exchange_rate") || aggRate);
+    return Number.isFinite(rate) && rate > 0 ? rate : 145;
+  } catch {
+    return 145;
+  }
+}
 const SAM_API_KEY = process.env.SAM_API_KEY || "";
 const SAM_SHAMCASH_IDENTIFIER = process.env.SAM_SHAMCASH_IDENTIFIER || "";
 const SAM_WEBHOOK_SECRET = process.env.SAM_WEBHOOK_SECRET || "";
@@ -1606,9 +1623,11 @@ router.post("/deposits", async (req, res) => {
   const user = await getOrCreateCurrentUserStrict(req);
   const m = (await db.select().from(paymentMethodsTable).where(eq(paymentMethodsTable.code, body.method)).limit(1))[0];
   const methodLabel = m?.name ?? body.method;
+  // Task #95 C15a: use real exchange rate from settings (not legacy hardcoded rate)
+  const exchangeRateSyp = await getExchangeRateSyp();
   const amountUsd =
-    body.currency === "USD" ? body.amount : body.amount / 119;
-  const amountSyp = body.currency === "SYP" ? body.amount : body.amount * 119;
+    body.currency === "USD" ? body.amount : body.amount / exchangeRateSyp;
+  const amountSyp = body.currency === "SYP" ? body.amount : body.amount * exchangeRateSyp;
   const inserted = await db
     .insert(depositsTable)
     .values({
@@ -1715,8 +1734,10 @@ async function handleShamCashInvoiceCreate(req: any, res: any) {
     try {
       const numAmount = Number(amount);
       const curr = (currency || "USD").toUpperCase();
-      const amountUsd = curr === "USD" ? numAmount : numAmount / 119;
-      const amountSyp = curr === "SYP" ? numAmount : numAmount * 119;
+      // Task #95 C15a: use real exchange rate from settings (not legacy hardcoded rate)
+      const exchangeRateSyp = await getExchangeRateSyp();
+      const amountUsd = curr === "USD" ? numAmount : numAmount / exchangeRateSyp;
+      const amountSyp = curr === "SYP" ? numAmount : numAmount * exchangeRateSyp;
 
       const [methodRow] = await db
         .select()
@@ -1785,21 +1806,9 @@ async function handleShamCashInvoiceCreate(req: any, res: any) {
   }
 }
 
-router.post("/deposits/shamcash/invoice", (req, res, next) => {
-  console.log("========== [/deposits/shamcash/invoice] REQUEST RECEIVED ==========");
-  console.log("Headers:", JSON.stringify(req.headers, null, 2));
-  console.log("Body:", JSON.stringify(req.body, null, 2));
-  console.log("Auth Header:", req.headers.authorization ? "present" : "MISSING");
-  next();
-}, authenticate, handleShamCashInvoiceCreate);
+router.post("/deposits/shamcash/invoice", authenticate, handleShamCashInvoiceCreate);
 
-router.post("/deposit/shamcash/create-invoice", (req, res, next) => {
-  console.log("========== [/deposit/shamcash/create-invoice] REQUEST RECEIVED ==========");
-  console.log("Headers:", JSON.stringify(req.headers, null, 2));
-  console.log("Body:", JSON.stringify(req.body, null, 2));
-  console.log("Auth Header:", req.headers.authorization ? "present" : "MISSING");
-  next();
-}, authenticate, handleShamCashInvoiceCreate);
+router.post("/deposit/shamcash/create-invoice", authenticate, handleShamCashInvoiceCreate);
 
 router.post("/deposits/shamcash/verify", async (req, res) => {
   try {
@@ -1878,7 +1887,8 @@ router.post("/deposits/shamcash/verify", async (req, res) => {
     }
 
     // Rate Limit Check per user / IP for this deposit
-    const clientIp = req.ip || String(req.headers["x-forwarded-for"] || "127.0.0.1").split(",")[0].trim();
+    // Task #95 C15a: use req.ip (trust proxy is configured in app.ts)
+    const clientIp = req.ip || "unknown";
     const isAllowed = await checkVerifyRateLimit(user ? user.id : null, clientIp, dep.id);
     if (!isAllowed) {
       res.status(429).json({
@@ -2046,8 +2056,10 @@ router.post("/deposits/binance/create", async (req, res) => {
 
     const methodLabel = methodRow?.name || "Binance Pay";
     // USDT is equivalent to USD
-    const amountUsd = currency === "SYP" ? amount / 119 : amount;
-    const amountSyp = currency === "SYP" ? amount : amount * 119;
+    // Task #95 C15a: use real exchange rate from settings (not legacy hardcoded rate)
+    const exchangeRateSyp = await getExchangeRateSyp();
+    const amountUsd = currency === "SYP" ? amount / exchangeRateSyp : amount;
+    const amountSyp = currency === "SYP" ? amount : amount * exchangeRateSyp;
     const tempTxId = `BINANCE_PENDING_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 
     const [inserted] = await db

@@ -10,7 +10,7 @@ export default function CurrencySettings() {
   const [showBothCurrencies, setShowBothCurrencies] = useState(true);
 
   // القسم 2: أسعار الصرف مقابل 1 USD
-  const [usdToSyp, setUsdToSyp] = useState<number>(15000);
+  const [usdToSyp, setUsdToSyp] = useState<number>(145);
   const [usdToTry, setUsdToTry] = useState<number>(34.5);
   const [usdToEur, setUsdToEur] = useState<number>(0.92);
   const [usdToSar, setUsdToSar] = useState<number>(3.75);
@@ -48,8 +48,8 @@ export default function CurrencySettings() {
         }
 
         // 3. أسعار الصرف
-        const sypRate = currRes?.usdToSyp ?? currRes?.exchangeRate ?? settingsMap?.usd_to_syp ?? settingsMap?.exchange_rate ?? 15000;
-        setUsdToSyp(Number(sypRate) || 15000);
+        const sypRate = currRes?.usdToSyp ?? currRes?.exchangeRate ?? settingsMap?.usd_to_syp ?? settingsMap?.exchange_rate ?? 145;
+        setUsdToSyp(Number(sypRate) || 145);
 
         if (currRes?.usdToTry || settingsMap?.usd_to_try) {
           setUsdToTry(Number(currRes?.usdToTry || settingsMap?.usd_to_try) || 34.5);
@@ -166,7 +166,7 @@ export default function CurrencySettings() {
     setBaseCurrency("USD");
     setCurrencySymbol("$");
     setShowBothCurrencies(true);
-    setUsdToSyp(15000);
+    setUsdToSyp(145);
     setUsdToTry(34.5);
     setUsdToEur(0.92);
     setUsdToSar(3.75);

@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useStoreSettings } from "@/lib/store-settings-context";
+import { getCachedThemeSettings } from "@/lib/theme";
 import NotificationBellDropdown from "./NotificationBellDropdown";
 import Sidebar from "./Sidebar";
 import { toast } from "sonner";
@@ -36,10 +37,21 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    if (storeSettings.brandLogoUrl) {
-      setBrandLogo(storeSettings.brandLogoUrl);
-    }
-  }, [storeSettings.brandLogoUrl]);
+    const syncLogo = () => {
+      const cachedTheme = getCachedThemeSettings();
+      const resolvedLogo = String(
+        cachedTheme?.theme_logo_url ||
+        storeSettings.theme_logo_url ||
+        storeSettings.brandLogoUrl ||
+        storeSettings.brand_logo_url ||
+        ""
+      ).trim();
+      setBrandLogo(resolvedLogo);
+    };
+    syncLogo();
+    window.addEventListener("xpay_theme_applied", syncLogo);
+    return () => window.removeEventListener("xpay_theme_applied", syncLogo);
+  }, [storeSettings.theme_logo_url, storeSettings.brandLogoUrl, storeSettings.brand_logo_url]);
 
   // Close drawer on route change
   useEffect(() => {
@@ -79,7 +91,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <aside 
         className="hidden lg:block w-72 h-screen sticky top-0 border-l border-[var(--theme-border,rgba(200,164,92,0.25))] z-30 shadow-2xl shrink-0 transition-colors duration-300"
         style={{
-          backgroundColor: "var(--theme-background)",
+          backgroundColor: "var(--theme-sidebar-bg, var(--theme-background))",
         }}
       >
         <Sidebar brandLogo={brandLogo} />
@@ -98,7 +110,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <div 
             className="fixed inset-y-0 right-0 max-w-[300px] w-full shadow-2xl z-50 transform transition-transform duration-300 ease-in-out animate-in slide-in-from-right border-l border-[var(--theme-border,rgba(200,164,92,0.25))]"
             style={{
-              backgroundColor: "var(--theme-background)",
+              backgroundColor: "var(--theme-sidebar-bg, var(--theme-background))",
             }}
           >
             <Sidebar brandLogo={brandLogo} onClose={() => setDrawerOpen(false)} />
@@ -116,17 +128,17 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       >
         {/* Mobile / Top Header Bar */}
         <header 
-          className="sticky top-0 z-20 h-[72px] backdrop-blur-md px-4 flex items-center justify-between shadow-md shrink-0 transition-colors"
+          className="sticky top-0 z-20 min-h-[56px] md:min-h-[72px] py-1.5 md:py-2 backdrop-blur-md px-3 md:px-4 flex items-center justify-between shadow-md shrink-0 transition-colors"
           style={{
-            backgroundColor: "var(--theme-background)",
+            background: "var(--theme-header-gradient, var(--theme-background))",
             borderBottom: "1px solid var(--theme-border, rgba(200,164,92,0.3))",
           }}
         >
-          <div className="flex items-center gap-3 h-full">
+          <div className="flex items-center gap-2 md:gap-3 h-full">
             {/* Hamburger Button */}
             <button
               onClick={() => setDrawerOpen(true)}
-              className="p-2 rounded-xl transition active:scale-95 cursor-pointer shrink-0"
+              className="lg:hidden p-1.5 md:p-2 rounded-xl transition active:scale-95 cursor-pointer shrink-0"
               style={{
                 backgroundColor: "var(--theme-card, var(--bg-card))",
                 border: "1px solid var(--theme-border, rgba(200,164,92,0.3))",
@@ -134,27 +146,27 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               }}
               aria-label="فتح القائمة الجانبية"
             >
-              <Menu size={22} style={{ color: "var(--theme-primary)" }} />
+              <Menu className="w-5 h-5 md:w-[22px] md:h-[22px]" style={{ color: "var(--theme-primary)" }} />
             </button>
 
-            <Link href="/" className="flex items-center gap-2.5 h-full py-2">
+            <Link href="/" className="flex items-center gap-2 md:gap-2.5 h-full py-1 md:py-2">
               {brandLogo ? (
                 <img
                   src={brandLogo}
                   alt={storeSettings.siteName || "ShadMini"}
                   onError={() => setBrandLogo("")}
-                  className="store-brand-logo object-contain rounded-lg transition-all duration-200"
+                  className="store-brand-logo object-contain rounded-lg transition-all duration-200 !max-h-[38px] md:!max-h-[54px]"
                   style={{
                     height: "var(--theme-logo-size, 80px)",
-                    maxHeight: "52px",
-                    maxWidth: "220px",
+                    maxHeight: "calc(var(--header-height, 56px) - 16px)",
+                    maxWidth: "180px",
                     width: "auto",
                   }}
                 />
               ) : (
                 <span 
-                  className="text-lg font-black tracking-wide"
-                  style={{ color: "var(--theme-accent)" }}
+                  className="text-base md:text-lg font-black tracking-wide"
+                  style={{ color: "var(--theme-logo-text-color, var(--theme-accent))" }}
                 >
                   {storeSettings.siteName || "ShadMini"}
                 </span>
@@ -163,35 +175,35 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </div>
 
           {/* Quick Profile / Balance pill / Notification Bell */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 md:gap-2">
             {user ? (
               <>
                 <NotificationBellDropdown />
 
                 <Link href="/deposit">
                   <div 
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full cursor-pointer transition shadow-xs"
+                    className="flex items-center gap-1 md:gap-1.5 px-2.5 md:px-3 py-1 md:py-1.5 rounded-full cursor-pointer transition shadow-xs"
                     style={{
                       backgroundColor: "var(--theme-card, var(--bg-card))",
                       border: "1px solid var(--theme-border, rgba(200,164,92,0.4))",
                     }}
                   >
-                    <span className="text-[11px] font-bold" style={{ color: "var(--theme-text-muted)" }}>الرصيد:</span>
-                    <span className="text-xs font-black" style={{ color: "var(--theme-primary, var(--theme-text-primary, #3B82F6))" }}>
+                    <span className="text-[10px] md:text-[11px] font-bold" style={{ color: "var(--theme-text-muted)" }}>الرصيد:</span>
+                    <span className="text-[11px] md:text-xs font-black" style={{ color: "var(--theme-primary, var(--theme-text-primary, #3B82F6))" }}>
                       ${Number(user.balanceUsd || 0).toFixed(2)}
                     </span>
-                    <Plus size={13} style={{ color: "var(--theme-primary, #3B82F6)" }} />
+                    <Plus size={12} className="md:w-[13px] md:h-[13px]" style={{ color: "var(--theme-primary, #3B82F6)" }} />
                   </div>
                 </Link>
               </>
             ) : (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 md:gap-2">
                 <Link href="/login">
                   <button 
-                    className="font-black text-xs px-3.5 py-1.5 rounded-full shadow-sm cursor-pointer transition"
+                    className="font-black text-[11px] md:text-xs px-3 md:px-3.5 py-1 md:py-1.5 rounded-full shadow-sm cursor-pointer transition"
                     style={{
                       backgroundColor: "var(--theme-primary)",
-                      color: "#1A1A1A",
+                      color: "var(--theme-text-on-primary, var(--theme-background, #1A1A1A))",
                     }}
                   >
                     {storeSettings.guestPreviewLoginButton || "تسجيل الدخول"}
@@ -199,7 +211,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 </Link>
                 <Link href="/register">
                   <button 
-                    className="hidden sm:inline-flex font-bold text-xs px-3.5 py-1.5 rounded-full shadow-sm cursor-pointer transition"
+                    className="hidden sm:inline-flex font-bold text-[11px] md:text-xs px-3 md:px-3.5 py-1 md:py-1.5 rounded-full shadow-sm cursor-pointer transition"
                     style={{
                       backgroundColor: "var(--theme-card)",
                       border: "1px solid var(--theme-border, rgba(200,164,92,0.4))",
@@ -237,7 +249,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <nav 
         className="lg:hidden fixed bottom-0 left-0 right-0 backdrop-blur-xl border-t pb-safe z-40 shadow-lg"
         style={{
-          backgroundColor: "var(--theme-background)",
+          backgroundColor: "var(--theme-bottom-nav, var(--theme-background))",
           borderColor: "var(--theme-border, rgba(200,164,92,0.3))",
         }}
       >
@@ -256,7 +268,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                       }`}
                       style={{
                         backgroundColor: "var(--theme-primary)",
-                        color: "#1A1A1A",
+                        color: "var(--theme-background, #1A1A1A)",
                       }}
                     >
                       <item.icon className="w-7 h-7 stroke-[2.5]" />
@@ -278,8 +290,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   <div
                     className="p-1.5 rounded-xl transition-all duration-300"
                     style={{
-                      backgroundColor: isActive ? "rgba(200, 164, 92, 0.2)" : "transparent",
-                      color: isActive ? "var(--theme-primary)" : "var(--theme-text-muted)",
+                      backgroundColor: isActive ? "var(--theme-bottom-nav-active-bg, rgba(200, 164, 92, 0.2))" : "transparent",
+                      color: isActive ? "var(--theme-bottom-nav-active, var(--theme-primary))" : "var(--theme-text-muted)",
                     }}
                   >
                     <item.icon className="w-5 h-5" strokeWidth={isActive ? 2.5 : 2} />
@@ -287,7 +299,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   <span
                     className="text-[10px] mt-0.5 transition-colors"
                     style={{
-                      color: isActive ? "var(--theme-primary)" : "var(--theme-text-muted)",
+                      color: isActive ? "var(--theme-bottom-nav-active, var(--theme-primary))" : "var(--theme-text-muted)",
                       fontWeight: isActive ? 800 : 500,
                     }}
                   >

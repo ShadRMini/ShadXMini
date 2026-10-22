@@ -4874,7 +4874,7 @@ router.get("/admin/currency-settings", requireAdmin, async (req, res) => {
     if (s.length > 0) {
       res.json(s[0].value);
     } else {
-      res.json({ storeCurrency: "USD", exchangeRate: 1.0, currencySymbol: "$" });
+      res.json({ storeCurrency: "USD", exchangeRate: 145, currencySymbol: "$" });
     }
   } catch (err: any) {
     res.status(500).json({ error: err?.message || "فشل جلب إعدادات العملة" });
@@ -4884,9 +4884,13 @@ router.get("/admin/currency-settings", requireAdmin, async (req, res) => {
 router.put("/admin/currency-settings", requireAdmin, async (req, res) => {
   try {
     const { storeCurrency, exchangeRate, currencySymbol } = req.body;
-    const value = { storeCurrency, exchangeRate: Number(exchangeRate), currencySymbol };
+    const rate = Number(exchangeRate) || 145;
+    const value = { storeCurrency, exchangeRate: rate, currencySymbol };
     await db.insert(settingsTable).values({ key: "currency_settings", value })
       .onConflictDoUpdate({ target: settingsTable.key, set: { value } });
+    // Sync usd_to_syp key
+    await db.insert(settingsTable).values({ key: "usd_to_syp", value: rate })
+      .onConflictDoUpdate({ target: settingsTable.key, set: { value: rate } });
     res.json({ ok: true, message: "تم حفظ إعدادات العملة بنجاح" });
   } catch (err: any) {
     res.status(500).json({ error: err?.message || "فشل حفظ إعدادات العملة" });

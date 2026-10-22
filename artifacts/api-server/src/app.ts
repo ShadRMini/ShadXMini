@@ -134,8 +134,13 @@ app.use(
 );
 
 app.use(cookieParser());
-app.use(express.json({ limit: "50mb" }));
-app.use(express.urlencoded({ extended: true, limit: "50mb" }));
+// Task #95 C15a: reduce default limit, increase only for upload routes
+app.use("/api/deposits", express.json({ limit: "15mb" }));
+app.use("/api/me/identity-verification", express.json({ limit: "15mb" }));
+app.use("/api/admin", express.json({ limit: "15mb" }));
+
+app.use(express.json({ limit: "1mb" }));
+app.use(express.urlencoded({ extended: true, limit: "1mb" }));
 app.use(sessionMiddleware);
 
 app.use("/api", (_req, res, next) => {

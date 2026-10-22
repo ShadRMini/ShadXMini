@@ -207,6 +207,11 @@ export default function ThemeNew() {
       theme_text_muted: palette.textMuted,
       theme_border: palette.border,
       theme_input_bg: palette.inputBg,
+      theme_header_gradient_start: palette.headerGradientStart,
+      theme_header_gradient_end: palette.headerGradientEnd,
+      theme_bottom_nav: palette.bottomNav,
+      theme_bottom_nav_active: palette.bottomNavActive,
+      theme_sidebar_bg: palette.sidebar,
     };
 
     setTheme(updated);
@@ -236,6 +241,11 @@ export default function ThemeNew() {
         theme_text_muted: palette.textMuted,
         theme_border: palette.border,
         theme_input_bg: palette.inputBg,
+        theme_header_gradient_start: palette.headerGradientStart,
+        theme_header_gradient_end: palette.headerGradientEnd,
+        theme_bottom_nav: palette.bottomNav,
+        theme_bottom_nav_active: palette.bottomNavActive,
+        theme_sidebar_bg: palette.sidebar,
       };
 
       setTheme(updated);

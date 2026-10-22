@@ -48,11 +48,11 @@ interface LoyaltyData {
 }
 
 const DEFAULT_LEVELS: LevelItem[] = [
-  { id: 1, name: "Pro", name_ar: "بروتو", nameAr: "بروتو", level_order: 1, levelOrder: 1, required_amount: 0, requiredAmount: 0, discount_percent: 0, discountPercent: 0, discount_fixed_amount: "0.00000000", discountFixedAmount: "0.00000000", badge_color: "#9CA3AF", badgeColor: "#9CA3AF", benefits: ["مستوى أساسي", "لا خصومات"], description: "المستوى الأساسي لجميع المستخدمين الجدد", hidden: false },
-  { id: 2, name: "Silver", name_ar: "فضي", nameAr: "فضي", level_order: 2, levelOrder: 2, required_amount: 300, requiredAmount: 300, discount_percent: 5, discountPercent: 5, discount_fixed_amount: "0.01000000", discountFixedAmount: "0.01000000", badge_color: "#C0C0C0", badgeColor: "#C0C0C0", benefits: ["خصم $0.01 للوحدة", "دعم أولوية"], description: "مستوى فضي مع خصومات ومزايا إضافية", hidden: false },
-  { id: 3, name: "Gold", name_ar: "ذهبي", nameAr: "ذهبي", level_order: 3, levelOrder: 3, required_amount: 500, requiredAmount: 500, discount_percent: 10, discountPercent: 10, discount_fixed_amount: "0.02000000", discountFixedAmount: "0.02000000", badge_color: "#C8A45C", badgeColor: "#C8A45C", benefits: ["خصم $0.02 للوحدة", "توصيل مجاني", "دعم أولوية"], description: "مستوى ذهبي مع خصومات ومزايا مميزة", hidden: false },
-  { id: 4, name: "Diamond", name_ar: "ماسي", nameAr: "ماسي", level_order: 4, levelOrder: 4, required_amount: 1000, requiredAmount: 1000, discount_percent: 15, discountPercent: 15, discount_fixed_amount: "0.03000000", discountFixedAmount: "0.03000000", badge_color: "#60A5FA", badgeColor: "#60A5FA", benefits: ["خصم $0.03 للوحدة", "توصيل مجاني", "دعم مباشر", "هدايا شهرية"], description: "مستوى ماسي مع خصومات ومزايا حصرية", hidden: false },
-  { id: 5, name: "VIP", name_ar: "VIP", nameAr: "VIP", level_order: 5, levelOrder: 5, required_amount: 2500, requiredAmount: 2500, discount_percent: 20, discountPercent: 20, discount_fixed_amount: "0.04000000", discountFixedAmount: "0.04000000", badge_color: "#A855F7", badgeColor: "#A855F7", benefits: ["خصم $0.04 للوحدة", "كل المزايا السابقة", "مدير حساب مخصص", "دخول مبكر للعروض"], description: "مستوى VIP مع كل المزايا الحصرية", hidden: false },
+  { id: 1, name: "Pro", name_ar: "بروتو", nameAr: "بروتو", level_order: 1, levelOrder: 1, required_amount: 0, requiredAmount: 0, discount_percent: 0, discountPercent: 0, discount_fixed_amount: "0.00000000", discountFixedAmount: "0.00000000", badge_color: "var(--theme-tier-pro, #9CA3AF)", badgeColor: "var(--theme-tier-pro, #9CA3AF)", benefits: ["مستوى أساسي", "لا خصومات"], description: "المستوى الأساسي لجميع المستخدمين الجدد", hidden: false },
+  { id: 2, name: "Silver", name_ar: "فضي", nameAr: "فضي", level_order: 2, levelOrder: 2, required_amount: 300, requiredAmount: 300, discount_percent: 5, discountPercent: 5, discount_fixed_amount: "0.01000000", discountFixedAmount: "0.01000000", badge_color: "var(--theme-tier-silver, #C0C0C0)", badgeColor: "var(--theme-tier-silver, #C0C0C0)", benefits: ["خصم $0.01 للوحدة", "دعم أولوية"], description: "مستوى فضي مع خصومات ومزايا إضافية", hidden: false },
+  { id: 3, name: "Gold", name_ar: "ذهبي", nameAr: "ذهبي", level_order: 3, levelOrder: 3, required_amount: 500, requiredAmount: 500, discount_percent: 10, discountPercent: 10, discount_fixed_amount: "0.02000000", discountFixedAmount: "0.02000000", badge_color: "var(--theme-primary, #C8A45C)", badgeColor: "var(--theme-primary, #C8A45C)", benefits: ["خصم $0.02 للوحدة", "توصيل مجاني", "دعم أولوية"], description: "مستوى ذهبي مع خصومات ومزايا مميزة", hidden: false },
+  { id: 4, name: "Diamond", name_ar: "ماسي", nameAr: "ماسي", level_order: 4, levelOrder: 4, required_amount: 1000, requiredAmount: 1000, discount_percent: 15, discountPercent: 15, discount_fixed_amount: "0.03000000", discountFixedAmount: "0.03000000", badge_color: "var(--theme-tier-diamond, #60A5FA)", badgeColor: "var(--theme-tier-diamond, #60A5FA)", benefits: ["خصم $0.03 للوحدة", "توصيل مجاني", "دعم مباشر", "هدايا شهرية"], description: "مستوى ماسي مع خصومات ومزايا حصرية", hidden: false },
+  { id: 5, name: "VIP", name_ar: "VIP", nameAr: "VIP", level_order: 5, levelOrder: 5, required_amount: 2500, requiredAmount: 2500, discount_percent: 20, discountPercent: 20, discount_fixed_amount: "0.04000000", discountFixedAmount: "0.04000000", badge_color: "var(--theme-tier-vip, #A855F7)", badgeColor: "var(--theme-tier-vip, #A855F7)", benefits: ["خصم $0.04 للوحدة", "كل المزايا السابقة", "مدير حساب مخصص", "دخول مبكر للعروض"], description: "مستوى VIP مع كل المزايا الحصرية", hidden: false },
 ];
 
 function formatDiscountText(fixedAmt: number, percentAmt: number): string {
@@ -198,7 +198,7 @@ export default function LoyaltyLevels() {
           <div className="absolute top-0 left-0 w-48 h-48 bg-[var(--theme-primary)]/10 rounded-full blur-3xl pointer-events-none" />
 
           <div className="flex items-center gap-4 relative z-10">
-            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-[var(--theme-primary)] text-white flex items-center justify-center shadow-lg shrink-0">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-[var(--theme-primary)] text-[var(--theme-text-on-primary,#000000)] flex items-center justify-center shadow-lg shrink-0">
               <Crown className="w-6 h-6 sm:w-7 sm:h-7" />
             </div>
             <div>
@@ -397,7 +397,7 @@ export default function LoyaltyLevels() {
                         </h3>
 
                         {isCurrent && (
-                          <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-[var(--theme-primary)] text-white font-extrabold flex items-center gap-1 shadow-sm">
+                          <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-[var(--theme-primary)] text-[var(--theme-text-on-primary,#000000)] font-extrabold flex items-center gap-1 shadow-sm">
                             <Sparkles className="w-3 h-3" /> مستواك الحالي
                           </span>
                         )}

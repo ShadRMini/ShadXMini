@@ -113,7 +113,10 @@ export function PopupNotification() {
     <div
       className="fixed inset-0 z-[100] flex items-center justify-center p-4"
       dir="rtl"
-      style={{ backgroundColor: "rgba(0, 0, 0, 0.8)", backdropFilter: "blur(8px)" }}
+      style={{
+        backgroundColor: "color-mix(in srgb, var(--theme-background, #0a0a0a) 80%, transparent)",
+        backdropFilter: "blur(8px)",
+      }}
       onClick={handleCloseAll}
     >
       <div
@@ -130,7 +133,7 @@ export function PopupNotification() {
           onClick={handleCloseAll}
           className="absolute top-3 left-3 z-10 h-9 w-9 rounded-full flex items-center justify-center transition-all cursor-pointer hover:scale-110"
           style={{
-            backgroundColor: "rgba(0, 0, 0, 0.6)",
+            backgroundColor: "color-mix(in srgb, var(--theme-background, #0a0a0a) 75%, transparent)",
             border: "1px solid color-mix(in srgb, var(--theme-primary, #C8A45C) 30%, transparent)",
             color: "var(--theme-primary, #C8A45C)",
           }}
@@ -141,7 +144,12 @@ export function PopupNotification() {
 
         {/* الصورة (اختيارية) */}
         {settings.popupImage && (
-          <div className="relative w-full h-44 sm:h-52 bg-gradient-to-br from-zinc-900 to-black overflow-hidden">
+          <div
+            className="relative w-full h-44 sm:h-52 overflow-hidden"
+            style={{
+              background: "linear-gradient(to bottom right, var(--theme-card, #2D2D2D), var(--theme-background, #1A1A1A))",
+            }}
+          >
             <img
               src={settings.popupImage}
               alt=""

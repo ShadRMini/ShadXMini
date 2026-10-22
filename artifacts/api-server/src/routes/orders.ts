@@ -538,9 +538,21 @@ function rowToOrder(o: typeof ordersTable.$inferSelect, p: typeof productsTable.
   };
 }
 
+const ordersSyncThrottle = new Map<number, number>();
+const ORDERS_SYNC_COOLDOWN_MS = 15000;
+
+function maybeSyncOrdersInBackground(userId: number) {
+  const last = ordersSyncThrottle.get(userId) || 0;
+  if (Date.now() - last < ORDERS_SYNC_COOLDOWN_MS) return;
+  ordersSyncThrottle.set(userId, Date.now());
+  void syncPendingProviderOrdersForUser(userId).catch((err) => {
+    console.error("[orders sync background error]:", err);
+  });
+}
+
 router.get("/orders", async (req, res) => {
   const user = await getOrCreateCurrentUser(req);
-  await syncPendingProviderOrdersForUser(user.id);
+  maybeSyncOrdersInBackground(user.id);
   const status = typeof req.query.status === "string" ? req.query.status.trim() : undefined;
   const conds = [eq(ordersTable.userId, user.id)];
 
@@ -570,7 +582,7 @@ router.get("/orders", async (req, res) => {
 
 router.get("/orders/summary", async (req, res) => {
   const user = await getOrCreateCurrentUser(req);
-  await syncPendingProviderOrdersForUser(user.id);
+  maybeSyncOrdersInBackground(user.id);
   const all = await db
     .select({
       total: sql<number>`coalesce(sum(case when status in ('accept', 'completed', 'approved') then total_usd else 0 end), 0)::float`,
@@ -594,7 +606,7 @@ router.get("/orders/summary", async (req, res) => {
 
 router.get("/orders/:id", async (req, res) => {
   const user = await getOrCreateCurrentUser(req);
-  await syncPendingProviderOrdersForUser(user.id);
+  maybeSyncOrdersInBackground(user.id);
   const id = Number(req.params.id);
   const rows = await db
     .select({ o: ordersTable, p: productsTable })

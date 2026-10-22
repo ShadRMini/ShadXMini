@@ -40,9 +40,9 @@ export default function Orders() {
           <span 
             className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold"
             style={{
-              backgroundColor: "rgba(16, 185, 129, 0.15)",
-              color: "#10B981",
-              border: "1px solid rgba(16, 185, 129, 0.35)",
+              backgroundColor: "color-mix(in srgb, var(--theme-success, #10B981) 15%, transparent)",
+              color: "var(--theme-success, #10B981)",
+              border: "1px solid color-mix(in srgb, var(--theme-success, #10B981) 35%, transparent)",
             }}
           >
             <CheckCircle2 className="w-3.5 h-3.5" />
@@ -54,9 +54,9 @@ export default function Orders() {
           <span 
             className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold"
             style={{
-              backgroundColor: "rgba(239, 68, 68, 0.15)",
-              color: "#EF4444",
-              border: "1px solid rgba(239, 68, 68, 0.35)",
+              backgroundColor: "color-mix(in srgb, var(--theme-error, #EF4444) 15%, transparent)",
+              color: "var(--theme-error, #EF4444)",
+              border: "1px solid color-mix(in srgb, var(--theme-error, #EF4444) 35%, transparent)",
             }}
           >
             <XCircle className="w-3.5 h-3.5" />
@@ -69,9 +69,9 @@ export default function Orders() {
           <span 
             className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold"
             style={{
-              backgroundColor: "rgba(245, 158, 11, 0.15)",
-              color: "#F59E0B",
-              border: "1px solid rgba(245, 158, 11, 0.35)",
+              backgroundColor: "color-mix(in srgb, var(--theme-warning, #F59E0B) 15%, transparent)",
+              color: "var(--theme-warning, #F59E0B)",
+              border: "1px solid color-mix(in srgb, var(--theme-warning, #F59E0B) 35%, transparent)",
             }}
           >
             <Clock className="w-3.5 h-3.5" />
@@ -150,7 +150,7 @@ export default function Orders() {
         >
           <span style={{ color: "var(--theme-primary)" }}>$</span>
           {summaryLoading ? (
-            <Skeleton className="h-8 w-24 bg-zinc-800" />
+            <Skeleton className="h-8 w-24 bg-[var(--theme-input-bg)]" />
           ) : (
             (summary?.totalAcceptedUsd || 0).toFixed(2)
           )}
@@ -168,7 +168,7 @@ export default function Orders() {
           >
             <div className="text-xs mb-1" style={{ color: "var(--theme-text-muted, var(--theme-text-secondary))" }}>الكل</div>
             <div className="font-black text-base" style={{ color: "var(--theme-text-primary, var(--theme-text-primary))" }}>
-              {summaryLoading ? <Skeleton className="h-5 w-8 mx-auto bg-zinc-800" /> : summary?.totalCount || 0}
+              {summaryLoading ? <Skeleton className="h-5 w-8 mx-auto bg-[var(--theme-input-bg)]" /> : summary?.totalCount || 0}
             </div>
           </div>
 
@@ -176,13 +176,13 @@ export default function Orders() {
           <div 
             className="rounded-2xl p-3 text-center border transition"
             style={{
-              backgroundColor: "rgba(16, 185, 129, 0.12)",
-              borderColor: "rgba(16, 185, 129, 0.3)",
+              backgroundColor: "color-mix(in srgb, var(--theme-success, #10B981) 12%, transparent)",
+              borderColor: "color-mix(in srgb, var(--theme-success, #10B981) 30%, transparent)",
             }}
           >
             <div className="text-xs mb-1 text-emerald-400">المكتملة</div>
             <div className="font-black text-base text-emerald-400">
-              {summaryLoading ? <Skeleton className="h-5 w-8 mx-auto bg-zinc-800" /> : summary?.acceptCount || 0}
+              {summaryLoading ? <Skeleton className="h-5 w-8 mx-auto bg-[var(--theme-input-bg)]" /> : summary?.acceptCount || 0}
             </div>
           </div>
 
@@ -190,13 +190,13 @@ export default function Orders() {
           <div 
             className="rounded-2xl p-3 text-center border transition"
             style={{
-              backgroundColor: "rgba(245, 158, 11, 0.12)",
-              borderColor: "rgba(245, 158, 11, 0.3)",
+              backgroundColor: "color-mix(in srgb, var(--theme-warning, #F59E0B) 12%, transparent)",
+              borderColor: "color-mix(in srgb, var(--theme-warning, #F59E0B) 30%, transparent)",
             }}
           >
-            <div className="text-xs mb-1 text-amber-400">بالانتظار</div>
-            <div className="font-black text-base text-amber-400">
-              {summaryLoading ? <Skeleton className="h-5 w-8 mx-auto bg-zinc-800" /> : summary?.waitCount || 0}
+            <div className="text-xs mb-1" style={{ color: "var(--theme-warning, #F59E0B)" }}>بالانتظار</div>
+            <div className="font-black text-base" style={{ color: "var(--theme-warning, #F59E0B)" }}>
+              {summaryLoading ? <Skeleton className="h-5 w-8 mx-auto bg-[var(--theme-input-bg)]" /> : summary?.waitCount || 0}
             </div>
           </div>
 
@@ -204,13 +204,13 @@ export default function Orders() {
           <div 
             className="rounded-2xl p-3 text-center border transition"
             style={{
-              backgroundColor: "rgba(239, 68, 68, 0.12)",
-              borderColor: "rgba(239, 68, 68, 0.3)",
+              backgroundColor: "color-mix(in srgb, var(--theme-error, #EF4444) 12%, transparent)",
+              borderColor: "color-mix(in srgb, var(--theme-error, #EF4444) 30%, transparent)",
             }}
           >
             <div className="text-xs mb-1 text-rose-400">المرفوضة</div>
             <div className="font-black text-base text-rose-400">
-              {summaryLoading ? <Skeleton className="h-5 w-8 mx-auto bg-zinc-800" /> : (summary?.rejectCount || 0)}
+              {summaryLoading ? <Skeleton className="h-5 w-8 mx-auto bg-[var(--theme-input-bg)]" /> : (summary?.rejectCount || 0)}
             </div>
           </div>
         </div>
@@ -232,7 +232,7 @@ export default function Orders() {
                   ? "var(--theme-primary)" 
                   : "var(--theme-card, var(--theme-card))",
                 color: isActive 
-                  ? "#1A1A1A" 
+                  ? "var(--theme-text-on-primary, var(--theme-background))" 
                   : "var(--theme-text-secondary)",
                 borderColor: isActive 
                   ? "var(--theme-primary)" 
@@ -257,7 +257,7 @@ export default function Orders() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="ابحث برقم الطلب أو اسم المنتج..." 
-          className="pl-3 pr-10 h-12 rounded-2xl text-sm placeholder:text-zinc-500 border transition"
+          className="pl-3 pr-10 h-12 rounded-2xl text-sm placeholder:text-[var(--theme-text-muted)] border transition"
           style={{
             backgroundColor: "var(--theme-card, var(--theme-card))",
             borderColor: "var(--theme-border, var(--theme-border))",
@@ -278,10 +278,10 @@ export default function Orders() {
                 borderColor: "var(--theme-border)",
               }}
             >
-              <Skeleton className="w-14 h-14 rounded-xl shrink-0 bg-zinc-800" />
+              <Skeleton className="w-14 h-14 rounded-xl shrink-0 bg-[var(--theme-input-bg)]" />
               <div className="flex-1 space-y-2 py-1">
-                <Skeleton className="h-4 w-3/4 bg-zinc-800" />
-                <Skeleton className="h-3 w-1/2 bg-zinc-800" />
+                <Skeleton className="h-4 w-3/4 bg-[var(--theme-input-bg)]" />
+                <Skeleton className="h-3 w-1/2 bg-[var(--theme-input-bg)]" />
               </div>
             </div>
           ))
@@ -356,7 +356,7 @@ export default function Orders() {
                           className="px-3 py-1 rounded-xl text-xs font-bold transition flex items-center gap-1 cursor-pointer"
                           style={{
                             backgroundColor: "var(--theme-primary)",
-                            color: "#1A1A1A",
+                            color: "var(--theme-text-on-primary, var(--theme-background))",
                           }}
                         >
                           التفاصيل
@@ -408,7 +408,7 @@ export default function Orders() {
                 className="px-6 py-2.5 rounded-2xl text-xs font-bold transition flex items-center gap-2 cursor-pointer shadow-lg"
                 style={{
                   backgroundColor: "var(--theme-primary)",
-                  color: "#1A1A1A",
+                  color: "var(--theme-text-on-primary, var(--theme-background))",
                 }}
               >
                 <ShoppingBag className="w-4 h-4" />

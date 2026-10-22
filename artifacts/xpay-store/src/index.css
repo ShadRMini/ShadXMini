@@ -19,7 +19,7 @@
   --text-secondary: #E5E7EB;
   --text-muted: #9CA3AF;
   --border-color: #4B5563;
-  --shadow-color: rgba(0, 0, 0, 0.3);
+  --shadow-color: color-mix(in srgb, var(--theme-background, #000) 60%, transparent);
   --gold-primary: #C8A45C;
   --gold-light: #FDE68A;
   --gold-dark: #B8954A;
@@ -53,10 +53,10 @@
   --theme-font-arabic: 'Cairo', sans-serif;
   --theme-font-english: 'Inter', sans-serif;
   --theme-border-radius: 16px;
-  --theme-shadow: 0 8px 25px -4px rgba(0, 0, 0, 0.35);
+  --theme-shadow: 0 4px 12px color-mix(in srgb, var(--theme-background, #000) 60%, transparent);
   --theme-logo-size: 80px;
   --logo-size: 80px;
-  --header-height: 72px;
+  --header-height: 56px;
 
   --font-arabic: 'Cairo', sans-serif;
   --font-english: 'Inter', sans-serif;
@@ -75,7 +75,7 @@
   --text-secondary: #374151;
   --text-muted: #6B7280;
   --border-color: #D1D5DB;
-  --shadow-color: rgba(0, 0, 0, 0.08);
+  --shadow-color: color-mix(in srgb, var(--theme-text-primary, #000) 12%, transparent);
   --gold-primary: #C8A45C;
   --gold-light: #FDE68A;
   --gold-dark: #B8954A;
@@ -106,9 +106,28 @@
   --theme-text-primary: #111827;
   --theme-text-muted: #6B7280;
   --theme-border: rgba(200, 164, 92, 0.2);
-  --theme-shadow: 0 4px 18px rgba(0, 0, 0, 0.07);
+  --theme-shadow: 0 4px 12px color-mix(in srgb, var(--theme-text-primary, #000) 12%, transparent);
   --theme-logo-size: 80px;
   --logo-size: 80px;
+  --header-height: 56px;
+}
+
+@media (max-width: 767.98px) {
+  html:root,
+  html:root.dark,
+  html:root.light {
+    --header-height: 56px !important;
+  }
+}
+
+@media (min-width: 768px) {
+  :root,
+  :root.dark,
+  .dark,
+  :root.light,
+  .light {
+    --header-height: 72px;
+  }
 }
 
 @theme inline {
@@ -187,7 +206,7 @@
   input:focus, select:focus, textarea:focus {
     outline: none;
     border-color: var(--gold-primary) !important;
-    box-shadow: 0 0 0 3px rgba(200, 164, 92, 0.25) !important;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--theme-primary, #C8A45C) 25%, transparent) !important;
   }
 }
 
@@ -265,7 +284,7 @@
   background: linear-gradient(135deg, var(--gold-light) 0%, var(--gold-primary) 100%);
   color: #1A1A1A;
   font-weight: 800;
-  box-shadow: 0 0 12px rgba(200, 164, 92, 0.4);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--theme-primary, #C8A45C) 40%, transparent);
   border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
@@ -282,7 +301,7 @@
 }
 
 .gold-glow {
-  box-shadow: 0 0 15px rgba(200, 164, 92, 0.35);
+  box-shadow: 0 0 15px color-mix(in srgb, var(--theme-primary, #C8A45C) 35%, transparent);
 }
 
 .gold-text {
@@ -504,5 +523,28 @@
 .text-theme-muted { color: var(--theme-text-muted); }
 
 .border-theme { border-color: var(--theme-border); }
+
+/* ========== Theme font size ========== */
+/* يطبّق فقط على الجذر — العناصر التي تستخدم text-* تبقى كما هي */
+body, #root {
+  font-size: var(--theme-font-size, 14px);
+}
+
+/* ========== Theme heading size ========== */
+/* 
+ * ملاحظة مهمة: لا نستخدم h1-h6 global لتجنب كسر Tailwind utilities.
+ * نستخدم class اختياري .text-theme-heading فقط.
+ * 
+ * Usage: <h2 className="text-2xl text-theme-heading">
+ */
+.text-theme-heading {
+  font-size: var(--theme-heading-size, 20px);
+}
+
+/* الحاويات الاختيارية */
+.p-theme { padding: var(--theme-padding, 24px); }
+.px-theme { padding-left: var(--theme-padding, 24px); padding-right: var(--theme-padding, 24px); }
+.py-theme { padding-top: var(--theme-padding, 24px); padding-bottom: var(--theme-padding, 24px); }
+
 
 
