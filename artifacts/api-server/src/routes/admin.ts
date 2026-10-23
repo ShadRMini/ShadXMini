@@ -5050,6 +5050,52 @@ router.get("/admin/provider-products/:providerId/:productId", requireAdmin, asyn
   }
 });
 
+// Task #96a: sanitize empty strings to null for nullable fields
+function sanitizeNullable<T>(value: T | undefined | null | ""): T | null {
+  if (value === undefined || value === null || value === "") return null;
+  if (typeof value === "string" && value.trim() === "") return null;
+  return value as T;
+}
+
+function sanitizeParams(value: any): string[] | null {
+  if (!value) return null;
+  if (Array.isArray(value)) {
+    const cleaned = value.map((v) => String(v).trim()).filter(Boolean);
+    return cleaned.length > 0 ? cleaned : null;
+  }
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (!trimmed) return null;
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (Array.isArray(parsed)) {
+        const cleaned = parsed.map((v) => String(v).trim()).filter(Boolean);
+        return cleaned.length > 0 ? cleaned : null;
+      }
+    } catch {}
+    return [trimmed];
+  }
+  return null;
+}
+
+function sanitizeGroupId(value: any): number | null {
+  if (value === undefined || value === null || value === "") return null;
+  const n = Number(value);
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
+
+function sanitizeQuantityValues(value: any): any[] | null {
+  if (!value) return null;
+  if (Array.isArray(value) && value.length > 0) return value;
+  if (typeof value === "string" && value.trim()) {
+    try {
+      const parsed = JSON.parse(value);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    } catch {}
+  }
+  return null;
+}
+
 // Import products (Single or Batch with rich attributes)
 router.post("/admin/provider-products/import", requireAdmin, async (req, res) => {
   try {
@@ -5089,7 +5135,7 @@ router.post("/admin/provider-products/import", requireAdmin, async (req, res) =>
           try {
             const [newCat] = await db.insert(categoriesTable).values({
               name: catName,
-              image: item.categoryImage || item.image || "/placeholder.png",
+              image: sanitizeNullable(item.categoryImage) || sanitizeNullable(item.image) || "/placeholder.png",
               order: 0,
               active: true,
               displayStyle: "large"
@@ -5109,9 +5155,12 @@ router.post("/admin/provider-products/import", requireAdmin, async (req, res) =>
       const profit = String(item.storeProfitPerUnit ?? (Number(finalPrice) - Number(costPrice)).toFixed(4));
 
       const isPkg = item.productType === "package";
+      const safeMinQty = isPkg ? 1 : Math.max(1, Number(item.minQty ?? item.minQuantity) || 1);
+      const safeMaxQty = isPkg ? 1 : Math.max(1, Number(item.maxQty ?? item.maxQuantity) || 1);
       const productPayload: any = {
         name,
         priceUsd: finalPrice,
+        priceSyp: String(item.priceSyp ?? "0"),
         providerUnitPrice: costPrice,
         basePriceUsd: costPrice,
         finalUnitPrice: finalPrice,
@@ -5119,20 +5168,23 @@ router.post("/admin/provider-products/import", requireAdmin, async (req, res) =>
         providerId,
         providerProductId: extServiceId,
         categoryId: categoryId || null,
-        groupId: item.groupId ? Number(item.groupId) : null,
-        image: item.image || item.categoryImage || null,
+        groupId: sanitizeGroupId(item.groupId),
+        image: sanitizeNullable(item.image) || sanitizeNullable(item.categoryImage) || "/placeholder.png",
         available: item.available !== false,
         active: true,
         source: "api",
-        minQuantity: isPkg ? 1 : (item.minQty ?? item.minQuantity ?? 1),
-        maxQuantity: isPkg ? 1 : (item.maxQty ?? item.maxQuantity ?? null),
-        minQty: isPkg ? 1 : (item.minQty ?? item.minQuantity ?? 1),
-        maxQty: isPkg ? 1 : (item.maxQty ?? item.maxQuantity ?? null),
-        quantityType: isPkg ? "fixed" : (item.quantityType || "fixed"),
-        quantityValues: isPkg ? null : (item.quantityValues || null),
-        productType: item.productType || "amount",
-        params: Array.isArray(item.params) ? item.params : (item.rawData?.params || null),
-        description: item.description || (Array.isArray(item.params) ? item.params.join(", ") : ""),
+        minQuantity: safeMinQty,
+        maxQuantity: safeMaxQty,
+        minQty: safeMinQty,
+        maxQty: safeMaxQty,
+        quantityType: isPkg ? "fixed" : (sanitizeNullable(item.quantityType) || "fixed"),
+        quantityValues: isPkg ? null : sanitizeQuantityValues(item.quantityValues),
+        productType: sanitizeNullable(item.productType) || "amount",
+        params: sanitizeParams(item.params || item.rawData?.params || item.description),
+        description:
+          sanitizeNullable(item.description) ||
+          (Array.isArray(item.params) ? item.params.join(", ") : "") ||
+          "",
       };
 
       // Check if product already exists with this provider and external id

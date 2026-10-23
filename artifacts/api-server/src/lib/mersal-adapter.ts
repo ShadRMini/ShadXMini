@@ -151,8 +151,8 @@ export class MersalAdapter implements ProviderAdapter {
         quantityType: quantityInfo.quantityType,
         quantityValues: quantityInfo.quantityValues ?? null,
         productType: p.product_type,
-        params: Array.isArray(p.params) ? p.params : undefined,
-        description: p.params?.join(", "),
+        params: Array.isArray(p.params) ? p.params : (p.params ? [String(p.params)] : undefined),
+        description: Array.isArray(p.params) ? p.params.join(", ") : (p.params ? String(p.params) : undefined),
         rawData: p,
       };
     });
