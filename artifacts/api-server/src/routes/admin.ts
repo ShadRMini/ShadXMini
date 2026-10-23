@@ -5191,23 +5191,41 @@ function sanitizeNullable<T>(value: T | undefined | null | ""): T | null {
 
 function sanitizeParams(value: any): string[] | null {
   if (!value) return null;
+
+  let items: string[] = [];
+
   if (Array.isArray(value)) {
-    const cleaned = value.map((v) => String(v).trim()).filter(Boolean);
-    return cleaned.length > 0 ? cleaned : null;
-  }
-  if (typeof value === "string") {
+    items = value.map((v) => String(v).trim()).filter(Boolean);
+  } else if (typeof value === "string") {
     const trimmed = value.trim();
     if (!trimmed) return null;
+
     try {
       const parsed = JSON.parse(trimmed);
       if (Array.isArray(parsed)) {
-        const cleaned = parsed.map((v) => String(v).trim()).filter(Boolean);
-        return cleaned.length > 0 ? cleaned : null;
+        items = parsed.map((v) => String(v).trim()).filter(Boolean);
+      } else {
+        items = [trimmed];
       }
-    } catch {}
-    return [trimmed];
+    } catch {
+      items = [trimmed];
+    }
+  } else {
+    return null;
   }
-  return null;
+
+  // Task #96f: split comma-separated params
+  const splitItems: string[] = [];
+  for (const item of items) {
+    const parts = item.split(/[,،]/).map((s) => s.trim()).filter(Boolean);
+    if (parts.length > 1) {
+      splitItems.push(...parts);
+    } else {
+      splitItems.push(item);
+    }
+  }
+
+  return splitItems.length > 0 ? splitItems : null;
 }
 
 function sanitizeGroupId(value: any): number | null {

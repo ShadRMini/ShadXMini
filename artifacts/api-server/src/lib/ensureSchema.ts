@@ -1392,6 +1392,38 @@ export async function ensureDatabaseSchema() {
       console.warn("[ensureSchema] product_type normalization failed:", err);
     }
 
+    // Task #96f: split comma-separated params into multiple fields
+    try {
+      const rows = await db.execute(sql`
+        SELECT id, params FROM products 
+        WHERE params IS NOT NULL 
+          AND jsonb_array_length(params) > 0
+          AND params::text ~ '[,،]'
+      `);
+
+      for (const row of rows.rows as any[]) {
+        const params = row.params;
+        if (!Array.isArray(params)) continue;
+
+        const splitParams: string[] = [];
+        for (const item of params) {
+          const parts = String(item).split(/[,،]/).map((s) => s.trim()).filter(Boolean);
+          splitParams.push(...parts);
+        }
+
+        if (splitParams.length > params.length) {
+          await db.execute(sql`
+            UPDATE products 
+            SET params = ${JSON.stringify(splitParams)}::jsonb
+            WHERE id = ${row.id}
+          `);
+          console.log(`[Migration] Split params for product #${row.id}: ${splitParams.length} fields`);
+        }
+      }
+    } catch (err) {
+      console.warn("[ensureSchema] params split failed:", err);
+    }
+
     // 20. One-time SYP balance migration to USD (C15d)
     await migrateSypBalancesToUsd();
 
