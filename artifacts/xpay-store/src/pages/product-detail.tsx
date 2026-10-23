@@ -345,9 +345,18 @@ export default function ProductDetail() {
   const [quantityInput, setQuantityInput] = useState("1");
   const [accountId, setAccountId] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [customFieldValues, setCustomFieldValues] = useState<Record<string, string>>({});
+  const [customFields, setCustomFields] = useState<Record<number, string>>({});
   const [isFavorite, setIsFavorite] = useState(false);
   const [favLoading, setFavLoading] = useState(false);
+
+  const productParams: string[] = useMemo(
+    () =>
+      Array.isArray((product as any)?.params)
+        ? (product as any).params.filter((p: any) => typeof p === "string" && p.trim()).map((p: string) => p.trim())
+        : [],
+    [product]
+  );
+  const hasDynamicParams = productParams.length > 0;
 
   // Task #95 C15c: persist Player ID per product in sessionStorage
   useEffect(() => {
@@ -367,13 +376,30 @@ export default function ProductDetail() {
     }
   }, [accountId, product?.id]);
 
-  const dynamicParams = useMemo(() => {
-    const p = product as any;
-    if (Array.isArray(p?.params) && p.params.length > 0) {
-      return p.params.map(String).map((s: string) => s.trim()).filter(Boolean);
-    }
-    return [];
-  }, [product]);
+  // Task #96d: persist dynamic customFields per product in sessionStorage
+  useEffect(() => {
+    if (!product?.id || !hasDynamicParams) return;
+    try {
+      const saved = sessionStorage.getItem(`custom_fields_${product.id}`);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && typeof parsed === "object") {
+          setCustomFields(parsed);
+          return;
+        }
+      }
+      setCustomFields({});
+    } catch {}
+  }, [product?.id, hasDynamicParams]);
+
+  useEffect(() => {
+    if (!product?.id || !hasDynamicParams) return;
+    try {
+      if (Object.keys(customFields).length > 0) {
+        sessionStorage.setItem(`custom_fields_${product.id}`, JSON.stringify(customFields));
+      }
+    } catch {}
+  }, [customFields, product?.id, hasDynamicParams]);
 
   // Fetch product page config from API
   useEffect(() => {
@@ -652,11 +678,10 @@ export default function ProductDetail() {
   const handlePurchase = () => {
     const finalQuantity = commitQuantityInput();
 
-    if (dynamicParams.length > 0) {
-      for (const param of dynamicParams) {
-        const val = (customFieldValues[param] || "").trim();
-        if (!val) {
-          toast.error(`يرجى إدخال ${param} للمتابعة`);
+    if (hasDynamicParams) {
+      for (let i = 0; i < productParams.length; i++) {
+        if (!String(customFields[i] || "").trim()) {
+          toast.error(`يرجى إدخال: ${productParams[i]}`);
           return;
         }
       }
@@ -672,25 +697,11 @@ export default function ProductDetail() {
       }
     }
 
-    let primaryIdentifier = "";
-    if (dynamicParams.length > 0) {
-      const keys = Object.keys(customFieldValues);
-      const primaryKey =
-        keys.find((k) => {
-          const lower = k.toLowerCase();
-          return (
-            lower.includes("player") ||
-            lower.includes("معرف") ||
-            lower.includes("id") ||
-            lower.includes("phone") ||
-            lower.includes("هاتف") ||
-            lower.includes("خط")
-          );
-        }) || keys[0];
-      primaryIdentifier = primaryKey ? (customFieldValues[primaryKey] || "").trim() : "";
-    } else {
-      primaryIdentifier = purchaseMode === "balance" ? phoneNumber.trim() : accountId.trim();
-    }
+    const primaryIdentifier = hasDynamicParams
+      ? String(customFields[0] || "").trim()
+      : purchaseMode === "balance"
+        ? phoneNumber.trim()
+        : accountId.trim();
 
     createOrder.mutate(
       {
@@ -698,8 +709,15 @@ export default function ProductDetail() {
           productId: product.id,
           quantity: finalQuantity,
           userIdentifier: primaryIdentifier,
-          customParams: Object.keys(customFieldValues).length > 0 ? customFieldValues : undefined,
-        },
+          ...(hasDynamicParams
+            ? {
+                customFields: productParams.map((label, idx) => ({
+                  label,
+                  value: String(customFields[idx] || "").trim(),
+                })),
+              }
+            : {}),
+        } as any,
       },
       {
         onSuccess: (order) => {
@@ -1343,54 +1361,44 @@ export default function ProductDetail() {
         )}
 
             {/* Dynamic Inputs or Fallback Account ID / Phone Number Inputs */}
-            {dynamicParams.length > 0 ? (
+            {hasDynamicParams ? (
               <div className="space-y-3 pt-2">
-                {dynamicParams.map((param) => {
-                  const cfg = getParamConfig(param);
-                  const Icon = cfg.icon;
-                  return (
-                    <div key={param} className="space-y-1.5">
-                      <label
-                        className="text-xs font-bold block flex items-center justify-between"
-                        style={{ color: getCustomOrFallback(customization.player_id_label_color, "var(--theme-text-primary)") }}
-                      >
-                        <span className="flex items-center gap-1.5">
-                          <Icon size={14} style={{ color: getCustomOrFallback(customization.breadcrumb_active_color, "var(--theme-primary)") }} />
-                          <span>{param} *</span>
+                {productParams.map((label, idx) => (
+                  <div key={idx}>
+                    <label
+                      className="text-xs font-bold mb-2 block flex items-center justify-between"
+                      style={{ color: getCustomOrFallback(customization.player_id_label_color, "var(--theme-text-primary)") }}
+                    >
+                      <span>{label} *</span>
+                      {idx === 0 && (
+                        <span
+                          className="text-[10px]"
+                          style={{ color: getCustomOrFallback(customization.breadcrumb_active_color, "var(--theme-primary)") }}
+                        >
+                          {customization.direct_shipping_label || "مطلوب للشحن المباشر"}
                         </span>
-                        <span className="text-[10px]" style={{ color: getCustomOrFallback(customization.breadcrumb_active_color, "var(--theme-primary)") }}>
-                          {cfg.help}
-                        </span>
-                      </label>
-                      <Input
-                        type={cfg.type}
-                        value={customFieldValues[param] || ""}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          setCustomFieldValues((prev) => ({ ...prev, [param]: val }));
-                          if (cfg.type === "tel" || param.includes("هاتف") || param.includes("خط")) {
-                            setPhoneNumber(val);
-                          } else {
-                            setAccountId(val);
-                          }
-                        }}
-                        placeholder={cfg.placeholder}
-                        className="h-13 rounded-2xl px-4 text-base font-mono transition-all"
-                        style={{
-                          backgroundColor: getCustomOrFallback(customization.player_id_input_bg, "var(--theme-input-bg, var(--theme-background, #1A1A1A))"),
-                          borderColor: getCustomOrFallback(customization.player_id_input_border, "var(--theme-border, #3A3A3A)"),
-                          color: getCustomOrFallback(customization.player_id_input_text, "var(--theme-text-primary, #FFFFFF)"),
-                        }}
-                        onFocus={(e) => {
-                          e.currentTarget.style.borderColor = getCustomOrFallback(customization.player_id_input_focus, "var(--theme-primary)");
-                        }}
-                        onBlur={(e) => {
-                          e.currentTarget.style.borderColor = getCustomOrFallback(customization.player_id_input_border, "var(--theme-border)");
-                        }}
-                      />
-                    </div>
-                  );
-                })}
+                      )}
+                    </label>
+                    <Input
+                      value={customFields[idx] || ""}
+                      onChange={(e) => setCustomFields((prev) => ({ ...prev, [idx]: e.target.value }))}
+                      placeholder={`أدخل ${label}`}
+                      dir="auto"
+                      className="h-13 rounded-2xl px-4 text-base placeholder:text-[var(--theme-text-muted,#71717A)] font-mono transition-all"
+                      style={{
+                        backgroundColor: getCustomOrFallback(customization.player_id_input_bg, "var(--theme-input-bg, var(--theme-background, #1A1A1A))"),
+                        borderColor: getCustomOrFallback(customization.player_id_input_border, "var(--theme-border, #3A3A3A)"),
+                        color: getCustomOrFallback(customization.player_id_input_text, "var(--theme-text-primary, #FFFFFF)"),
+                      }}
+                      onFocus={(e) => {
+                        e.currentTarget.style.borderColor = getCustomOrFallback(customization.player_id_input_focus, "var(--theme-primary)");
+                      }}
+                      onBlur={(e) => {
+                        e.currentTarget.style.borderColor = getCustomOrFallback(customization.player_id_input_border, "var(--theme-border)");
+                      }}
+                    />
+                  </div>
+                ))}
               </div>
             ) : (
               <>
@@ -1996,46 +2004,30 @@ export default function ProductDetail() {
               )}
             </div>
 
-            {dynamicParams.length > 0 ? (
+            {hasDynamicParams ? (
               <div className="space-y-3">
-                {dynamicParams.map((param) => {
-                  const cfg = getParamConfig(param);
-                  const Icon = cfg.icon;
-                  return (
-                    <div key={param} className="space-y-1.5">
-                      <label
-                        className="text-sm font-bold mb-1 flex items-center justify-between"
-                        style={{ color: "var(--theme-text-primary, #FFFFFF)" }}
-                      >
-                        <span className="flex items-center gap-1.5">
-                          <Icon size={15} style={{ color: "var(--theme-primary, #C8A45C)" }} />
-                          <span>{param} *</span>
+                {productParams.map((label, idx) => (
+                  <div key={idx}>
+                    <label
+                      className="text-sm font-bold mb-2 block flex items-center justify-between"
+                      style={{ color: "var(--theme-text-primary, #FFFFFF)" }}
+                    >
+                      <span>{label} *</span>
+                      {idx === 0 && (
+                        <span className="text-xs font-normal" style={{ color: "var(--theme-primary, #C8A45C)" }}>
+                          {customization.direct_shipping_label || "مطلوب للشحن المباشر"}
                         </span>
-                        <span className="text-xs font-normal" style={{ color: "var(--theme-primary, #C8A45C)" }}>{cfg.help}</span>
-                      </label>
-                      <Input
-                        type={cfg.type}
-                        value={customFieldValues[param] || ""}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          setCustomFieldValues((prev) => ({ ...prev, [param]: val }));
-                          if (cfg.type === "tel" || param.includes("هاتف") || param.includes("خط")) {
-                            setPhoneNumber(val);
-                          } else {
-                            setAccountId(val);
-                          }
-                        }}
-                        placeholder={cfg.placeholder}
-                        className="h-12 rounded-2xl px-4 text-base"
-                        style={{
-                          backgroundColor: "var(--theme-input-bg, #3D3D3D)",
-                          borderColor: "var(--theme-border, #4B5563)",
-                          color: "var(--theme-text-primary, #FFFFFF)",
-                        }}
-                      />
-                    </div>
-                  );
-                })}
+                      )}
+                    </label>
+                    <Input
+                      value={customFields[idx] || ""}
+                      onChange={(e) => setCustomFields((prev) => ({ ...prev, [idx]: e.target.value }))}
+                      placeholder={`أدخل ${label}`}
+                      dir="auto"
+                      className="h-12 bg-[var(--theme-input-bg,var(--theme-background,#1A1A1A))] border-[var(--theme-border,#3A3A3A)] text-[var(--theme-text-primary,#FFFFFF)] rounded-2xl px-4 focus-visible:ring-[var(--theme-primary,#C8A45C)] focus-visible:border-[var(--theme-primary,#C8A45C)] text-base placeholder:text-[var(--theme-text-muted,#9E9E9E)]"
+                    />
+                  </div>
+                ))}
               </div>
             ) : (
               <>

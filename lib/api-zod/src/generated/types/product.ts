@@ -24,6 +24,7 @@ export interface Product {
   maxQty?: number;
   quantityType?: "fixed" | "range" | "list";
   quantityValues?: number[];
+  params?: string[] | null;
   description?: string;
   featured: boolean;
 }

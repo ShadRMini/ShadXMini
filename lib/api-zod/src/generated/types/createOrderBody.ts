@@ -10,4 +10,9 @@ export interface CreateOrderBody {
   productId: string;
   quantity: number;
   userIdentifier?: string;
+  customParams?: Record<string, string>;
+  customFields?: Array<{
+    label: string;
+    value: string;
+  }>;
 }

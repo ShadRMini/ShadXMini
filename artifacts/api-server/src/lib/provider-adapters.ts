@@ -16,7 +16,8 @@ export interface ProviderAdapter {
       quantity: number,
       playerId: string,
       orderUuid: string,
-      extraParams?: Record<string, string>
+      extraParams?: Record<string, string>,
+      customFields?: Array<{ label: string; value: string }>
     ): Promise<ProviderOrderResult>;
     
     // التحقق من حالة طلب (أو عدة طلبات)

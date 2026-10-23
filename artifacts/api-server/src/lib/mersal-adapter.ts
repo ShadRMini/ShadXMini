@@ -165,21 +165,33 @@ export class MersalAdapter implements ProviderAdapter {
     quantity: number,
     playerId: string,
     orderUuid: string,
-    extraParams?: Record<string, string>
+    extraParams?: Record<string, string>,
+    customFields?: Array<{ label: string; value: string }>
   ): Promise<ProviderOrderResult> {
     const url = new URL(`${this.getUrl(apiUrl)}/client/api/newOrder/${productId}/params`);
-    url.searchParams.set("qty", quantity.toString());
-    url.searchParams.set("playerId", playerId);
+    url.searchParams.set("qty", String(quantity));
     url.searchParams.set("order_uuid", orderUuid);
-    
+
+    const fields =
+      Array.isArray(customFields) && customFields.length > 0
+        ? customFields
+        : [{ label: "Player ID", value: playerId }];
+
+    fields.forEach((f, i) => {
+      const key = i === 0 ? "playerId" : `field_${i + 1}`;
+      if (f && f.value) url.searchParams.set(key, String(f.value));
+    });
+
     if (extraParams && typeof extraParams === "object") {
       Object.entries(extraParams).forEach(([k, v]) => {
         if (v == null) return;
         const valStr = String(v).trim();
         if (!valStr) return;
         const mappedKey = mapParamToKey(k);
-        url.searchParams.set(mappedKey, valStr);
-        if (mappedKey !== k) {
+        if (!url.searchParams.has(mappedKey)) {
+          url.searchParams.set(mappedKey, valStr);
+        }
+        if (mappedKey !== k && !url.searchParams.has(k)) {
           url.searchParams.set(k, valStr);
         }
       });

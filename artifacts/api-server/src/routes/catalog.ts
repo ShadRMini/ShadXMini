@@ -31,14 +31,16 @@ function productRow(p: typeof productsTable.$inferSelect, categoryName: string) 
         .sort((a, b) => a - b)
     : undefined;
 
-  let productParams: string[] | undefined = undefined;
-  if (Array.isArray((p as any).params)) {
-    productParams = (p as any).params.map(String).map((s: string) => s.trim()).filter(Boolean);
+  let productParams: string[] | null = null;
+  if (Array.isArray(p.params)) {
+    const cleaned = p.params.map(String).map((s: string) => s.trim()).filter(Boolean);
+    productParams = cleaned.length > 0 ? cleaned : null;
   } else if (typeof (p as any).params === "string") {
     try {
       const parsed = JSON.parse((p as any).params);
       if (Array.isArray(parsed)) {
-        productParams = parsed.map(String).map((s: string) => s.trim()).filter(Boolean);
+        const cleaned = parsed.map(String).map((s: string) => s.trim()).filter(Boolean);
+        productParams = cleaned.length > 0 ? cleaned : null;
       }
     } catch {}
   }
@@ -64,7 +66,7 @@ function productRow(p: typeof productsTable.$inferSelect, categoryName: string) 
     maxQty: isPackage ? 1 : (p.maxQuantity ?? (p.maxQty != null ? Number(p.maxQty) : undefined)),
     quantityType: p.quantityType,
     quantityValues,
-    params: productParams && productParams.length > 0 ? productParams : undefined,
+    params: productParams,
     description: p.description ?? undefined,
     featured: p.featured,
   };

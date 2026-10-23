@@ -844,12 +844,40 @@ router.post("/orders", async (req, res) => {
 
     let productParams: string[] = [];
     if (Array.isArray((product as any).params)) {
-      productParams = (product as any).params;
+      productParams = (product as any).params.map(String).map((s: string) => s.trim()).filter(Boolean);
     } else if (typeof (product as any).params === "string") {
       try {
         const parsed = JSON.parse((product as any).params);
-        if (Array.isArray(parsed)) productParams = parsed;
+        if (Array.isArray(parsed)) {
+          productParams = parsed.map(String).map((s: string) => s.trim()).filter(Boolean);
+        }
       } catch {}
+    }
+
+    const customFields: Array<{ label: string; value: string }> = Array.isArray(body.customFields)
+      ? body.customFields
+      : productParams.length === 1 && resolvedIdentifier
+      ? [{ label: productParams[0]!, value: resolvedIdentifier }]
+      : [];
+
+    if (productParams.length > 0) {
+      const missing = productParams.filter((_paramLabel, idx) => {
+        const field = customFields[idx];
+        return !field || !String(field.value ?? "").trim();
+      });
+
+      if (customFields.length !== productParams.length || missing.length > 0) {
+        res.status(400).json({
+          error: "مطلوب تعبئة كل الحقول",
+          missing: missing.length > 0 ? missing : productParams,
+        });
+        return;
+      }
+    }
+
+    const primaryFieldVal = customFields[0]?.value ? String(customFields[0].value).trim() : "";
+    if (!resolvedIdentifier && primaryFieldVal) {
+      resolvedIdentifier = primaryFieldVal;
     }
 
     const categoryRequiresId = categoryName.match(/(العاب|التطبيقات|Games|Apps|PUBG|ببجي)/i);
@@ -863,7 +891,7 @@ router.post("/orders", async (req, res) => {
       return;
     }
 
-    const playerId = resolvedIdentifier || `user_${user.id}`;
+    const playerId = primaryFieldVal || resolvedIdentifier || `user_${user.id}`;
 
     const baseMeta: any = {
       orderUuid,
@@ -884,6 +912,10 @@ router.post("/orders", async (req, res) => {
 
     if (body.customParams && typeof body.customParams === "object" && Object.keys(body.customParams).length > 0) {
       baseMeta.customParams = body.customParams;
+    }
+
+    if (customFields.length > 0) {
+      baseMeta.customFields = customFields;
     }
 
     // P0-5: Step 1 & 2: Deduct balance in transaction BEFORE contacting provider
@@ -939,6 +971,7 @@ router.post("/orders", async (req, res) => {
           playerId,
           orderUuid,
           body.customParams,
+          customFields.length > 0 ? customFields : undefined,
         );
       } catch (error: any) {
         console.error("Provider order error (timeout/network):", error);
