@@ -1380,6 +1380,18 @@ export async function ensureDatabaseSchema() {
     `);
     console.log("[ensureSchema] ✅ Performance indexes (products, orders, deposits, notifications) ensured");
 
+    // Task #96e: auto-heal productType casing
+    try {
+      await db.execute(sql`
+        UPDATE products 
+        SET product_type = LOWER(product_type)
+        WHERE LOWER(product_type) IN ('package', 'amount')
+          AND product_type != LOWER(product_type)
+      `);
+    } catch (err) {
+      console.warn("[ensureSchema] product_type normalization failed:", err);
+    }
+
     // 20. One-time SYP balance migration to USD (C15d)
     await migrateSypBalancesToUsd();
 

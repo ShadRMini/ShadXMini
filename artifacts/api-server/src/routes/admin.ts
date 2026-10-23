@@ -1269,6 +1269,13 @@ async function sanitizeCrudDataForRuntimeSchema(path: string, data: any): Promis
     if ("source" in normalized && typeof normalized.source === "string") {
       normalized.source = normalized.source.trim() || "manual";
     }
+    if ("productType" in normalized) {
+      // Task #96e: normalize to lowercase + validate enum
+      normalized.productType =
+        String(normalized.productType || "amount").toLowerCase() === "package"
+          ? "package"
+          : "amount";
+    }
 
     const source = String(normalized.source || "manual").toLowerCase();
     const isExternalProduct =
@@ -3815,7 +3822,11 @@ router.post("/admin/import-products", requireAdmin, async (req, res) => {
       .insert(productsTable)
       .values(
         rows.map((r) => {
-          const isPkg = (r.productType || "package") === "package";
+          const normalizedProductType =
+            String(r.productType || "package").toLowerCase() === "package"
+              ? "package"
+              : "amount";
+          const isPkg = normalizedProductType === "package";
           const safeMinQty = isPkg ? 1 : sanitizeQty(r.minQty ?? r.minQuantity, 1);
           const safeMaxQty = isPkg ? 1 : sanitizeQty(r.maxQty ?? r.maxQuantity, safeMinQty);
           return {
@@ -3824,7 +3835,8 @@ router.post("/admin/import-products", requireAdmin, async (req, res) => {
             groupId: sanitizeGroupId(r.groupId),
             priceUsd: String(r.priceUsd ?? "0"),
             priceSyp: String(r.priceSyp ?? "0"),
-            productType: sanitizeNullable(r.productType) || "package",
+            // Task #96e: normalize to lowercase + validate enum
+            productType: normalizedProductType,
             image: sanitizeNullable(r.image) || "/cat-cards.webp",
             minQuantity: safeMinQty,
             maxQuantity: safeMaxQty,
@@ -4678,11 +4690,15 @@ router.post("/admin/providers/:id/sync", requireAdmin, async (req, res) => {
       // تحديث المنتج الموجود فقط – لا نقوم بإدراج جديد
       if (existingProdId) {
         const quantityInfo = parseProviderQuantityValues((p as any).rawData?.qty_values);
+        const normalizedProductType =
+          String(p.productType || "package").toLowerCase() === "package"
+            ? "package"
+            : "amount";
         await db.execute(sql`
           UPDATE products SET
             base_price_usd = ${String(p.price)},
             provider_unit_price = ${String(p.price)},
-            product_type = ${p.productType},
+            product_type = ${normalizedProductType},
             available = ${p.available},
             min_qty = ${p.minQty ? String(p.minQty) : null},
             max_qty = ${p.maxQty ? String(p.maxQty) : null},
@@ -4774,8 +4790,10 @@ router.get("/admin/providers/:id/products", requireAdmin, async (req, res) => {
 
     // إعادة قائمة بالمعلومات الأساسية فقط (id, name, price)
     const list = products.map((p) => {
-      const typeVal = p.productType;
-      const normalizedType = typeof typeVal === "string" ? typeVal.toLowerCase() : (typeVal != null ? String(typeVal).toLowerCase() : "custom");
+      const normalizedType =
+        String(p.productType || "amount").toLowerCase() === "package"
+          ? "package"
+          : "amount";
       return {
         id: p.id,
         name: p.name,
@@ -5048,7 +5066,7 @@ router.get("/admin/provider-products/:providerId", requireAdmin, async (req, res
         maxQty: p.maxQuantity || p.maxQty || null,
         quantityType: p.quantityType || "fixed",
         quantityValues: p.quantityValues || null,
-        productType: p.productType || "amount",
+        productType: String(p.productType || "amount").toLowerCase() === "package" ? "package" : "amount",
         params: p.description ? [p.description] : [],
         description: p.description || "",
         providerId: provider.id,
@@ -5080,7 +5098,7 @@ router.get("/admin/provider-products/:providerId", requireAdmin, async (req, res
         maxQty: rp.maxQty ?? null,
         quantityType: rp.quantityType || "fixed",
         quantityValues: rp.quantityValues || null,
-        productType: rp.productType || "amount",
+        productType: String(rp.productType || "amount").toLowerCase() === "package" ? "package" : "amount",
         params: rp.rawData?.params || (rp.description ? [rp.description] : []),
         description: rp.description || "",
         providerId: provider.id,
@@ -5149,7 +5167,7 @@ router.get("/admin/provider-products/:providerId/:productId", requireAdmin, asyn
       maxQty: found.maxQty ?? null,
       quantityType: found.quantityType || "fixed",
       quantityValues: found.quantityValues || null,
-      productType: found.productType || "amount",
+      productType: String(found.productType || "amount").toLowerCase() === "package" ? "package" : "amount",
       params: found.rawData?.params || (found.description ? [found.description] : []),
       description: found.description || "",
       providerId: provider.id,
@@ -5276,7 +5294,11 @@ router.post("/admin/provider-products/import", requireAdmin, async (req, res) =>
       const finalPrice = String(item.finalUnitPrice ?? item.priceUsd ?? item.price ?? costPrice);
       const profit = String(item.storeProfitPerUnit ?? (Number(finalPrice) - Number(costPrice)).toFixed(4));
 
-      const isPkg = item.productType === "package";
+      const normalizedProductType =
+        String(item.productType || "amount").toLowerCase() === "package"
+          ? "package"
+          : "amount";
+      const isPkg = normalizedProductType === "package";
       const safeMinQty = isPkg ? 1 : sanitizeQty(item.minQty ?? item.minQuantity, 1);
       const safeMaxQty = isPkg ? 1 : sanitizeQty(item.maxQty ?? item.maxQuantity, safeMinQty);
       const productPayload: any = {
@@ -5301,7 +5323,10 @@ router.post("/admin/provider-products/import", requireAdmin, async (req, res) =>
         maxQty: safeMaxQty,
         quantityType: isPkg ? "fixed" : (sanitizeNullable(item.quantityType) || "fixed"),
         quantityValues: isPkg ? null : sanitizeQuantityValues(item.quantityValues),
-        productType: sanitizeNullable(item.productType) || "amount",
+        // Task #96e: normalize to lowercase + validate enum
+        productType: String(item.productType || "amount").toLowerCase() === "package"
+          ? "package"
+          : "amount",
         params: sanitizeParams(item.params || item.rawData?.params || item.description),
         description:
           sanitizeNullable(item.description) ||

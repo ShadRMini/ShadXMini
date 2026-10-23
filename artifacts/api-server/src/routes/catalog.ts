@@ -45,7 +45,7 @@ function productRow(p: typeof productsTable.$inferSelect, categoryName: string) 
     } catch {}
   }
 
-  const isPackage = p.productType === "package";
+  const isPackage = String(p.productType || "amount").toLowerCase() === "package";
   const effectiveQty = isPackage ? 1 : safeMinQty;
 
   return {
@@ -59,7 +59,10 @@ function productRow(p: typeof productsTable.$inferSelect, categoryName: string) 
     priceUsd: finalPriceUsd,
     minTotalUsd: Number((finalPriceUsd * effectiveQty).toFixed(8)),
     priceSyp: Number(p.priceSyp),
-    productType: p.productType as "amount" | "package",
+    // Task #96e: normalize (defensive) even if DB has uppercase
+    productType: (String(p.productType || "amount").toLowerCase() === "package"
+      ? "package"
+      : "amount") as "amount" | "package",
     isSingleQuantity: isPackage,
     available: p.available,
     minQty: isPackage ? 1 : safeMinQty,

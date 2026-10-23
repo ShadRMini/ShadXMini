@@ -150,7 +150,10 @@ export class MersalAdapter implements ProviderAdapter {
         maxQty: quantityInfo.maxQuantity ?? undefined,
         quantityType: quantityInfo.quantityType,
         quantityValues: quantityInfo.quantityValues ?? null,
-        productType: p.product_type,
+        // Task #96e: normalize productType (handle "Package", "PACKAGE", "Amount", etc)
+        productType: String(p.product_type || "package").toLowerCase() === "package"
+          ? "package"
+          : "amount",
         params: Array.isArray(p.params) ? p.params : (p.params ? [String(p.params)] : undefined),
         description: Array.isArray(p.params) ? p.params.join(", ") : (p.params ? String(p.params) : undefined),
         rawData: p,
