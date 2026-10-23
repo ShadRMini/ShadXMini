@@ -340,20 +340,16 @@ async function approveShamCashDepositAtomic(params: {
         throw new Error("DEPOSIT_NOT_PENDING");
       }
 
-      // 6. زيادة الرصيد (آخر خطوة داخل المعاملة)
-      const col = dep.currency === "SYP" ? "balanceSyp" : "balanceUsd";
-      const amount = dep.currency === "SYP" ? dep.amountSyp : dep.amountUsd;
-      if (!amount || Number(amount) <= 0) {
+      // 6. زيادة الرصيد — دائماً بالدولار (balance_usd) حتى للإيداعات بالليرة
+      const amountUsd = Number(dep.amountUsd);
+      if (!amountUsd || amountUsd <= 0) {
         throw new Error("INVALID_AMOUNT");
       }
 
       await tx
         .update(usersTable)
         .set({
-          [col]:
-            col === "balanceSyp"
-              ? sql`${usersTable.balanceSyp} + ${amount}`
-              : sql`${usersTable.balanceUsd} + ${amount}`,
+          balanceUsd: sql`${usersTable.balanceUsd} + ${amountUsd}`,
         })
         .where(eq(usersTable.id, dep.userId));
 
@@ -1126,16 +1122,12 @@ async function applyDepositStatusChangeAuto(id: number, status: "approved" | "re
   if (!dep) return { error: "not_found" as const };
 
   if (status === "approved" && dep.status !== "approved") {
-    const col = dep.currency === "SYP" ? "balanceSyp" : "balanceUsd";
-    const amount = dep.currency === "SYP" ? dep.amountSyp : dep.amountUsd;
-    if (amount) {
+    const amountUsd = Number(dep.amountUsd);
+    if (amountUsd && amountUsd > 0) {
       await db
         .update(usersTable)
         .set({
-          [col]:
-            col === "balanceSyp"
-              ? sql`${usersTable.balanceSyp} + ${amount}`
-              : sql`${usersTable.balanceUsd} + ${amount}`,
+          balanceUsd: sql`${usersTable.balanceUsd} + ${amountUsd}`,
         })
         .where(eq(usersTable.id, dep.userId));
     }

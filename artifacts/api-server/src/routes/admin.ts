@@ -172,10 +172,18 @@ async function applyUserBalanceAdjustment(userId: number, body: any) {
 
   const query = db
     .update(usersTable)
-    .set({ [field]: sql`${col} + ${adjustment.deltaText}` })
+    .set({
+      [field]:
+        adjustment.operation === "sub"
+          ? sql`GREATEST(0, ${col} - ${adjustment.amountText})`
+          : sql`${col} + ${adjustment.deltaText}`,
+    })
     .where(
       adjustment.operation === "sub"
-        ? and(eq(usersTable.id, userId), sql`${col} >= ${adjustment.amountText}`)
+        ? and(
+            eq(usersTable.id, userId),
+            sql`ROUND(${col}::numeric, 2) >= ${adjustment.amountText}`,
+          )
         : eq(usersTable.id, userId),
     )
     .returning();
@@ -270,16 +278,12 @@ async function applyDepositStatusChange(id: number, status: string, note?: strin
     }
 
     if (status === "approved" && dep.status !== "approved") {
-      const col = dep.currency === "SYP" ? "balanceSyp" : "balanceUsd";
-      const amount = dep.currency === "SYP" ? dep.amountSyp : dep.amountUsd;
-      if (amount && Number(amount) > 0) {
+      const amountUsd = Number(dep.amountUsd);
+      if (amountUsd && amountUsd > 0) {
         await tx
           .update(usersTable)
           .set({
-            [col]:
-              col === "balanceSyp"
-                ? sql`${usersTable.balanceSyp} + ${amount}`
-                : sql`${usersTable.balanceUsd} + ${amount}`,
+            balanceUsd: sql`${usersTable.balanceUsd} + ${amountUsd}`,
           })
           .where(eq(usersTable.id, dep.userId));
       }

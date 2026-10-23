@@ -104,16 +104,12 @@ async function applyDepositDecision(depositId: number, status: "approved" | "rej
   if (dep.status !== "pending") return { ok: false as const, message: `تمت معالجته مسبقاً (${dep.status})` };
 
   if (status === "approved") {
-    const col = dep.currency === "SYP" ? "balanceSyp" : "balanceUsd";
-    const amount = dep.currency === "SYP" ? dep.amountSyp : dep.amountUsd;
-    if (amount) {
+    const amountUsd = Number(dep.amountUsd);
+    if (amountUsd && amountUsd > 0) {
       await db
         .update(usersTable)
         .set({
-          [col]:
-            col === "balanceSyp"
-              ? sql`${usersTable.balanceSyp} + ${amount}`
-              : sql`${usersTable.balanceUsd} + ${amount}`,
+          balanceUsd: sql`${usersTable.balanceUsd} + ${amountUsd}`,
         })
         .where(eq(usersTable.id, dep.userId));
     }

@@ -1,5 +1,5 @@
-import { db } from "@workspace/db";
-import { sql } from "drizzle-orm";
+import { db, settingsTable } from "@workspace/db";
+import { eq, sql } from "drizzle-orm";
 
 let schemaEnsured = false;
 
@@ -1380,9 +1380,57 @@ export async function ensureDatabaseSchema() {
     `);
     console.log("[ensureSchema] ✅ Performance indexes (products, orders, deposits, notifications) ensured");
 
+    // 20. One-time SYP balance migration to USD (C15d)
+    await migrateSypBalancesToUsd();
+
     schemaEnsured = true;
     console.log("[DB Schema] Runtime schema verified and synchronized successfully.");
   } catch (error) {
     console.warn("[DB Schema] Error ensuring runtime schema columns:", error);
   }
 }
+
+async function migrateSypBalancesToUsd() {
+  try {
+    // 1. هل شُغّل الـ migration مسبقاً؟
+    const [flag] = await db
+      .select()
+      .from(settingsTable)
+      .where(eq(settingsTable.key, "migration_syp_to_usd_v1"))
+      .limit(1);
+    if (flag) return; // تم مسبقاً
+
+    // 2. قراءة سعر الصرف
+    const [rateRow] = await db
+      .select()
+      .from(settingsTable)
+      .where(eq(settingsTable.key, "usd_to_syp"))
+      .limit(1);
+    const rate = rateRow ? Number(rateRow.value) || 145 : 145;
+
+    // 3. تحويل كل balance_syp > 0 إلى balance_usd
+    const result = await db.execute(sql`
+      UPDATE users
+      SET
+        balance_usd = balance_usd + (balance_syp / ${rate}),
+        balance_syp = 0
+      WHERE balance_syp > 0
+      RETURNING id, username, balance_usd
+    `);
+
+    console.log(
+      `[Migration] Converted SYP balances to USD (rate=${rate}):`,
+      result.rows?.length ?? 0,
+      "users updated"
+    );
+
+    // 4. تسجيل أن الـ migration تم
+    await db
+      .insert(settingsTable)
+      .values({ key: "migration_syp_to_usd_v1", value: new Date().toISOString() })
+      .onConflictDoNothing();
+  } catch (err) {
+    console.error("[Migration] SYP to USD migration failed:", err);
+  }
+}
+

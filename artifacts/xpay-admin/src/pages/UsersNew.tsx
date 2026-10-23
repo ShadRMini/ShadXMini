@@ -1174,10 +1174,26 @@ export default function UsersNew() {
               </div>
 
               <div>
-                <label className="block text-zinc-300 font-semibold mb-1">المبلغ المطلوب ($)</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-zinc-300 font-semibold">المبلغ المطلوب ($)</label>
+                  {balanceForm.operation === "sub" && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setBalanceForm({
+                          ...balanceForm,
+                          amount: String(Number(balanceUser.balanceUsd || 0).toFixed(2)),
+                        })
+                      }
+                      className="text-[11px] text-amber-400 hover:underline cursor-pointer"
+                    >
+                      سحب كامل الرصيد (${Number(balanceUser.balanceUsd || 0).toFixed(2)})
+                    </button>
+                  )}
+                </div>
                 <input
                   type="number"
-                  step="0.01"
+                  step="any"
                   required
                   value={balanceForm.amount}
                   onChange={(e) => setBalanceForm({ ...balanceForm, amount: e.target.value })}

@@ -171,8 +171,12 @@ export function DepositInvoicePay() {
           } else if (data.status === "rejected") {
             setStatus("rejected");
           }
-          if (data.amountUsd) setAmount(data.amountUsd);
           if (data.currency) setCurrency(data.currency);
+          if (data.currency === "SYP" && data.amountSyp) {
+            setAmount(data.amountSyp);
+          } else if (data.amountUsd) {
+            setAmount(data.amountUsd);
+          }
         }
       } catch {
         // silent poll error
@@ -352,11 +356,14 @@ export function DepositInvoicePay() {
             </label>
             <Input
               type="text"
+              dir="ltr"
+              inputMode="numeric"
+              pattern="[0-9]*"
               required
               disabled={verifying || isExpired || status === "approved"}
               placeholder="مثال: 123456789"
               value={transactionRef}
-              onChange={(e) => setTransactionRef(e.target.value)}
+              onChange={(e) => setTransactionRef(e.target.value.replace(/\D+/g, ""))}
               className="h-12 rounded-xl text-left font-mono font-bold text-base px-4 bg-[var(--theme-input-bg)] border-[var(--theme-border)] text-[var(--theme-text-primary)] focus:border-[var(--theme-primary)] tracking-wider"
             />
           </div>
