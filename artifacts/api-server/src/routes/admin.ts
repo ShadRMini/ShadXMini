@@ -1282,18 +1282,35 @@ async function sanitizeCrudDataForRuntimeSchema(path: string, data: any): Promis
     if ("providerUnitPrice" in normalized) normalizeDecimalField(normalized, "providerUnitPrice", { nullable: true });
     if ("storeProfitPerUnit" in normalized) normalizeDecimalField(normalized, "storeProfitPerUnit", { required: true });
     if ("finalUnitPrice" in normalized) normalizeDecimalField(normalized, "finalUnitPrice", { nullable: true });
-    if ("minQty" in normalized) normalizeNumberField(normalized, "minQty", { nullable: true });
-    if ("maxQty" in normalized) normalizeNumberField(normalized, "maxQty", { nullable: true });
-    if ("minQuantity" in normalized) normalizeNumberField(normalized, "minQuantity", { nullable: true });
-    if ("maxQuantity" in normalized) normalizeNumberField(normalized, "maxQuantity", { nullable: true });
+    if ("minQty" in normalized) {
+      normalizeNumberField(normalized, "minQty", { nullable: true });
+      if (normalized.minQty != null) normalized.minQty = sanitizeQty(normalized.minQty, 1);
+    }
+    if ("maxQty" in normalized) {
+      normalizeNumberField(normalized, "maxQty", { nullable: true });
+      if (normalized.maxQty != null) normalized.maxQty = sanitizeQty(normalized.maxQty, normalized.minQty ?? 1);
+    }
+    if ("minQuantity" in normalized) {
+      normalizeNumberField(normalized, "minQuantity", { nullable: true });
+      if (normalized.minQuantity != null) normalized.minQuantity = sanitizeQty(normalized.minQuantity, 1);
+    }
+    if ("maxQuantity" in normalized) {
+      normalizeNumberField(normalized, "maxQuantity", { nullable: true });
+      if (normalized.maxQuantity != null) normalized.maxQuantity = sanitizeQty(normalized.maxQuantity, normalized.minQuantity ?? 1);
+    }
     if (isBlank(normalized.quantityType) || !["fixed", "range", "list"].includes(String(normalized.quantityType))) {
       normalized.quantityType = "fixed";
     }
-    if (isBlank(normalized.quantityValues)) {
-      normalized.quantityValues = null;
+    if ("quantityValues" in normalized) {
+      normalized.quantityValues = sanitizeQuantityValues(normalized.quantityValues);
+    }
+    if ("params" in normalized) {
+      normalized.params = sanitizeParams(normalized.params);
     }
     if ("providerId" in normalized) normalizeNumberField(normalized, "providerId", { nullable: true });
-    if ("groupId" in normalized) normalizeNumberField(normalized, "groupId", { nullable: true });
+    if ("groupId" in normalized) {
+      normalized.groupId = sanitizeGroupId(normalized.groupId);
+    }
     if ("providerProductId" in normalized) {
       normalizeNumberField(normalized, "providerProductId", { nullable: true });
     }
@@ -1446,24 +1463,61 @@ async function sanitizeCrudDataForRuntimeSchema(path: string, data: any): Promis
 }
 
 // ========== RESOURCES ==========
-// Cascade delete للفئات: حذف المنتجات المرتبطة ثم حذف الفئة
+// Cascade / Archive-first delete للفئات: أرشفة إذا وُجدت طلبات مرتبطة، أو حذف المنتجات ثم الفئة
 router.delete("/admin/categories/:id", requireAdmin, async (req, res) => {
-  const categoryId = Number(req.params.id);
-  
-  // حذف جميع المنتجات المرتبطة بهذه الفئة
-  await db.execute(sql`DELETE FROM products WHERE category_id = ${categoryId}`);
-  
-  // حذف الفئة نفسها
-  await db.delete(categoriesTable).where(eq(categoriesTable.id, categoryId));
-  
-  await logActivity(
-    { id: req.session.adminId, name: req.session.adminUsername },
-    "delete",
-    "categories",
-    { id: categoryId, cascade: true }
-  );
-  
-  res.json({ ok: true });
+  try {
+    const categoryId = Number(req.params.id);
+
+    const [hasOrders] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(ordersTable)
+      .innerJoin(productsTable, eq(ordersTable.productId, productsTable.id))
+      .where(eq(productsTable.categoryId, categoryId));
+
+    if (Number(hasOrders?.count ?? 0) > 0) {
+      // Archive instead of delete — orders reference these products
+      await db
+        .update(productsTable)
+        .set({ available: false, active: false, featured: false } as any)
+        .where(eq(productsTable.categoryId, categoryId));
+      await db
+        .update(categoriesTable)
+        .set({ active: false } as any)
+        .where(eq(categoriesTable.id, categoryId));
+
+      await logActivity(
+        { id: req.session.adminId, name: req.session.adminUsername },
+        "archive",
+        "categories",
+        { id: categoryId, reason: "category_has_orders" }
+      );
+
+      return res.json({
+        ok: true,
+        archived: true,
+        message: "تم أرشفة المنتجات لوجود طلبات",
+      });
+    }
+
+    // لا توجد طلبات مرتبطة — حذف الأكواد التلقائية والمنتجات والمجموعات ثم الفئة
+    await db.execute(sql`DELETE FROM auto_codes WHERE product_id IN (SELECT id FROM products WHERE category_id = ${categoryId})`);
+    await db.execute(sql`DELETE FROM products WHERE category_id = ${categoryId}`);
+    await db.execute(sql`DELETE FROM product_groups WHERE category_id = ${categoryId}`);
+    await db.delete(categoriesTable).where(eq(categoriesTable.id, categoryId));
+
+    await logActivity(
+      { id: req.session.adminId, name: req.session.adminUsername },
+      "delete",
+      "categories",
+      { id: categoryId, cascade: true }
+    );
+
+    res.json({ ok: true });
+  } catch (error: any) {
+    console.error("Delete category failed:", error);
+    const httpErr = toHttpError(error);
+    res.status(httpErr.status).json({ error: httpErr.message });
+  }
 });
 
 
@@ -3733,41 +3787,69 @@ router.post("/admin/backup", requireAdmin, async (_req, res) => {
 
 // ========== IMPORT PRODUCTS ==========
 router.post("/admin/import-products", requireAdmin, async (req, res) => {
-  const { rows } = req.body as {
-    rows: Array<{
-      name: string;
-      categoryId: number;
-      priceUsd: number;
-      priceSyp: number;
-      productType?: string;
-      image?: string;
-    }>;
-  };
-  if (!Array.isArray(rows) || rows.length === 0) {
-    res.status(400).json({ error: "لا توجد بيانات" });
-    return;
+  try {
+    const { rows } = req.body as {
+      rows: Array<{
+        name: string;
+        categoryId: number;
+        groupId?: number | string | null;
+        priceUsd: number;
+        priceSyp: number;
+        productType?: string;
+        image?: string;
+        minQty?: number | string | null;
+        maxQty?: number | string | null;
+        minQuantity?: number | string | null;
+        maxQuantity?: number | string | null;
+        quantityType?: string | null;
+        quantityValues?: any;
+        params?: any;
+        description?: string | null;
+      }>;
+    };
+    if (!Array.isArray(rows) || rows.length === 0) {
+      res.status(400).json({ error: "لا توجد بيانات" });
+      return;
+    }
+    const inserted = await db
+      .insert(productsTable)
+      .values(
+        rows.map((r) => {
+          const isPkg = (r.productType || "package") === "package";
+          const safeMinQty = isPkg ? 1 : sanitizeQty(r.minQty ?? r.minQuantity, 1);
+          const safeMaxQty = isPkg ? 1 : sanitizeQty(r.maxQty ?? r.maxQuantity, safeMinQty);
+          return {
+            name: String(r.name || "").trim(),
+            categoryId: Number(r.categoryId),
+            groupId: sanitizeGroupId(r.groupId),
+            priceUsd: String(r.priceUsd ?? "0"),
+            priceSyp: String(r.priceSyp ?? "0"),
+            productType: sanitizeNullable(r.productType) || "package",
+            image: sanitizeNullable(r.image) || "/cat-cards.webp",
+            minQuantity: safeMinQty,
+            maxQuantity: safeMaxQty,
+            minQty: String(safeMinQty),
+            maxQty: String(safeMaxQty),
+            quantityType: (isPkg ? "fixed" : (sanitizeNullable(r.quantityType) || "fixed")) as any,
+            quantityValues: isPkg ? null : sanitizeQuantityValues(r.quantityValues),
+            params: sanitizeParams(r.params),
+            description: sanitizeNullable(r.description) || "",
+            source: "import",
+          };
+        }),
+      )
+      .returning();
+    await logActivity(
+      { id: req.session.adminId, name: req.session.adminUsername },
+      "import_products",
+      "products",
+      { count: inserted.length },
+    );
+    res.json({ ok: true, count: inserted.length });
+  } catch (error: any) {
+    console.error("Import products error:", error);
+    res.status(500).json({ error: error.message || "فشل استيراد المنتجات" });
   }
-  const inserted = await db
-    .insert(productsTable)
-    .values(
-      rows.map((r) => ({
-        name: r.name,
-        categoryId: r.categoryId,
-        priceUsd: String(r.priceUsd),
-        priceSyp: String(r.priceSyp),
-        productType: r.productType || "package",
-        image: r.image || "/cat-cards.webp",
-        source: "import",
-      })),
-    )
-    .returning();
-  await logActivity(
-    { id: req.session.adminId, name: req.session.adminUsername },
-    "import_products",
-    "products",
-    { count: inserted.length },
-  );
-  res.json({ ok: true, count: inserted.length });
 });
 
 // ================================================================
@@ -4327,9 +4409,41 @@ router.post("/admin/bulk-delete", requireAdmin, async (req, res) => {
   try {
     // تنفيذ الحذف المتسلسل حسب المورد
     if (resource === "categories") {
+      let deleted = 0;
+      let archived = 0;
       for (const id of ids) {
-        await db.execute(sql`DELETE FROM products WHERE category_id = ${id}`);
+        const [hasOrders] = await db
+          .select({ count: sql<number>`count(*)` })
+          .from(ordersTable)
+          .innerJoin(productsTable, eq(ordersTable.productId, productsTable.id))
+          .where(eq(productsTable.categoryId, id));
+
+        if (Number(hasOrders?.count ?? 0) > 0) {
+          await db
+            .update(productsTable)
+            .set({ available: false, active: false, featured: false } as any)
+            .where(eq(productsTable.categoryId, id));
+          await db
+            .update(categoriesTable)
+            .set({ active: false } as any)
+            .where(eq(categoriesTable.id, id));
+          archived += 1;
+        } else {
+          await db.execute(sql`DELETE FROM auto_codes WHERE product_id IN (SELECT id FROM products WHERE category_id = ${id})`);
+          await db.execute(sql`DELETE FROM products WHERE category_id = ${id}`);
+          await db.execute(sql`DELETE FROM product_groups WHERE category_id = ${id}`);
+          await db.delete(categoriesTable).where(eq(categoriesTable.id, id));
+          deleted += 1;
+        }
       }
+      await logActivity(
+        { id: req.session.adminId, name: req.session.adminUsername },
+        "bulk_delete",
+        resource,
+        { ids, deleted, archived },
+      );
+      res.json({ ok: true, deleted, archived });
+      return;
     } else if (resource === "products") {
       let deleted = 0;
       let archived = 0;
@@ -5096,6 +5210,14 @@ function sanitizeQuantityValues(value: any): any[] | null {
   return null;
 }
 
+const MAX_SAFE_QTY = 1_000_000_000; // 1 billion (safe for integer + numeric(14,2))
+
+function sanitizeQty(value: any, fallback = 1): number {
+  const n = Number(value);
+  if (!Number.isFinite(n) || n < 1) return fallback;
+  return Math.min(Math.floor(n), MAX_SAFE_QTY);
+}
+
 // Import products (Single or Batch with rich attributes)
 router.post("/admin/provider-products/import", requireAdmin, async (req, res) => {
   try {
@@ -5155,8 +5277,8 @@ router.post("/admin/provider-products/import", requireAdmin, async (req, res) =>
       const profit = String(item.storeProfitPerUnit ?? (Number(finalPrice) - Number(costPrice)).toFixed(4));
 
       const isPkg = item.productType === "package";
-      const safeMinQty = isPkg ? 1 : Math.max(1, Number(item.minQty ?? item.minQuantity) || 1);
-      const safeMaxQty = isPkg ? 1 : Math.max(1, Number(item.maxQty ?? item.maxQuantity) || 1);
+      const safeMinQty = isPkg ? 1 : sanitizeQty(item.minQty ?? item.minQuantity, 1);
+      const safeMaxQty = isPkg ? 1 : sanitizeQty(item.maxQty ?? item.maxQuantity, safeMinQty);
       const productPayload: any = {
         name,
         priceUsd: finalPrice,
